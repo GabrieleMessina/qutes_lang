@@ -1,4 +1,4 @@
-grammar Qutes;
+grammar qutes;
 
 // ----- Reserved keyword ----- 
 ADD : '+' ;

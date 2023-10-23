@@ -6,7 +6,7 @@
 	],
 	"settings": {
 		"antlr4.generation": {
-			"outputDir": "QutesAntlr",
+			"outputDir": "qutes_antlr",
 			"mode": "external",
 			"language": "Python3",
 			"listeners": true,
@@ -14,6 +14,7 @@
 		},
 		"cSpell.words": [
 			"Antlr"
-		]
+		],
+		"pylint.importStrategy": "fromEnvironment"
 	}
 }

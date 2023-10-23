@@ -1,4 +1,4 @@
-# Generated from d:/Users/gabry/Universita/quantum_computing/qutes_lang/Qutes.g4 by ANTLR 4.13.1
+# Generated from /workspaces/qutes_lang/qutes.g4 by ANTLR 4.13.1
 # encoding: utf-8
 from antlr4 import *
 from io import StringIO
@@ -45,9 +45,9 @@ def serializedATN():
         54,62,71,78,84,91
     ]
 
-class QutesParser ( Parser ):
+class qutesParser ( Parser ):
 
-    grammarFileName = "Qutes.g4"
+    grammarFileName = "qutes.g4"
 
     atn = ATNDeserializer().deserialize(serializedATN())
 
@@ -122,13 +122,13 @@ class QutesParser ( Parser ):
 
         def statement(self, i:int=None):
             if i is None:
-                return self.getTypedRuleContexts(QutesParser.StatementContext)
+                return self.getTypedRuleContexts(qutesParser.StatementContext)
             else:
-                return self.getTypedRuleContext(QutesParser.StatementContext,i)
+                return self.getTypedRuleContext(qutesParser.StatementContext,i)
 
 
         def getRuleIndex(self):
-            return QutesParser.RULE_program
+            return qutesParser.RULE_program
 
         def enterRule(self, listener:ParseTreeListener):
             if hasattr( listener, "enterProgram" ):
@@ -149,7 +149,7 @@ class QutesParser ( Parser ):
 
     def program(self):
 
-        localctx = QutesParser.ProgramContext(self, self._ctx, self.state)
+        localctx = qutesParser.ProgramContext(self, self._ctx, self.state)
         self.enterRule(localctx, 0, self.RULE_program)
         self._la = 0 # Token type
         try:
@@ -184,7 +184,7 @@ class QutesParser ( Parser ):
 
 
         def getRuleIndex(self):
-            return QutesParser.RULE_statement
+            return qutesParser.RULE_statement
 
      
         def copyFrom(self, ctx:ParserRuleContext):
@@ -194,17 +194,17 @@ class QutesParser ( Parser ):
 
     class IfStatementContext(StatementContext):
 
-        def __init__(self, parser, ctx:ParserRuleContext): # actually a QutesParser.StatementContext
+        def __init__(self, parser, ctx:ParserRuleContext): # actually a qutesParser.StatementContext
             super().__init__(parser)
             self.copyFrom(ctx)
 
         def IF_STATEMENT(self):
-            return self.getToken(QutesParser.IF_STATEMENT, 0)
+            return self.getToken(qutesParser.IF_STATEMENT, 0)
         def paren_expr(self):
-            return self.getTypedRuleContext(QutesParser.Paren_exprContext,0)
+            return self.getTypedRuleContext(qutesParser.Paren_exprContext,0)
 
         def statement(self):
-            return self.getTypedRuleContext(QutesParser.StatementContext,0)
+            return self.getTypedRuleContext(qutesParser.StatementContext,0)
 
 
         def enterRule(self, listener:ParseTreeListener):
@@ -224,22 +224,22 @@ class QutesParser ( Parser ):
 
     class AssignmentStatementContext(StatementContext):
 
-        def __init__(self, parser, ctx:ParserRuleContext): # actually a QutesParser.StatementContext
+        def __init__(self, parser, ctx:ParserRuleContext): # actually a qutesParser.StatementContext
             super().__init__(parser)
             self.copyFrom(ctx)
 
         def variableName(self):
-            return self.getTypedRuleContext(QutesParser.VariableNameContext,0)
+            return self.getTypedRuleContext(qutesParser.VariableNameContext,0)
 
         def ASSIGN(self):
-            return self.getToken(QutesParser.ASSIGN, 0)
+            return self.getToken(qutesParser.ASSIGN, 0)
         def END_OF_STATEMENT(self):
-            return self.getToken(QutesParser.END_OF_STATEMENT, 0)
+            return self.getToken(qutesParser.END_OF_STATEMENT, 0)
         def expr(self):
-            return self.getTypedRuleContext(QutesParser.ExprContext,0)
+            return self.getTypedRuleContext(qutesParser.ExprContext,0)
 
         def paren_expr(self):
-            return self.getTypedRuleContext(QutesParser.Paren_exprContext,0)
+            return self.getTypedRuleContext(qutesParser.Paren_exprContext,0)
 
 
         def enterRule(self, listener:ParseTreeListener):
@@ -259,15 +259,15 @@ class QutesParser ( Parser ):
 
     class ExpressionStatementContext(StatementContext):
 
-        def __init__(self, parser, ctx:ParserRuleContext): # actually a QutesParser.StatementContext
+        def __init__(self, parser, ctx:ParserRuleContext): # actually a qutesParser.StatementContext
             super().__init__(parser)
             self.copyFrom(ctx)
 
         def expr(self):
-            return self.getTypedRuleContext(QutesParser.ExprContext,0)
+            return self.getTypedRuleContext(qutesParser.ExprContext,0)
 
         def END_OF_STATEMENT(self):
-            return self.getToken(QutesParser.END_OF_STATEMENT, 0)
+            return self.getToken(qutesParser.END_OF_STATEMENT, 0)
 
         def enterRule(self, listener:ParseTreeListener):
             if hasattr( listener, "enterExpressionStatement" ):
@@ -286,23 +286,23 @@ class QutesParser ( Parser ):
 
     class IfElseStatementContext(StatementContext):
 
-        def __init__(self, parser, ctx:ParserRuleContext): # actually a QutesParser.StatementContext
+        def __init__(self, parser, ctx:ParserRuleContext): # actually a qutesParser.StatementContext
             super().__init__(parser)
             self.copyFrom(ctx)
 
         def IF_STATEMENT(self):
-            return self.getToken(QutesParser.IF_STATEMENT, 0)
+            return self.getToken(qutesParser.IF_STATEMENT, 0)
         def paren_expr(self):
-            return self.getTypedRuleContext(QutesParser.Paren_exprContext,0)
+            return self.getTypedRuleContext(qutesParser.Paren_exprContext,0)
 
         def statement(self, i:int=None):
             if i is None:
-                return self.getTypedRuleContexts(QutesParser.StatementContext)
+                return self.getTypedRuleContexts(qutesParser.StatementContext)
             else:
-                return self.getTypedRuleContext(QutesParser.StatementContext,i)
+                return self.getTypedRuleContext(qutesParser.StatementContext,i)
 
         def ELSE_STATEMENT(self):
-            return self.getToken(QutesParser.ELSE_STATEMENT, 0)
+            return self.getToken(qutesParser.ELSE_STATEMENT, 0)
 
         def enterRule(self, listener:ParseTreeListener):
             if hasattr( listener, "enterIfElseStatement" ):
@@ -321,12 +321,12 @@ class QutesParser ( Parser ):
 
     class EmptyStatementContext(StatementContext):
 
-        def __init__(self, parser, ctx:ParserRuleContext): # actually a QutesParser.StatementContext
+        def __init__(self, parser, ctx:ParserRuleContext): # actually a qutesParser.StatementContext
             super().__init__(parser)
             self.copyFrom(ctx)
 
         def END_OF_STATEMENT(self):
-            return self.getToken(QutesParser.END_OF_STATEMENT, 0)
+            return self.getToken(qutesParser.END_OF_STATEMENT, 0)
 
         def enterRule(self, listener:ParseTreeListener):
             if hasattr( listener, "enterEmptyStatement" ):
@@ -345,19 +345,19 @@ class QutesParser ( Parser ):
 
     class BlockStatementContext(StatementContext):
 
-        def __init__(self, parser, ctx:ParserRuleContext): # actually a QutesParser.StatementContext
+        def __init__(self, parser, ctx:ParserRuleContext): # actually a qutesParser.StatementContext
             super().__init__(parser)
             self.copyFrom(ctx)
 
         def BLOCK_STATEMENT_START(self):
-            return self.getToken(QutesParser.BLOCK_STATEMENT_START, 0)
+            return self.getToken(qutesParser.BLOCK_STATEMENT_START, 0)
         def BLOCK_STATEMENT_END(self):
-            return self.getToken(QutesParser.BLOCK_STATEMENT_END, 0)
+            return self.getToken(qutesParser.BLOCK_STATEMENT_END, 0)
         def statement(self, i:int=None):
             if i is None:
-                return self.getTypedRuleContexts(QutesParser.StatementContext)
+                return self.getTypedRuleContexts(qutesParser.StatementContext)
             else:
-                return self.getTypedRuleContext(QutesParser.StatementContext,i)
+                return self.getTypedRuleContext(qutesParser.StatementContext,i)
 
 
         def enterRule(self, listener:ParseTreeListener):
@@ -377,17 +377,17 @@ class QutesParser ( Parser ):
 
     class WhileStatementContext(StatementContext):
 
-        def __init__(self, parser, ctx:ParserRuleContext): # actually a QutesParser.StatementContext
+        def __init__(self, parser, ctx:ParserRuleContext): # actually a qutesParser.StatementContext
             super().__init__(parser)
             self.copyFrom(ctx)
 
         def WHILE_STATEMENT(self):
-            return self.getToken(QutesParser.WHILE_STATEMENT, 0)
+            return self.getToken(qutesParser.WHILE_STATEMENT, 0)
         def paren_expr(self):
-            return self.getTypedRuleContext(QutesParser.Paren_exprContext,0)
+            return self.getTypedRuleContext(qutesParser.Paren_exprContext,0)
 
         def statement(self):
-            return self.getTypedRuleContext(QutesParser.StatementContext,0)
+            return self.getTypedRuleContext(qutesParser.StatementContext,0)
 
 
         def enterRule(self, listener:ParseTreeListener):
@@ -407,19 +407,19 @@ class QutesParser ( Parser ):
 
     class DoWhileStatementContext(StatementContext):
 
-        def __init__(self, parser, ctx:ParserRuleContext): # actually a QutesParser.StatementContext
+        def __init__(self, parser, ctx:ParserRuleContext): # actually a qutesParser.StatementContext
             super().__init__(parser)
             self.copyFrom(ctx)
 
         def DO_STATEMENT(self):
-            return self.getToken(QutesParser.DO_STATEMENT, 0)
+            return self.getToken(qutesParser.DO_STATEMENT, 0)
         def statement(self):
-            return self.getTypedRuleContext(QutesParser.StatementContext,0)
+            return self.getTypedRuleContext(qutesParser.StatementContext,0)
 
         def WHILE_STATEMENT(self):
-            return self.getToken(QutesParser.WHILE_STATEMENT, 0)
+            return self.getToken(qutesParser.WHILE_STATEMENT, 0)
         def paren_expr(self):
-            return self.getTypedRuleContext(QutesParser.Paren_exprContext,0)
+            return self.getTypedRuleContext(qutesParser.Paren_exprContext,0)
 
 
         def enterRule(self, listener:ParseTreeListener):
@@ -440,7 +440,7 @@ class QutesParser ( Parser ):
 
     def statement(self):
 
-        localctx = QutesParser.StatementContext(self, self._ctx, self.state)
+        localctx = qutesParser.StatementContext(self, self._ctx, self.state)
         self.enterRule(localctx, 2, self.RULE_statement)
         self._la = 0 # Token type
         try:
@@ -448,10 +448,10 @@ class QutesParser ( Parser ):
             self._errHandler.sync(self)
             la_ = self._interp.adaptivePredict(self._input,3,self._ctx)
             if la_ == 1:
-                localctx = QutesParser.IfStatementContext(self, localctx)
+                localctx = qutesParser.IfStatementContext(self, localctx)
                 self.enterOuterAlt(localctx, 1)
                 self.state = 23
-                self.match(QutesParser.IF_STATEMENT)
+                self.match(qutesParser.IF_STATEMENT)
                 self.state = 24
                 self.paren_expr()
                 self.state = 25
@@ -459,25 +459,25 @@ class QutesParser ( Parser ):
                 pass
 
             elif la_ == 2:
-                localctx = QutesParser.IfElseStatementContext(self, localctx)
+                localctx = qutesParser.IfElseStatementContext(self, localctx)
                 self.enterOuterAlt(localctx, 2)
                 self.state = 27
-                self.match(QutesParser.IF_STATEMENT)
+                self.match(qutesParser.IF_STATEMENT)
                 self.state = 28
                 self.paren_expr()
                 self.state = 29
                 self.statement()
                 self.state = 30
-                self.match(QutesParser.ELSE_STATEMENT)
+                self.match(qutesParser.ELSE_STATEMENT)
                 self.state = 31
                 self.statement()
                 pass
 
             elif la_ == 3:
-                localctx = QutesParser.WhileStatementContext(self, localctx)
+                localctx = qutesParser.WhileStatementContext(self, localctx)
                 self.enterOuterAlt(localctx, 3)
                 self.state = 33
-                self.match(QutesParser.WHILE_STATEMENT)
+                self.match(qutesParser.WHILE_STATEMENT)
                 self.state = 34
                 self.paren_expr()
                 self.state = 35
@@ -485,23 +485,23 @@ class QutesParser ( Parser ):
                 pass
 
             elif la_ == 4:
-                localctx = QutesParser.DoWhileStatementContext(self, localctx)
+                localctx = qutesParser.DoWhileStatementContext(self, localctx)
                 self.enterOuterAlt(localctx, 4)
                 self.state = 37
-                self.match(QutesParser.DO_STATEMENT)
+                self.match(qutesParser.DO_STATEMENT)
                 self.state = 38
                 self.statement()
                 self.state = 39
-                self.match(QutesParser.WHILE_STATEMENT)
+                self.match(qutesParser.WHILE_STATEMENT)
                 self.state = 40
                 self.paren_expr()
                 pass
 
             elif la_ == 5:
-                localctx = QutesParser.BlockStatementContext(self, localctx)
+                localctx = qutesParser.BlockStatementContext(self, localctx)
                 self.enterOuterAlt(localctx, 5)
                 self.state = 42
-                self.match(QutesParser.BLOCK_STATEMENT_START)
+                self.match(qutesParser.BLOCK_STATEMENT_START)
                 self.state = 46
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
@@ -513,16 +513,16 @@ class QutesParser ( Parser ):
                     _la = self._input.LA(1)
 
                 self.state = 49
-                self.match(QutesParser.BLOCK_STATEMENT_END)
+                self.match(qutesParser.BLOCK_STATEMENT_END)
                 pass
 
             elif la_ == 6:
-                localctx = QutesParser.AssignmentStatementContext(self, localctx)
+                localctx = qutesParser.AssignmentStatementContext(self, localctx)
                 self.enterOuterAlt(localctx, 6)
                 self.state = 50
                 self.variableName()
                 self.state = 51
-                self.match(QutesParser.ASSIGN)
+                self.match(qutesParser.ASSIGN)
                 self.state = 54
                 self._errHandler.sync(self)
                 la_ = self._interp.adaptivePredict(self._input,2,self._ctx)
@@ -538,23 +538,23 @@ class QutesParser ( Parser ):
 
 
                 self.state = 56
-                self.match(QutesParser.END_OF_STATEMENT)
+                self.match(qutesParser.END_OF_STATEMENT)
                 pass
 
             elif la_ == 7:
-                localctx = QutesParser.ExpressionStatementContext(self, localctx)
+                localctx = qutesParser.ExpressionStatementContext(self, localctx)
                 self.enterOuterAlt(localctx, 7)
                 self.state = 58
                 self.expr()
                 self.state = 59
-                self.match(QutesParser.END_OF_STATEMENT)
+                self.match(qutesParser.END_OF_STATEMENT)
                 pass
 
             elif la_ == 8:
-                localctx = QutesParser.EmptyStatementContext(self, localctx)
+                localctx = qutesParser.EmptyStatementContext(self, localctx)
                 self.enterOuterAlt(localctx, 8)
                 self.state = 61
-                self.match(QutesParser.END_OF_STATEMENT)
+                self.match(qutesParser.END_OF_STATEMENT)
                 pass
 
 
@@ -575,11 +575,11 @@ class QutesParser ( Parser ):
             self.parser = parser
 
         def expr(self):
-            return self.getTypedRuleContext(QutesParser.ExprContext,0)
+            return self.getTypedRuleContext(qutesParser.ExprContext,0)
 
 
         def getRuleIndex(self):
-            return QutesParser.RULE_paren_expr
+            return qutesParser.RULE_paren_expr
 
         def enterRule(self, listener:ParseTreeListener):
             if hasattr( listener, "enterParen_expr" ):
@@ -600,16 +600,16 @@ class QutesParser ( Parser ):
 
     def paren_expr(self):
 
-        localctx = QutesParser.Paren_exprContext(self, self._ctx, self.state)
+        localctx = qutesParser.Paren_exprContext(self, self._ctx, self.state)
         self.enterRule(localctx, 4, self.RULE_paren_expr)
         try:
             self.enterOuterAlt(localctx, 1)
             self.state = 64
-            self.match(QutesParser.T__0)
+            self.match(qutesParser.T__0)
             self.state = 65
             self.expr()
             self.state = 66
-            self.match(QutesParser.T__1)
+            self.match(qutesParser.T__1)
         except RecognitionException as re:
             localctx.exception = re
             self._errHandler.reportError(self, re)
@@ -627,19 +627,19 @@ class QutesParser ( Parser ):
             self.parser = parser
 
         def term(self):
-            return self.getTypedRuleContext(QutesParser.TermContext,0)
+            return self.getTypedRuleContext(qutesParser.TermContext,0)
 
 
         def test(self):
-            return self.getTypedRuleContext(QutesParser.TestContext,0)
+            return self.getTypedRuleContext(qutesParser.TestContext,0)
 
 
         def paren_expr(self):
-            return self.getTypedRuleContext(QutesParser.Paren_exprContext,0)
+            return self.getTypedRuleContext(qutesParser.Paren_exprContext,0)
 
 
         def getRuleIndex(self):
-            return QutesParser.RULE_expr
+            return qutesParser.RULE_expr
 
         def enterRule(self, listener:ParseTreeListener):
             if hasattr( listener, "enterExpr" ):
@@ -660,7 +660,7 @@ class QutesParser ( Parser ):
 
     def expr(self):
 
-        localctx = QutesParser.ExprContext(self, self._ctx, self.state)
+        localctx = qutesParser.ExprContext(self, self._ctx, self.state)
         self.enterRule(localctx, 6, self.RULE_expr)
         try:
             self.state = 71
@@ -704,28 +704,28 @@ class QutesParser ( Parser ):
 
         def term(self, i:int=None):
             if i is None:
-                return self.getTypedRuleContexts(QutesParser.TermContext)
+                return self.getTypedRuleContexts(qutesParser.TermContext)
             else:
-                return self.getTypedRuleContext(QutesParser.TermContext,i)
+                return self.getTypedRuleContext(qutesParser.TermContext,i)
 
 
         def GREATER(self):
-            return self.getToken(QutesParser.GREATER, 0)
+            return self.getToken(qutesParser.GREATER, 0)
 
         def LOWER(self):
-            return self.getToken(QutesParser.LOWER, 0)
+            return self.getToken(qutesParser.LOWER, 0)
 
         def EQUAL(self):
-            return self.getToken(QutesParser.EQUAL, 0)
+            return self.getToken(qutesParser.EQUAL, 0)
 
         def GREATEREQUAL(self):
-            return self.getToken(QutesParser.GREATEREQUAL, 0)
+            return self.getToken(qutesParser.GREATEREQUAL, 0)
 
         def LOWEREQUAL(self):
-            return self.getToken(QutesParser.LOWEREQUAL, 0)
+            return self.getToken(qutesParser.LOWEREQUAL, 0)
 
         def getRuleIndex(self):
-            return QutesParser.RULE_test
+            return qutesParser.RULE_test
 
         def enterRule(self, listener:ParseTreeListener):
             if hasattr( listener, "enterTest" ):
@@ -746,7 +746,7 @@ class QutesParser ( Parser ):
 
     def test(self):
 
-        localctx = QutesParser.TestContext(self, self._ctx, self.state)
+        localctx = qutesParser.TestContext(self, self._ctx, self.state)
         self.enterRule(localctx, 8, self.RULE_test)
         self._la = 0 # Token type
         try:
@@ -794,32 +794,32 @@ class QutesParser ( Parser ):
             self.op = None # Token
 
         def string(self):
-            return self.getTypedRuleContext(QutesParser.StringContext,0)
+            return self.getTypedRuleContext(qutesParser.StringContext,0)
 
 
         def integer(self):
-            return self.getTypedRuleContext(QutesParser.IntegerContext,0)
+            return self.getTypedRuleContext(qutesParser.IntegerContext,0)
 
 
         def variableName(self):
-            return self.getTypedRuleContext(QutesParser.VariableNameContext,0)
+            return self.getTypedRuleContext(qutesParser.VariableNameContext,0)
 
 
         def term(self, i:int=None):
             if i is None:
-                return self.getTypedRuleContexts(QutesParser.TermContext)
+                return self.getTypedRuleContexts(qutesParser.TermContext)
             else:
-                return self.getTypedRuleContext(QutesParser.TermContext,i)
+                return self.getTypedRuleContext(qutesParser.TermContext,i)
 
 
         def ADD(self):
-            return self.getToken(QutesParser.ADD, 0)
+            return self.getToken(qutesParser.ADD, 0)
 
         def SUB(self):
-            return self.getToken(QutesParser.SUB, 0)
+            return self.getToken(qutesParser.SUB, 0)
 
         def getRuleIndex(self):
-            return QutesParser.RULE_term
+            return qutesParser.RULE_term
 
         def enterRule(self, listener:ParseTreeListener):
             if hasattr( listener, "enterTerm" ):
@@ -840,7 +840,7 @@ class QutesParser ( Parser ):
     def term(self, _p:int=0):
         _parentctx = self._ctx
         _parentState = self.state
-        localctx = QutesParser.TermContext(self, self._ctx, _parentState)
+        localctx = qutesParser.TermContext(self, self._ctx, _parentState)
         _prevctx = localctx
         _startState = 10
         self.enterRecursionRule(localctx, 10, self.RULE_term, _p)
@@ -874,7 +874,7 @@ class QutesParser ( Parser ):
                     if self._parseListeners is not None:
                         self.triggerExitRuleEvent()
                     _prevctx = localctx
-                    localctx = QutesParser.TermContext(self, _parentctx, _parentState)
+                    localctx = qutesParser.TermContext(self, _parentctx, _parentState)
                     self.pushNewRecursionContext(localctx, _startState, self.RULE_term)
                     self.state = 86
                     if not self.precpred(self._ctx, 3):
@@ -911,10 +911,10 @@ class QutesParser ( Parser ):
             self.parser = parser
 
         def STRING(self):
-            return self.getToken(QutesParser.STRING, 0)
+            return self.getToken(qutesParser.STRING, 0)
 
         def getRuleIndex(self):
-            return QutesParser.RULE_variableName
+            return qutesParser.RULE_variableName
 
         def enterRule(self, listener:ParseTreeListener):
             if hasattr( listener, "enterVariableName" ):
@@ -935,12 +935,12 @@ class QutesParser ( Parser ):
 
     def variableName(self):
 
-        localctx = QutesParser.VariableNameContext(self, self._ctx, self.state)
+        localctx = qutesParser.VariableNameContext(self, self._ctx, self.state)
         self.enterRule(localctx, 12, self.RULE_variableName)
         try:
             self.enterOuterAlt(localctx, 1)
             self.state = 94
-            self.match(QutesParser.STRING)
+            self.match(qutesParser.STRING)
         except RecognitionException as re:
             localctx.exception = re
             self._errHandler.reportError(self, re)
@@ -959,15 +959,15 @@ class QutesParser ( Parser ):
 
         def STRING_ENCLOSURE(self, i:int=None):
             if i is None:
-                return self.getTokens(QutesParser.STRING_ENCLOSURE)
+                return self.getTokens(qutesParser.STRING_ENCLOSURE)
             else:
-                return self.getToken(QutesParser.STRING_ENCLOSURE, i)
+                return self.getToken(qutesParser.STRING_ENCLOSURE, i)
 
         def STRING(self):
-            return self.getToken(QutesParser.STRING, 0)
+            return self.getToken(qutesParser.STRING, 0)
 
         def getRuleIndex(self):
-            return QutesParser.RULE_string
+            return qutesParser.RULE_string
 
         def enterRule(self, listener:ParseTreeListener):
             if hasattr( listener, "enterString" ):
@@ -988,16 +988,16 @@ class QutesParser ( Parser ):
 
     def string(self):
 
-        localctx = QutesParser.StringContext(self, self._ctx, self.state)
+        localctx = qutesParser.StringContext(self, self._ctx, self.state)
         self.enterRule(localctx, 14, self.RULE_string)
         try:
             self.enterOuterAlt(localctx, 1)
             self.state = 96
-            self.match(QutesParser.STRING_ENCLOSURE)
+            self.match(qutesParser.STRING_ENCLOSURE)
             self.state = 97
-            self.match(QutesParser.STRING)
+            self.match(qutesParser.STRING)
             self.state = 98
-            self.match(QutesParser.STRING_ENCLOSURE)
+            self.match(qutesParser.STRING_ENCLOSURE)
         except RecognitionException as re:
             localctx.exception = re
             self._errHandler.reportError(self, re)
@@ -1015,10 +1015,10 @@ class QutesParser ( Parser ):
             self.parser = parser
 
         def INT(self):
-            return self.getToken(QutesParser.INT, 0)
+            return self.getToken(qutesParser.INT, 0)
 
         def getRuleIndex(self):
-            return QutesParser.RULE_integer
+            return qutesParser.RULE_integer
 
         def enterRule(self, listener:ParseTreeListener):
             if hasattr( listener, "enterInteger" ):
@@ -1039,12 +1039,12 @@ class QutesParser ( Parser ):
 
     def integer(self):
 
-        localctx = QutesParser.IntegerContext(self, self._ctx, self.state)
+        localctx = qutesParser.IntegerContext(self, self._ctx, self.state)
         self.enterRule(localctx, 16, self.RULE_integer)
         try:
             self.enterOuterAlt(localctx, 1)
             self.state = 100
-            self.match(QutesParser.INT)
+            self.match(qutesParser.INT)
         except RecognitionException as re:
             localctx.exception = re
             self._errHandler.reportError(self, re)

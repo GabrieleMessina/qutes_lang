@@ -1,4 +1,4 @@
-# Generated from d:/Users/gabry/Universita/quantum_computing/qutes_lang/Qutes.g4 by ANTLR 4.13.1
+# Generated from /workspaces/qutes_lang/qutes.g4 by ANTLR 4.13.1
 from antlr4 import *
 from io import StringIO
 import sys
@@ -63,7 +63,7 @@ def serializedATN():
         116,119,124,129,134,137,142,1,6,0,0
     ]
 
-class QutesLexer(Lexer):
+class qutesLexer(Lexer):
 
     atn = ATNDeserializer().deserialize(serializedATN())
 
@@ -115,7 +115,7 @@ class QutesLexer(Lexer):
                   "BLOCK_STATEMENT_END", "STRING_ENCLOSURE", "END_OF_PROGRAM", 
                   "COMMENT", "INT", "STRING", "WS", "NEWLINE" ]
 
-    grammarFileName = "Qutes.g4"
+    grammarFileName = "qutes.g4"
 
     def __init__(self, input=None, output:TextIO = sys.stdout):
         super().__init__(input, output)
