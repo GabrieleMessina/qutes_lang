@@ -1,0 +1,19 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"antlr4.generation": {
+			"outputDir": "QutesAntlr",
+			"mode": "external",
+			"language": "Python3",
+			"listeners": true,
+			"visitors": true
+		},
+		"cSpell.words": [
+			"Antlr"
+		]
+	}
+}
