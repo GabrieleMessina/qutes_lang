@@ -153,14 +153,9 @@ def bit_bit_sum(number_bits_number, a, b):
 # bit_bit_sum(2, -1,-1)
 
 
-def full_adder():
+def full_adder_gate():
     # Creating a circuit with 8 quantum bits and 2 classical bits
     qc = QuantumCircuit(8)
-
-    # Preparing inputs
-    qc.x(0) # Comment this line to make Qbit0 = |0>
-    qc.x(1) # Comment this line to make Qbit1 = |0>
-    qc.x(2) # Comment this line to make Qbit2 = |0> ( carry-in bit )
 
     # AND gate1 implementation
     qc.ccx(0,1,3)
@@ -182,6 +177,9 @@ def full_adder():
     qc.ccx(3,6,7)
     qc.x(7)
 
+    # qc.measure(5,0) # ( sum )
+    # qc.measure(7,1) # ( carry-out )
+
     gate_add = qc.to_gate()
     gate_add.name = "full_adder"
     return gate_add
@@ -190,30 +188,81 @@ def full_adder():
 def quantum_sum(number_bits_number, a, b):
     a_qbits = QuantumRegister(number_bits_number, "a_qbits")
     b_qbits = QuantumRegister(number_bits_number, "b_qbits")
-    carry_ancilla = QuantumRegister(6, "carry_ancilla")
+    carry = QuantumRegister(1, "carry")
+    ancilla = QuantumRegister(5, "ancilla")
     results = ClassicalRegister(number_bits_number+1, "results")
-    qc = QuantumCircuit(a_qbits, b_qbits, carry_ancilla, results)
-    qc.x(a_qbits)
-    qc.x(b_qbits)
+    ainput = ClassicalRegister(number_bits_number, "ainput")
+    binput = ClassicalRegister(number_bits_number, "binput")
+    # carryinput = ClassicalRegister(1, "carryinput")
+    qc = QuantumCircuit(a_qbits, b_qbits, carry, ancilla, results, ainput, binput)
+    qc.h(a_qbits)
+    qc.h(b_qbits)
     
     qc.barrier()
 
-    #for i in range(number_bits_number):    
-    #    qc.compose(full_adder(), [a_qbits[i], b_qbits[i]] + carry_ancilla[:])
-    qc.compose(full_adder(), [a_qbits[0], b_qbits[0]] + carry_ancilla[:])
+    for i in range(number_bits_number):
+        qc.swap(carry, ancilla[4])
+        qc.reset(ancilla)
+        qc = qc.compose(full_adder_gate(), [a_qbits[i], b_qbits[i], carry] + ancilla[:])
+        qc.measure(ancilla[2], results[i]) # bit a bit sum
+        qc.barrier()
     
-    qc.barrier()
-    
-    # qc.measure(ancilla[1], results[0])
-    # qc.measure(ancilla[3], results[1])
+    qc.measure(ancilla[4], results[number_bits_number]) # last carry
+    qc.measure(a_qbits, ainput) # last carry
+    qc.measure(b_qbits, binput) # last carry
 
     print_circuit(qc)
-    # cnt = run(qc,1000)
-    # counts(cnt)
-    # print("\nTotal count:",cnt)
+    cnt = run(qc,100)
+    print("a | b | sum")
+    counts(cnt)
+    print("\nTotal count:",cnt)
 
 
 quantum_sum(2, -1, -1)
+
+def _full_adder():
+    qc = QuantumCircuit(8,2)
+
+    # Preparing inputs
+    qc.h(0) # Comment this line to make Qbit0 = |0>
+    qc.h(1) # Comment this line to make Qbit1 = |0>
+    qc.h(2) # Comment this line to make Qbit2 = |0> ( carry-in bit )
+    qc.barrier()
+
+    # AND gate1 implementation
+    qc.ccx(0,1,3)
+    qc.barrier()
+
+    # OR gate1 implementation
+    qc.cx(0,4) 
+    qc.cx(1,4)
+    qc.barrier()
+
+    # OR gate2 implementation
+    qc.cx(2,5) 
+    qc.cx(4,5)
+    qc.barrier()
+
+    # AND gate2 implementation
+    qc.ccx(2,4,6)
+    qc.barrier()
+
+    # OR gate implementation
+    qc.x(3)
+    qc.x(6)
+    qc.ccx(3,6,7)
+    qc.x(7)
+    qc.barrier()
+
+    # Measuring and put result to classical bit
+    qc.measure(5,0) # ( sum )
+    qc.measure(7,1) # ( carry-out )
+    print(qc.draw())
+    cnt = run(qc,100)
+    counts(cnt)
+    print("\nTotal count:",cnt)
+
+# _full_adder()
 
 # half adder
 # initial_state_zero = [1,0]
