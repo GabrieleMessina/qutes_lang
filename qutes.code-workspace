@@ -6,7 +6,7 @@
 	],
 	"settings": {
 		"antlr4.generation": {
-			"outputDir": "qutes_antlr",
+			"outputDir": "../../src/qutes_antlr",
 			"mode": "external",
 			"language": "Python3",
 			"listeners": true,

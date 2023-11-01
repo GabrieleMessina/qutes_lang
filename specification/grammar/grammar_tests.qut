@@ -1,6 +1,9 @@
-a=2+3;
+//a=2+3;
 //i=1;
 //a;
 //i=i+i;
 //2+"a"; //this gives an error and that it's as intended, it's how the lower level language handle this kind of operation between two types.
+a = 3;
+a = 3;
+{ i=1; a = 2;} //TODO: handle the operations between variables.
 //{ i=1; while (i<100) i=i+i; } //TODO: handle the operations between variables.

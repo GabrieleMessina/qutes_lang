@@ -2,11 +2,11 @@
 
 import sys
 import argparse
-from antlr4 import FileStream, CommonTokenStream
+from antlr4 import FileStream, CommonTokenStream, ParseTreeWalker
 from qutes_antlr.qutesLexer import qutesLexer
 from qutes_antlr.qutesParser import qutesParser
 from qutes_grammar_visitor import QutesGrammarVisitor
-from qutes_grammar_listener import QutesGrammarListener
+from symbols_discovery_listener import SymbolsDiscoveryListener
 
 def main(argv):
     """Entrypoint for Qutes Lang compiler"""
@@ -28,9 +28,9 @@ def main(argv):
         result = grammar_visitor.visit(tree)
         print("----Execution result----", result)
 
-        # grammarListener = QutesGrammarListener()
-        # walker = ParseTreeWalker()
-        # walker.walk(grammarListener, tree)
+        grammar_listener = SymbolsDiscoveryListener()
+        walker = ParseTreeWalker()
+        walker.walk(grammar_listener, tree)
         # print('result_at_top =', grammarListener.getValue(tree))
 
     lisp_tree_str = tree.toStringTree(recog=parser)

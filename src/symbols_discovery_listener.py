@@ -1,52 +1,53 @@
-"""An antlr listener for the qutes frammar."""
+"""An antlr listener for the qutes grammar."""
 
 from qutes_antlr.qutesListener import qutesListener
 from qutes_antlr.qutesParser import qutesParser
+from symbols.scope_tree_node import ScopeTreeNode, ScopeType, SymbolType, Symbol
+from anytree import RenderTree
 
-class QutesGrammarListener(qutesListener):
-    """An antlr listener for the qutes frammar."""
+class SymbolsDiscoveryListener(qutesListener):
+    """An antlr listener for the qutes grammar that discovers symbols like variable, function names etc."""
 
     def __init__(self):
-        self.tree_property = {}
+        # Symbol Resolving Tree
+        self.symbols_tree:ScopeTreeNode = None
+        self.current_symbols_scope:ScopeTreeNode = None
 
-    def get_value(self, node):
-        return self.tree_property[node]
 
-    def set_value(self, node, value):
-        self.tree_property[node] = value
-
-    # def exitInt(self, ctx):
-    #     self.setValue(ctx, int(ctx.INT().getText()))
-
-    # def exitAdd(self, ctx):
-    #     left = self.getValue(ctx.e(0))
-    #     right= self.getValue(ctx.e(1))
-    #     self.setValue(ctx, left+right)
-
-    # def exitMult(self, ctx):
-    #     left = self.getValue(ctx.e(0))
-    #     right= self.getValue(ctx.e(1))
-    #     self.setValue(ctx, left*right)
-
-    # def exitS(self, ctx):
-    #     self.setValue(ctx, self.getValue(ctx.e()))
+    def __push_scope__(self, scope:ScopeType, scope_detail:str) -> ScopeTreeNode:
+        new_scope = ScopeTreeNode(scope, scope_detail, self.current_symbols_scope)
+        # this cross reference is handled by anytree.
+        # if(self.current_symbols_scope):
+        #     if(self.current_symbols_scope.children):
+        #         self.current_symbols_scope.children = list(self.current_symbols_scope.children) + [new_scope]
+        #     else: self.current_symbols_scope.children = [new_scope]
+        self.current_symbols_scope = new_scope
+        return self.current_symbols_scope
+    
+    def __pop_scope__(self) -> ScopeTreeNode:
+        self.current_symbols_scope = self.current_symbols_scope.parent
+        return self.current_symbols_scope
 
     # Enter a parse tree produced by qutesParser#program.
     def enterProgram(self, ctx:qutesParser.ProgramContext):
-        pass
+        self.__push_scope__(ScopeType.GlobalScope, "Init")
+        self.symbols_tree = self.current_symbols_scope
 
     # Exit a parse tree produced by qutesParser#program.
     def exitProgram(self, ctx:qutesParser.ProgramContext):
-        pass
+        for pre, _, node in RenderTree(self.symbols_tree):
+            print("%s%s Symbols: %s" % (pre, node.scope_type, node.symbols))
+        self.symbols_tree = None
+        self.current_symbols_scope = None
 
 
     # Enter a parse tree produced by qutesParser#IfStatement.
     def enterIfStatement(self, ctx:qutesParser.IfStatementContext):
-        pass
+        self.__push_scope__(ScopeType.LocalScope, "If")
 
     # Exit a parse tree produced by qutesParser#IfStatement.
     def exitIfStatement(self, ctx:qutesParser.IfStatementContext):
-        pass
+        self.__pop_scope__()
 
 
     # Enter a parse tree produced by qutesParser#IfElseStatement.
@@ -78,16 +79,16 @@ class QutesGrammarListener(qutesListener):
 
     # Enter a parse tree produced by qutesParser#BlockStatement.
     def enterBlockStatement(self, ctx:qutesParser.BlockStatementContext):
-        pass
+        self.__push_scope__(ScopeType.LocalScope, "If")
 
     # Exit a parse tree produced by qutesParser#BlockStatement.
     def exitBlockStatement(self, ctx:qutesParser.BlockStatementContext):
-        pass
+        self.__pop_scope__()
 
 
     # Enter a parse tree produced by qutesParser#AssignmentStatement.
     def enterAssignmentStatement(self, ctx:qutesParser.AssignmentStatementContext):
-        pass
+        self.current_symbols_scope.symbols.append(Symbol(ctx.variableName().getText(), SymbolType.VariableSymbol, "NA", self.current_symbols_scope))
 
     # Exit a parse tree produced by qutesParser#AssignmentStatement.
     def exitAssignmentStatement(self, ctx:qutesParser.AssignmentStatementContext):
