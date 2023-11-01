@@ -8,6 +8,15 @@ else:
 # This class defines a complete listener for a parse tree produced by qutesParser.
 class qutesListener(ParseTreeListener):
 
+    # Enter a parse tree produced by qutesParser#type.
+    def enterType(self, ctx:qutesParser.TypeContext):
+        pass
+
+    # Exit a parse tree produced by qutesParser#type.
+    def exitType(self, ctx:qutesParser.TypeContext):
+        pass
+
+
     # Enter a parse tree produced by qutesParser#program.
     def enterProgram(self, ctx:qutesParser.ProgramContext):
         pass
@@ -62,6 +71,15 @@ class qutesListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by qutesParser#DeclarationStatement.
+    def enterDeclarationStatement(self, ctx:qutesParser.DeclarationStatementContext):
+        pass
+
+    # Exit a parse tree produced by qutesParser#DeclarationStatement.
+    def exitDeclarationStatement(self, ctx:qutesParser.DeclarationStatementContext):
+        pass
+
+
     # Enter a parse tree produced by qutesParser#AssignmentStatement.
     def enterAssignmentStatement(self, ctx:qutesParser.AssignmentStatementContext):
         pass
@@ -89,12 +107,12 @@ class qutesListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by qutesParser#paren_expr.
-    def enterParen_expr(self, ctx:qutesParser.Paren_exprContext):
+    # Enter a parse tree produced by qutesParser#parenExpr.
+    def enterParenExpr(self, ctx:qutesParser.ParenExprContext):
         pass
 
-    # Exit a parse tree produced by qutesParser#paren_expr.
-    def exitParen_expr(self, ctx:qutesParser.Paren_exprContext):
+    # Exit a parse tree produced by qutesParser#parenExpr.
+    def exitParenExpr(self, ctx:qutesParser.ParenExprContext):
         pass
 
 
@@ -122,6 +140,24 @@ class qutesListener(ParseTreeListener):
 
     # Exit a parse tree produced by qutesParser#term.
     def exitTerm(self, ctx:qutesParser.TermContext):
+        pass
+
+
+    # Enter a parse tree produced by qutesParser#variableType.
+    def enterVariableType(self, ctx:qutesParser.VariableTypeContext):
+        pass
+
+    # Exit a parse tree produced by qutesParser#variableType.
+    def exitVariableType(self, ctx:qutesParser.VariableTypeContext):
+        pass
+
+
+    # Enter a parse tree produced by qutesParser#qualifiedName.
+    def enterQualifiedName(self, ctx:qutesParser.QualifiedNameContext):
+        pass
+
+    # Exit a parse tree produced by qutesParser#qualifiedName.
+    def exitQualifiedName(self, ctx:qutesParser.QualifiedNameContext):
         pass
 
 

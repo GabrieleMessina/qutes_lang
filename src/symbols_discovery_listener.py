@@ -14,8 +14,11 @@ class SymbolsDiscoveryListener(qutesListener):
         self.current_symbols_scope:ScopeTreeNode = None
 
 
-    def __push_scope__(self, scope:ScopeType, scope_detail:str) -> ScopeTreeNode:
-        new_scope = ScopeTreeNode(scope, scope_detail, self.current_symbols_scope)
+    def __push_scope__(self, scope:ScopeType, scope_detail:str, symbols:list[Symbol] = []) -> ScopeTreeNode:
+        _symbols:list[Symbol] = symbols.copy()
+        if(self.current_symbols_scope):
+            _symbols += self.current_symbols_scope.symbols
+        new_scope = ScopeTreeNode(scope, scope_detail, self.current_symbols_scope, symbols=_symbols)
         # this cross reference is handled by anytree.
         # if(self.current_symbols_scope):
         #     if(self.current_symbols_scope.children):
@@ -36,7 +39,7 @@ class SymbolsDiscoveryListener(qutesListener):
     # Exit a parse tree produced by qutesParser#program.
     def exitProgram(self, ctx:qutesParser.ProgramContext):
         for pre, _, node in RenderTree(self.symbols_tree):
-            print("%s%s Symbols: %s" % (pre, node.scope_type, node.symbols))
+            print("%s%s(%s) Symbols: %s" % (pre, node.scope_type, node.scope_type_detail, node.symbols))
         self.symbols_tree = None
         self.current_symbols_scope = None
 
@@ -79,16 +82,30 @@ class SymbolsDiscoveryListener(qutesListener):
 
     # Enter a parse tree produced by qutesParser#BlockStatement.
     def enterBlockStatement(self, ctx:qutesParser.BlockStatementContext):
-        self.__push_scope__(ScopeType.LocalScope, "If")
+        self.__push_scope__(ScopeType.LocalScope, "Block")
 
     # Exit a parse tree produced by qutesParser#BlockStatement.
     def exitBlockStatement(self, ctx:qutesParser.BlockStatementContext):
         self.__pop_scope__()
 
 
+    # Enter a parse tree produced by qutesParser#DeclarationStatement.
+    def enterDeclarationStatement(self, ctx:qutesParser.DeclarationStatementContext):
+        new_var_name = ctx.variableName().getText()
+        already_taken_symbol = any(symbol.name == new_var_name for symbol in self.current_symbols_scope.symbols)
+        if(not already_taken_symbol):
+            self.current_symbols_scope.symbols.append(Symbol(new_var_name, SymbolType.VariableSymbol, "NA", self.current_symbols_scope))
+        else:
+            raise SyntaxError(f"Variable with name '{new_var_name}' already declared.")
+
+    # Exit a parse tree produced by qutesParser#DeclarationStatement.
+    def exitDeclarationStatement(self, ctx:qutesParser.DeclarationStatementContext):
+        pass
+
+
     # Enter a parse tree produced by qutesParser#AssignmentStatement.
     def enterAssignmentStatement(self, ctx:qutesParser.AssignmentStatementContext):
-        self.current_symbols_scope.symbols.append(Symbol(ctx.variableName().getText(), SymbolType.VariableSymbol, "NA", self.current_symbols_scope))
+        pass
 
     # Exit a parse tree produced by qutesParser#AssignmentStatement.
     def exitAssignmentStatement(self, ctx:qutesParser.AssignmentStatementContext):
@@ -113,12 +130,12 @@ class SymbolsDiscoveryListener(qutesListener):
         pass
 
 
-    # Enter a parse tree produced by qutesParser#paren_expr.
-    def enterParen_expr(self, ctx:qutesParser.Paren_exprContext):
+    # Enter a parse tree produced by qutesParser#ParenExpr.
+    def enterParenExpr(self, ctx:qutesParser.ParenExprContext):
         pass
 
-    # Exit a parse tree produced by qutesParser#paren_expr.
-    def exitParen_expr(self, ctx:qutesParser.Paren_exprContext):
+    # Exit a parse tree produced by qutesParser#ParenExpr.
+    def exitParenExpr(self, ctx:qutesParser.ParenExprContext):
         pass
 
 
@@ -146,6 +163,24 @@ class SymbolsDiscoveryListener(qutesListener):
 
     # Exit a parse tree produced by qutesParser#term.
     def exitTerm(self, ctx:qutesParser.TermContext):
+        pass
+
+
+    # Enter a parse tree produced by qutesParser#variableType.
+    def enterVariableType(self, ctx:qutesParser.VariableTypeContext):
+        pass
+
+    # Exit a parse tree produced by qutesParser#variableType.
+    def exitVariableType(self, ctx:qutesParser.VariableTypeContext):
+        pass
+
+
+    # Enter a parse tree produced by qutesParser#qualifiedName.
+    def enterQualifiedName(self, ctx:qutesParser.QualifiedNameContext):
+        pass
+
+    # Exit a parse tree produced by qutesParser#qualifiedName.
+    def exitQualifiedName(self, ctx:qutesParser.QualifiedNameContext):
         pass
 
 

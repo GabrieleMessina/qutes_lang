@@ -49,8 +49,8 @@ class QutesGrammarVisitor(qutesVisitor):
         var_value = "default_var_value"
         if(ctx.expr()):
             var_value = self.visitChildren(ctx.expr())
-        if(ctx.paren_expr()):
-            var_value = self.visitChildren(ctx.paren_expr())
+        if(ctx.parenExpr()):
+            var_value = self.visitChildren(ctx.parenExpr())
         return str(var_name) + " = " + str(var_value)
 
 
@@ -69,9 +69,21 @@ class QutesGrammarVisitor(qutesVisitor):
         return self.__visit("visitBlockStatement", lambda : self.visitChildren(ctx))
 
 
-    # Visit a parse tree produced by qutesParser#paren_expr.
-    def visitParen_expr(self, ctx:qutesParser.Paren_exprContext):
-        return self.__visit("visitParen_expr", lambda : "( " + str(self.visitChildren(ctx)) + " )")
+    # Visit a parse tree produced by qutesParser#DeclarationStatement.
+    def visitDeclarationStatement(self, ctx:qutesParser.DeclarationStatementContext):
+        var_type = ctx.variableType().getText()
+        var_name = ctx.variableName().getText()
+        var_value = "default_var_value"
+        if(ctx.expr()):
+            var_value = self.visitChildren(ctx.expr())
+        if(ctx.parenExpr()):
+            var_value = self.visitChildren(ctx.parenExpr())
+        return str(var_type) + " " + str(var_name) + " = " + str(var_value)
+    
+
+    # Visit a parse tree produced by qutesParser#parenExpr.
+    def visitParenExpr(self, ctx:qutesParser.ParenExprContext):
+        return self.__visit("visitparenExpr", lambda : "( " + str(self.visitChildren(ctx)) + " )")
 
 
     # Visit a parse tree produced by qutesParser#expr.
@@ -126,8 +138,8 @@ class QutesGrammarVisitor(qutesVisitor):
                 result = self.visitChildren(ctx.term(0)) + self.visitChildren(ctx.term(1))
             if(ctx.SUB()):
                 result = self.visitChildren(ctx.term(0)) - self.visitChildren(ctx.term(1))
-        if(ctx.variableName()):
-            if(self.__log_trace): print("visitTerm -> variableName")
+        if(ctx.qualifiedName()):
+            if(self.__log_trace): print("visitTerm -> qualifiedName")
             result = self.visitChildren(ctx)
         if(ctx.string()):
             if(self.__log_trace): print("visitTerm -> string")
@@ -136,6 +148,16 @@ class QutesGrammarVisitor(qutesVisitor):
             if(self.__log_trace): print("visitTerm -> integer")
             result = self.visitChildren(ctx)
         return result
+
+
+    # Visit a parse tree produced by qutesParser#variableType.
+    def visitVariableType(self, ctx:qutesParser.VariableTypeContext):
+        return self.__visit("visitVariableType", lambda : str(ctx.getText()))
+
+
+    # Visit a parse tree produced by qutesParser#qualifiedName.
+    def visitQualifiedName(self, ctx:qutesParser.QualifiedNameContext):
+        return self.__visit("visitQualifiedName", lambda : str(ctx.getText()))
 
 
     # Visit a parse tree produced by qutesParser#id.

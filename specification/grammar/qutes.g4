@@ -1,6 +1,13 @@
 grammar qutes;
 
+options {
+   language = Python3;
+}
+
 // ----- Reserved keyword ----- 
+INT_TYPE : 'int' ;
+STRING_TYPE : 'string' ;
+QUBIT_TYPE : 'qubit' ;
 ADD : '+' ;
 SUB : '-' ;
 EQUAL : '==' ;
@@ -10,6 +17,7 @@ LOWER : '<' ;
 LOWEREQUAL : '<=' ;
 ASSIGN : '=' ;
 END_OF_STATEMENT : ';' ;
+VAR_STATEMENT : 'var' ;
 IF_STATEMENT : 'if' ;
 ELSE_STATEMENT : 'else' ;
 WHILE_STATEMENT : 'while' ;
@@ -19,11 +27,17 @@ BLOCK_STATEMENT_END : '}' ;
 STRING_ENCLOSURE : '"' ;
 END_OF_PROGRAM : EOF ;
 
+type
+   : INT_TYPE
+   | STRING_TYPE
+   | QUBIT_TYPE
+   ;
+
 fragment
-COMMENT
-: '/*'(.*?)'*/' /*single comment*/
-| '//'~('\r' | '\n')* /* multiple comment*/
-;
+   COMMENT
+   : '/*'(.*?)'*/' /*single comment*/
+   | '//'~('\r' | '\n')* /* multiple comment*/
+   ;
 
 // ----- Entrypoint ----- 
 program
@@ -31,24 +45,25 @@ program
    ;
 
 statement
-   : IF_STATEMENT paren_expr statement #IfStatement
-   | IF_STATEMENT paren_expr statement ELSE_STATEMENT statement #IfElseStatement
-   | WHILE_STATEMENT paren_expr statement #WhileStatement
-   | DO_STATEMENT statement WHILE_STATEMENT paren_expr #DoWhileStatement
+   : IF_STATEMENT parenExpr statement #IfStatement
+   | IF_STATEMENT parenExpr statement ELSE_STATEMENT statement #IfElseStatement
+   | WHILE_STATEMENT parenExpr statement #WhileStatement
+   | DO_STATEMENT statement WHILE_STATEMENT parenExpr #DoWhileStatement
    | BLOCK_STATEMENT_START statement* BLOCK_STATEMENT_END #BlockStatement
-   | variableName ASSIGN (expr|paren_expr) END_OF_STATEMENT #AssignmentStatement
+   | variableType variableName ASSIGN (expr|parenExpr) END_OF_STATEMENT #DeclarationStatement
+   | qualifiedName ASSIGN (expr|parenExpr) END_OF_STATEMENT #AssignmentStatement
    | expr END_OF_STATEMENT #ExpressionStatement
    | END_OF_STATEMENT #EmptyStatement
    ;
 
-paren_expr
+parenExpr
    : '(' expr ')'
    ;
 
 expr
    : term
    | test
-   | paren_expr
+   | parenExpr
    ;
 
 test
@@ -60,10 +75,19 @@ term
    : string
    | term op=(ADD | SUB) term
    | integer
-   | variableName
+   | qualifiedName
    ;
 
-variableName
+variableType
+   : type
+   | qualifiedName
+   ;
+
+qualifiedName 
+   : STRING ('.' STRING)*
+   ;
+
+variableName 
    : STRING
    ;
 
@@ -87,8 +111,8 @@ STRING
 
 
 WS
-: ( [ \r\n\t]+ | COMMENT) -> skip
-;
+   : ( [ \r\n\t]+ | COMMENT) -> skip
+   ;
 
 NEWLINE
    : '\r'? '\n'

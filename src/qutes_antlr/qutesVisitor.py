@@ -9,6 +9,11 @@ else:
 
 class qutesVisitor(ParseTreeVisitor):
 
+    # Visit a parse tree produced by qutesParser#type.
+    def visitType(self, ctx:qutesParser.TypeContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by qutesParser#program.
     def visitProgram(self, ctx:qutesParser.ProgramContext):
         return self.visitChildren(ctx)
@@ -39,6 +44,11 @@ class qutesVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by qutesParser#DeclarationStatement.
+    def visitDeclarationStatement(self, ctx:qutesParser.DeclarationStatementContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by qutesParser#AssignmentStatement.
     def visitAssignmentStatement(self, ctx:qutesParser.AssignmentStatementContext):
         return self.visitChildren(ctx)
@@ -54,8 +64,8 @@ class qutesVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by qutesParser#paren_expr.
-    def visitParen_expr(self, ctx:qutesParser.Paren_exprContext):
+    # Visit a parse tree produced by qutesParser#parenExpr.
+    def visitParenExpr(self, ctx:qutesParser.ParenExprContext):
         return self.visitChildren(ctx)
 
 
@@ -71,6 +81,16 @@ class qutesVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by qutesParser#term.
     def visitTerm(self, ctx:qutesParser.TermContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by qutesParser#variableType.
+    def visitVariableType(self, ctx:qutesParser.VariableTypeContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by qutesParser#qualifiedName.
+    def visitQualifiedName(self, ctx:qutesParser.QualifiedNameContext):
         return self.visitChildren(ctx)
 
 

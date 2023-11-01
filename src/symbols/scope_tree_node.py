@@ -12,20 +12,9 @@ class SymbolType(Enum):
     FunctionSymbol = 2
     VariableSymbol = 3
 
-class ScopeTreeNode(NodeMixin):
-    """A Node for the Scope Tree data structure"""
-    def __init__(self, scope_type:ScopeType, scope_type_detail:str, parent=None, children=None):
-        super().__init__()
-        self.symbols:tuple[Symbol] = []
-        self.scope_type = scope_type
-        self.scope_type_detail = scope_type_detail
-        self.parent = parent
-        if children:
-            self.children = children
-
 class Symbol():
     name:str = None
-    def __init__(self, name:str, symbol_type:SymbolType, symbol_type_detail:str, scope:ScopeTreeNode):
+    def __init__(self, name:str, symbol_type:SymbolType, symbol_type_detail:str, scope:"ScopeTreeNode"):
         super().__init__()
         self.name = name
         self.symbol_type = symbol_type
@@ -37,3 +26,15 @@ class Symbol():
 
     def __repr__(self) -> str:
         return self.name
+
+
+class ScopeTreeNode(NodeMixin):
+    """A Node for the Scope Tree data structure"""
+    def __init__(self, scope_type:ScopeType, scope_type_detail:str, parent=None, children=None, symbols:list[Symbol]=[]):
+        super().__init__()
+        self.symbols:list[Symbol] = symbols.copy()
+        self.scope_type = scope_type
+        self.scope_type_detail = scope_type_detail
+        self.parent = parent
+        if children:
+            self.children = children
