@@ -5,9 +5,9 @@ options {
    language = Python3;
 }
 
-// ----- Entrypoint ----- 
+// ----- Entrypoint -----
 program
-   : statement+
+   : statement* EOF
    ;
 
 statement

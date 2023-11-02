@@ -1,10 +1,5 @@
 # ======= ANTLR first generation error on VSCode workspace load =======
-specification/grammar/.antlr/qutes.tokens
-specification/grammar/.antlr/qutesBaseListener.java
-specification/grammar/.antlr/qutesLexer.java
-specification/grammar/.antlr/qutesLexer.tokens
-specification/grammar/.antlr/qutesListener.java
-specification/grammar/.antlr/qutesParser.java
+specification/grammar/.antlr/*.java
 
 
 # ======= VISUAL STUDIO SECTION =======
