@@ -14,18 +14,19 @@ class SymbolType(Enum):
 
 class Symbol():
     name:str = None
-    def __init__(self, name:str, symbol_type:SymbolType, symbol_type_detail:str, scope:"ScopeTreeNode"):
+    def __init__(self, name:str, symbol_type:SymbolType, symbol_type_detail:str, value, scope:"ScopeTreeNode"):
         super().__init__()
         self.name = name
         self.symbol_type = symbol_type
         self.symbol_type_detail = symbol_type_detail
+        self.value = value
         self.scope = scope
 
     def __str__(self) -> str:
-        return self.name
+        return f"{self.name}={self.value}"
 
     def __repr__(self) -> str:
-        return self.name
+        return f"{self.name}={self.value}"
 
 
 class ScopeTreeNode(NodeMixin):

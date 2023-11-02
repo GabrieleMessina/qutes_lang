@@ -3,7 +3,9 @@
 //a;
 //i=i+i;
 //2+"a"; //this gives an error and that it's as intended, it's how the lower level language handle this kind of operation between two types.
-//a = 3;
 int a = 3;
-//{ i=1; a = 2; {b=3;}}
+string C = 3;
+int b = 3;
+a = 4;
+//{ string i=1; a = 2; {b=30;}}
 //{ i=1; while (i<100) i=i+i; }

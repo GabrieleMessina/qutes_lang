@@ -2,55 +2,31 @@
 
 from qutes_antlr.qutes_parserListener import qutes_parserListener as qutesListener
 from qutes_antlr.qutes_parser import qutes_parser as qutesParser
-from symbols.scope_tree_node import ScopeTreeNode, ScopeType, SymbolType, Symbol
-from anytree import RenderTree
+from symbols.scope_tree_node import ScopeType, SymbolType, Symbol
+from symbols.scope_handler import ScopeHandlerForSymbolsDiscovery
 
 class SymbolsDiscoveryListener(qutesListener):
     """An antlr listener for the qutes grammar that discovers symbols like variable, function names etc."""
 
     def __init__(self):
-        # Symbol Resolving Tree
-        self.symbols_tree:ScopeTreeNode = None
-        self.current_symbols_scope:ScopeTreeNode = None
-
-
-    def __push_scope__(self, scope:ScopeType, scope_detail:str, symbols:list[Symbol] = []) -> ScopeTreeNode:
-        _symbols:list[Symbol] = symbols.copy()
-        if(self.current_symbols_scope):
-            _symbols += self.current_symbols_scope.symbols
-        new_scope = ScopeTreeNode(scope, scope_detail, self.current_symbols_scope, symbols=_symbols)
-        # this cross reference is handled by anytree.
-        # if(self.current_symbols_scope):
-        #     if(self.current_symbols_scope.children):
-        #         self.current_symbols_scope.children = list(self.current_symbols_scope.children) + [new_scope]
-        #     else: self.current_symbols_scope.children = [new_scope]
-        self.current_symbols_scope = new_scope
-        return self.current_symbols_scope
-    
-    def __pop_scope__(self) -> ScopeTreeNode:
-        self.current_symbols_scope = self.current_symbols_scope.parent
-        return self.current_symbols_scope
+        self.scope_handler = ScopeHandlerForSymbolsDiscovery()
 
     # Enter a parse tree produced by qutesParser#program.
     def enterProgram(self, ctx:qutesParser.ProgramContext):
-        self.__push_scope__(ScopeType.GlobalScope, "Init")
-        self.symbols_tree = self.current_symbols_scope
+        self.scope_handler.push_scope(ScopeType.GlobalScope, "Init")
 
     # Exit a parse tree produced by qutesParser#program.
     def exitProgram(self, ctx:qutesParser.ProgramContext):
-        for pre, _, node in RenderTree(self.symbols_tree):
-            print("%s%s(%s) Symbols: %s" % (pre, node.scope_type, node.scope_type_detail, node.symbols))
-        self.symbols_tree = None
-        self.current_symbols_scope = None
+        pass
 
 
     # Enter a parse tree produced by qutesParser#IfStatement.
     def enterIfStatement(self, ctx:qutesParser.IfStatementContext):
-        self.__push_scope__(ScopeType.LocalScope, "If")
+        pass
 
     # Exit a parse tree produced by qutesParser#IfStatement.
     def exitIfStatement(self, ctx:qutesParser.IfStatementContext):
-        self.__pop_scope__()
+        pass
 
 
     # Enter a parse tree produced by qutesParser#IfElseStatement.
@@ -82,19 +58,19 @@ class SymbolsDiscoveryListener(qutesListener):
 
     # Enter a parse tree produced by qutesParser#BlockStatement.
     def enterBlockStatement(self, ctx:qutesParser.BlockStatementContext):
-        self.__push_scope__(ScopeType.LocalScope, "Block")
+        self.scope_handler.push_scope(ScopeType.LocalScope, "Block")
 
     # Exit a parse tree produced by qutesParser#BlockStatement.
     def exitBlockStatement(self, ctx:qutesParser.BlockStatementContext):
-        self.__pop_scope__()
+        self.scope_handler.pop_scope()
 
 
     # Enter a parse tree produced by qutesParser#DeclarationStatement.
     def enterDeclarationStatement(self, ctx:qutesParser.DeclarationStatementContext):
         new_var_name = ctx.variableName().getText()
-        already_taken_symbol = any(symbol.name == new_var_name for symbol in self.current_symbols_scope.symbols)
+        already_taken_symbol = any(symbol.name == new_var_name for symbol in self.scope_handler.current_symbols_scope.symbols)
         if(not already_taken_symbol):
-            self.current_symbols_scope.symbols.append(Symbol(new_var_name, SymbolType.VariableSymbol, "NA", self.current_symbols_scope))
+            self.scope_handler.current_symbols_scope.symbols.append(Symbol(new_var_name, SymbolType.VariableSymbol, "NA", None, self.scope_handler.current_symbols_scope))
         else:
             raise SyntaxError(f"Variable with name '{new_var_name}' already declared.")
 
