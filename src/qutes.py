@@ -12,6 +12,10 @@ from symbols_discovery_listener import SymbolsDiscoveryListener
 def main(argv):
     """Entrypoint for Qutes Lang compiler"""
 
+    log_code_structure = True
+    log_symbols_scope = True
+    log_lisp_tree = True
+
     parser = argparse.ArgumentParser(description='Compile Qutes Lang source code.')
     parser.add_argument('file_path', metavar='file_path', help='The file path of the Qutes source code.')
     args = parser.parse_args()
@@ -33,17 +37,24 @@ def main(argv):
         grammar_visitor = QutesGrammarVisitor(symbols_tree)
         result = str(grammar_visitor.visit(tree))
         
-        print()
-        print("----Execution result----")
-        print(result.replace("\n", "", 1))
-        for pre, _, node in RenderTree(symbols_tree):
-            print("%s%s(%s) Symbols: %s" % (pre, node.scope_type, node.scope_type_detail, node.symbols))
-        print("\n")
+        if(log_code_structure):
+            print()
+            print("----Code structure----")
+            print(result.replace("\n", "", 1))
+        
+        if(log_symbols_scope):
+            print()
+            print("----Symbols scope----")
+            for pre, _, node in RenderTree(symbols_tree):
+                print("%s%s(%s) Symbols: %s" % (pre, node.scope_type, node.scope_type_detail, node.symbols))
 
-    lisp_tree_str = tree.toStringTree(recog=parser)
-    print("-------Lisp Tree--------")
-    print(lisp_tree_str)
-    print()
+        if(log_lisp_tree):
+            print()
+            lisp_tree_str = tree.toStringTree(recog=parser)
+            print("-------Lisp Tree--------")
+            print(lisp_tree_str)
+        
+        print()
 
 if __name__ == '__main__':
     main(sys.argv)
