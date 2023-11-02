@@ -166,6 +166,15 @@ class SymbolsDiscoveryListener(qutesListener):
         pass
 
 
+    # Enter a parse tree produced by qutes_parser#type.
+    def enterType(self, ctx:qutesParser.TypeContext):
+        pass
+
+    # Exit a parse tree produced by qutes_parser#type.
+    def exitType(self, ctx:qutesParser.TypeContext):
+        pass
+
+
     # Enter a parse tree produced by qutesParser#variableType.
     def enterVariableType(self, ctx:qutesParser.VariableTypeContext):
         pass

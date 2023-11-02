@@ -9,11 +9,6 @@ else:
 
 class qutes_parserVisitor(ParseTreeVisitor):
 
-    # Visit a parse tree produced by qutes_parser#type.
-    def visitType(self, ctx:qutes_parser.TypeContext):
-        return self.visitChildren(ctx)
-
-
     # Visit a parse tree produced by qutes_parser#program.
     def visitProgram(self, ctx:qutes_parser.ProgramContext):
         return self.visitChildren(ctx)
@@ -81,6 +76,11 @@ class qutes_parserVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by qutes_parser#term.
     def visitTerm(self, ctx:qutes_parser.TermContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by qutes_parser#type.
+    def visitType(self, ctx:qutes_parser.TypeContext):
         return self.visitChildren(ctx)
 
 

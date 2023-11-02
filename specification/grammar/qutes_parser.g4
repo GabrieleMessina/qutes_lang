@@ -5,12 +5,6 @@ options {
    language = Python3;
 }
 
-type
-   : INT_TYPE
-   | STRING_TYPE
-   | QUBIT_TYPE
-   ;
-
 // ----- Entrypoint ----- 
 program
    : statement+
@@ -48,6 +42,13 @@ term
    | term op=(ADD | SUB) term
    | integer
    | qualifiedName
+   ;
+
+
+type
+   : INT_TYPE
+   | STRING_TYPE
+   | QUBIT_TYPE
    ;
 
 variableType

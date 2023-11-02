@@ -8,15 +8,6 @@ else:
 # This class defines a complete listener for a parse tree produced by qutes_parser.
 class qutes_parserListener(ParseTreeListener):
 
-    # Enter a parse tree produced by qutes_parser#type.
-    def enterType(self, ctx:qutes_parser.TypeContext):
-        pass
-
-    # Exit a parse tree produced by qutes_parser#type.
-    def exitType(self, ctx:qutes_parser.TypeContext):
-        pass
-
-
     # Enter a parse tree produced by qutes_parser#program.
     def enterProgram(self, ctx:qutes_parser.ProgramContext):
         pass
@@ -140,6 +131,15 @@ class qutes_parserListener(ParseTreeListener):
 
     # Exit a parse tree produced by qutes_parser#term.
     def exitTerm(self, ctx:qutes_parser.TermContext):
+        pass
+
+
+    # Enter a parse tree produced by qutes_parser#type.
+    def enterType(self, ctx:qutes_parser.TypeContext):
+        pass
+
+    # Exit a parse tree produced by qutes_parser#type.
+    def exitType(self, ctx:qutes_parser.TypeContext):
         pass
 
 
