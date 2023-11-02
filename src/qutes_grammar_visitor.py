@@ -26,11 +26,11 @@ class QutesGrammarVisitor(qutesVisitor):
     def visitProgram(self, ctx:qutesParser.ProgramContext):
         self.scope_handler.push_scope()
         result = str()
-        expression_count = 0
-        for child in ctx.getChildren():
-            expression_count += 1
+        statement_count = 0
+        for child in ctx.getChildren(lambda child : isinstance(child, qutesParser.StatementContext)):
+            statement_count += 1
             new_value = self.__visit("visitProgram", lambda i=child : self.visit(i))
-            result = f'{result}\nExpression[{expression_count}]: {new_value};'
+            result = f'{result}\nStatement[{statement_count}]: {new_value}'
         self.scope_handler.pop_scope()
         return result
 
@@ -66,8 +66,15 @@ class QutesGrammarVisitor(qutesVisitor):
 
     # Visit a parse tree produced by qutesParser#BlockStatement.
     def visitBlockStatement(self, ctx:qutesParser.BlockStatementContext):
-        return self.__visit("visitBlockStatement", lambda : self.visitChildren(ctx), push_pop_scope=True)
-
+        self.scope_handler.push_scope()
+        result = str()
+        statement_count = 0
+        for child in ctx.getChildren(lambda child : isinstance(child, qutesParser.StatementContext)):
+            statement_count += 1
+            new_value = str(self.__visit("visitBlockStatement", lambda i=child : self.visit(i))).replace("\n", "\n\t")
+            result = f'{result}\n\tStatement[{statement_count}]: {new_value}'
+        self.scope_handler.pop_scope()
+        return result
 
     # Visit a parse tree produced by qutesParser#DeclarationStatement.
     def visitDeclarationStatement(self, ctx:qutesParser.DeclarationStatementContext):

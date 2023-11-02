@@ -1,12 +1,15 @@
-//a=2+3;
-//i=1;
-//a;
-//i=i+i;
-//2+"a"; //this gives an error and that it's as intended, it's how the lower level language handle this kind of operation between two types.
+/*a=2+3;
+i=1;
+a;
+i=i+i;
+2+"a"; //this gives an error and that it's as intended, it's how the lower level language handle this kind of operation between two types.
+*/
 int a = 3;
 //string C = 3;
-//int b = 3;
+int b = 3;
 //a = 4;
-{ int a = 4; }
-//{ string i=1; a = 2; {b=30;}}
-//{ int i=1; while (i<100) i=i+i; }
+if(1){ int a=100; }
+{ int a = 1;  a = 2; }
+{ ; }
+{ string i=1; a = 2; {b=30;}}
+{ int i=1; while (i<100) i=i+i; }
