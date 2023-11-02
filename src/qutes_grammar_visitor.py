@@ -1,7 +1,7 @@
 """An antlr visitor for the qutes grammar."""
 
-from qutes_antlr.qutesParser import qutesParser
-from qutes_antlr.qutesVisitor import qutesVisitor
+from qutes_antlr.qutes_parser import qutes_parser as qutesParser
+from qutes_antlr.qutes_parserVisitor import qutes_parserVisitor as qutesVisitor
 
 class QutesGrammarVisitor(qutesVisitor):
     """An antlr visitor for the qutes grammar."""

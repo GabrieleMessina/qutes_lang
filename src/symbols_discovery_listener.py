@@ -1,7 +1,7 @@
 """An antlr listener for the qutes grammar."""
 
-from qutes_antlr.qutesListener import qutesListener
-from qutes_antlr.qutesParser import qutesParser
+from qutes_antlr.qutes_parserListener import qutes_parserListener as qutesListener
+from qutes_antlr.qutes_parser import qutes_parser as qutesParser
 from symbols.scope_tree_node import ScopeTreeNode, ScopeType, SymbolType, Symbol
 from anytree import RenderTree
 

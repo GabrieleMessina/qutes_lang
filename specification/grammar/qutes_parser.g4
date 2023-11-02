@@ -1,42 +1,14 @@
-grammar qutes;
+parser grammar qutes_parser;
 
 options {
+   tokenVocab = qutes_lexer;
    language = Python3;
 }
-
-// ----- Reserved keyword ----- 
-INT_TYPE : 'int' ;
-STRING_TYPE : 'string' ;
-QUBIT_TYPE : 'qubit' ;
-ADD : '+' ;
-SUB : '-' ;
-EQUAL : '==' ;
-GREATER : '>' ;
-GREATEREQUAL : '>=' ;
-LOWER : '<' ;
-LOWEREQUAL : '<=' ;
-ASSIGN : '=' ;
-END_OF_STATEMENT : ';' ;
-VAR_STATEMENT : 'var' ;
-IF_STATEMENT : 'if' ;
-ELSE_STATEMENT : 'else' ;
-WHILE_STATEMENT : 'while' ;
-DO_STATEMENT : 'do' ;
-BLOCK_STATEMENT_START : '{' ;
-BLOCK_STATEMENT_END : '}' ;
-STRING_ENCLOSURE : '"' ;
-END_OF_PROGRAM : EOF ;
 
 type
    : INT_TYPE
    | STRING_TYPE
    | QUBIT_TYPE
-   ;
-
-fragment
-   COMMENT
-   : '/*'(.*?)'*/' /*single comment*/
-   | '//'~('\r' | '\n')* /* multiple comment*/
    ;
 
 // ----- Entrypoint ----- 
@@ -49,7 +21,7 @@ statement
    | IF_STATEMENT parenExpr statement ELSE_STATEMENT statement #IfElseStatement
    | WHILE_STATEMENT parenExpr statement #WhileStatement
    | DO_STATEMENT statement WHILE_STATEMENT parenExpr #DoWhileStatement
-   | BLOCK_STATEMENT_START statement* BLOCK_STATEMENT_END #BlockStatement
+   | CURLY_PARENTHESIS_OPEN statement* CURLY_PARENTHESIS_CLOSE #BlockStatement
    | variableType variableName ASSIGN (expr|parenExpr) END_OF_STATEMENT #DeclarationStatement
    | qualifiedName ASSIGN (expr|parenExpr) END_OF_STATEMENT #AssignmentStatement
    | expr END_OF_STATEMENT #ExpressionStatement
@@ -57,7 +29,7 @@ statement
    ;
 
 parenExpr
-   : '(' expr ')'
+   : ROUND_PARENTHESIS_OPEN expr ROUND_PARENTHESIS_CLOSE
    ;
 
 expr
@@ -84,7 +56,7 @@ variableType
    ;
 
 qualifiedName 
-   : STRING ('.' STRING)*
+   : STRING (DOT STRING)*
    ;
 
 variableName 
@@ -97,23 +69,4 @@ string
 
 integer
    : INT
-   ;
-
-
-INT // INT bust me before STRING so that numbers doesn't get parsed as variable names
-   : [0-9]+
-   ;
-
-
-STRING
-   : [a-zA-Z]+
-   ;
-
-
-WS
-   : ( [ \r\n\t]+ | COMMENT) -> skip
-   ;
-
-NEWLINE
-   : '\r'? '\n'
    ;
