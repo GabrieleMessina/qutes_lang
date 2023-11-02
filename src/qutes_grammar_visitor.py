@@ -189,7 +189,8 @@ class QutesGrammarVisitor(qutesVisitor):
 
     # Visit a parse tree produced by qutesParser#qualifiedName.
     def visitQualifiedName(self, ctx:qutesParser.QualifiedNameContext):
-        return self.__visit("visitQualifiedName", lambda : str(ctx.getText()))
+        symbol_to_resolve = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.name == str(ctx.getText())]
+        return self.__visit("visitQualifiedName", lambda : symbol_to_resolve[0].value)
 
 
     # Visit a parse tree produced by qutesParser#id.
