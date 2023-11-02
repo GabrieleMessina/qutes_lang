@@ -38,10 +38,10 @@ test
    ;
 
 term
-   : string
-   | term op=(ADD | SUB) term
-   | integer
+   : term op=(ADD | SUB) term
    | qualifiedName
+   | string
+   | integer
    ;
 
 

@@ -42,17 +42,17 @@ def serializedATN():
         5,0,84,87,3,8,4,0,85,87,3,4,2,0,86,83,1,0,0,0,86,84,1,0,0,0,86,85,
         1,0,0,0,87,7,1,0,0,0,88,94,3,10,5,0,89,90,3,10,5,0,90,91,7,0,0,0,
         91,92,3,10,5,0,92,94,1,0,0,0,93,88,1,0,0,0,93,89,1,0,0,0,94,9,1,
-        0,0,0,95,96,6,5,-1,0,96,100,3,20,10,0,97,100,3,22,11,0,98,100,3,
-        16,8,0,99,95,1,0,0,0,99,97,1,0,0,0,99,98,1,0,0,0,100,106,1,0,0,0,
-        101,102,10,3,0,0,102,103,7,1,0,0,103,105,3,10,5,4,104,101,1,0,0,
-        0,105,108,1,0,0,0,106,104,1,0,0,0,106,107,1,0,0,0,107,11,1,0,0,0,
-        108,106,1,0,0,0,109,110,7,2,0,0,110,13,1,0,0,0,111,114,3,12,6,0,
-        112,114,3,16,8,0,113,111,1,0,0,0,113,112,1,0,0,0,114,15,1,0,0,0,
-        115,120,5,26,0,0,116,117,5,22,0,0,117,119,5,26,0,0,118,116,1,0,0,
-        0,119,122,1,0,0,0,120,118,1,0,0,0,120,121,1,0,0,0,121,17,1,0,0,0,
-        122,120,1,0,0,0,123,124,5,26,0,0,124,19,1,0,0,0,125,126,5,23,0,0,
-        126,127,5,26,0,0,127,128,5,23,0,0,128,21,1,0,0,0,129,130,5,25,0,
-        0,130,23,1,0,0,0,11,27,52,61,69,77,86,93,99,106,113,120
+        0,0,0,95,96,6,5,-1,0,96,100,3,16,8,0,97,100,3,20,10,0,98,100,3,22,
+        11,0,99,95,1,0,0,0,99,97,1,0,0,0,99,98,1,0,0,0,100,106,1,0,0,0,101,
+        102,10,4,0,0,102,103,7,1,0,0,103,105,3,10,5,5,104,101,1,0,0,0,105,
+        108,1,0,0,0,106,104,1,0,0,0,106,107,1,0,0,0,107,11,1,0,0,0,108,106,
+        1,0,0,0,109,110,7,2,0,0,110,13,1,0,0,0,111,114,3,12,6,0,112,114,
+        3,16,8,0,113,111,1,0,0,0,113,112,1,0,0,0,114,15,1,0,0,0,115,120,
+        5,26,0,0,116,117,5,22,0,0,117,119,5,26,0,0,118,116,1,0,0,0,119,122,
+        1,0,0,0,120,118,1,0,0,0,120,121,1,0,0,0,121,17,1,0,0,0,122,120,1,
+        0,0,0,123,124,5,26,0,0,124,19,1,0,0,0,125,126,5,23,0,0,126,127,5,
+        26,0,0,127,128,5,23,0,0,128,21,1,0,0,0,129,130,5,25,0,0,130,23,1,
+        0,0,0,11,27,52,61,69,77,86,93,99,106,113,120
     ]
 
 class qutes_parser ( Parser ):
@@ -886,16 +886,16 @@ class qutes_parser ( Parser ):
             self.parser = parser
             self.op = None # Token
 
+        def qualifiedName(self):
+            return self.getTypedRuleContext(qutes_parser.QualifiedNameContext,0)
+
+
         def string(self):
             return self.getTypedRuleContext(qutes_parser.StringContext,0)
 
 
         def integer(self):
             return self.getTypedRuleContext(qutes_parser.IntegerContext,0)
-
-
-        def qualifiedName(self):
-            return self.getTypedRuleContext(qutes_parser.QualifiedNameContext,0)
 
 
         def term(self, i:int=None):
@@ -943,17 +943,17 @@ class qutes_parser ( Parser ):
             self.state = 99
             self._errHandler.sync(self)
             token = self._input.LA(1)
-            if token in [23]:
+            if token in [26]:
                 self.state = 96
+                self.qualifiedName()
+                pass
+            elif token in [23]:
+                self.state = 97
                 self.string()
                 pass
             elif token in [25]:
-                self.state = 97
-                self.integer()
-                pass
-            elif token in [26]:
                 self.state = 98
-                self.qualifiedName()
+                self.integer()
                 pass
             else:
                 raise NoViableAltException(self)
@@ -970,9 +970,9 @@ class qutes_parser ( Parser ):
                     localctx = qutes_parser.TermContext(self, _parentctx, _parentState)
                     self.pushNewRecursionContext(localctx, _startState, self.RULE_term)
                     self.state = 101
-                    if not self.precpred(self._ctx, 3):
+                    if not self.precpred(self._ctx, 4):
                         from antlr4.error.Errors import FailedPredicateException
-                        raise FailedPredicateException(self, "self.precpred(self._ctx, 3)")
+                        raise FailedPredicateException(self, "self.precpred(self._ctx, 4)")
                     self.state = 102
                     localctx.op = self._input.LT(1)
                     _la = self._input.LA(1)
@@ -982,7 +982,7 @@ class qutes_parser ( Parser ):
                         self._errHandler.reportMatch(self)
                         self.consume()
                     self.state = 103
-                    self.term(4) 
+                    self.term(5) 
                 self.state = 108
                 self._errHandler.sync(self)
                 _alt = self._interp.adaptivePredict(self._input,8,self._ctx)
@@ -1353,7 +1353,7 @@ class qutes_parser ( Parser ):
 
     def term_sempred(self, localctx:TermContext, predIndex:int):
             if predIndex == 0:
-                return self.precpred(self._ctx, 3)
+                return self.precpred(self._ctx, 4)
          
 
 
