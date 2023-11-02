@@ -22,18 +22,21 @@ class Symbol():
         self.value = value
         self.scope = scope
 
+    def __to_printable__(self) -> str:
+        return f"{self.scope.scope_type_detail}.{self.name}={self.value}"
+
     def __str__(self) -> str:
-        return f"{self.name}={self.value}"
+        return self.__to_printable__()
 
     def __repr__(self) -> str:
-        return f"{self.name}={self.value}"
+        return self.__to_printable__()
 
 
 class ScopeTreeNode(NodeMixin):
     """A Node for the Scope Tree data structure"""
     def __init__(self, scope_type:ScopeType, scope_type_detail:str, parent=None, children=None, symbols:list[Symbol]=[]):
         super().__init__()
-        self.symbols:list[Symbol] = symbols.copy()
+        self.symbols:list[Symbol] = symbols.copy() # Contains all the symbols resolvable from this scope, so the symbols from this scope and from the ancestors of this node.
         self.scope_type = scope_type
         self.scope_type_detail = scope_type_detail
         self.parent = parent

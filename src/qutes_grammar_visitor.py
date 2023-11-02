@@ -101,14 +101,11 @@ class QutesGrammarVisitor(qutesVisitor):
         return str(var_name) + " = " + str(var_value)
 
     def __update_variable_state(self, var_name, new_value):
-        #TODO: check if type is compatible        
-        # symbol_to_update = list[Symbol](filter(lambda symbol : symbol.name == var_name, self.scope_handler.current_symbols_scope.symbols))
+        #TODO: check if type is compatible 
         symbol_to_update = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.name == var_name ]
-        if len(symbol_to_update) == 1:
-            symbol_index_in_scope = self.scope_handler.current_symbols_scope.symbols.index(symbol_to_update[0])
+        if len(symbol_to_update) > 0:
+            symbol_index_in_scope = self.scope_handler.current_symbols_scope.symbols.index(symbol_to_update[-1])
             self.scope_handler.current_symbols_scope.symbols[symbol_index_in_scope].value = new_value
-        elif len(symbol_to_update) > 1:
-            raise SyntaxError(f"Multiple declaration of variable with name '{var_name}'.")
         else:
             raise SyntaxError(f"No variable declared with name '{var_name}'.")
 
@@ -189,8 +186,13 @@ class QutesGrammarVisitor(qutesVisitor):
 
     # Visit a parse tree produced by qutesParser#qualifiedName.
     def visitQualifiedName(self, ctx:qutesParser.QualifiedNameContext):
-        symbol_to_resolve = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.name == str(ctx.getText())]
-        return self.__visit("visitQualifiedName", lambda : symbol_to_resolve[0].value)
+        var_name = str(ctx.getText());
+        symbol_to_resolve = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.name == var_name]
+        if len(symbol_to_resolve) > 0:
+            # Get the last matching symbol (so that we handle symbol hyding in a scope that is a child of another that already has this variable declared)
+            return self.__visit("visitQualifiedName", lambda : symbol_to_resolve[-1].value)
+        else:
+            raise SyntaxError(f"No variable declared with name '{var_name}'.")
 
 
     # Visit a parse tree produced by qutesParser#id.

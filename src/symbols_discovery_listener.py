@@ -68,8 +68,8 @@ class SymbolsDiscoveryListener(qutesListener):
     # Enter a parse tree produced by qutesParser#DeclarationStatement.
     def enterDeclarationStatement(self, ctx:qutesParser.DeclarationStatementContext):
         new_var_name = ctx.variableName().getText()
-        already_taken_symbol = any(symbol.name == new_var_name for symbol in self.scope_handler.current_symbols_scope.symbols)
-        if(not already_taken_symbol):
+        already_taken_symbol_in_this_scope = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.name == new_var_name and symbol.scope == self.scope_handler.current_symbols_scope]
+        if(len(already_taken_symbol_in_this_scope) == 0):
             self.scope_handler.current_symbols_scope.symbols.append(Symbol(new_var_name, SymbolType.VariableSymbol, "NA", None, self.scope_handler.current_symbols_scope))
         else:
             raise SyntaxError(f"Variable with name '{new_var_name}' already declared.")
