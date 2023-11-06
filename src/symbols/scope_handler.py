@@ -1,11 +1,15 @@
 from symbols.scope_tree_node import ScopeTreeNode, ScopeType, Symbol
 from anytree import PreOrderIter
 
-class ScopeHandlerForSymbolsDiscovery():
-    # Class that handles the scope for symbol discovery, first step of compilation
+class ScopeHandler():
     def __init__(self):
         self.symbols_tree:ScopeTreeNode = None
         self.current_symbols_scope:ScopeTreeNode = self.symbols_tree
+
+class ScopeHandlerForSymbolsDiscovery(ScopeHandler):
+    # Class that handles the scope for symbol discovery, first step of compilation
+    def __init__(self):
+        super().__init__()
 
 
     def push_scope(self, scope:ScopeType, scope_detail:str, symbols:list[Symbol] = []) -> ScopeTreeNode:
@@ -30,13 +34,14 @@ class ScopeHandlerForSymbolsDiscovery():
         return self.current_symbols_scope
 
     
-class ScopeHandlerForSymbolsUpdate():
+class ScopeHandlerForSymbolsUpdate(ScopeHandler):
     # Class that handles the compilation steps that come after the first(symbol discovery)
     def __init__(self, symbols_tree:ScopeTreeNode):
+        super().__init__()
         if not symbols_tree:
             raise ValueError("A symbols tree must be provided to the scope handler for this step.")
         self.symbols_tree:ScopeTreeNode = symbols_tree
-        self.current_symbols_scope:ScopeTreeNode = None
+        self.current_symbols_scope:ScopeTreeNode = self.symbols_tree
         self.tree_preorder_iterator = PreOrderIter(self.symbols_tree)            
 
     def push_scope(self) -> ScopeTreeNode:
