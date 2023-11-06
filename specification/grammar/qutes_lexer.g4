@@ -6,8 +6,11 @@ options {
 
 // ----- Reserved keyword ----- 
 INT_TYPE : 'int' ;
+BOOL_TYPE : 'bool' ;
 STRING_TYPE : 'string' ;
 QUBIT_TYPE : 'qubit' ;
+TRUE : 'true' ;
+FALSE : 'false' ;
 ADD : '+' ;
 SUB : '-' ;
 EQUAL : '==' ;
@@ -27,26 +30,31 @@ CURLY_PARENTHESIS_CLOSE : '}' ;
 ROUND_PARENTHESIS_OPEN : '(' ;
 ROUND_PARENTHESIS_CLOSE : ')' ;
 DOT : '.' ;
-STRING_ENCLOSURE : '"' ;
+STRING_ENCLOSURE : '"';
 
+// ----- Comments -----
 fragment
    COMMENT
-   : '/*'(.*?)'*/' /*single comment*/
-   | '//'~('\r' | '\n')* /* multiple comment*/
+   : '/*'(.*?)'*/'
+   | '//'~('\r' | '\n')*
    ;
 
-INT // INT bust me before STRING so that numbers doesn't get parsed as variable names
+// ----- Literals -----
+INT_LITERAL
    : [0-9]+
    ;
 
-
-STRING
-   : [a-z]+
+SYMBOL_LITERAL
+   : [a-z0-9]+
    ;
 
+STRING_LITERAL
+   :  '"' ('\\' . | '""' | ~["\\])* '"';
 
+
+// ----- Whitespace Character Handling -----
 WS
-   : ( [ \r\n\t]+ | COMMENT) -> skip
+   : ([ \r\n\t]+ | COMMENT) -> skip
    ;
 
 NEWLINE

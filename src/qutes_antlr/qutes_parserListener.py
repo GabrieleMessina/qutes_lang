@@ -188,5 +188,14 @@ class qutes_parserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by qutes_parser#boolean.
+    def enterBoolean(self, ctx:qutes_parser.BooleanContext):
+        pass
+
+    # Exit a parse tree produced by qutes_parser#boolean.
+    def exitBoolean(self, ctx:qutes_parser.BooleanContext):
+        pass
+
+
 
 del qutes_parser

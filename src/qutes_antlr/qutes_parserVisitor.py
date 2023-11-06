@@ -109,5 +109,10 @@ class qutes_parserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by qutes_parser#boolean.
+    def visitBoolean(self, ctx:qutes_parser.BooleanContext):
+        return self.visitChildren(ctx)
+
+
 
 del qutes_parser
