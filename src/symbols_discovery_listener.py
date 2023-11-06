@@ -4,12 +4,15 @@ from qutes_antlr.qutes_parserListener import qutes_parserListener as qutesListen
 from qutes_antlr.qutes_parser import qutes_parser as qutesParser
 from symbols.scope_tree_node import ScopeType, SymbolType, Symbol
 from symbols.scope_handler import ScopeHandlerForSymbolsDiscovery
+from symbols.qutes_types import QutesDataType
+from symbols.variables_handler import VariablesHandler
 
 class SymbolsDiscoveryListener(qutesListener):
     """An antlr listener for the qutes grammar that discovers symbols like variable, function names etc."""
 
     def __init__(self):
         self.scope_handler = ScopeHandlerForSymbolsDiscovery()
+        self.variables_handler = VariablesHandler(self.scope_handler)
 
     # Enter a parse tree produced by qutesParser#program.
     def enterProgram(self, ctx:qutesParser.ProgramContext):
@@ -67,12 +70,13 @@ class SymbolsDiscoveryListener(qutesListener):
 
     # Enter a parse tree produced by qutesParser#DeclarationStatement.
     def enterDeclarationStatement(self, ctx:qutesParser.DeclarationStatementContext):
-        new_var_name = ctx.variableName().getText()
-        already_taken_symbol_in_this_scope = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.name == new_var_name and symbol.scope == self.scope_handler.current_symbols_scope]
-        if(len(already_taken_symbol_in_this_scope) == 0):
-            self.scope_handler.current_symbols_scope.symbols.append(Symbol(new_var_name, SymbolType.VariableSymbol, "NA", None, self.scope_handler.current_symbols_scope))
-        else:
-            raise SyntaxError(f"Variable with name '{new_var_name}' already declared.")
+        var_type = ctx.variableType().getText()
+        var_name = ctx.variableName().getText()
+        # This listener should not follow the executino path to understand what was the initial value assigned to the variable.
+        # So we assign None and then variables_handler will put in the default value for the type.
+        var_value = None
+
+        self.variables_handler.declare_variable(var_type, var_name, var_value)
 
     # Exit a parse tree produced by qutesParser#DeclarationStatement.
     def exitDeclarationStatement(self, ctx:qutesParser.DeclarationStatementContext):
@@ -194,3 +198,13 @@ class SymbolsDiscoveryListener(qutesListener):
     # Exit a parse tree produced by qutesParser#integer.
     def exitInteger(self, ctx:qutesParser.IntegerContext):
         pass
+    
+
+    # Enter a parse tree produced by qutes_parser#boolean.
+    def enterBoolean(self, ctx:qutesParser.BooleanContext):
+        pass
+
+    # Exit a parse tree produced by qutes_parser#boolean.
+    def exitBoolean(self, ctx:qutesParser.BooleanContext):
+        pass
+

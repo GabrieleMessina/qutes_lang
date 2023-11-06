@@ -4,6 +4,7 @@ from qutes_antlr.qutes_parser import qutes_parser as qutesParser
 from qutes_antlr.qutes_parserVisitor import qutes_parserVisitor as qutesVisitor
 from symbols.scope_tree_node import ScopeTreeNode
 from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
+from symbols.variables_handler import VariablesHandler
 
 class QutesGrammarVisitor(qutesVisitor):
     """An antlr visitor for the qutes grammar."""
@@ -17,6 +18,7 @@ class QutesGrammarVisitor(qutesVisitor):
         #And every time we need to close a scope, we return to the parent of the current node
         #This way we know, at each moment, what symbols are defined.
         self.scope_handler = ScopeHandlerForSymbolsUpdate(self.symbols_tree)
+        self.variables_handler = VariablesHandler(self.scope_handler)
 
         # Debug flags
         self.log_trace_enabled = False
@@ -75,21 +77,22 @@ class QutesGrammarVisitor(qutesVisitor):
             result = f'{result}\n\tStatement[{statement_count}]: {new_value}'
         self.scope_handler.pop_scope()
         return result
+    
 
     # Visit a parse tree produced by qutesParser#DeclarationStatement.
     def visitDeclarationStatement(self, ctx:qutesParser.DeclarationStatementContext):
-        var_type = ctx.variableType().getText()
+        var_type = ctx.variableType().getText() # we already know the variable type thanks to the discovery listener.
         var_name = ctx.variableName().getText()
         var_value = "default_var_value"
+
         if(ctx.expr()):
             var_value = self.visitChildren(ctx.expr())
         if(ctx.parenExpr()):
             var_value = self.visitChildren(ctx.parenExpr())
 
-        self.__update_variable_state(var_name, var_value)
+        self.variables_handler.update_variable_state(var_name, var_value)
 
         return str(var_type) + " " + str(var_name) + " = " + str(var_value)
-    
 
     # Visit a parse tree produced by qutesParser#AssignmentStatement.
     def visitAssignmentStatement(self, ctx:qutesParser.AssignmentStatementContext): 
@@ -103,18 +106,9 @@ class QutesGrammarVisitor(qutesVisitor):
         if(ctx.parenExpr()):
             var_value = self.visitChildren(ctx.parenExpr())
 
-        self.__update_variable_state(var_name, var_value)
+        self.variables_handler.update_variable_state(var_name, var_value)
 
         return str(var_name) + " = " + str(var_value)
-
-    def __update_variable_state(self, var_name, new_value):
-        #TODO: check if type is compatible 
-        symbol_to_update = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.name == var_name ]
-        if len(symbol_to_update) > 0:
-            symbol_index_in_scope = self.scope_handler.current_symbols_scope.symbols.index(symbol_to_update[-1])
-            self.scope_handler.current_symbols_scope.symbols[symbol_index_in_scope].value = new_value
-        else:
-            raise SyntaxError(f"No variable declared with name '{var_name}'.")
 
 
     # Visit a parse tree produced by qutesParser#parenExpr.
@@ -183,6 +177,9 @@ class QutesGrammarVisitor(qutesVisitor):
         if(ctx.integer()):
             if(self.log_trace_enabled): print("visitTerm -> integer")
             result = self.visitChildren(ctx)
+        if(ctx.boolean()):
+            if(self.log_trace_enabled): print("visitTerm -> boolean")
+            result = self.visitChildren(ctx)
         return result
 
 
@@ -204,7 +201,13 @@ class QutesGrammarVisitor(qutesVisitor):
 
     # Visit a parse tree produced by qutesParser#id.
     def visitString(self, ctx:qutesParser.StringContext):
-        return self.__visit("visitString", lambda : str(ctx.getText()))
+        string_literal_enclosure = qutesParser.literalNames[qutesParser.STRING_ENCLOSURE].replace("'", "")
+        return self.__visit("visitString", lambda : str(
+            ctx.getText()
+                .removeprefix(string_literal_enclosure)
+                .removesuffix(string_literal_enclosure)
+            )
+        )
 
 
     # Visit a parse tree produced by qutesParser#integer.
@@ -215,6 +218,10 @@ class QutesGrammarVisitor(qutesVisitor):
     # Visit a parse tree produced by qutesParser#integer.
     def visitVariableName(self, ctx:qutesParser.VariableNameContext):
         return self.__visit("visitVariableName", lambda : str(ctx.getText()))
+
+    # Visit a parse tree produced by qutes_parser#boolean.
+    def visitBoolean(self, ctx:qutesParser.BooleanContext):
+        return self.__visit("visitBoolean", lambda : ctx.getText().lower() == "true")
 
 
     # Utility method for logging and scaffolding operation

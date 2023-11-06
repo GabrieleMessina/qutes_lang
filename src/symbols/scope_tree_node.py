@@ -12,7 +12,7 @@ class SymbolType(Enum):
     FunctionSymbol = 2
     VariableSymbol = 3
 
-class Symbol():
+class Symbol(): # TODO: extract from this file.
     name:str = None
     def __init__(self, name:str, symbol_type:SymbolType, symbol_type_detail:str, value, scope:"ScopeTreeNode"):
         super().__init__()
