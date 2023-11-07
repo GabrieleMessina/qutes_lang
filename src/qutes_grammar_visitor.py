@@ -1,10 +1,11 @@
 """An antlr visitor for the qutes grammar."""
 
-from qutes_antlr.qutes_parser import qutes_parser as qutesParser
-from qutes_antlr.qutes_parserVisitor import qutes_parserVisitor as qutesVisitor
+from qutes_parser import QutesParser as qutesParser
+from qutes_antlr.qutes_parserVisitor import qutes_parserVisitor as qutesVisitor #TODO: replace all of this from qutes_antlr with custom superclass like QutesParser and maybe we can move this folder out so that antlr doesn't create any disaster.
 from symbols.scope_tree_node import ScopeTreeNode
 from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
 from symbols.variables_handler import VariablesHandler
+from symbols.qutes_types import Qubit
 
 class QutesGrammarVisitor(qutesVisitor):
     """An antlr visitor for the qutes grammar."""
@@ -171,17 +172,23 @@ class QutesGrammarVisitor(qutesVisitor):
                 result = self.visitChildren(ctx.term(0)) + self.visitChildren(ctx.term(1))
             if(ctx.SUB()):
                 result = self.visitChildren(ctx.term(0)) - self.visitChildren(ctx.term(1))
+        if(ctx.boolean()):
+            if(self.log_trace_enabled): print("visitTerm -> boolean")
+            result = self.visitChildren(ctx)
+        if(ctx.integer()):
+            if(self.log_trace_enabled): print("visitTerm -> integer")
+            result = self.visitChildren(ctx)
+        if(ctx.float_()):
+            if(self.log_trace_enabled): print("visitTerm -> float")
+            result = self.visitChildren(ctx)
+        if(ctx.qubit()):
+            if(self.log_trace_enabled): print("visitTerm -> qubit")
+            result = self.visitChildren(ctx)
         if(ctx.qualifiedName()):
             if(self.log_trace_enabled): print("visitTerm -> qualifiedName")
             result = self.visitChildren(ctx)
         if(ctx.string()):
             if(self.log_trace_enabled): print("visitTerm -> string")
-            result = self.visitChildren(ctx)
-        if(ctx.integer()):
-            if(self.log_trace_enabled): print("visitTerm -> integer")
-            result = self.visitChildren(ctx)
-        if(ctx.boolean()):
-            if(self.log_trace_enabled): print("visitTerm -> boolean")
             result = self.visitChildren(ctx)
         return result
 
@@ -204,13 +211,23 @@ class QutesGrammarVisitor(qutesVisitor):
 
     # Visit a parse tree produced by qutesParser#id.
     def visitString(self, ctx:qutesParser.StringContext):
-        string_literal_enclosure = qutesParser.literalNames[qutesParser.STRING_ENCLOSURE].replace("'", "")
+        string_literal_enclosure = qutesParser.literaltostring(qutesParser.STRING_ENCLOSURE)
         return self.__visit("visitString", lambda : str(
             ctx.getText()
                 .removeprefix(string_literal_enclosure)
                 .removesuffix(string_literal_enclosure)
             )
         )
+
+    
+    # Visit a parse tree produced by qutesParser#qubit.
+    def visitQubit(self, ctx:qutesParser.QubitContext):
+       return self.__visit("visitQubit", lambda : Qubit().fromstr(ctx.getText()))
+
+
+    # Visit a parse tree produced by qutesParser#float.
+    def visitFloat(self, ctx:qutesParser.FloatContext):
+        return self.__visit("visitFloat", lambda : float(ctx.getText()))
 
 
     # Visit a parse tree produced by qutesParser#integer.

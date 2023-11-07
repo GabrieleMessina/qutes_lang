@@ -1,7 +1,14 @@
 from enum import Enum
+from qutes_parser import QutesParser
 
 class Qubit():
-    def __init__(self, alpha : complex, beta : complex):
+    def fromstr(self, literal : str) -> 'Qubit':
+        literal = literal.removesuffix(QutesParser.literaltostring(QutesParser.QUBIT_LITERAL_POSTFIX))
+        literal = literal.split(',', 1)
+        self.__init__(complex(literal[0]), complex(literal[1]))
+        return self
+    
+    def __init__(self, alpha : complex = complex(), beta : complex = complex()):
         self.alpha = alpha
         self.beta = beta
 
@@ -21,12 +28,15 @@ class QutesDataType(Enum):
     int = 2
     string = 3
     qubit = 4
+    float = 5
 
     def from_python_type(var_value) -> 'QutesDataType':
         if isinstance(var_value, bool):
             return QutesDataType.bool
         if isinstance(var_value, int):
             return QutesDataType.int
+        if isinstance(var_value, float):
+            return QutesDataType.float
         if isinstance(var_value, str):
             return QutesDataType.string
         if isinstance(var_value, Qubit):
@@ -42,6 +52,8 @@ class QutesDataType(Enum):
                 return QutesDataType.int
             case "string":
                 return QutesDataType.string
+            case "float":
+                return QutesDataType.float
             case "qubit":
                 return QutesDataType.qubit
             case _:
@@ -53,9 +65,11 @@ class QutesDataType(Enum):
                 return bool()
             case QutesDataType.int:
                 return int()
+            case QutesDataType.float:
+                return float()
             case QutesDataType.string:
                 return str()
             case QutesDataType.qubit:
-                return Qubit(complex(), complex())
+                return Qubit()
             case _:
                 return QutesDataType.Undefined

@@ -9,6 +9,7 @@ INT_TYPE : 'int' ;
 BOOL_TYPE : 'bool' ;
 STRING_TYPE : 'string' ;
 QUBIT_TYPE : 'qubit' ;
+FLOAT_TYPE : 'float' ;
 TRUE : 'true' ;
 FALSE : 'false' ;
 ADD : '+' ;
@@ -31,6 +32,8 @@ ROUND_PARENTHESIS_OPEN : '(' ;
 ROUND_PARENTHESIS_CLOSE : ')' ;
 DOT : '.' ;
 STRING_ENCLOSURE : '"';
+QUBIT_LITERAL_POSTFIX : 'q';
+COMMA : ',';
 
 // ----- Comments -----
 fragment
@@ -40,8 +43,30 @@ fragment
    ;
 
 // ----- Literals -----
+fragment
+   DIGIT
+      : [0-9]
+      ;
+
 INT_LITERAL
-   : [0-9]+
+   : DIGIT+
+   ;
+
+FLOAT_LITERAL
+   : DIGIT+ '.' DIGIT*
+   | '.' DIGIT+
+   ;
+
+HEX_LITERAL
+   : '0' [x] ([a-f] | DIGIT)+ 
+   ;
+
+BIN_LITERAL
+   : '0' [b] [01]+ 
+   ;
+
+QUBIT_LITERAL
+   : FLOAT_LITERAL COMMA FLOAT_LITERAL QUBIT_LITERAL_POSTFIX
    ;
 
 SYMBOL_LITERAL

@@ -191,6 +191,24 @@ class SymbolsDiscoveryListener(qutesListener):
         pass
 
 
+    # Enter a parse tree produced by qutes_parser#qubit.
+    def enterQubit(self, ctx:qutesParser.QubitContext):
+        pass
+
+    # Exit a parse tree produced by qutes_parser#qubit.
+    def exitQubit(self, ctx:qutesParser.QubitContext):
+        pass
+
+
+    # Enter a parse tree produced by qutes_parser#float.
+    def enterFloat(self, ctx:qutesParser.FloatContext):
+        pass
+
+    # Exit a parse tree produced by qutes_parser#float.
+    def exitFloat(self, ctx:qutesParser.FloatContext):
+        pass
+
+
     # Enter a parse tree produced by qutesParser#integer.
     def enterInteger(self, ctx:qutesParser.IntegerContext):
         pass
