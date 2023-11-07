@@ -5,6 +5,16 @@ class Qubit():
         self.alpha = alpha
         self.beta = beta
 
+    def __to_printable__(self) -> str:
+        return f"[(\u03B1:{self.alpha})|0> + (\u03B2:{self.beta})|1>]"
+
+    def __str__(self) -> str:
+        return self.__to_printable__()
+
+    def __repr__(self) -> str:
+        return self.__to_printable__()
+    
+
 class QutesDataType(Enum):
     Undefined = -1
     bool = 1
