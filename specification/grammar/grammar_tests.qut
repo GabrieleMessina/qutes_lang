@@ -1,6 +1,8 @@
 /*{
     int a=2+3;
     int i=1;
+    int x=0xa1;//TODO:handle
+    int h=0b01;//TODO:handle
     a;
     i=i+i;
     //2+"a"; //this gives an error and that it's as intended, it's how the lower level language handle this kind of operation between two types.
