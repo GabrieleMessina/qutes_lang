@@ -1,11 +1,3 @@
-# ======= ANTLR first generation error on VSCode workspace load =======
-specification/grammar/.antlr/*.java
-*.interp
-src/qutes_antrl/
-grammar/.antlr/
-
-
-
 # ======= VISUAL STUDIO SECTION =======
 .vscode/*
 !.vscode/settings.json
