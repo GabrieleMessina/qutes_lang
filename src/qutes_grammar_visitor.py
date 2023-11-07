@@ -83,32 +83,35 @@ class QutesGrammarVisitor(qutesVisitor):
     def visitDeclarationStatement(self, ctx:qutesParser.DeclarationStatementContext):
         var_type = ctx.variableType().getText() # we already know the variable type thanks to the discovery listener.
         var_name = ctx.variableName().getText()
-        var_value = "default_var_value"
+        var_value = None
 
-        if(ctx.expr()):
-            var_value = self.visitChildren(ctx.expr())
-        if(ctx.parenExpr()):
-            var_value = self.visitChildren(ctx.parenExpr())
-
-        self.variables_handler.update_variable_state(var_name, var_value)
-
-        return str(var_type) + " " + str(var_name) + " = " + str(var_value)
+        return self.__visit("visitAssignmentStatement", lambda : self.__visit_assignment_statement(var_type, var_name, var_value, ctx))
+        
 
     # Visit a parse tree produced by qutesParser#AssignmentStatement.
     def visitAssignmentStatement(self, ctx:qutesParser.AssignmentStatementContext): 
-        return self.__visit("visitAssignmentStatement", lambda : self.__visit_assignment_statement(ctx))
-
-    def __visit_assignment_statement(self, ctx:qutesParser.AssignmentStatementContext):
         var_name = ctx.qualifiedName().getText()
-        var_value = "default_var_value"
+        var_value = None
+        return self.__visit("visitAssignmentStatement", lambda : self.__visit_assignment_statement(None, var_name, var_value, ctx))
+
+    def __visit_assignment_statement(self, var_type : str, var_name : str, var_value, ctx:(qutesParser.AssignmentStatementContext | qutesParser.DeclarationStatementContext)):
         if(ctx.expr()):
             var_value = self.visitChildren(ctx.expr())
         if(ctx.parenExpr()):
             var_value = self.visitChildren(ctx.parenExpr())
 
-        self.variables_handler.update_variable_state(var_name, var_value)
+        if(var_value != None):
+            self.variables_handler.update_variable_state(var_name, var_value)
 
-        return str(var_name) + " = " + str(var_value)
+        if(isinstance(ctx, qutesParser.AssignmentStatementContext)):
+            return str(var_name) + " = " + str(var_value)
+        
+        else:
+            if(var_value != None):
+                self.variables_handler.update_variable_state(var_name, var_value)
+                return str(var_type) + " " + str(var_name) + " = " + str(var_value)
+            else:
+                return str(var_type) + " " + str(var_name)
 
 
     # Visit a parse tree produced by qutesParser#parenExpr.
