@@ -2,9 +2,8 @@
 
 from qutes_antlr.qutes_parserListener import qutes_parserListener as qutesListener
 from qutes_antlr.qutes_parser import qutes_parser as qutesParser
-from symbols.scope_tree_node import ScopeType, SymbolType, Symbol
+from symbols.scope_tree_node import ScopeType
 from symbols.scope_handler import ScopeHandlerForSymbolsDiscovery
-from symbols.qutes_types import QutesDataType
 from symbols.variables_handler import VariablesHandler
 
 class SymbolsDiscoveryListener(qutesListener):

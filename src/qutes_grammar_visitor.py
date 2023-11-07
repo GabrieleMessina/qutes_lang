@@ -1,7 +1,7 @@
 """An antlr visitor for the qutes grammar."""
 
 from qutes_parser import QutesParser as qutesParser
-from qutes_antlr.qutes_parserVisitor import qutes_parserVisitor as qutesVisitor #TODO: replace all of this from qutes_antlr with custom superclass like QutesParser and maybe we can move this folder out so that antlr doesn't create any disaster.
+from qutes_antlr.qutes_parserVisitor import qutes_parserVisitor as qutesVisitor
 from symbols.scope_tree_node import ScopeTreeNode
 from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
 from symbols.variables_handler import VariablesHandler

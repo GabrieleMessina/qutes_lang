@@ -4,8 +4,8 @@ import sys
 import argparse
 from antlr4 import FileStream, CommonTokenStream, ParseTreeWalker
 from anytree import RenderTree
-from qutes_antlr.qutes_lexer import qutes_lexer
-from qutes_antlr.qutes_parser import qutes_parser
+from qutes_lexer import QutesLexer
+from qutes_parser import QutesParser
 from qutes_grammar_visitor import QutesGrammarVisitor
 from symbols_discovery_listener import SymbolsDiscoveryListener
 
@@ -21,9 +21,9 @@ def main(argv):
     args = parser.parse_args()
 
     input_stream = FileStream(args.file_path)
-    lexer = qutes_lexer(input_stream)
+    lexer = QutesLexer(input_stream)
     stream = CommonTokenStream(lexer)
-    parser = qutes_parser(stream)
+    parser = QutesParser(stream)
     tree = parser.program()
 
     if parser.getNumberOfSyntaxErrors() > 0:
