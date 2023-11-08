@@ -28,7 +28,7 @@ class VariablesHandler():
         if(value is None):
             value = QutesDataType.get_default_value(QutesDataType.from_declaration_type(declaration_type))
 
-        already_taken_symbol_in_this_scope = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.name == value and symbol.scope == self.scope_handler.current_symbols_scope]
+        already_taken_symbol_in_this_scope = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.name == variable_name and symbol.scope == self.scope_handler.current_symbols_scope]
         if(len(already_taken_symbol_in_this_scope) == 0):
             self.__guard_value_and_definition_type_matches(declaration_type, variable_name, value)
 
@@ -36,7 +36,7 @@ class VariablesHandler():
             self.scope_handler.current_symbols_scope.symbols.append(new_symbol)
             return new_symbol
         else:
-            raise SyntaxError(f"Variable with name '{value}' already declared.")
+            raise SyntaxError(f"Variable with name '{variable_name}' already declared.")
         
     def __guard_value_and_definition_type_matches(self, declaration_type, var_name, value) -> bool:
         value_qutes_type = QutesDataType.from_python_type(value)
