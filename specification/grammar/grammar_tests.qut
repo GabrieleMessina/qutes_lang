@@ -1,4 +1,12 @@
 /*{
+    bool a = true;
+    bool b = FALSE;
+    bool c = 1;
+    bool d = 0;
+}*/
+
+
+/*{
     int a=2+3;
     int i=1;
     int x=0xa1;//TODO:handle
@@ -25,7 +33,22 @@
 //{ }
 //qubit b;
 // float a = 1.1;
-// qubit c = 1.1,2.2q;
-qubit c = 1.1,2.2q;
-// { int i=1; int a = 2; {qubit b=30;}} //TODO:handle qubit assignment 
 //{ int i=1; while (i<100) i=i+i; } //TODO: handle cycle
+// qubit q = [0, 1]q;//TODO: error mismatched input 'q' expecting SYMBOL_LITERAL
+
+{
+    //alpha and beta values
+    qubit a = 0.7,0.3q; 
+    //states we want the qubit is able to take
+    qubit b = [0, 1]q; 
+    //qubits with only a state 
+    qubit c = [1]q; 
+    qubit ad = 0q;
+    qubit ae = 1q;
+    qubit bd = -0q;
+    qubit be = +1q;
+    be = -1q;
+    //qubits in superposition 
+    qubit f = +q;
+    qubit g = -q;
+}

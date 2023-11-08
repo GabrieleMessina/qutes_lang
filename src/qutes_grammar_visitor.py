@@ -241,7 +241,7 @@ class QutesGrammarVisitor(qutesVisitor):
 
     # Visit a parse tree produced by qutes_parser#boolean.
     def visitBoolean(self, ctx:qutesParser.BooleanContext):
-        return self.__visit("visitBoolean", lambda : ctx.getText().lower() == "true")
+        return self.__visit("visitBoolean", lambda : ctx.getText().lower() == "true" or ctx.getText() == "1")
 
 
     # Utility method for logging and scaffolding operation

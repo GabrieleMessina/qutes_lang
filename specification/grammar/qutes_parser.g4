@@ -65,7 +65,7 @@ qualifiedName
    : SYMBOL_LITERAL (DOT SYMBOL_LITERAL)*
    ;
 
-variableName 
+variableName
    : SYMBOL_LITERAL
    ;
 
@@ -88,6 +88,5 @@ integer
    ;
 
 boolean
-   : TRUE
-   | FALSE
+   : BOOl_LITERAL
    ;

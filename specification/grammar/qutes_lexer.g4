@@ -10,8 +10,6 @@ BOOL_TYPE : 'bool' ;
 STRING_TYPE : 'string' ;
 QUBIT_TYPE : 'qubit' ;
 FLOAT_TYPE : 'float' ;
-TRUE : 'true' ;
-FALSE : 'false' ;
 ADD : '+' ;
 SUB : '-' ;
 EQUAL : '==' ;
@@ -30,6 +28,8 @@ CURLY_PARENTHESIS_OPEN : '{' ;
 CURLY_PARENTHESIS_CLOSE : '}' ;
 ROUND_PARENTHESIS_OPEN : '(' ;
 ROUND_PARENTHESIS_CLOSE : ')' ;
+SQUARE_PARENTHESIS_OPEN : '[' ;
+SQUARE_PARENTHESIS_CLOSE : ']' ;
 DOT : '.' ;
 STRING_ENCLOSURE : '"';
 QUBIT_LITERAL_POSTFIX : 'q';
@@ -44,17 +44,35 @@ fragment
 
 // ----- Literals -----
 fragment
+   TRUE : 'true' ;
+
+fragment
+   FALSE : 'false' ;
+
+fragment
    DIGIT
       : [0-9]
       ;
 
+fragment
+   MATH_SIGN
+      : [+-]
+      ;
+
+
+BOOl_LITERAL
+   : TRUE
+   | FALSE
+   | [01]
+   ;
+
 INT_LITERAL
-   : DIGIT+
+   : MATH_SIGN? DIGIT+
    ;
 
 FLOAT_LITERAL
-   : DIGIT+ '.' DIGIT*
-   | '.' DIGIT+
+   : MATH_SIGN? DIGIT+ '.' DIGIT*
+   | MATH_SIGN? '.' DIGIT+
    ;
 
 HEX_LITERAL
@@ -66,7 +84,10 @@ BIN_LITERAL
    ;
 
 QUBIT_LITERAL
-   : FLOAT_LITERAL COMMA FLOAT_LITERAL QUBIT_LITERAL_POSTFIX
+   : SQUARE_PARENTHESIS_OPEN INT_LITERAL (COMMA (' ')* INT_LITERAL)? SQUARE_PARENTHESIS_CLOSE QUBIT_LITERAL_POSTFIX
+   | FLOAT_LITERAL COMMA FLOAT_LITERAL QUBIT_LITERAL_POSTFIX
+   | MATH_SIGN? BOOl_LITERAL QUBIT_LITERAL_POSTFIX
+   | MATH_SIGN QUBIT_LITERAL_POSTFIX
    ;
 
 SYMBOL_LITERAL
