@@ -38,7 +38,7 @@
 
 {
     //alpha and beta values
-    qubit a = 0.7,0.3q; 
+    qubit a = 0.7,0.3q;
     //states we want the qubit is able to take
     qubit b = [0, 1]q; 
     //qubits with only a state 
@@ -51,4 +51,13 @@
     //qubits in superposition 
     qubit f = +q;
     qubit g = -q;
+    // qubit h = f + g; //TODO: handle qubit sum
+}
+
+{
+    quint a = [0q, 0q, 1q];
+    quint b = [[0, 1]q, 0q, 1q];
+    quint c = 12q;
+    quint d = -12q;
+    //quint e = c + d; //TODO: handle quint sum
 }

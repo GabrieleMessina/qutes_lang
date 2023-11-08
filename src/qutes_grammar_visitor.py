@@ -5,7 +5,7 @@ from qutes_antlr.qutes_parserVisitor import qutes_parserVisitor as qutesVisitor
 from symbols.scope_tree_node import ScopeTreeNode
 from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
 from symbols.variables_handler import VariablesHandler
-from symbols.qutes_types import Qubit
+from symbols.qutes_types import Qubit, Quint
 
 class QutesGrammarVisitor(qutesVisitor):
     """An antlr visitor for the qutes grammar."""
@@ -184,6 +184,9 @@ class QutesGrammarVisitor(qutesVisitor):
         if(ctx.qubit()):
             if(self.log_trace_enabled): print("visitTerm -> qubit")
             result = self.visitChildren(ctx)
+        if(ctx.quint()):
+            if(self.log_trace_enabled): print("visitTerm -> quint")
+            result = self.visitChildren(ctx)
         if(ctx.qualifiedName()):
             if(self.log_trace_enabled): print("visitTerm -> qualifiedName")
             result = self.visitChildren(ctx)
@@ -223,7 +226,10 @@ class QutesGrammarVisitor(qutesVisitor):
     # Visit a parse tree produced by qutesParser#qubit.
     def visitQubit(self, ctx:qutesParser.QubitContext):
        return self.__visit("visitQubit", lambda : Qubit().fromstr(ctx.getText()))
-
+    
+    # Visit a parse tree produced by qutesParser#quint.
+    def visitQuint(self, ctx:qutesParser.QuintContext):
+       return self.__visit("visitQuint", lambda : Quint().fromstr(ctx.getText()))
 
     # Visit a parse tree produced by qutesParser#float.
     def visitFloat(self, ctx:qutesParser.FloatContext):

@@ -44,6 +44,7 @@ term
    | integer
    | float
    | qubit
+   | quint
    | qualifiedName
    | string
    ;
@@ -54,6 +55,7 @@ type
    | FLOAT_TYPE
    | STRING_TYPE
    | QUBIT_TYPE
+   | QUINT_TYPE
    ;
 
 variableType
@@ -75,6 +77,10 @@ string
 
 qubit
    : QUBIT_LITERAL
+   ;
+
+quint
+   : QUINT_LITERAL
    ;
 
 float
