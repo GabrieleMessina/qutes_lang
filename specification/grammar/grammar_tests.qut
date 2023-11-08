@@ -44,20 +44,22 @@
     //qubits with only a state 
     qubit c = [1]q; 
     qubit ad = 0q;
-    qubit ae = 1q;
-    qubit bd = -0q;
-    qubit be = +1q;
-    be = -1q;
+    // qubit ae = 1q;
+    // qubit bd = -0q;
+    // qubit be = +1q;
+    // be = -1q;
     //qubits in superposition 
-    qubit f = +q;
-    qubit g = -q;
+    qubit f = |+> ;
+    qubit g = |-> ;
+    qubit h = |0> ;
+    qubit i = |1> ;
     // qubit h = f + g; //TODO: handle qubit sum
 }
 
 {
     quint a = [0q, 0q, 1q];
     quint b = [[0, 1]q, 0q, 1q];
-    quint c = 12q;
-    quint d = -12q;
+    // quint c = 12q;
+    // quint d = -12q;
     //quint e = c + d; //TODO: handle quint sum
 }
