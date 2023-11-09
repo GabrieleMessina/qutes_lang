@@ -4,7 +4,7 @@ A high level programming language for quantum computing.
 ## How to Run
 ### 1. Install python requirements
 ```bash
-pip install -r requirements.txt
+pip install -r requirements.txt --upgrade
 ```
 ### 2. Compile the antlr grammar
 With [this](https://marketplace.visualstudio.com/items?itemName=mike-lischke.vscode-antlr4) antlr VS Code extension, or:
