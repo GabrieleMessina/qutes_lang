@@ -17,7 +17,7 @@ statement
    | WHILE_STATEMENT parenExpr statement #WhileStatement
    | DO_STATEMENT statement WHILE_STATEMENT parenExpr #DoWhileStatement
    | CURLY_PARENTHESIS_OPEN statement* CURLY_PARENTHESIS_CLOSE #BlockStatement
-   | variableType variableName (ASSIGN (expr|parenExpr))? END_OF_STATEMENT #DeclarationStatement
+   | variableType variableName (ASSIGN (expr|parenExpr))? END_OF_STATEMENT #DeclarationStatement //TODO: rename variableName to variableDeclarationName
    | qualifiedName ASSIGN (expr|parenExpr) END_OF_STATEMENT #AssignmentStatement
    | expr END_OF_STATEMENT #ExpressionStatement
    | END_OF_STATEMENT #EmptyStatement
@@ -40,6 +40,7 @@ test
 
 term
    : term op=(ADD | SUB) term
+   | op=(NOT | PAULIY | PAULIZ | HADAMARD) term
    | boolean
    | integer
    | float

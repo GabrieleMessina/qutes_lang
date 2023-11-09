@@ -5,13 +5,15 @@ from qutes_antlr.qutes_parser import qutes_parser as qutesParser
 from symbols.scope_tree_node import ScopeType
 from symbols.scope_handler import ScopeHandlerForSymbolsDiscovery
 from symbols.variables_handler import VariablesHandler
+from symbols.quantum_circuit_handler import QuantumCircuitHandler
 
 class SymbolsDiscoveryListener(qutesListener):
     """An antlr listener for the qutes grammar that discovers symbols like variable, function names etc."""
 
-    def __init__(self):
+    def __init__(self, quantum_cirtcuit_handler : QuantumCircuitHandler):
+        self.quantum_cirtcuit_handler = quantum_cirtcuit_handler
         self.scope_handler = ScopeHandlerForSymbolsDiscovery()
-        self.variables_handler = VariablesHandler(self.scope_handler)
+        self.variables_handler = VariablesHandler(self.scope_handler, self.quantum_cirtcuit_handler)
 
     # Enter a parse tree produced by qutesParser#program.
     def enterProgram(self, ctx:qutesParser.ProgramContext):

@@ -53,13 +53,16 @@
     qubit g = |-> ;
     qubit h = |0> ;
     qubit i = |1> ;
+    not i;
+    pauliz f;
+    hadamard g;
     // qubit h = f + g; //TODO: handle qubit sum
 }
 
-{
+/*{
     quint a = [0q, 0q, 1q];
     quint b = [[0, 1]q, 0q, 1q];
     // quint c = 12q;
     // quint d = -12q;
     //quint e = c + d; //TODO: handle quint sum
-}
+}*/

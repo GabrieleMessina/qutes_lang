@@ -2,24 +2,26 @@
 
 from qutes_parser import QutesParser as qutesParser
 from qutes_antlr.qutes_parserVisitor import qutes_parserVisitor as qutesVisitor
-from symbols.scope_tree_node import ScopeTreeNode
+from symbols.scope_tree_node import ScopeTreeNode, Symbol
 from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
 from symbols.variables_handler import VariablesHandler
+from symbols.quantum_circuit_handler import QuantumCircuitHandler
 from symbols.qutes_types import Qubit, Quint
 
 class QutesGrammarVisitor(qutesVisitor):
     """An antlr visitor for the qutes grammar."""
 
-    def __init__(self, symbols_tree:ScopeTreeNode):
+    def __init__(self, symbols_tree:ScopeTreeNode, quantum_cirtcuit_handler : QuantumCircuitHandler):
         if not symbols_tree:
             raise ValueError("A symbols tree must be provided to the QutesGrammarVisitor.")
         self.symbols_tree = symbols_tree
+        self.quantum_cirtcuit_handler = quantum_cirtcuit_handler
         #We need to travers the symbols_tree going orderly like in a breadth first search
         #Every time we need to create a new scope, we visit instead the next node in the tree
         #And every time we need to close a scope, we return to the parent of the current node
         #This way we know, at each moment, what symbols are defined.
         self.scope_handler = ScopeHandlerForSymbolsUpdate(self.symbols_tree)
-        self.variables_handler = VariablesHandler(self.scope_handler)
+        self.variables_handler = VariablesHandler(self.scope_handler, self.quantum_cirtcuit_handler)
 
         # Debug flags
         self.log_trace_enabled = False
@@ -168,10 +170,19 @@ class QutesGrammarVisitor(qutesVisitor):
         result = "default_term_result"
         if(ctx.term(0)):
             if(self.log_trace_enabled): print("visitTerm -> operation")
+            first_term = self.visitChildren(ctx.term(0))
             if(ctx.ADD()):
                 result = self.visitChildren(ctx.term(0)) + self.visitChildren(ctx.term(1))
             if(ctx.SUB()):
                 result = self.visitChildren(ctx.term(0)) - self.visitChildren(ctx.term(1))
+            if(ctx.NOT()):
+                result = self.quantum_cirtcuit_handler.push_not_operation(first_term.quantum_register)
+            if(ctx.PAULIY()):
+                result = self.quantum_cirtcuit_handler.push_pauliy_operation(first_term.quantum_register)
+            if(ctx.PAULIZ()):
+                result = self.quantum_cirtcuit_handler.push_pauliz_operation(first_term.quantum_register)
+            if(ctx.HADAMARD()):
+                result = self.quantum_cirtcuit_handler.push_hadamard_operation(first_term.quantum_register)
         if(ctx.boolean()):
             if(self.log_trace_enabled): print("visitTerm -> boolean")
             result = self.visitChildren(ctx)
@@ -207,7 +218,7 @@ class QutesGrammarVisitor(qutesVisitor):
         symbol_to_resolve = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.name == var_name]
         if len(symbol_to_resolve) > 0:
             # Get the last matching symbol (so that we handle symbol hyding in a scope that is a child of another that already has this variable declared)
-            return self.__visit("visitQualifiedName", lambda : symbol_to_resolve[-1].value)
+            return self.__visit("visitQualifiedName", lambda : symbol_to_resolve[-1])
         else:
             raise SyntaxError(f"No variable declared with name '{var_name}'.")
 

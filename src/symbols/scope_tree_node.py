@@ -1,6 +1,7 @@
 """A Node for the Scope Tree data structure"""
 from anytree import NodeMixin
 from enum import Enum
+from symbols.quantum_circuit_handler import QuantumRegister
 
 class ScopeType(Enum):
     BaseScope = 1
@@ -14,13 +15,14 @@ class SymbolType(Enum):
 
 class Symbol(): # TODO: extract from this file.
     name:str = None
-    def __init__(self, name:str, symbol_type:SymbolType, symbol_type_detail:str, value, scope:"ScopeTreeNode"):
+    def __init__(self, name:str, symbol_type:SymbolType, symbol_type_detail:str, value, scope:"ScopeTreeNode", quantum_register : QuantumRegister | None = None):
         super().__init__()
         self.name = name
         self.symbol_type = symbol_type
         self.symbol_type_detail = symbol_type_detail
         self.value = value
         self.scope = scope
+        self.quantum_register = quantum_register
 
     def __to_printable__(self) -> str:
         return f"{self.scope.scope_type_detail}.{self.name}={self.value}"

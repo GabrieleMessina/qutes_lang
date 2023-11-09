@@ -2,14 +2,14 @@ from enum import Enum
 from qutes_parser import QutesParser
 import cmath
 
-from enum import Enum
 
-class Spin(Enum):
+class Phase(Enum):
     Positive = 0
     Negative = 1
 
 class Qubit():
     def fromstr(self, literal : str) -> 'Qubit':
+        #TODO: add checks on the norm of the vector
         literal = literal.removesuffix(QutesParser.literaltostring(QutesParser.QUBIT_LITERAL_POSTFIX))
         if(literal.startswith(QutesParser.literaltostring(QutesParser.SQUARE_PARENTHESIS_OPEN))):
             literal = literal.removesuffix(QutesParser.literaltostring(QutesParser.SQUARE_PARENTHESIS_CLOSE))
@@ -44,11 +44,11 @@ class Qubit():
         self.alpha = alpha
         self.beta = beta
         # Qubit has negative phase if alpha and beta have different sign?
-        self.phase = Spin.Positive if (alpha * beta).real >= 0 else Spin.Negative 
+        self.phase = Phase.Positive if (alpha * beta).real >= 0 else Phase.Negative 
         self.is_superposition = cmath.isclose(abs(alpha), abs(beta))
 
     def __to_printable__(self) -> str:
-        spin_str = '+' if self.phase == Spin.Positive else '-'
+        spin_str = '+' if self.phase == Phase.Positive else '-'
         if(self.is_superposition):
             return f"|{spin_str}>"
         else:
@@ -67,7 +67,9 @@ class Quint():
         return self
     
     def __init__(self, value:str = ""):
-        self.value = value
+        #TODO: parse value from string literal
+        self.value : str = value
+        self.size : int = 4
 
     def __to_printable__(self) -> str:
         return f"{self.value}"
