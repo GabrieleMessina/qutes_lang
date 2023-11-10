@@ -39,7 +39,6 @@ class VariablesHandler():
 
             new_symbol = Symbol(variable_name, SymbolType.VariableSymbol, declaration_type, value, self.scope_handler.current_symbols_scope)
             self.scope_handler.current_symbols_scope.symbols.append(new_symbol)
-
             #Handle quantum circuit update
             if(self.__is_quantum_type(declaration_type)):
                 new_symbol.quantum_register = self.quantum_cirtcuit_handler.declare_variable(variable_name, new_symbol.value)

@@ -18,20 +18,14 @@ def normalizza(v):
     v = v/np.linalg.norm(v)
     return v
 
-
-
 def random_state(nqubits):
     state = np.random.rand(2**nqubits)   # the sum of amplitudes-squared must equal one
     state = state/np.linalg.norm(state) # normalization
     return state
 
-
-
 # function used to print a circuit
 def print_circuit(circuit):
     print(circuit.draw())
-
-
 
 # function used for drawing images
 def draw_circuit(circuit):
@@ -41,8 +35,6 @@ def draw_circuit(circuit):
     ax.axis('off')
     ax.imshow(im)
 
-
-
 # function used for drawing images with inverse calssical bits
 def draw_circuit_reverse(circuit):
     circuit.draw(output='mpl',filename="image.jpg", reverse_bits=True)
@@ -51,8 +43,6 @@ def draw_circuit_reverse(circuit):
     ax.axis('off')
     ax.imshow(im)
 
-
-
 def showBS(state):
     im = plot_bloch_vector(state, title="Bloch Sphere")
     im.savefig("bloch.jpg") 
@@ -60,7 +50,6 @@ def showBS(state):
     im = mpimg.imread('bloch.jpg')
     ax.axis('off')
     ax.imshow(im)
-
 
 def counts(vec):
     print("COUNTS:")
@@ -71,7 +60,6 @@ def revcounts(vec):
     print("COUNTS:")
     for i in vec:
             print(" - " + str(i)[::-1] +" : "+ str(vec[i]))
-
 
 # simulate the execution of a Quantum Circuit and get the results
 def run(circuit, shots):
@@ -93,7 +81,6 @@ def run(circuit, shots):
     result = job.result()  
     cnt = result.get_counts(compiled_circuit)
     return cnt
-
 
 # simulate the execution of a Quantum Circuit with a single run and get the output
 def get_output(circuit, output_list):

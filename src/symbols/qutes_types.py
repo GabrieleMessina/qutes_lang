@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, auto
 from qutes_parser import QutesParser
 import cmath
 
@@ -9,7 +9,6 @@ class Phase(Enum):
 
 class Qubit():
     def fromstr(self, literal : str) -> 'Qubit':
-        #TODO: add checks on the norm of the vector
         literal = literal.removesuffix(QutesParser.literaltostring(QutesParser.QUBIT_LITERAL_POSTFIX))
         if(literal.startswith(QutesParser.literaltostring(QutesParser.SQUARE_PARENTHESIS_OPEN))):
             literal = literal.removesuffix(QutesParser.literaltostring(QutesParser.SQUARE_PARENTHESIS_CLOSE))
@@ -40,12 +39,15 @@ class Qubit():
     # def __bool__(self, obj):
     #     print("=============", obj)
     
-    def __init__(self, alpha : complex = complex(), beta : complex = complex()):
+    def __init__(self, alpha : complex = complex(1), beta : complex = complex(0)):
         self.alpha = alpha
         self.beta = beta
         # Qubit has negative phase if alpha and beta have different sign?
         self.phase = Phase.Positive if (alpha * beta).real >= 0 else Phase.Negative 
         self.is_superposition = cmath.isclose(abs(alpha), abs(beta))
+
+    def get_quantum_state(self) -> list[complex]:
+        return [self.alpha, self.beta]
 
     def __to_printable__(self) -> str:
         spin_str = '+' if self.phase == Phase.Positive else '-'
@@ -63,16 +65,41 @@ class Qubit():
 
 class Quint():
     def fromstr(self, literal : str) -> 'Qubit':
-        self.__init__(literal)
+        literal = literal.removesuffix(QutesParser.literaltostring(QutesParser.QUBIT_LITERAL_POSTFIX))
+        self.__init__(int(literal))
+        return self
+
+    def fromsize(self, size : int) -> 'Qubit':
+        self.__init__(int())
+        self.size = size
+        self.binary_value = "0"*size
         return self
     
-    def __init__(self, value:str = ""):
-        #TODO: parse value from string literal
-        self.value : str = value
-        self.size : int = 4
+    def __init__(self, value:int = int()):
+        if(value < 0):
+            self.phase : Phase = Phase.Negative
+            value *= -1
+        else:
+            self.phase : Phase = Phase.Positive
+        self.binary_value : str = str('0')
+        self.size : int = int(1)
+        self._value : int = value
+        self.value : int = value
+
+    @property
+    def value(self):
+        return self._value
+    @value.setter 
+    def value(self, new_value):
+        self._value = new_value
+        self.binary_value : str = bin(self._value).removeprefix("0b")
+        self.size : int = len(self.binary_value)
+
+    def get_quantum_state(self) -> str:
+        return self.binary_value
 
     def __to_printable__(self) -> str:
-        return f"{self.value}"
+        return f"{self._value}q"
 
     def __str__(self) -> str:
         return self.__to_printable__()
@@ -84,11 +111,11 @@ class Quint():
 class QutesDataType(Enum):
     Undefined = -1
     bool = 1
-    int = 2
-    string = 3
-    qubit = 4
-    float = 5
-    quint = 5
+    int = auto()
+    string = auto()
+    qubit = auto()
+    float = auto()
+    quint = auto()
 
     def from_python_type(var_value) -> 'QutesDataType':
         if isinstance(var_value, bool):
@@ -136,6 +163,6 @@ class QutesDataType(Enum):
             case QutesDataType.qubit:
                 return Qubit()
             case QutesDataType.quint:
-                return Quint("default_quint")
+                return Quint(int())
             case _:
                 return QutesDataType.Undefined
