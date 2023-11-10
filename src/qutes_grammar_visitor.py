@@ -7,6 +7,7 @@ from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
 from symbols.variables_handler import VariablesHandler
 from symbols.quantum_circuit_handler import QuantumCircuitHandler
 from symbols.qutes_types import Qubit, Quint
+from qutes_gates import QutesGates
 
 class QutesGrammarVisitor(qutesVisitor):
     """An antlr visitor for the qutes grammar."""
@@ -16,6 +17,7 @@ class QutesGrammarVisitor(qutesVisitor):
             raise ValueError("A symbols tree must be provided to the QutesGrammarVisitor.")
         self.symbols_tree = symbols_tree
         self.quantum_cirtcuit_handler = quantum_cirtcuit_handler
+        self.qutes_gates = QutesGates(self.quantum_cirtcuit_handler)
         #We need to travers the symbols_tree going orderly like in a breadth first search
         #Every time we need to create a new scope, we visit instead the next node in the tree
         #And every time we need to close a scope, we return to the parent of the current node
@@ -171,10 +173,15 @@ class QutesGrammarVisitor(qutesVisitor):
         if(ctx.term(0)):
             if(self.log_trace_enabled): print("visitTerm -> operation")
             first_term = self.visitChildren(ctx.term(0))
+            second_term = self.visitChildren(ctx.term(1)) if(ctx.term(1)) else None
             if(ctx.ADD()):
-                result = self.visitChildren(ctx.term(0)) + self.visitChildren(ctx.term(1))
+                if (isinstance(first_term, Symbol) and first_term.symbol_type_detail == 'qubit'
+                    and isinstance(second_term, Symbol) and second_term.symbol_type_detail == 'qubit'):
+                    self.qutes_gates.sum(first_term.name, second_term.name)
+                    result = f"{first_term} + {second_term}"
+                else: result = first_term + second_term
             if(ctx.SUB()):
-                result = self.visitChildren(ctx.term(0)) - self.visitChildren(ctx.term(1))
+                result = first_term - second_term
             if(ctx.NOT()):
                 result = self.quantum_cirtcuit_handler.push_not_operation(first_term.quantum_register)
             if(ctx.PAULIY()):

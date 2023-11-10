@@ -36,7 +36,7 @@
 //{ int i=1; while (i<100) i=i+i; } //TODO: handle cycle
 // qubit q = [0, 1]q;//TODO: error mismatched input 'q' expecting SYMBOL_LITERAL
 
-{
+/*{
     //alpha and beta values
     qubit a = 0.7,0.3q;
     //states we want the qubit is able to take
@@ -57,12 +57,18 @@
     pauliz f;
     hadamard g;
     // qubit h = f + g; //TODO: handle qubit sum
-}
+}*/
 
-/*{
-    quint a = [0q, 0q, 1q];
-    quint b = [[0, 1]q, 0q, 1q];
+{
+    //quint a = [0q, 0q, 1q];
+    //quint b = [[0, 1]q, 0q, 1q];
+    qubit a = 1q ;
+    // not a;
+    qubit b = 0q ;
+    a + b;
+    // quint b = a ;//TODO: declare quint as sequence of qubit
     // quint c = 12q;
+    // c = 13q;
     // quint d = -12q;
     //quint e = c + d; //TODO: handle quint sum
-}*/
+}
