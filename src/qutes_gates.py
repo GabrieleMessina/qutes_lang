@@ -1,14 +1,13 @@
-from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
+from symbols.quantum_circuit_handler import QuantumCircuit, QuantumRegister, ClassicalRegister
 from symbols.quantum_circuit_handler import QuantumCircuitHandler
 from symbols.qutes_types import Qubit, Quint
-from utils.QiskitUtils import run, counts
 
 class QutesGates():
     def __init__(self, ciruit_handler : QuantumCircuitHandler):
         self.ciruit_handler = ciruit_handler
 
     def __full_adder_gate(self):
-        # Creating a circuit with 8 quantum bits and 2 classical bits
+        # Creating a circuit with 8 quantum bits
         circuit = QuantumCircuit(8)
 
         # AND gate1 implementation
@@ -38,19 +37,19 @@ class QutesGates():
     def sum(self, var_a_name, var_b_name) -> None:
         handler = self.ciruit_handler
 
-        a_qbits = self.ciruit_handler.varname_to_register[var_a_name]
-        b_qbits = self.ciruit_handler.varname_to_register[var_b_name]
+        a_qbits = self.ciruit_handler._varname_to_register[var_a_name]
+        b_qbits = self.ciruit_handler._varname_to_register[var_b_name]
         number_bits_number = a_qbits.size
 
-        carry = handler.declare_variable("carry", Qubit())
-        ancilla = handler.declare_variable("ancilla", Quint().fromsize(5))
+        carry = handler.declare_quantum_register("carry", Qubit())
+        ancilla = handler.declare_quantum_register("ancilla", Quint().fromsize(5))
 
         results = ClassicalRegister(number_bits_number+1, "results")
         ainput = ClassicalRegister(number_bits_number, "ainput")
         binput = ClassicalRegister(number_bits_number, "binput")
-        handler.classic_registers.append(results)
-        handler.classic_registers.append(ainput)
-        handler.classic_registers.append(binput)
+        handler._classic_registers.append(results)
+        handler._classic_registers.append(ainput)
+        handler._classic_registers.append(binput)
 
         handler.push_hadamard_operation(a_qbits)
         handler.push_hadamard_operation(b_qbits)
@@ -67,35 +66,3 @@ class QutesGates():
         handler.push_measure_operation(ancilla[4], results[number_bits_number]) # last carry
         handler.push_measure_operation(a_qbits, ainput)
         handler.push_measure_operation(b_qbits, binput)
-
-    def qiskit_quantum_sum(self, number_bits_number):
-        a_qbits = QuantumRegister(number_bits_number, "a_qbits")
-        b_qbits = QuantumRegister(number_bits_number, "b_qbits")
-        carry = QuantumRegister(1, "carry")
-        ancilla = QuantumRegister(5, "ancilla")
-        results = ClassicalRegister(number_bits_number+1, "results")
-        ainput = ClassicalRegister(number_bits_number, "ainput")
-        binput = ClassicalRegister(number_bits_number, "binput")
-        # carryinput = ClassicalRegister(1, "carryinput")
-        qc = QuantumCircuit(a_qbits, b_qbits, carry, ancilla, results, ainput, binput)
-        qc.h(a_qbits)
-        qc.h(b_qbits)
-        
-        qc.barrier()
-
-        for i in range(number_bits_number):
-            qc.swap(carry, ancilla[4])
-            qc.reset(ancilla)
-            qc = qc.compose(self.__full_adder_gate(), [a_qbits[i], b_qbits[i], carry] + ancilla[:])
-            qc.measure(ancilla[2], results[i]) # bit a bit sum
-            qc.barrier()
-        
-        qc.measure(ancilla[4], results[number_bits_number]) # last carry
-        qc.measure(a_qbits, ainput) # last carry
-        qc.measure(b_qbits, binput) # last carry
-
-        print(qc.draw())
-        cnt = run(qc,100)
-        print("a | b | sum")
-        counts(cnt)
-        print("\nTotal count:",cnt)

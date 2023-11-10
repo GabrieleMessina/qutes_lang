@@ -175,8 +175,8 @@ class QutesGrammarVisitor(qutesVisitor):
             first_term = self.visitChildren(ctx.term(0))
             second_term = self.visitChildren(ctx.term(1)) if(ctx.term(1)) else None
             if(ctx.ADD()):
-                if (isinstance(first_term, Symbol) and first_term.symbol_type_detail == 'qubit'
-                    and isinstance(second_term, Symbol) and second_term.symbol_type_detail == 'qubit'):
+                if (isinstance(first_term, Symbol) and self.variables_handler.is_quantum_type(first_term.symbol_type_detail)
+                    and isinstance(second_term, Symbol) and self.variables_handler.is_quantum_type(second_term.symbol_type_detail)):
                     self.qutes_gates.sum(first_term.name, second_term.name)
                     result = f"{first_term} + {second_term}"
                 else: result = first_term + second_term

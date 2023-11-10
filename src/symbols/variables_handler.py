@@ -23,8 +23,8 @@ class VariablesHandler():
             symbol_to_update.value = new_value #python treats everything as a reference type
 
             #Handle quantum circuit update
-            if(self.__is_quantum_type(symbol_to_update.symbol_type_detail)):
-                self.quantum_cirtcuit_handler.udpate_variable(variable_name, symbol_to_update.value)
+            if(self.is_quantum_type(symbol_to_update.symbol_type_detail)):
+                self.quantum_cirtcuit_handler.udpate_quantum_register(variable_name, symbol_to_update.value)
             return symbol_to_update
         else:
             raise SyntaxError(f"No variable declared with name '{variable_name}'.")
@@ -40,8 +40,8 @@ class VariablesHandler():
             new_symbol = Symbol(variable_name, SymbolType.VariableSymbol, declaration_type, value, self.scope_handler.current_symbols_scope)
             self.scope_handler.current_symbols_scope.symbols.append(new_symbol)
             #Handle quantum circuit update
-            if(self.__is_quantum_type(declaration_type)):
-                new_symbol.quantum_register = self.quantum_cirtcuit_handler.declare_variable(variable_name, new_symbol.value)
+            if(self.is_quantum_type(declaration_type)):
+                new_symbol.quantum_register = self.quantum_cirtcuit_handler.declare_quantum_register(variable_name, new_symbol.value)
 
             return new_symbol
         else:
@@ -56,5 +56,5 @@ class VariablesHandler():
 
         return True
     
-    def __is_quantum_type(self, declaration_type) -> bool:
+    def is_quantum_type(self, declaration_type) -> bool:
         return QutesDataType.from_declaration_type(declaration_type) in [QutesDataType.qubit, QutesDataType.quint]

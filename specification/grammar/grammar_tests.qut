@@ -66,6 +66,11 @@
     // not a;
     qubit b = 0q ;
     a + b;
+    
+    // quint c = 10q;
+    // quint d = 4q;
+    // c + d;
+    
     // quint b = a ;//TODO: declare quint as sequence of qubit
     // quint c = 12q;
     // c = 13q;
