@@ -60,16 +60,17 @@
 }*/
 
 {
+    qubit a = [0,1]q;
+    not a;
+    qubit b = 0q;
+    a + b;
+
+    quint c = 10q;
+    quint d = 4q;
+    c + d;
+    
     //quint a = [0q, 0q, 1q];
     //quint b = [[0, 1]q, 0q, 1q];
-    qubit a = 1q ;
-    // not a;
-    qubit b = 0q ;
-    a + b;
-    
-    // quint c = 10q;
-    // quint d = 4q;
-    // c + d;
     
     // quint b = a ;//TODO: declare quint as sequence of qubit
     // quint c = 12q;

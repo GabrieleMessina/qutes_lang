@@ -24,7 +24,7 @@ class VariablesHandler():
 
             #Handle quantum circuit update
             if(self.is_quantum_type(symbol_to_update.symbol_type_detail)):
-                self.quantum_cirtcuit_handler.udpate_quantum_register(variable_name, symbol_to_update.value)
+                self.quantum_cirtcuit_handler.replace_quantum_register(variable_name, symbol_to_update.value)
             return symbol_to_update
         else:
             raise SyntaxError(f"No variable declared with name '{variable_name}'.")

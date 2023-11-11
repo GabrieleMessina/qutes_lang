@@ -4,7 +4,9 @@ from typing import cast, Callable
 from utils.QiskitUtils import run, counts
 
 class QuantumRegister(qr):
-    pass
+    def __init__(self, size, var_name, value):
+        super().__init__(size, var_name)
+        self.value = value
 
 class ClassicalRegister(cr):
     pass
@@ -23,10 +25,11 @@ class QuantumCircuitHandler():
 
     def declare_quantum_register(self,  variable_name : str, quantum_variable : any) -> QuantumRegister:
         new_register = None
+
         if(isinstance(quantum_variable, Qubit)):
-            new_register = QuantumRegister(1, variable_name)
+            new_register = QuantumRegister(1, variable_name, quantum_variable)
         if(isinstance(quantum_variable, Quint)):
-            new_register = QuantumRegister(quantum_variable.size, variable_name)
+            new_register = QuantumRegister(quantum_variable.size, variable_name, quantum_variable)
 
         if(new_register is None):
             raise SystemError("Error trying to declare a quantum variable of unsupported type")
@@ -36,7 +39,7 @@ class QuantumCircuitHandler():
         self._registers_states[new_register] = quantum_variable.get_quantum_state()
         return new_register
     
-    def udpate_quantum_register(self,  variable_name : str, quantum_variable : any) -> None:
+    def replace_quantum_register(self,  variable_name : str, quantum_variable : any) -> QuantumRegister:
         register_to_update = self._varname_to_register[variable_name]
         if(register_to_update is None):
             raise SystemError("Error trying to update an undeclared quantum register")
@@ -44,14 +47,16 @@ class QuantumCircuitHandler():
         if(isinstance(quantum_variable, Qubit)):
             pass
         if(isinstance(quantum_variable, Quint)):
+            #TODO-CRITICAL: this update actually change the reference, so all the old references around the code are still there. For now i hack this returning the new value and changing the name from update to replace.
             #Delete old quantum register and reference
             del self._registers_states[register_to_update]
             self._quantum_registers.remove(register_to_update)
             #Add new quantum register
-            register_to_update = self._varname_to_register[variable_name] = QuantumRegister(quantum_variable.size, variable_name)
+            register_to_update = self._varname_to_register[variable_name] = QuantumRegister(quantum_variable.size, variable_name, quantum_variable)
             self._quantum_registers.append(register_to_update)
 
         self._registers_states[register_to_update] = quantum_variable.get_quantum_state()
+        return register_to_update
 
     # def declare_classical_register(self,  variable_name : str, classical_variable : any) -> QuantumRegister:
     #     new_value = int(classical_variable)
@@ -99,8 +104,8 @@ class QuantumCircuitHandler():
         
         print(circuit.draw())
 
-        cnt = run(circuit,100)
-        counts(cnt)
+        # cnt = run(circuit,100)
+        # counts(cnt)
 
     def push_not_operation(self, quantum_register : QuantumRegister) -> None:
         self._operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).x(quantum_register))

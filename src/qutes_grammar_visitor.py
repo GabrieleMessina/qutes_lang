@@ -247,7 +247,7 @@ class QutesGrammarVisitor(qutesVisitor):
     
     # Visit a parse tree produced by qutesParser#quint.
     def visitQuint(self, ctx:qutesParser.QuintContext):
-       return self.__visit("visitQuint", lambda : Quint().fromstr(ctx.getText()))
+       return self.__visit("visitQuint", lambda : Quint().init_from_str(ctx.getText()))
 
     # Visit a parse tree produced by qutesParser#float.
     def visitFloat(self, ctx:qutesParser.FloatContext):
