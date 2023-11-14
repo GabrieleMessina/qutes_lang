@@ -1,0 +1,11 @@
+{
+    "name":"qutes_lang_codespace", 
+    "image":"mcr.microsoft.com/devcontainers/universal:2",
+    "customizations": {
+        "vscode": {
+            "extensions": ["ms-python.python", "mike-lischke.vscode-antlr4", "ms-python.vscode-pylance", "ms-python.pylint", "Gruntfuggly.todo-tree"]
+        }
+    },
+    "postCreateCommand": "pip install --user -r requirements.txt --upgrade",
+    "postStartCommand": "antrl4 -Dlanguage=Python3 -message-format antlr -o ./src/qutes_antlr -listener -visitor -Xexact-output-dir ./specification/grammar/qutes_lexer.g4 & antrl4 -Dlanguage=Python3 -message-format antlr -o ./src/qutes_antlr -listener -visitor -Xexact-output-dir ./specification/grammar/qutes_parser.g4"
+}
