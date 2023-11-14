@@ -4,8 +4,10 @@
     "customizations": {
         "vscode": {
             "extensions": ["ms-python.python", "mike-lischke.vscode-antlr4", "ms-python.vscode-pylance", "ms-python.pylint", "Gruntfuggly.todo-tree"]
+        },
+        "codespaces": {
+            "openFiles": ["./specification/grammar/qutes_lexer.g4", "./specification/grammar/qutes_parser.g4", "./specification/grammar/grammar_tests.qut", "./src/qutes.py", "./.devcontainer/Readme.md"]
         }
     },
-    "postCreateCommand": "pip install --user -r requirements.txt --upgrade",
-    "postStartCommand": "antrl4 -Dlanguage=Python3 -message-format antlr -o ./src/qutes_antlr -listener -visitor -Xexact-output-dir ./specification/grammar/qutes_lexer.g4 & antrl4 -Dlanguage=Python3 -message-format antlr -o ./src/qutes_antlr -listener -visitor -Xexact-output-dir ./specification/grammar/qutes_parser.g4"
+    "postCreateCommand": "pip install --user -r requirements.txt --upgrade"
 }
