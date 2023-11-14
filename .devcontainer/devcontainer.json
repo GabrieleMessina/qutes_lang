@@ -1,6 +1,5 @@
 {
     "name":"qutes_lang_codespace", 
-    // "image":"mcr.microsoft.com/devcontainers/universal:2",
     "image":"mcr.microsoft.com/devcontainers/python:0-3.11-bullseye",
     "customizations": {
         "vscode": {
@@ -14,12 +13,7 @@
         "ghcr.io/devcontainers/features/github-cli": "latest",
         "ghcr.io/devcontainers/features/sshd": "latest",
         "ghcr.io/devcontainers/features/git-lfs": "latest",
-        // "ghcr.io/devcontainers/features/docker-in-docker": "latest",
-        // "ghcr.io/devcontainers/features/python":  "3.10",
-        // "ghcr.io/devcontainers/features/conda": "latest",
-        // "ghcr.io/devcontainers/features/oryx": true,
-        // "ghcr.io/devcontainers/features/common-utils": "true",
-
+        "ghcr.io/devcontainers/features/java": "17"
     },
     "postCreateCommand": "pip install --user -r requirements.txt --upgrade"
 }
