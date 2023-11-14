@@ -6,7 +6,7 @@
             "extensions": ["ms-python.python", "mike-lischke.vscode-antlr4", "ms-python.vscode-pylance", "ms-python.pylint", "Gruntfuggly.todo-tree"]
         },
         "codespaces": {
-            "openFiles": ["./specification/grammar/qutes_lexer.g4", "./specification/grammar/qutes_parser.g4", "./specification/grammar/grammar_tests.qut", "./src/qutes.py", "./.devcontainer/Readme.md"]
+            "openFiles": ["./.devcontainer/DevContainerReadme.md", "./specification/grammar/qutes_lexer.g4", "./specification/grammar/qutes_parser.g4", "./specification/grammar/grammar_tests.qut", "./src/qutes.py"]
         }
     },
     "features": {
