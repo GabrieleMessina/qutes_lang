@@ -2,10 +2,10 @@
 
 from qutes_antlr.qutes_parserListener import qutes_parserListener as qutesListener
 from qutes_antlr.qutes_parser import qutes_parser as qutesParser
-from symbols.scope_tree_node import ScopeType
+from symbols.scope_tree_node import ScopeClass
 from symbols.scope_handler import ScopeHandlerForSymbolsDiscovery
 from symbols.variables_handler import VariablesHandler
-from symbols.quantum_circuit_handler import QuantumCircuitHandler
+from quantum_circuit import QuantumCircuitHandler
 
 class SymbolsDiscoveryListener(qutesListener):
     """An antlr listener for the qutes grammar that discovers symbols like variable, function names etc."""
@@ -17,7 +17,7 @@ class SymbolsDiscoveryListener(qutesListener):
 
     # Enter a parse tree produced by qutesParser#program.
     def enterProgram(self, ctx:qutesParser.ProgramContext):
-        self.scope_handler.push_scope(ScopeType.GlobalScope, "Init")
+        self.scope_handler.push_scope(ScopeClass.GlobalScope, "Init")
 
     # Exit a parse tree produced by qutesParser#program.
     def exitProgram(self, ctx:qutesParser.ProgramContext):
@@ -62,7 +62,7 @@ class SymbolsDiscoveryListener(qutesListener):
 
     # Enter a parse tree produced by qutesParser#BlockStatement.
     def enterBlockStatement(self, ctx:qutesParser.BlockStatementContext):
-        self.scope_handler.push_scope(ScopeType.LocalScope, "Block")
+        self.scope_handler.push_scope(ScopeClass.LocalScope, "Block")
 
     # Exit a parse tree produced by qutesParser#BlockStatement.
     def exitBlockStatement(self, ctx:qutesParser.BlockStatementContext):

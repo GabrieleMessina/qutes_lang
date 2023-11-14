@@ -1,0 +1,6 @@
+# Aliasing for easy importing through the code
+from quantum_circuit.classical_register import ClassicalRegister
+from quantum_circuit.quantum_circuit import QuantumCircuit
+from quantum_circuit.quantum_circuit_handler import QuantumCircuitHandler
+from quantum_circuit.quantum_register import QuantumRegister
+from quantum_circuit.qutes_gates import QutesGates

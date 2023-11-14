@@ -8,7 +8,7 @@ from qutes_lexer import QutesLexer
 from qutes_parser import QutesParser
 from qutes_grammar_visitor import QutesGrammarVisitor
 from symbols_discovery_listener import SymbolsDiscoveryListener
-from symbols.quantum_circuit_handler import QuantumCircuitHandler
+from quantum_circuit import QuantumCircuitHandler
 
 def main(argv):
     """Entrypoint for Qutes Lang compiler"""
@@ -50,7 +50,7 @@ def main(argv):
             print()
             print("----Symbols Scope----")
             for pre, _, node in RenderTree(symbols_tree):
-                print("%s%s(%s) Symbols: %s" % (pre, node.scope_type, node.scope_type_detail, node.symbols))
+                print("%s%s(%s) Symbols: %s" % (pre, node.scope_class, node.scope_type_detail, node.symbols))
 
         if(log_lisp_tree):
             print()

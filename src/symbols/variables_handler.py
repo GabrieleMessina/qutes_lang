@@ -1,7 +1,7 @@
-from symbols.qutes_types import QutesDataType
+from symbols.types.qutes_data_type import QutesDataType
 from symbols.scope_handler import ScopeHandler
-from symbols.scope_tree_node import Symbol, SymbolType
-from symbols.quantum_circuit_handler import QuantumCircuitHandler
+from symbols.symbol import Symbol, SymbolClass
+from quantum_circuit import QuantumCircuitHandler
 
 class VariablesHandler():
 
@@ -17,13 +17,13 @@ class VariablesHandler():
             symbol_to_update = self.scope_handler.current_symbols_scope.symbols[symbol_index_in_scope]
 
         	# check if the type of the varible match the type of the value we are trying to assign. 
-            self.__guard_value_and_definition_type_matches(symbol_to_update.symbol_type_detail, variable_name, new_value)
+            self.__guard_value_and_definition_type_matches(symbol_to_update.symbol_declaration_static_type, variable_name, new_value)
 
             # Update the variable value if everything is ok.
             symbol_to_update.value = new_value #python treats everything as a reference type
 
             #Handle quantum circuit update
-            if(self.is_quantum_type(symbol_to_update.symbol_type_detail)):
+            if(self.is_quantum_type(symbol_to_update.symbol_declaration_static_type)):
                 self.quantum_cirtcuit_handler.replace_quantum_register(variable_name, symbol_to_update.value)
             return symbol_to_update
         else:
@@ -37,7 +37,7 @@ class VariablesHandler():
         if(len(already_taken_symbol_in_this_scope) == 0):
             self.__guard_value_and_definition_type_matches(declaration_type, variable_name, value)
 
-            new_symbol = Symbol(variable_name, SymbolType.VariableSymbol, declaration_type, value, self.scope_handler.current_symbols_scope)
+            new_symbol = Symbol(variable_name, SymbolClass.VariableSymbol, declaration_type, value, self.scope_handler.current_symbols_scope)
             self.scope_handler.current_symbols_scope.symbols.append(new_symbol)
             #Handle quantum circuit update
             if(self.is_quantum_type(declaration_type)):

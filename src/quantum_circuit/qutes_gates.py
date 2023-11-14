@@ -1,6 +1,5 @@
-from symbols.quantum_circuit_handler import QuantumCircuit, QuantumRegister, ClassicalRegister
-from symbols.quantum_circuit_handler import QuantumCircuitHandler
-from symbols.qutes_types import Qubit, Quint
+from quantum_circuit import QuantumCircuit, ClassicalRegister, QuantumCircuitHandler
+from symbols.types import Qubit, Quint
 
 class QutesGates():
     def __init__(self, ciruit_handler : QuantumCircuitHandler):

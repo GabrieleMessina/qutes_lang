@@ -1,4 +1,5 @@
-from symbols.scope_tree_node import ScopeTreeNode, ScopeType, Symbol
+from symbols.scope_tree_node import ScopeTreeNode, ScopeClass
+from symbols.symbol import Symbol
 from anytree import PreOrderIter
 
 class ScopeHandler():
@@ -12,7 +13,7 @@ class ScopeHandlerForSymbolsDiscovery(ScopeHandler):
         super().__init__()
 
 
-    def push_scope(self, scope:ScopeType, scope_detail:str, symbols:list[Symbol] = []) -> ScopeTreeNode:
+    def push_scope(self, scope:ScopeClass, scope_detail:str, symbols:list[Symbol] = []) -> ScopeTreeNode:
         _symbols:list[Symbol] = symbols.copy()
         if(self.current_symbols_scope):
             _symbols += self.current_symbols_scope.symbols

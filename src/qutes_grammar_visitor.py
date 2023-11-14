@@ -2,12 +2,13 @@
 
 from qutes_parser import QutesParser as qutesParser
 from qutes_antlr.qutes_parserVisitor import qutes_parserVisitor as qutesVisitor
-from symbols.scope_tree_node import ScopeTreeNode, Symbol
+from symbols.scope_tree_node import ScopeTreeNode
+from symbols.symbol import Symbol
 from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
 from symbols.variables_handler import VariablesHandler
-from symbols.quantum_circuit_handler import QuantumCircuitHandler
-from symbols.qutes_types import Qubit, Quint
-from qutes_gates import QutesGates
+from quantum_circuit import QuantumCircuitHandler
+from symbols.types import Qubit, Quint
+from quantum_circuit.qutes_gates import QutesGates
 
 class QutesGrammarVisitor(qutesVisitor):
     """An antlr visitor for the qutes grammar."""
@@ -175,8 +176,8 @@ class QutesGrammarVisitor(qutesVisitor):
             first_term = self.visitChildren(ctx.term(0))
             second_term = self.visitChildren(ctx.term(1)) if(ctx.term(1)) else None
             if(ctx.ADD()):
-                if (isinstance(first_term, Symbol) and self.variables_handler.is_quantum_type(first_term.symbol_type_detail)
-                    and isinstance(second_term, Symbol) and self.variables_handler.is_quantum_type(second_term.symbol_type_detail)):
+                if (isinstance(first_term, Symbol) and self.variables_handler.is_quantum_type(first_term.symbol_declaration_static_type)
+                    and isinstance(second_term, Symbol) and self.variables_handler.is_quantum_type(second_term.symbol_declaration_static_type)):
                     self.qutes_gates.sum(first_term.name, second_term.name)
                     result = f"{first_term} + {second_term}"
                 else: result = first_term + second_term
