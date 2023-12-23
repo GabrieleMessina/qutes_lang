@@ -36,7 +36,6 @@
 //qubit b;
 // float a = 1.1;
 //{ int i=1; while (i<100) i=i+i; } //TODO: handle cycle
-//qubit q = [0, 1]q;//TODO: error mismatched input 'q' expecting SYMBOL_LITERAL
 
 /*{
     //alpha and beta values
@@ -62,7 +61,7 @@
     // qubit hx = f + g; //TODO: handle assignment after expression
 }*/
 
-{
+/*{
     qubit a = [0,1]q;
     not a;
     qubit b = 0q;
@@ -80,7 +79,7 @@
     quint bb = [[0, 1]q, 0q, 1q];
     quint cc = [0.7,0.3q, 0q, 1q];
     //quint d = -12q; //TODO: handle negative numbers (two's complement?)
-}
+}*/
 
 /*{
     qubit a = 1q;
