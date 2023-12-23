@@ -69,15 +69,16 @@
     a + b;
     //quint x = a + b; //TODO: handle assignment after type promotion
 
-    // qubit ax = 1q;
+    //qubit ax = 1q;
     quint c = 10q;
     quint d = 4q;
     //quint re = c + d; //TODO: handle assignment after expression
     c + d;
     //c + d + ax; //TODO: handle multiple quantum variable sum
     
-    //quint aa = [0q, 0q, 1q]; //TODO: handle quint assignment with string literals.
-    //quint bb = [[0, 1]q, 0q, 1q];
+    quint aa = [0q, 0q, 1q];
+    quint bb = [[0, 1]q, 0q, 1q];
+    quint cc = [0.7,0.3q, 0q, 1q];
     //quint d = -12q; //TODO: handle negative numbers (two's complement?)
 }
 

@@ -4,32 +4,33 @@ import cmath
 
 class Qubit():
     def from_string(literal : str) -> 'Qubit':
-        literal = literal.removesuffix(QutesParser.literal_to_string(QutesParser.QUBIT_LITERAL_POSTFIX))
-        if(literal.startswith(QutesParser.literal_to_string(QutesParser.SQUARE_PARENTHESIS_OPEN))):
-            literal = literal.removesuffix(QutesParser.literal_to_string(QutesParser.SQUARE_PARENTHESIS_CLOSE))
-            literal = literal.removeprefix(QutesParser.literal_to_string(QutesParser.SQUARE_PARENTHESIS_OPEN))
-            values = literal.split(',', 1)
-            n_values = len(values)
-            if(n_values == 2):
-                return Qubit(complex(1/n_values), complex(1/n_values))
-            else:
-                if(values[0] == '0'):
-                    return Qubit(complex(1), complex(0))
+        try:
+            literal = literal.removesuffix(QutesParser.literal_to_string(QutesParser.QUBIT_LITERAL_POSTFIX))
+            if(literal.startswith(QutesParser.literal_to_string(QutesParser.SQUARE_PARENTHESIS_OPEN))):
+                literal = literal.removesuffix(QutesParser.literal_to_string(QutesParser.SQUARE_PARENTHESIS_CLOSE))
+                literal = literal.removeprefix(QutesParser.literal_to_string(QutesParser.SQUARE_PARENTHESIS_OPEN))
+                values = literal.split(',', 1)
+                n_values = len(values)
+                if(n_values == 2):
+                    return Qubit(complex(1/n_values), complex(1/n_values))
                 else:
-                    return Qubit(complex(0), complex(1))
-        elif(len(literal) == 1):
-            if(literal.startswith('0')): return Qubit(complex(1), complex(0))
-            elif(literal.startswith('1')): return Qubit(complex(0), complex(1))
-        elif(len(literal) == 3):
-            if(literal.startswith('|0>')): return Qubit(complex(1), complex(0))
-            elif(literal.startswith('|1>')): return Qubit(complex(0), complex(1))
-            elif(literal.startswith('|+>')): return Qubit(complex(0.5), complex(0.5))
-            elif(literal.startswith('|->')): return Qubit(complex(0.5), complex(-0.5))
-        else:
-            (alpha, beta) = literal.split(',', 1)
-            Qubit(complex(alpha), complex(beta))
-        #TODO: try except showing the error:
-        # raise TypeError(f"Cannot convert {literal} to qubit.")
+                    if(values[0] == '0'):
+                        return Qubit(complex(1), complex(0))
+                    else:
+                        return Qubit(complex(0), complex(1))
+            elif(len(literal) == 1):
+                if(literal.startswith('0')): return Qubit(complex(1), complex(0))
+                elif(literal.startswith('1')): return Qubit(complex(0), complex(1))
+            elif(len(literal) == 3):
+                if(literal.startswith('|0>')): return Qubit(complex(1), complex(0))
+                elif(literal.startswith('|1>')): return Qubit(complex(0), complex(1))
+                elif(literal.startswith('|+>')): return Qubit(complex(0.5), complex(0.5))
+                elif(literal.startswith('|->')): return Qubit(complex(0.5), complex(-0.5))
+            else:
+                (alpha, beta) = literal.split(',', 1)
+                return Qubit(complex(alpha), complex(beta))
+        except:
+            raise TypeError(f"Cannot convert {literal} to qubit.")
     
     def fromValue(var_value : any) -> 'Qubit':
         if(isinstance(var_value, str)):
@@ -41,7 +42,6 @@ class Qubit():
     def __init__(self, alpha : complex = complex(1), beta : complex = complex(0)):
         self.alpha = alpha
         self.beta = beta
-        # Qubit has negative phase if alpha and beta have different sign?
         self.phase = Phase.Positive if (alpha * beta).real >= 0 else Phase.Negative 
         self.is_superposition = cmath.isclose(abs(alpha), abs(beta))
 

@@ -7,8 +7,17 @@ class Quint():
     default_value = [Qubit(complex(1),complex(0))]
 
     def init_from_string(literal : str) -> 'Quint':
-        literal = literal.removesuffix(QutesParser.literal_to_string(QutesParser.QUBIT_LITERAL_POSTFIX))
-        return Quint.init_from_integer(int(literal))
+        qubit_literal_postfix = QutesParser.literal_to_string(QutesParser.QUBIT_LITERAL_POSTFIX)
+        literal = literal.removesuffix(qubit_literal_postfix)
+        qubits = []
+        if(literal.startswith(QutesParser.literal_to_string(QutesParser.SQUARE_PARENTHESIS_OPEN))):
+            literal = literal.removesuffix(QutesParser.literal_to_string(QutesParser.SQUARE_PARENTHESIS_CLOSE))
+            literal = literal.removeprefix(QutesParser.literal_to_string(QutesParser.SQUARE_PARENTHESIS_OPEN))
+            qubits_literal = literal.replace(' ', '').split(qubit_literal_postfix)
+            for qubit_literal in qubits_literal:
+                if(len(qubit_literal)>0):
+                    qubits.append(Qubit.from_string(qubit_literal.removeprefix(',') + qubit_literal_postfix))
+        return Quint(qubits)
     
     def init_from_integer(literal : int | bool) -> 'Quint':
         binary_rapresentation = bin(literal).removeprefix('0b')
