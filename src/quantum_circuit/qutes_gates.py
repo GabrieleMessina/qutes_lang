@@ -48,7 +48,7 @@ class QutesGates():
             var_b = self.ciruit_handler.replace_quantum_register(var_b_name, var_b.value.update_size_with_padding(number_bits_number))
 
         carry = handler.declare_quantum_register(f"carry{self.count}", Qubit())
-        ancilla = handler.declare_quantum_register(f"ancilla{self.count}", Quint().init_from_size(5))
+        ancilla = handler.declare_quantum_register(f"ancilla{self.count}", Quint.init_from_size(5))
 
         results = ClassicalRegister(number_bits_number+1, f"results{self.count}")
         ainput = ClassicalRegister(number_bits_number, f"ainput{self.count}")
@@ -57,12 +57,14 @@ class QutesGates():
         handler._classic_registers.append(ainput)
         handler._classic_registers.append(binput)
         
+        handler.push_measure_operation(var_a, ainput)
+        handler.push_measure_operation(var_b, binput)
+        # TODO: who calls full adder gate needs to handle the clening of the first 3 qubits, in, out and carry
+        # Note that the circuit is not invertible after measuring something seeing that the state collapses.
         for i in range(number_bits_number):
             handler.push_swap_operation(carry, ancilla[4])
             handler.push_reset_operation(ancilla)
             handler.push_compose_circuit_operation(self.__full_adder_gate(), [var_a[i], var_b[i], carry] + ancilla[:])
-            handler.push_measure_operation(ancilla[2], results[i]) # bit a bit sum
+            handler.push_measure_operation(ancilla[2], results[i]) # bit a bit sum 
 
         handler.push_measure_operation(ancilla[4], results[number_bits_number]) # last carry
-        handler.push_measure_operation(var_a, ainput)
-        handler.push_measure_operation(var_b, binput)

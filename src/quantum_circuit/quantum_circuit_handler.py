@@ -3,7 +3,7 @@ from quantum_circuit.classical_register import ClassicalRegister
 from quantum_circuit.quantum_circuit import QuantumCircuit
 from quantum_circuit.quantum_register import QuantumRegister
 from symbols.types import Qubit, Quint
-from utils.QiskitUtils import counts, run
+from utils.QiskitUtils import counts, run, revcounts
 
 class QuantumCircuitHandler():
     def __init__(self):
@@ -48,7 +48,7 @@ class QuantumCircuitHandler():
         self._registers_states[register_to_update] = quantum_variable.get_quantum_state()
         return register_to_update
 
-    def print_circuit(self):
+    def create_circuit(self) -> QuantumCircuit:
         circuit = QuantumCircuit(*self._quantum_registers, *self._classic_registers)
         for register in self._quantum_registers:
             # circuit.initialize('01', register, True)
@@ -61,11 +61,18 @@ class QuantumCircuitHandler():
             operation(circuit)
 
         circuit.barrier()
+        return circuit
 
+    def print_circuit(self, circuit:QuantumCircuit):
         print(circuit.draw())
 
-        # cnt = run(circuit,100)
-        # counts(cnt)
+    def run_circuit(self, circuit:QuantumCircuit, repetition:int = 1):
+        try:
+            cnt = run(circuit, repetition)
+            revcounts(cnt)
+        except:
+            print("Nothing to measure")
+
 
     def push_not_operation(self, quantum_register : QuantumRegister) -> None:
         self._operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).x(quantum_register))

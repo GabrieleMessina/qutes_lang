@@ -20,21 +20,23 @@
     string a;
     string b = "aa";
     string c = "aa\"" + "as";
-    int d = 12+16543;
-    int e = 12-16543;
+    int d = 12 + 16543;
+    //int e = 12-16543; //TODO: math needs the space around the operator 
+    int e = 12 - 16543;
     int f = false + false;
+    int g = true + true;
     //int b.b = 1; //this gives error, because variable cannot be declared with qualified names (at least at the moment)
     //b = 4; //this gives an error, wrong type assignment and no conversion available.
     //g = 4; //this gives an error, g is not declared.
 }*/
 
-//if(1){ int a=100; }
+//if(1){ int a=100; } //TODO: handle branching
 //{ ; }
 //{ }
 //qubit b;
 // float a = 1.1;
 //{ int i=1; while (i<100) i=i+i; } //TODO: handle cycle
-// qubit q = [0, 1]q;//TODO: error mismatched input 'q' expecting SYMBOL_LITERAL
+//qubit q = [0, 1]q;//TODO: error mismatched input 'q' expecting SYMBOL_LITERAL
 
 /*{
     //alpha and beta values
@@ -56,7 +58,8 @@
     not i;
     pauliz f;
     hadamard g;
-    // qubit h = f + g; //TODO: handle qubit sum
+    f + g;
+    // qubit hx = f + g; //TODO: handle assignment after expression
 }*/
 
 {
@@ -64,17 +67,28 @@
     not a;
     qubit b = 0q;
     a + b;
+    //quint x = a + b; //TODO: handle assignment after type promotion
 
+    // qubit ax = 1q;
     quint c = 10q;
     quint d = 4q;
+    //quint re = c + d; //TODO: handle assignment after expression
     c + d;
+    //c + d + ax; //TODO: handle multiple quantum variable sum
     
-    //quint a = [0q, 0q, 1q];
-    //quint b = [[0, 1]q, 0q, 1q];
-    
-    // quint b = a ;//TODO: declare quint as sequence of qubit
-    // quint c = 12q;
-    // c = 13q;
-    // quint d = -12q;
-    //quint e = c + d; //TODO: handle quint sum
+    //quint aa = [0q, 0q, 1q]; //TODO: handle quint assignment with string literals.
+    //quint bb = [[0, 1]q, 0q, 1q];
+    //quint d = -12q; //TODO: handle negative numbers (two's complement?)
 }
+
+/*{
+    qubit a = 1q;
+    quint c = a;
+    int z = true;
+    int zz = 10;
+    z + zz;
+
+    not z;
+    not zz;
+    not 0;
+}*/

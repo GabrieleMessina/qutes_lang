@@ -61,7 +61,9 @@ def main(argv):
         if(log_quantum_circuit):
             print()
             print("----Quantum Circuit----")
-            quantum_cirtcuit_handler.print_circuit()
+            circuit = quantum_cirtcuit_handler.create_circuit()
+            quantum_cirtcuit_handler.print_circuit(circuit)
+            quantum_cirtcuit_handler.run_circuit(circuit)
 
         print()
 

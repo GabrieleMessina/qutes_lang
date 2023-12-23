@@ -175,22 +175,41 @@ class QutesGrammarVisitor(qutesVisitor):
             if(self.log_trace_enabled): print("visitTerm -> operation")
             first_term = self.visitChildren(ctx.term(0))
             second_term = self.visitChildren(ctx.term(1)) if(ctx.term(1)) else None
+            first_term_symbol : Symbol | None = None
+            second_term_symbol : Symbol | None = None
+
+            if(isinstance(first_term, Symbol)):
+                first_term_symbol = first_term
+                first_term = first_term.value
+            if(isinstance(second_term, Symbol)):
+                second_term_symbol = second_term
+                second_term = second_term.value
+            
             if(ctx.ADD()):
-                if (isinstance(first_term, Symbol) and self.variables_handler.is_quantum_type(first_term.symbol_declaration_static_type)
-                    and isinstance(second_term, Symbol) and self.variables_handler.is_quantum_type(second_term.symbol_declaration_static_type)):
-                    self.qutes_gates.sum(first_term.name, second_term.name)
-                    result = f"{first_term} + {second_term}"
-                else: result = first_term + second_term
+                if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)
+                    and second_term_symbol and self.variables_handler.is_quantum_type(second_term_symbol.symbol_declaration_static_type)):
+                    self.qutes_gates.sum(first_term_symbol.name, second_term_symbol.name)
+                    result = f"{first_term_symbol} + {second_term_symbol}"
+                else:
+                    result = first_term + second_term
             if(ctx.SUB()):
+                if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
+                    pass
                 result = first_term - second_term
             if(ctx.NOT()):
-                result = self.quantum_cirtcuit_handler.push_not_operation(first_term.quantum_register)
+                if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
+                    result = self.quantum_cirtcuit_handler.push_not_operation(first_term_symbol.quantum_register)
+                else:
+                    result = not first_term
             if(ctx.PAULIY()):
-                result = self.quantum_cirtcuit_handler.push_pauliy_operation(first_term.quantum_register)
+                if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
+                    result = self.quantum_cirtcuit_handler.push_pauliy_operation(first_term_symbol.quantum_register)
             if(ctx.PAULIZ()):
-                result = self.quantum_cirtcuit_handler.push_pauliz_operation(first_term.quantum_register)
+                if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
+                    result = self.quantum_cirtcuit_handler.push_pauliz_operation(first_term_symbol.quantum_register)
             if(ctx.HADAMARD()):
-                result = self.quantum_cirtcuit_handler.push_hadamard_operation(first_term.quantum_register)
+                if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
+                    result = self.quantum_cirtcuit_handler.push_hadamard_operation(first_term_symbol.quantum_register)
         if(ctx.boolean()):
             if(self.log_trace_enabled): print("visitTerm -> boolean")
             result = self.visitChildren(ctx)
@@ -233,7 +252,7 @@ class QutesGrammarVisitor(qutesVisitor):
 
     # Visit a parse tree produced by qutesParser#id.
     def visitString(self, ctx:qutesParser.StringContext):
-        string_literal_enclosure = qutesParser.literaltostring(qutesParser.STRING_ENCLOSURE)
+        string_literal_enclosure = qutesParser.literal_to_string(qutesParser.STRING_ENCLOSURE)
         return self.__visit("visitString", lambda : str(
             ctx.getText()
                 .removeprefix(string_literal_enclosure)
@@ -244,11 +263,12 @@ class QutesGrammarVisitor(qutesVisitor):
     
     # Visit a parse tree produced by qutesParser#qubit.
     def visitQubit(self, ctx:qutesParser.QubitContext):
-       return self.__visit("visitQubit", lambda : Qubit().fromstr(ctx.getText()))
+       return self.__visit("visitQubit", lambda : Qubit.from_string(ctx.getText()))
     
     # Visit a parse tree produced by qutesParser#quint.
     def visitQuint(self, ctx:qutesParser.QuintContext):
-       return self.__visit("visitQuint", lambda : Quint().init_from_str(ctx.getText()))
+       #TODO: ctx.getText() could be a qubit literal, maybe is better to handle this with parser and not lexer.
+       return self.__visit("visitQuint", lambda : Quint.init_from_string(ctx.getText()))
 
     # Visit a parse tree produced by qutesParser#float.
     def visitFloat(self, ctx:qutesParser.FloatContext):
