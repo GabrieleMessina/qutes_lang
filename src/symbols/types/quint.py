@@ -7,20 +7,38 @@ class Quint():
     default_value = [Qubit(complex(1),complex(0))]
 
     def init_from_string(literal : str) -> 'Quint':
+        qubits = []
         qubit_literal_postfix = QutesParser.literal_to_string(QutesParser.QUBIT_LITERAL_POSTFIX)
         literal = literal.removesuffix(qubit_literal_postfix)
-        qubits = []
         if(literal.startswith(QutesParser.literal_to_string(QutesParser.SQUARE_PARENTHESIS_OPEN))):
             literal = literal.removesuffix(QutesParser.literal_to_string(QutesParser.SQUARE_PARENTHESIS_CLOSE))
             literal = literal.removeprefix(QutesParser.literal_to_string(QutesParser.SQUARE_PARENTHESIS_OPEN))
-            qubits_literal = literal.replace(' ', '').split(qubit_literal_postfix)
-            for qubit_literal in qubits_literal:
-                if(len(qubit_literal)>0):
-                    qubits.append(Qubit.from_string(qubit_literal.removeprefix(',') + qubit_literal_postfix))
+            quint_literals = literal.replace(' ', '').split(qubit_literal_postfix)
+            #we have an array of integer that this quint can take on
+            if(len(quint_literals) == 1):
+                int_literals = [int(i) for i in quint_literals[0].replace(' ', '').split(',')]
+                max_value_to_represent = max(int_literals)
+                number_of_qubits = len(utils.binary(max_value_to_represent))
+                counts = [0] * number_of_qubits
+                for number in int_literals:
+                    binary_number = utils.binary(number, number_of_qubits)
+                    for index in range(number_of_qubits):
+                        counts[index] += int(binary_number[index])
+                for count in counts:
+                    prob_of_being_true = (count/number_of_qubits)
+                    qubits.append(Qubit(complex(1-prob_of_being_true), complex(prob_of_being_true)))
+            #we have an array of qubits that indicates the single qubits state the quint can take on
+            else:
+                for qubit_literal in quint_literals:
+                    if(len(qubit_literal)>0):
+                        qubits.append(Qubit.from_string(qubit_literal.removeprefix(',') + qubit_literal_postfix))
+        #we have a simple integer that the quint can take on
+        else:
+            return Quint.init_from_integer(int(literal))
         return Quint(qubits)
     
     def init_from_integer(literal : int | bool) -> 'Quint':
-        binary_rapresentation = bin(literal).removeprefix('0b')
+        binary_rapresentation = utils.binary(literal)
         temp_state = []
         for digit in binary_rapresentation:
             if(digit == '0'):

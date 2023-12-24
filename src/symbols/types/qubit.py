@@ -10,22 +10,26 @@ class Qubit():
                 literal = literal.removesuffix(QutesParser.literal_to_string(QutesParser.SQUARE_PARENTHESIS_CLOSE))
                 literal = literal.removeprefix(QutesParser.literal_to_string(QutesParser.SQUARE_PARENTHESIS_OPEN))
                 values = literal.split(',', 1)
-                n_values = len(values)
-                if(n_values == 2):
-                    return Qubit(complex(1/n_values), complex(1/n_values))
+                #we have two possible state
+                if(len(values) == 2):
+                    return Qubit(complex(1/2), complex(1/2))
+                #we have only a possible state
                 else:
                     if(values[0] == '0'):
                         return Qubit(complex(1), complex(0))
                     else:
                         return Qubit(complex(0), complex(1))
+            # we have a boolean value
             elif(len(literal) == 1):
                 if(literal.startswith('0')): return Qubit(complex(1), complex(0))
                 elif(literal.startswith('1')): return Qubit(complex(0), complex(1))
+            # we have a default qubit literal
             elif(len(literal) == 3):
                 if(literal.startswith('|0>')): return Qubit(complex(1), complex(0))
                 elif(literal.startswith('|1>')): return Qubit(complex(0), complex(1))
                 elif(literal.startswith('|+>')): return Qubit(complex(0.5), complex(0.5))
                 elif(literal.startswith('|->')): return Qubit(complex(0.5), complex(-0.5))
+            #we have to complex that indicates the qubit state
             else:
                 (alpha, beta) = literal.split(',', 1)
                 return Qubit(complex(alpha), complex(beta))
