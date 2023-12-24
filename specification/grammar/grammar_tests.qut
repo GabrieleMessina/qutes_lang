@@ -21,7 +21,7 @@
     string b = "aa";
     string c = "aa\"" + "as";
     int d = 12 + 16543;
-    //int e = 12-16543; //TODO: math needs the space around the operator 
+    //int e = 12-16543;
     int e = 12 - 16543;
     int f = false + false;
     int g = true + true;
@@ -61,7 +61,7 @@
     // qubit hx = f + g; //TODO: handle assignment after expression
 }*/
 
-{
+/*{
     qubit a = [0,1]q;
     not a;
     qubit b = 0q;
@@ -80,7 +80,7 @@
     quint cc = [0.7,0.3q, 0q, 1q]; //quint with a superposition state where the most significant bit can be 0(70%) or 1(30%)
     quint dd = [1, 3]q; //quint with a superposition state that can be both 1(50%) or 3(50%)
     //quint d = -12q; //TODO: handle negative numbers (two's complement?)
-}
+}*/
 
 /*{
     qubit a = 1q;

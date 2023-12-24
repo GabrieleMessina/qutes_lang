@@ -78,7 +78,7 @@ BOOl_LITERAL
    ;
 
 INT_LITERAL
-   : MATH_SIGN? DIGIT+
+   : DIGIT+
    ;
 
 FLOAT_LITERAL

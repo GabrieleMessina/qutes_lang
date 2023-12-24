@@ -165,51 +165,12 @@ class QutesGrammarVisitor(qutesVisitor):
         result = self.visitChildren(ctx.term(0))
         return result
 
-
-    # Visit a parse tree produced by qutesParser#term.
-    def visitTerm(self, ctx:qutesParser.TermContext):
-        return self.__visit("visitTerm", lambda : self.__visit_term(ctx))
-    def __visit_term(self, ctx:qutesParser.TermContext):
+    # Visit a parse tree produced by qutes_parser#IdentityOperator.
+    def visitIdentityOperator(self, ctx:qutesParser.IdentityOperatorContext):
+         return self.__visit("visitIdentityOperator", lambda : self.__visit_identity_operator(ctx))
+    
+    def __visit_identity_operator(self, ctx:qutesParser.TermContext):
         result = "default_term_result"
-        if(ctx.term(0)):
-            if(self.log_trace_enabled): print("visitTerm -> operation")
-            first_term = self.visitChildren(ctx.term(0))
-            second_term = self.visitChildren(ctx.term(1)) if(ctx.term(1)) else None
-            first_term_symbol : Symbol | None = None
-            second_term_symbol : Symbol | None = None
-
-            if(isinstance(first_term, Symbol)):
-                first_term_symbol = first_term
-                first_term = first_term.value
-            if(isinstance(second_term, Symbol)):
-                second_term_symbol = second_term
-                second_term = second_term.value
-            
-            if(ctx.ADD()):
-                if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)
-                    and second_term_symbol and self.variables_handler.is_quantum_type(second_term_symbol.symbol_declaration_static_type)):
-                    self.qutes_gates.sum(first_term_symbol.name, second_term_symbol.name)
-                    result = f"{first_term_symbol} + {second_term_symbol}"
-                else:
-                    result = first_term + second_term
-            if(ctx.SUB()):
-                if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
-                    pass
-                result = first_term - second_term
-            if(ctx.NOT()):
-                if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
-                    result = self.quantum_cirtcuit_handler.push_not_operation(first_term_symbol.quantum_register)
-                else:
-                    result = not first_term
-            if(ctx.PAULIY()):
-                if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
-                    result = self.quantum_cirtcuit_handler.push_pauliy_operation(first_term_symbol.quantum_register)
-            if(ctx.PAULIZ()):
-                if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
-                    result = self.quantum_cirtcuit_handler.push_pauliz_operation(first_term_symbol.quantum_register)
-            if(ctx.HADAMARD()):
-                if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
-                    result = self.quantum_cirtcuit_handler.push_hadamard_operation(first_term_symbol.quantum_register)
         if(ctx.boolean()):
             if(self.log_trace_enabled): print("visitTerm -> boolean")
             result = self.visitChildren(ctx)
@@ -233,6 +194,78 @@ class QutesGrammarVisitor(qutesVisitor):
             result = self.visitChildren(ctx)
         return result
 
+
+    # Visit a parse tree produced by qutes_parser#UnaryOperator.
+    def visitUnaryOperator(self, ctx:qutesParser.UnaryOperatorContext):
+         return self.__visit("visitUnaryOperator", lambda : self.__visit_unary_operator(ctx))
+    
+    def __visit_unary_operator(self, ctx:qutesParser.TermContext):
+        result = "default_term_result"
+        if(ctx.term(0)):
+            if(self.log_trace_enabled): print("visitTerm -> unary operation")
+            first_term = self.visitChildren(ctx.term(0))
+            first_term_symbol : Symbol | None = None
+
+            if(isinstance(first_term, Symbol)):
+                first_term_symbol = first_term
+                first_term = first_term.value
+            
+            if(ctx.ADD()):
+                pass
+            if(ctx.SUB()):
+                if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
+                    result = self.quantum_cirtcuit_handler.push_pauliz_operation(first_term_symbol.quantum_register)
+                result = -first_term
+            if(ctx.NOT()):
+                if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
+                    result = self.quantum_cirtcuit_handler.push_not_operation(first_term_symbol.quantum_register)
+                else:
+                    result = not first_term
+            if(ctx.PAULIY()):
+                if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
+                    result = self.quantum_cirtcuit_handler.push_pauliy_operation(first_term_symbol.quantum_register)
+            if(ctx.PAULIZ()):
+                if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
+                    result = self.quantum_cirtcuit_handler.push_pauliz_operation(first_term_symbol.quantum_register)
+            if(ctx.HADAMARD()):
+                if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
+                    result = self.quantum_cirtcuit_handler.push_hadamard_operation(first_term_symbol.quantum_register)
+        return result
+
+
+    # Visit a parse tree produced by qutes_parser#BinaryOperator.
+    def visitBinaryOperator(self, ctx:qutesParser.BinaryOperatorContext):
+         return self.__visit("visitBinaryOperator", lambda : self.__visit_binary_operator(ctx))
+
+    def __visit_binary_operator(self, ctx:qutesParser.TermContext):
+        result = "default_term_result"
+        if(ctx.term(0) and ctx.term(1)):
+            if(self.log_trace_enabled): print("visitTerm -> binary operation")
+            first_term = self.visitChildren(ctx.term(0))
+            second_term = self.visitChildren(ctx.term(1))
+            first_term_symbol : Symbol | None = None
+            second_term_symbol : Symbol | None = None
+
+            if(isinstance(first_term, Symbol)):
+                first_term_symbol = first_term
+                first_term = first_term.value
+            if(isinstance(second_term, Symbol)):
+                second_term_symbol = second_term
+                second_term = second_term.value
+            
+            if(ctx.ADD()):
+                if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)
+                    and second_term_symbol and self.variables_handler.is_quantum_type(second_term_symbol.symbol_declaration_static_type)):
+                    self.qutes_gates.sum(first_term_symbol.name, second_term_symbol.name)
+                    result = f"{first_term_symbol} + {second_term_symbol}"
+                else:
+                    result = first_term + second_term
+            if(ctx.SUB()):
+                if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
+                    pass
+                result = first_term - second_term
+        return result
+    
 
     # Visit a parse tree produced by qutesParser#variableType.
     def visitVariableType(self, ctx:qutesParser.VariableTypeContext):
