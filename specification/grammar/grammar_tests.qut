@@ -1,3 +1,4 @@
+//basic boolean 
 /*{
     bool a = true;
     bool b = FALSE;
@@ -5,7 +6,7 @@
     bool d = 0;
 }*/
 
-
+//basic integer
 /*{
     int a=2+3;
     int i=1;
@@ -14,8 +15,16 @@
     a;
     i=i+i;
     //2+"a"; //this gives an error and that it's as intended, it's how the lower level language handle this kind of operation between two types.
+    int z = true;
+    int zz = 10;
+    z + zz;
+
+    not z;
+    not zz;
+    not 0;
 }*/
 
+//strings and basic operations
 /*{
     string a;
     string b = "aa";
@@ -30,13 +39,15 @@
     //g = 4; //this gives an error, g is not declared.
 }*/
 
-//if(1){ int a=100; } //TODO: handle branching
+//variable scope tests
+if(1){ int a=100; } //TODO: handle branching
 //{ ; }
 //{ }
 //qubit b;
-// float a = 1.1;
+//float a = 1.1;
 //{ int i=1; while (i<100) i=i+i; } //TODO: handle cycle
 
+//qubits tests
 /*{
     //alpha and beta values
     qubit a = 0.7,0.3q;
@@ -61,6 +72,7 @@
     // qubit hx = f + g; //TODO: handle assignment after expression
 }*/
 
+//quints tests
 /*{
     qubit a = [0,1]q;
     not a;
@@ -80,16 +92,4 @@
     quint cc = [0.7,0.3q, 0q, 1q]; //quint with a superposition state where the most significant bit can be 0(70%) or 1(30%)
     quint dd = [1, 3]q; //quint with a superposition state that can be both 1(50%) or 3(50%)
     //quint d = -12q; //TODO: handle negative numbers (two's complement?)
-}*/
-
-/*{
-    qubit a = 1q;
-    quint c = a;
-    int z = true;
-    int zz = 10;
-    z + zz;
-
-    not z;
-    not zz;
-    not 0;
 }*/
