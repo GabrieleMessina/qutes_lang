@@ -40,7 +40,7 @@ test
 
 term
    : term op=(ADD | SUB) term #BinaryOperator
-   | op=(NOT | PAULIY | PAULIZ | HADAMARD | ADD | SUB) term #UnaryOperator
+   | op=(NOT | PAULIY | PAULIZ | HADAMARD | MEASURE | ADD | SUB) term #UnaryOperator
    | (boolean
    | integer
    | float

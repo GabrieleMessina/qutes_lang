@@ -17,6 +17,7 @@ NOT : 'not' ;
 PAULIY : 'pauliy' ;
 PAULIZ : 'pauliz' ;
 HADAMARD : 'hadamard' ;
+MEASURE : 'measure' ;
 EQUAL : '==' ;
 GREATER : '>' ;
 GREATEREQUAL : '>=' ;

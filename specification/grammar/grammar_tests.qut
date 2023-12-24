@@ -97,3 +97,16 @@
     //quint dd = [1, 3]q; //quint with a superposition state that can be both 1(50%) or 3(50%)
     //quint d = -12q; //TODO: handle negative numbers (two's complement?)
 }*/
+
+//measures tests
+{
+    //qubit a = [1]q;
+    //qubit b = [1]q;
+    //quint x = a + b;
+    //measure x;
+    
+    quint c = 10q;
+    quint d = 4q;
+    quint re = c + d;
+    measure re;
+}

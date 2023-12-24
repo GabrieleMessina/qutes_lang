@@ -202,9 +202,9 @@ class QutesGrammarVisitor(qutesVisitor):
     
     def __visit_unary_operator(self, ctx:qutesParser.TermContext):
         result = "default_term_result"
-        if(ctx.term(0)):
+        if(ctx.term()):
             if(self.log_trace_enabled): print("visitTerm -> unary operation")
-            first_term = self.visitChildren(ctx.term(0))
+            first_term = self.visitChildren(ctx.term())
             first_term_symbol : Symbol | None = None
 
             if(isinstance(first_term, Symbol)):
@@ -231,6 +231,9 @@ class QutesGrammarVisitor(qutesVisitor):
             if(ctx.HADAMARD()):
                 if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
                     result = self.quantum_cirtcuit_handler.push_hadamard_operation(first_term_symbol.quantum_register)
+            if(ctx.MEASURE()):
+                if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
+                    result = self.quantum_cirtcuit_handler.push_measure_operation(first_term_symbol.quantum_register)
         return result
 
 

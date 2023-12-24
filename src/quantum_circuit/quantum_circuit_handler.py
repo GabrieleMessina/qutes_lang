@@ -13,6 +13,12 @@ class QuantumCircuitHandler():
         self._operation_stack : list[Callable[[QuantumCircuit], None]] = []
         self._varname_to_register : dict[str, QuantumRegister] = {}
 
+    def declare_classical_register(self,  variable_name : str, bits_number : int) -> ClassicalRegister:
+        new_register = ClassicalRegister(bits_number, variable_name)
+        self._varname_to_register[variable_name] = new_register
+        self._classic_registers.append(new_register)
+        return new_register
+
     def declare_quantum_register(self,  variable_name : str, quantum_variable : any) -> QuantumRegister:
         new_register = None
 
@@ -55,8 +61,8 @@ class QuantumCircuitHandler():
         
         #TODO-CRITICAL(pasted from above, i don't know if this applies here too): this update actually change the reference, so all the old references around the code are still there. For now i hack this returning the new value and changing the name from update to replace.
         
-        #Delete old quantum register reference from the variable
         if(register_to_update != quantum_register):
+            #Delete old quantum register reference from the variable
             del self._registers_states[register_to_update]
             self._quantum_registers.remove(register_to_update)
             #Assign already created register reference to the variable
@@ -86,8 +92,8 @@ class QuantumCircuitHandler():
         try:
             cnt = run(circuit, repetition)
             revcounts(cnt)
-        except:
-            print("Nothing to measure")
+        except Exception as ex:
+            print(ex)
 
 
     def push_not_operation(self, quantum_register : QuantumRegister) -> None:
@@ -114,8 +120,10 @@ class QuantumCircuitHandler():
     def push_reset_operation(self, quantum_register : QuantumRegister) -> None:
         self._operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).reset(quantum_register))
 
-    def push_compose_circuit_operation(self, circuit_to_compose, quantum_registers, classical_registers = None) -> None:
+    def push_compose_circuit_operation(self, circuit_to_compose : QuantumCircuit, quantum_registers : QuantumRegister, classical_registers : ClassicalRegister = None) -> None:
         self._operation_stack.append(lambda circuit: circuit.compose(circuit_to_compose, quantum_registers, classical_registers, inplace=True))
 
-    def push_measure_operation(self, quantum_registers, classical_register) -> None:
-        self._operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).measure(quantum_registers, classical_register))
+    def push_measure_operation(self, quantum_registers : QuantumRegister, classical_registers : ClassicalRegister = None) -> None:
+        if(classical_registers == None):
+            classical_registers = self.declare_classical_register("measured_"+quantum_registers.name, quantum_registers.size)
+        self._operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).measure(quantum_registers, classical_registers))
