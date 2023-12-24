@@ -18,13 +18,14 @@ class QutesGrammarVisitor(qutesVisitor):
             raise ValueError("A symbols tree must be provided to the QutesGrammarVisitor.")
         self.symbols_tree = symbols_tree
         self.quantum_cirtcuit_handler = quantum_cirtcuit_handler
-        self.qutes_gates = QutesGates(self.quantum_cirtcuit_handler)
         #We need to travers the symbols_tree going orderly like in a breadth first search
         #Every time we need to create a new scope, we visit instead the next node in the tree
         #And every time we need to close a scope, we return to the parent of the current node
         #This way we know, at each moment, what symbols are defined.
         self.scope_handler = ScopeHandlerForSymbolsUpdate(self.symbols_tree)
         self.variables_handler = VariablesHandler(self.scope_handler, self.quantum_cirtcuit_handler)
+
+        self.qutes_gates = QutesGates(self.quantum_cirtcuit_handler, self.variables_handler)
 
         # Debug flags
         self.log_trace_enabled = False
@@ -256,12 +257,18 @@ class QutesGrammarVisitor(qutesVisitor):
             if(ctx.ADD()):
                 if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)
                     and second_term_symbol and self.variables_handler.is_quantum_type(second_term_symbol.symbol_declaration_static_type)):
-                    self.qutes_gates.sum(first_term_symbol.name, second_term_symbol.name)
-                    result = f"{first_term_symbol} + {second_term_symbol}"
+                    #TODO: we should measure the circuit and assign the value to the result variable.
+                    #But we don't want to measure the circuit at every operation, so we need to return a kind of promise
+                    #Promise that will be measured only when needed
+                    #At first i was thinking about measure on assignment, but that is not actually needed,
+                    #We can measure only when classical computation is required
+                    #Or when explicitly required by the user.
+                    result = self.qutes_gates.sum(first_term_symbol.name, second_term_symbol.name)
                 else:
                     result = first_term + second_term
             if(ctx.SUB()):
                 if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
+                    #TODO: handle sub operation of quantum variables
                     pass
                 result = first_term - second_term
         return result

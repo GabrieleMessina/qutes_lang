@@ -76,6 +76,9 @@ class QuantumCircuitHandler():
 
     def push_not_operation(self, quantum_register : QuantumRegister) -> None:
         self._operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).x(quantum_register))
+    
+    def push_cnot_operation(self, quantum_register_control : QuantumRegister, quantum_register_target : QuantumRegister) -> None:
+        self._operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).cx(quantum_register_control, quantum_register_target))
 
     def push_pauliy_operation(self, quantum_register : QuantumRegister) -> None:
         self._operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).y(quantum_register))

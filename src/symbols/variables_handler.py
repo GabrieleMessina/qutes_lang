@@ -10,7 +10,7 @@ class VariablesHandler():
         self.quantum_cirtcuit_handler = quantum_cirtcuit_handler
 
     def update_variable_state(self, variable_name : str, new_value) -> Symbol:       
-        new_value = self.get_value(new_value) 
+        new_value = self.get_value(new_value)
         eligible_symbols_to_update = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.name == variable_name]
         if len(eligible_symbols_to_update) > 0:
             # In case multiple scopes declare a varialble with the same name we take the last one, that is the one from the nearest scope.
@@ -74,5 +74,5 @@ class VariablesHandler():
             return var_value.symbol_declaration_static_type
         return QutesDataType.type_of(var_value)
     
-    def is_quantum_type(self, declaration_type) -> bool:
+    def is_quantum_type(self, declaration_type:str) -> bool:
         return QutesDataType.from_declaration_type(declaration_type) in [QutesDataType.qubit, QutesDataType.quint]

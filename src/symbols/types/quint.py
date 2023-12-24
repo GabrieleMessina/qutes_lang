@@ -47,8 +47,8 @@ class Quint():
                 temp_state.append(Qubit(complex(0),complex(1)))
         return Quint(temp_state)
 
-    def init_from_size(size : int) -> 'Quint':
-        return Quint(Quint.default_value*size)
+    def init_from_size(number_of_bits : int) -> 'Quint':
+        return Quint(Quint.default_value*number_of_bits)
     
     def fromValue(var_value : any) -> 'Quint':
         if(isinstance(var_value, Qubit)):
