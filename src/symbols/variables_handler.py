@@ -9,8 +9,8 @@ class VariablesHandler():
         self.scope_handler = scope_handler
         self.quantum_cirtcuit_handler = quantum_cirtcuit_handler
 
-    def update_variable_state(self, variable_name : str, new_value) -> Symbol:       
-        new_value = self.get_value(new_value)
+    def update_variable_state(self, variable_name : str, new_state) -> Symbol:       
+        new_value = self.get_value(new_state)
         eligible_symbols_to_update = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.name == variable_name]
         if len(eligible_symbols_to_update) > 0:
             # In case multiple scopes declare a varialble with the same name we take the last one, that is the one from the nearest scope.
@@ -26,7 +26,10 @@ class VariablesHandler():
 
             #Handle quantum circuit update
             if(self.is_quantum_type(symbol_to_update.symbol_declaration_static_type)):
-                self.quantum_cirtcuit_handler.replace_quantum_register(variable_name, symbol_to_update.value)
+                if(isinstance(new_state, Symbol)):
+                    symbol_to_update.quantum_register = self.quantum_cirtcuit_handler.assign_quantum_register_to_variable(variable_name, new_state.quantum_register)
+                else:
+                    self.quantum_cirtcuit_handler.replace_quantum_register(variable_name, symbol_to_update.value)
             return symbol_to_update
         else:
             raise SyntaxError(f"No variable declared with name '{variable_name}'.")

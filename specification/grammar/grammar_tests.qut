@@ -40,7 +40,7 @@
 }*/
 
 //variable scope tests
-if(1){ int a=100; } //TODO: handle branching
+//if(1){ int a=100; } //TODO: handle branching
 //{ ; }
 //{ }
 //qubit b;
@@ -74,22 +74,26 @@ if(1){ int a=100; } //TODO: handle branching
 
 //quints tests
 /*{
-    qubit a = [0,1]q;
-    not a;
-    qubit b = 0q;
-    a + b;
-    //quint x = a + b; //TODO: handle assignment after type promotion
-
-    //qubit ax = 1q;
-    quint c = 10q;
-    quint d = 4q;
-    //quint re = c + d; //TODO: handle assignment after expression
-    c + d;
-    //c + d + ax; //TODO: handle multiple quantum variable sum
     
-    quint aa = [0q, 0q, 1q]; //quint representing the number 1
-    quint bb = [[0, 1]q, 0q, 1q]; //quint with a superposition state where the most significant bit can be 0(50%) or 1(50%)
-    quint cc = [0.7,0.3q, 0q, 1q]; //quint with a superposition state where the most significant bit can be 0(70%) or 1(30%)
-    quint dd = [1, 3]q; //quint with a superposition state that can be both 1(50%) or 3(50%)
+    //qubit a = [0,1]q;
+    //not a;
+    //qubit b = 0q;
+    //a + b;
+    
+    //qubit a = [1]q;
+    //qubit b = [1]q;
+    //a + b;
+    //quint x = a + b;
+    
+    //qubit ax = 1q;
+    //quint c = 10q;
+    //quint d = 4q;
+    //quint re = c + d;
+    //c + d + ax; //TODO: handle multiple quantum variable sum
+
+    //quint aa = [0q, 0q, 1q]; //quint representing the number 1
+    //quint bb = [[0, 1]q, 0q, 1q]; //quint with a superposition state where the most significant bit can be 0(50%) or 1(50%)
+    //quint cc = [0.7,0.3q, 0q, 1q]; //quint with a superposition state where the most significant bit can be 0(70%) or 1(30%)
+    //quint dd = [1, 3]q; //quint with a superposition state that can be both 1(50%) or 3(50%)
     //quint d = -12q; //TODO: handle negative numbers (two's complement?)
 }*/

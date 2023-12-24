@@ -13,9 +13,9 @@ class Symbol():
         self.symbol_class = symbol_class
         self.symbol_declaration_static_type = symbol_declaration_static_type
         self.promoted_static_type = promoted_static_type
-        self.value = value
+        self.value = value #value is not reliable on quantum types
         self.scope = scope
-        self.quantum_register = quantum_register
+        self.quantum_register = quantum_register #quantum register is not used for classical variables
 
     def __to_printable__(self) -> str:
         return f"{self.scope.scope_type_detail}.{self.name}={self.value}"
