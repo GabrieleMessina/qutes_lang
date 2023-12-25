@@ -71,6 +71,10 @@ class VariablesHandler():
         if(isinstance(var_value, Symbol)):
             return var_value.value
         return var_value
+
+    def get_symbol(self, var_name:str):
+        eligible_symbols_to_update = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.name == var_name]
+        return eligible_symbols_to_update[0]
     
     def get_type_of(self, var_value):
         if(isinstance(var_value, Symbol)):

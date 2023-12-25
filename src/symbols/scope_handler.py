@@ -43,11 +43,23 @@ class ScopeHandlerForSymbolsUpdate(ScopeHandler):
             raise ValueError("A symbols tree must be provided to the scope handler for this step.")
         self.symbols_tree:ScopeTreeNode = symbols_tree
         self.current_symbols_scope:ScopeTreeNode = self.symbols_tree
-        self.tree_preorder_iterator = PreOrderIter(self.symbols_tree)            
+        self.tree_preorder_iterator = PreOrderIter(self.symbols_tree)
+        self.is_inside_loop = False
 
+    def start_loop(self) -> None:
+        self.is_inside_loop = True
+
+    def end_loop(self) -> None:
+        self.is_inside_loop = False
+
+    #Start visiting scope
     def push_scope(self) -> ScopeTreeNode:
-        self.current_symbols_scope = next(self.tree_preorder_iterator)
+        if(self.is_inside_loop == False):
+            self.current_symbols_scope = next(self.tree_preorder_iterator)
         return self.current_symbols_scope
     
+    #End visiting scope, return to parent and never(almost, see loops) visit this scope again
     def pop_scope(self) -> ScopeTreeNode:
+        if(self.is_inside_loop == False):
+            self.current_symbols_scope = self.current_symbols_scope.parent
         return self.current_symbols_scope

@@ -41,10 +41,9 @@ def main(argv):
         grammar_visitor = QutesGrammarVisitor(symbols_tree, quantum_cirtcuit_handler)
         result = str(grammar_visitor.visit(tree))
         
-        if(log_code_structure):
-            print()
-            print("----Code Structure----")
-            print(result.replace("\n", "", 1))
+        print()
+        print("----Result----")
+        print(result.replace("\n", "", 1))
         
         if(log_symbols_scope):
             print()

@@ -95,5 +95,5 @@ integer
    ;
 
 boolean
-   : BOOl_LITERAL
+   : BOOL_LITERAL
    ;

@@ -15,6 +15,7 @@ class SymbolsDiscoveryListener(qutesListener):
         self.scope_handler = ScopeHandlerForSymbolsDiscovery()
         self.scope_count = 0
         self.if_else_scope_count = 0
+        self.loop_scope_count = 0
         self.variables_handler = VariablesHandler(self.scope_handler, self.quantum_cirtcuit_handler)
 
     # Enter a parse tree produced by qutesParser#program.
@@ -48,26 +49,30 @@ class SymbolsDiscoveryListener(qutesListener):
 
     # Enter a parse tree produced by qutesParser#WhileStatement.
     def enterWhileStatement(self, ctx:qutesParser.WhileStatementContext):
-        pass
+        self.loop_scope_count += 1
+        self.scope_handler.push_scope(ScopeClass.LoopScope, f"While{self.if_else_scope_count}")
 
     # Exit a parse tree produced by qutesParser#WhileStatement.
     def exitWhileStatement(self, ctx:qutesParser.WhileStatementContext):
-        pass
+        self.scope_handler.pop_scope()
 
 
     # Enter a parse tree produced by qutesParser#DoWhileStatement.
     def enterDoWhileStatement(self, ctx:qutesParser.DoWhileStatementContext):
-        pass
+        self.loop_scope_count += 1
+        self.scope_handler.push_scope(ScopeClass.LoopScope, f"DoWhile{self.if_else_scope_count}")
 
     # Exit a parse tree produced by qutesParser#DoWhileStatement.
     def exitDoWhileStatement(self, ctx:qutesParser.DoWhileStatementContext):
-        pass
+        self.scope_handler.pop_scope()
 
 
     # Enter a parse tree produced by qutesParser#BlockStatement.
     def enterBlockStatement(self, ctx:qutesParser.BlockStatementContext):
         if(self.scope_handler.current_symbols_scope.scope_class == ScopeClass.IfElseScope):
             self.scope_handler.push_scope(ScopeClass.BranchScope, f"BranchBlock{self.if_else_scope_count}")
+        elif(self.scope_handler.current_symbols_scope.scope_class == ScopeClass.LoopScope):
+            self.scope_handler.push_scope(ScopeClass.BranchScope, f"BranchBlock{self.loop_scope_count}")
         else:
             self.scope_count += 1
             self.scope_handler.push_scope(ScopeClass.LocalScope, f"Block{self.scope_count}")

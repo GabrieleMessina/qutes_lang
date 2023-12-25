@@ -90,7 +90,7 @@ class QutesDataType(Enum):
 
 class TypeCastingHandler():
     type_compatibility : dict[Enum, list[QutesDataType]] = {
-        QutesDataType.bool: [QutesDataType.bool],
+        QutesDataType.bool: [QutesDataType.bool, QutesDataType.int],
         QutesDataType.int: [QutesDataType.int, QutesDataType.bool],
         QutesDataType.float: [QutesDataType.float, QutesDataType.int, QutesDataType.bool],
         QutesDataType.string: [QutesDataType.string, QutesDataType.float, QutesDataType.int, QutesDataType.bool],
