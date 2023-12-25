@@ -6,6 +6,8 @@ class ScopeClass(Enum):
     BaseScope = 1
     GlobalScope = auto()
     LocalScope = auto()
+    IfElseScope = auto()
+    BranchScope = auto()
 
 class ScopeTreeNode(NodeMixin): #TODO: rename to ASTNode?
     """A Node for the Scope Tree data structure"""

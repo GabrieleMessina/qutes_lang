@@ -12,25 +12,25 @@ program
    ;
 
 statement
-   : IF_STATEMENT parenExpr statement #IfStatement
-   | IF_STATEMENT parenExpr statement ELSE_STATEMENT statement #IfElseStatement
-   | WHILE_STATEMENT parenExpr statement #WhileStatement
-   | DO_STATEMENT statement WHILE_STATEMENT parenExpr #DoWhileStatement
+   : IF_STATEMENT expr statement #IfStatement
+   | IF_STATEMENT expr statement ELSE_STATEMENT statement #IfElseStatement
+   | WHILE_STATEMENT expr statement #WhileStatement
+   | DO_STATEMENT statement WHILE_STATEMENT expr #DoWhileStatement
    | CURLY_PARENTHESIS_OPEN statement* CURLY_PARENTHESIS_CLOSE #BlockStatement
-   | variableType variableName (ASSIGN (expr|parenExpr))? END_OF_STATEMENT #DeclarationStatement //TODO: rename variableName to variableDeclarationName
-   | qualifiedName ASSIGN (expr|parenExpr) END_OF_STATEMENT #AssignmentStatement
+   | variableType variableName (ASSIGN expr)? END_OF_STATEMENT #DeclarationStatement //TODO: rename variableName to variableDeclarationName
+   | qualifiedName ASSIGN expr END_OF_STATEMENT #AssignmentStatement
    | expr END_OF_STATEMENT #ExpressionStatement
    | END_OF_STATEMENT #EmptyStatement
-   ;
-
-parenExpr
-   : ROUND_PARENTHESIS_OPEN expr ROUND_PARENTHESIS_CLOSE
    ;
 
 expr
    : term
    | test
    | parenExpr
+   ;
+
+parenExpr
+   : ROUND_PARENTHESIS_OPEN expr ROUND_PARENTHESIS_CLOSE
    ;
 
 test

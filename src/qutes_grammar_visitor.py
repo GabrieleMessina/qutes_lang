@@ -45,12 +45,40 @@ class QutesGrammarVisitor(qutesVisitor):
 
     # Visit a parse tree produced by qutesParser#IfStatement.
     def visitIfStatement(self, ctx:qutesParser.IfStatementContext):
-        return self.__visit("visitIfStatement", lambda : self.visitChildren(ctx))
+        return self.__visit("visitIfStatement", lambda : self.__visit_if_statement(ctx))
+    
+    def __visit_if_statement(self, ctx:qutesParser.IfStatementContext):
+        self.scope_handler.push_scope()
+        result = None
+        condition = self.visitChildren(ctx.expr())
+        if(condition != None):
+            if(self.variables_handler.get_value(condition) == True):
+                result = self.visit(ctx.statement())
+        self.scope_handler.pop_scope()
+        return result
 
 
     # Visit a parse tree produced by qutesParser#IfElseStatement.
     def visitIfElseStatement(self, ctx:qutesParser.IfElseStatementContext):
-        return self.__visit("visitIfElseStatement", lambda : self.visitChildren(ctx))
+        return self.__visit("visitIfElseStatement", lambda : self.__visit_if_else_statement(ctx))
+    
+    def __visit_if_else_statement(self, ctx:qutesParser.IfStatementContext):
+        self.scope_handler.push_scope()
+        result = "default_if_else_result"
+        condition = self.visitChildren(ctx.expr())
+        if(condition != None):
+            if(self.variables_handler.get_value(condition) == True):
+                result = self.visit(ctx.statement(0))
+                #get rid of else branch scope 
+                self.scope_handler.push_scope()
+                self.scope_handler.pop_scope()
+            else:
+                #get rid of if branch scope 
+                self.scope_handler.push_scope()
+                self.scope_handler.pop_scope()
+                result = self.visit(ctx.statement(1))
+        self.scope_handler.pop_scope()
+        return result
 
 
     # Visit a parse tree produced by qutesParser#WhileStatement.
@@ -104,26 +132,18 @@ class QutesGrammarVisitor(qutesVisitor):
     def __visit_assignment_statement(self, var_type : str, var_name : str, var_value, ctx:(qutesParser.AssignmentStatementContext | qutesParser.DeclarationStatementContext)):
         if(ctx.expr()):
             var_value = self.visitChildren(ctx.expr())
-        if(ctx.parenExpr()):
-            var_value = self.visitChildren(ctx.parenExpr())
 
         if(var_value != None):
             self.variables_handler.update_variable_state(var_name, var_value)
 
         if(isinstance(ctx, qutesParser.AssignmentStatementContext)):
             return str(var_name) + " = " + str(var_value)
-        
         else:
             if(var_value != None):
                 self.variables_handler.update_variable_state(var_name, var_value)
                 return str(var_type) + " " + str(var_name) + " = " + str(var_value)
             else:
                 return str(var_type) + " " + str(var_name)
-
-
-    # Visit a parse tree produced by qutesParser#parenExpr.
-    def visitParenExpr(self, ctx:qutesParser.ParenExprContext):
-        return self.__visit("visitparenExpr", lambda : "( " + str(self.visitChildren(ctx)) + " )")
 
 
     # Visit a parse tree produced by qutesParser#expr.
@@ -137,6 +157,21 @@ class QutesGrammarVisitor(qutesVisitor):
         if(ctx.test()):
             if(self.log_trace_enabled): print("visitExpr -> test")
             result = self.visitChildren(ctx)
+        if(ctx.parenExpr()):
+            if(self.log_trace_enabled): print("visitExpr -> parenExpr")
+            result = self.visitChildren(ctx)
+        return result
+    
+    
+    # Visit a parse tree produced by qutesParser#parenExpr.
+    def visitParenExpr(self, ctx:qutesParser.ParenExprContext):
+        return self.__visit("visitparenExpr", lambda : self.__visit_paren_expr(ctx))
+    
+    def __visit_paren_expr(self, ctx:qutesParser.ParenExprContext):
+        result = "visitParenExpr-default"
+        if(ctx.expr()):
+            if(self.log_trace_enabled): print("visitParenExpr -> expr")
+            result = self.visitChildren(ctx.expr())
         return result
 
 
@@ -146,31 +181,33 @@ class QutesGrammarVisitor(qutesVisitor):
 
     def __visit_test(self, ctx:qutesParser.TestContext):
         result = "visitTest-default"
+        first_term = self.variables_handler.get_value(self.visitChildren(ctx.term(0)))
+        second_term = self.variables_handler.get_value(self.visitChildren(ctx.term(1)))
         if(ctx.GREATER()):
             if(self.log_trace_enabled): print("visitTest -> greater")
-            result = self.visitChildren(ctx.term(0)) > self.visitChildren(ctx.term(1))
-        if(ctx.LOWER()):
+            result = first_term > second_term
+        elif(ctx.LOWER()):
             if(self.log_trace_enabled): print("visitTest -> lower")
-            result = self.visitChildren(ctx.term(0)) < self.visitChildren(ctx.term(1))
-        if(ctx.EQUAL()):
+            result = first_term < second_term
+        elif(ctx.EQUAL()):
             if(self.log_trace_enabled): print("visitTest -> equal")
-            result = self.visitChildren(ctx.term(0)) == self.visitChildren(ctx.term(1))
-        if(ctx.GREATEREQUAL()):
+            result = first_term == second_term
+        elif(ctx.GREATEREQUAL()):
             if(self.log_trace_enabled): print("visitTest -> greater equal")
-            result = self.visitChildren(ctx.term(0)) >= self.visitChildren(ctx.term(1))
-        if(ctx.LOWEREQUAL()):
+            result = first_term >= second_term
+        elif(ctx.LOWEREQUAL()):
             if(self.log_trace_enabled): print("visitTest -> lower equal")
-            result = self.visitChildren(ctx.term(0)) <= self.visitChildren(ctx.term(1))
-
-        if(self.log_trace_enabled): print("visitTest -> test no operator")
-        result = self.visitChildren(ctx.term(0))
+            result = first_term <= second_term
+        else:
+            if(self.log_trace_enabled): print("visitTest -> test no operator")
+            result = first_term
         return result
 
     # Visit a parse tree produced by qutes_parser#IdentityOperator.
     def visitIdentityOperator(self, ctx:qutesParser.IdentityOperatorContext):
          return self.__visit("visitIdentityOperator", lambda : self.__visit_identity_operator(ctx))
     
-    def __visit_identity_operator(self, ctx:qutesParser.TermContext):
+    def __visit_identity_operator(self, ctx:qutesParser.IdentityOperatorContext):
         result = "default_term_result"
         if(ctx.boolean()):
             if(self.log_trace_enabled): print("visitTerm -> boolean")
@@ -200,7 +237,7 @@ class QutesGrammarVisitor(qutesVisitor):
     def visitUnaryOperator(self, ctx:qutesParser.UnaryOperatorContext):
          return self.__visit("visitUnaryOperator", lambda : self.__visit_unary_operator(ctx))
     
-    def __visit_unary_operator(self, ctx:qutesParser.TermContext):
+    def __visit_unary_operator(self, ctx:qutesParser.UnaryOperatorContext):
         result = "default_term_result"
         if(ctx.term()):
             if(self.log_trace_enabled): print("visitTerm -> unary operation")
@@ -212,26 +249,32 @@ class QutesGrammarVisitor(qutesVisitor):
                 first_term = first_term.value
             
             if(ctx.ADD()):
-                pass
+                if(self.log_trace_enabled): print("visitUnaryOperator -> ADD")
             if(ctx.SUB()):
+                if(self.log_trace_enabled): print("visitUnaryOperator -> SUB")
                 if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
                     result = self.quantum_cirtcuit_handler.push_pauliz_operation(first_term_symbol.quantum_register)
                 result = -first_term
             if(ctx.NOT()):
+                if(self.log_trace_enabled): print("visitUnaryOperator -> NOT")
                 if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
                     result = self.quantum_cirtcuit_handler.push_not_operation(first_term_symbol.quantum_register)
                 else:
                     result = not first_term
             if(ctx.PAULIY()):
+                if(self.log_trace_enabled): print("visitUnaryOperator -> PAULIY")
                 if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
                     result = self.quantum_cirtcuit_handler.push_pauliy_operation(first_term_symbol.quantum_register)
             if(ctx.PAULIZ()):
+                if(self.log_trace_enabled): print("visitUnaryOperator -> PAULIZ")
                 if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
                     result = self.quantum_cirtcuit_handler.push_pauliz_operation(first_term_symbol.quantum_register)
             if(ctx.HADAMARD()):
+                if(self.log_trace_enabled): print("visitUnaryOperator -> HADAMARD")
                 if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
                     result = self.quantum_cirtcuit_handler.push_hadamard_operation(first_term_symbol.quantum_register)
             if(ctx.MEASURE()):
+                if(self.log_trace_enabled): print("visitUnaryOperator -> MEASURE")
                 if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
                     result = self.quantum_cirtcuit_handler.push_measure_operation(first_term_symbol.quantum_register)
         return result
@@ -241,7 +284,7 @@ class QutesGrammarVisitor(qutesVisitor):
     def visitBinaryOperator(self, ctx:qutesParser.BinaryOperatorContext):
          return self.__visit("visitBinaryOperator", lambda : self.__visit_binary_operator(ctx))
 
-    def __visit_binary_operator(self, ctx:qutesParser.TermContext):
+    def __visit_binary_operator(self, ctx:qutesParser.BinaryOperatorContext):
         result = "default_term_result"
         if(ctx.term(0) and ctx.term(1)):
             if(self.log_trace_enabled): print("visitTerm -> binary operation")
@@ -258,6 +301,7 @@ class QutesGrammarVisitor(qutesVisitor):
                 second_term = second_term.value
             
             if(ctx.ADD()):
+                if(self.log_trace_enabled): print("visitBinaryOperator -> ADD")
                 if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)
                     and second_term_symbol and self.variables_handler.is_quantum_type(second_term_symbol.symbol_declaration_static_type)):
                     #TODO: we should measure the circuit and assign the value to the result variable.
@@ -270,6 +314,7 @@ class QutesGrammarVisitor(qutesVisitor):
                 else:
                     result = first_term + second_term
             if(ctx.SUB()):
+                if(self.log_trace_enabled): print("visitBinaryOperator -> SUB")
                 if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
                     #TODO: handle sub operation of quantum variables
                     pass

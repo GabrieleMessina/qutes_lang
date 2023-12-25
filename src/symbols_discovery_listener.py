@@ -13,11 +13,13 @@ class SymbolsDiscoveryListener(qutesListener):
     def __init__(self, quantum_cirtcuit_handler : QuantumCircuitHandler):
         self.quantum_cirtcuit_handler = quantum_cirtcuit_handler
         self.scope_handler = ScopeHandlerForSymbolsDiscovery()
+        self.scope_count = 0
+        self.if_else_scope_count = 0
         self.variables_handler = VariablesHandler(self.scope_handler, self.quantum_cirtcuit_handler)
 
     # Enter a parse tree produced by qutesParser#program.
     def enterProgram(self, ctx:qutesParser.ProgramContext):
-        self.scope_handler.push_scope(ScopeClass.GlobalScope, "Init")
+        self.scope_handler.push_scope(ScopeClass.GlobalScope, "GlobalScope")
 
     # Exit a parse tree produced by qutesParser#program.
     def exitProgram(self, ctx:qutesParser.ProgramContext):
@@ -26,20 +28,22 @@ class SymbolsDiscoveryListener(qutesListener):
 
     # Enter a parse tree produced by qutesParser#IfStatement.
     def enterIfStatement(self, ctx:qutesParser.IfStatementContext):
-        pass
+        self.if_else_scope_count += 1
+        self.scope_handler.push_scope(ScopeClass.IfElseScope, f"If{self.if_else_scope_count}")
 
     # Exit a parse tree produced by qutesParser#IfStatement.
     def exitIfStatement(self, ctx:qutesParser.IfStatementContext):
-        pass
+        self.scope_handler.pop_scope()
 
 
     # Enter a parse tree produced by qutesParser#IfElseStatement.
     def enterIfElseStatement(self, ctx:qutesParser.IfElseStatementContext):
-        pass
+        self.if_else_scope_count += 1
+        self.scope_handler.push_scope(ScopeClass.IfElseScope, f"IfElse{self.if_else_scope_count}")
 
     # Exit a parse tree produced by qutesParser#IfElseStatement.
     def exitIfElseStatement(self, ctx:qutesParser.IfElseStatementContext):
-        pass
+        self.scope_handler.pop_scope()
 
 
     # Enter a parse tree produced by qutesParser#WhileStatement.
@@ -62,7 +66,11 @@ class SymbolsDiscoveryListener(qutesListener):
 
     # Enter a parse tree produced by qutesParser#BlockStatement.
     def enterBlockStatement(self, ctx:qutesParser.BlockStatementContext):
-        self.scope_handler.push_scope(ScopeClass.LocalScope, "Block")
+        if(self.scope_handler.current_symbols_scope.scope_class == ScopeClass.IfElseScope):
+            self.scope_handler.push_scope(ScopeClass.BranchScope, f"BranchBlock{self.if_else_scope_count}")
+        else:
+            self.scope_count += 1
+            self.scope_handler.push_scope(ScopeClass.LocalScope, f"Block{self.scope_count}")
 
     # Exit a parse tree produced by qutesParser#BlockStatement.
     def exitBlockStatement(self, ctx:qutesParser.BlockStatementContext):
@@ -75,9 +83,7 @@ class SymbolsDiscoveryListener(qutesListener):
         var_name = ctx.variableName().getText()
         # This listener should not follow the executino path to understand what was the initial value assigned to the variable.
         # So we assign None and then variables_handler will put in the default value for the type.
-        var_value = None
-
-        self.variables_handler.declare_variable(var_type, var_name, var_value)
+        self.variables_handler.declare_variable(var_type, var_name)
 
     # Exit a parse tree produced by qutesParser#DeclarationStatement.
     def exitDeclarationStatement(self, ctx:qutesParser.DeclarationStatementContext):

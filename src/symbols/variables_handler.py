@@ -34,7 +34,7 @@ class VariablesHandler():
         else:
             raise SyntaxError(f"No variable declared with name '{variable_name}'.")
         
-    def declare_variable(self, declaration_type : str, variable_name : str, value) -> Symbol:
+    def declare_variable(self, declaration_type : str, variable_name : str, value = None) -> Symbol:
         if(value is None):
             value = QutesDataType.get_default_value(QutesDataType.from_declaration_type(declaration_type))
         else: 

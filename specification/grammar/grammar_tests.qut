@@ -28,6 +28,7 @@
 /*{
     string a;
     string b = "aa";
+    string bb = b;
     string c = "aa\"" + "as";
     int d = 12 + 16543;
     //int e = 12-16543;
@@ -40,11 +41,25 @@
 }*/
 
 //variable scope tests
-//if(1){ int a=100; } //TODO: handle branching
+// bool b = (0);
+// if(b){ int a = 100; }
+// if(false){
+//     int c = 34;
+// }
+// else{
+//     int d = 6;
+// }
+
+/* what about this?
+if(false) int c = 34;
+else int d = 6;
+int c = 0;
+*/
 //{ ; }
 //{ }
-//qubit b;
-//float a = 1.1;
+// if(1==2){
+//     int c = 10;
+// }
 //{ int i=1; while (i<100) i=i+i; } //TODO: handle cycle
 
 //qubits tests
@@ -99,7 +114,7 @@
 }*/
 
 //measures tests
-{
+/*{
     //qubit a = [1]q;
     //qubit b = [1]q;
     //quint x = a + b;
@@ -109,4 +124,4 @@
     quint d = 4q;
     quint re = c + d;
     measure re;
-}
+}*/
