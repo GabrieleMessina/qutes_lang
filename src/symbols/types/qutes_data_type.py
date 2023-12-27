@@ -11,28 +11,11 @@ class QutesDataType(Enum):
     qubit = auto()
     quint = auto()
 
-    def promote_type(self : 'QutesDataType', to_type : 'QutesDataType') -> 'QutesDataType':
-        if(self in TypeCastingHandler.type_compatibility[to_type]):
-            return to_type
-        else: 
-            return QutesDataType.undefined 
-
-    def cast_value_to_type(var_value : any, to_type : 'QutesDataType') -> any:
-        match to_type:
-            case QutesDataType.bool:
-                return bool(var_value)
-            case QutesDataType.int:
-                return int(var_value)
-            case QutesDataType.float:
-                return float(var_value)
-            case QutesDataType.string:
-                return str(var_value)
-            case QutesDataType.qubit:
-                return Qubit.fromValue(var_value)
-            case QutesDataType.quint:
-                return Quint.fromValue(var_value)
-            case _:
-                return QutesDataType.undefined
+    def is_quantum_type(type:'QutesDataType'):
+        return type in [QutesDataType.qubit, QutesDataType.quint]
+    
+    def is_classical_type(type:'QutesDataType'):
+        return type not in [QutesDataType.qubit, QutesDataType.quint]
 
     def type_of(var_value : any) -> 'QutesDataType':
         from symbols import Symbol
@@ -87,13 +70,94 @@ class QutesDataType(Enum):
             case _:
                 return QutesDataType.undefined
             
+    def promote_type(self : 'QutesDataType', to_type : 'QutesDataType') -> 'QutesDataType':
+        if(self in TypeCastingHandler.type_promotable_to[to_type]):
+            return to_type
+        else:
+            return QutesDataType.undefined
+        
+    def down_cast_type(self : 'QutesDataType', to_type : 'QutesDataType') -> 'QutesDataType':
+        if(self in TypeCastingHandler.type_down_castable_to[to_type]):
+            return to_type
+        else: 
+            return QutesDataType.undefined
+
 
 class TypeCastingHandler():
-    type_compatibility : dict[Enum, list[QutesDataType]] = {
-        QutesDataType.bool: [QutesDataType.bool, QutesDataType.int],
+    def __init__(self, quantum_cirtcuit_handler : 'QuantumCircuitHandler'):
+        self.quantum_cirtcuit_handler = quantum_cirtcuit_handler
+
+    type_promotable_to : dict[Enum, list[QutesDataType]] = {
+        #TODO: handle nested casting, like (quint a = true) bool->qubit->quint
+        #..to this types <- this types can be converted to..
+        QutesDataType.bool: [QutesDataType.bool],
         QutesDataType.int: [QutesDataType.int, QutesDataType.bool],
         QutesDataType.float: [QutesDataType.float, QutesDataType.int, QutesDataType.bool],
         QutesDataType.string: [QutesDataType.string, QutesDataType.float, QutesDataType.int, QutesDataType.bool],
-        QutesDataType.qubit: [QutesDataType.qubit, QutesDataType.bool],
-        QutesDataType.quint: [QutesDataType.quint, QutesDataType.qubit, QutesDataType.int, QutesDataType.bool],
+        QutesDataType.qubit: [QutesDataType.qubit,  QutesDataType.string, QutesDataType.bool],
+        QutesDataType.quint: [QutesDataType.quint, QutesDataType.qubit, QutesDataType.string, QutesDataType.int, QutesDataType.bool],
     }
+    type_down_castable_to : dict[Enum, list[QutesDataType]] = {
+        #..to this types <- this types can be converted(loosing information) to..
+        QutesDataType.bool: [QutesDataType.quint, QutesDataType.qubit, QutesDataType.int, QutesDataType.float, QutesDataType.string, QutesDataType.bool],
+        QutesDataType.int: [QutesDataType.quint, QutesDataType.qubit, QutesDataType.float, QutesDataType.int],
+        QutesDataType.float: [QutesDataType.quint, QutesDataType.qubit, QutesDataType.float],
+        QutesDataType.string: [QutesDataType.string],
+        QutesDataType.qubit: [QutesDataType.quint, QutesDataType.qubit],
+        QutesDataType.quint: [QutesDataType.quint],
+    }
+
+    def promote_value_to_type(self, var_value : any, from_type:'QutesDataType', to_type : 'QutesDataType', symbol_or_literal) -> any:
+        match to_type:
+            case QutesDataType.bool:
+                return bool(var_value)
+            case QutesDataType.int:
+                return int(var_value)
+            case QutesDataType.float:
+                return float(var_value)
+            case QutesDataType.string:
+                return str(var_value)
+            case QutesDataType.qubit:
+                return Qubit.fromValue(var_value)
+            case QutesDataType.quint:
+                return Quint.fromValue(var_value)
+            case _:
+                return QutesDataType.undefined
+            
+    def down_cast_value_to_type(self, var_value : any, from_type:'QutesDataType', to_type : 'QutesDataType', symbol_or_literal) -> any:
+        from symbols import Symbol
+        match to_type:
+            case QutesDataType.bool:
+                if QutesDataType.is_quantum_type(from_type):
+                    if(isinstance(symbol_or_literal, Symbol)):
+                        return bool(self.quantum_cirtcuit_handler.run_and_measure(symbol_or_literal.quantum_register))
+                    else:
+                        return bool() #TODO: handle int classical = [1]q and similar //(downcasting from literal)
+                return bool(var_value)
+            case QutesDataType.int:
+                if QutesDataType.is_quantum_type(from_type):
+                    if(isinstance(symbol_or_literal, Symbol)):
+                        return int(self.quantum_cirtcuit_handler.run_and_measure(symbol_or_literal.quantum_register), 2)
+                    else:
+                        return int()
+                return int(var_value)
+            case QutesDataType.float:
+                if QutesDataType.is_quantum_type(from_type):
+                    if(isinstance(symbol_or_literal, Symbol)):
+                        return float(self.quantum_cirtcuit_handler.run_and_measure(symbol_or_literal.quantum_register))
+                    else:
+                        return float()
+                return float(var_value)
+            case QutesDataType.string:
+                if QutesDataType.is_quantum_type(from_type):
+                    if(isinstance(symbol_or_literal, Symbol)):
+                        return str(self.quantum_cirtcuit_handler.run_and_measure(symbol_or_literal.quantum_register))
+                    else:
+                        return str()
+                return str(var_value)
+            case QutesDataType.qubit:
+                return Qubit.fromValue(var_value)
+            case QutesDataType.quint:
+                return Quint.fromValue(var_value)
+            case _:
+                return QutesDataType.undefined

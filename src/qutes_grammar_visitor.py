@@ -28,7 +28,7 @@ class QutesGrammarVisitor(qutesVisitor):
         self.qutes_gates = QutesGates(self.quantum_cirtcuit_handler, self.variables_handler)
 
         # Debug flags
-        self.log_code_structure = True
+        self.log_code_structure = False
         self.log_trace_enabled = False
         self.log_step_by_step_results_enabled = False
 
@@ -296,6 +296,16 @@ class QutesGrammarVisitor(qutesVisitor):
 
             first_term_print = f"{first_term if first_term_symbol == None else first_term_symbol}"
 
+            if(ctx.PRINT()):
+                if(self.log_code_structure): print(f"print {first_term_print}", end=None)
+                if(self.log_trace_enabled): print("visitUnaryOperator -> PRINT")
+                if(first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
+                    new_value = int(self.quantum_cirtcuit_handler.run_and_measure(first_term_symbol.quantum_register), 2)
+                    print(new_value)
+                    #TODO: handle the conversion from a string of binadry digits to the current quantum variable type
+                    #TODO: adding the next line cause a crash in the circuit 
+                    # self.variables_handler.update_variable_state(first_term_symbol.name, new_value) 
+                print(first_term_symbol)
             if(ctx.ADD()):
                 if(self.log_code_structure): print(f"+{first_term_print}", end=None)
                 if(self.log_trace_enabled): print("visitUnaryOperator -> ADD")

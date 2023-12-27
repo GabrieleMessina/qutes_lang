@@ -7,12 +7,12 @@ class SymbolClass(Enum):
     VariableSymbol = auto()
 
 class Symbol():    
-    def __init__(self, name:str, symbol_class:SymbolClass, symbol_declaration_static_type:str, promoted_static_type:str, value:any, scope:'ScopeNode', quantum_register : QuantumRegister | None = None):
+    def __init__(self, name:str, symbol_class:SymbolClass, symbol_declaration_static_type:str, casted_static_type:str, value:any, scope:'ScopeNode', quantum_register : QuantumRegister | None = None):
         super().__init__()
         self.name = name
         self.symbol_class = symbol_class
         self.symbol_declaration_static_type = symbol_declaration_static_type
-        self.promoted_static_type = promoted_static_type
+        self.casted_static_type = casted_static_type #Promoted or Down Casted
         self.value = value #value is not reliable on quantum types
         self.scope = scope
         self.quantum_register = quantum_register #quantum register is not used for classical variables

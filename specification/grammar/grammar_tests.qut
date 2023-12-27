@@ -66,10 +66,10 @@ int c = 0;
 //     int c = 50;
 // }
 // int i=10;
-int i=1+1;
-while (i<10){
-    i=i+i;
-}
+// int i=1+1;
+// while (i<10){
+//     i=i+i;
+// }
 
 //qubits tests
 /*{
@@ -134,3 +134,82 @@ while (i<10){
     quint re = c + d;
     measure re;
 }*/
+
+//Circuit scope tests //TODO: handle quantum circuit and variable scopes  
+{
+    //This two blocks can be two different circuits.
+    // {
+    //     qubit a = [true]q;
+    //     qubit b = [true]q;
+    //     quint x = a + b;
+    //     measure x;
+    // }
+    
+    // {
+    //     quint c = 10q;
+    //     quint d = 4q;
+    //     quint re = d + c;
+    //     measure re;
+    // }
+
+    //This two blocks cannot be two different circuits because they use the same global variable.
+    //But we can say that we have two custom gate in the circuit,
+    //So if a custom gate doesn't take anything as input then it's a new circuit.
+    // qubit a = [1]q;
+    // {
+    //     qubit b = [1]q;
+    //     quint x = a + b;
+    //     measure x;
+    // }
+    
+    // {
+    //     quint c = 10q;
+    //     quint re = c + a;
+    //     measure re;
+    // }
+}
+
+//Quantum and classical variable collaboration tests
+{
+    // {
+    //     qubit a = [1]q;
+    //     qubit b = [1]q;
+    //     quint x = a + b;
+    //     print x;
+    //     int classical = x; //TODO: this triggers two measures
+    //     print classical;
+        
+    //     //TODO: this prints too many times because a measure gate it's permanently added to the circuit
+    //     // measure x;
+    //     // print x;
+    // }
+
+    // {
+    //     qubit a = [true]q;
+    //     qubit b = [true]q;
+    //     int classical = a + b;
+    //     print classical;
+    // }
+
+    // {
+    //     qubit a = [true]q;
+    //     qubit b = [true]q;
+    //     int classical = a + 1; //TODO: handle operation between different types
+    // }
+
+    // {
+    //     int a = 12;
+    //     qubit b = [true]q;
+    //     //TODO: 'a' should be casted to quint.
+    //             //We can measure 'b' and then sum classically to 'a' but that would not be a smart choice because 'c' cannot take advantage from the quantum state of 'b' 
+    //     quint c = a + b;
+    // }
+
+    // {
+    //     quint a = 12;
+    //     //TODO: this should be handle as an aliasing of 'b' -> 'a' 
+    //             //or should be handle as a correlation between 'a' and 'b' with cnot(s)?
+    //     quint b = a; 
+    //     qubit c = a; //TODO: downcast? 
+    // }
+}

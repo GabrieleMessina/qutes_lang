@@ -1,9 +1,9 @@
-from typing import Callable, cast
+from typing import Any, Callable, cast
 from quantum_circuit.classical_register import ClassicalRegister
 from quantum_circuit.quantum_circuit import QuantumCircuit
 from quantum_circuit.quantum_register import QuantumRegister
 from symbols.types import Qubit, Quint
-from utils.QiskitUtils import counts, run, revcounts
+from qiskit import IBMQ, Aer, transpile
 
 class QuantumCircuitHandler():
     def __init__(self):
@@ -18,6 +18,10 @@ class QuantumCircuitHandler():
         self._varname_to_register[variable_name] = new_register
         self._classic_registers.append(new_register)
         return new_register
+
+    def delete_classical_register(self,  variable_name : str) -> None:
+        register = self._varname_to_register[variable_name]
+        self._classic_registers.remove(register)
 
     def declare_quantum_register(self,  variable_name : str, quantum_variable : any) -> QuantumRegister:
         new_register = None
@@ -88,10 +92,37 @@ class QuantumCircuitHandler():
     def print_circuit(self, circuit:QuantumCircuit):
         print(circuit.draw())
 
-    def run_circuit(self, circuit:QuantumCircuit, repetition:int = 1):
+    def __counts__(self, vec):
+        for i in vec:
+                print(" - " + str(i) +" : "+ str(vec[i]))
+
+    def __revcounts__(self, vec):
+        for i in vec:
+                print(" - " + str(i)[::-1] +" : "+ str(vec[i]))
+
+    # simulate the execution of a Quantum Circuit and get the results
+    def __run__(self, circuit, shots):
+        # Use Aer's qasm_simulator
+        simulator = Aer.get_backend('aer_simulator')
+
+        # compile the circuit down to low-level QASM instructions
+        # supported by the backend (not needed for simple circuits)
+        compiled_circuit = transpile(circuit, simulator)
+
+        # Execute the circuit on the qasm simulator
+        job = simulator.run(compiled_circuit, shots=shots)
+        
+        # Grab results from the job
+        result = job.result()  
+        cnt = result.get_counts(compiled_circuit)
+        return cnt
+
+    def run_circuit(self, circuit:QuantumCircuit, repetition:int = 1, max_results = 1) -> list[str]:
         try:
-            cnt = run(circuit, repetition)
-            revcounts(cnt)
+            cnt = self.__run__(circuit, repetition)
+            self.__revcounts__(cnt)
+            result_with_max_count = [key for key, value in cnt.items() if value == max(cnt.values())]
+            return result_with_max_count[:max_results]
         except Exception as ex:
             print(ex)
 
@@ -124,6 +155,18 @@ class QuantumCircuitHandler():
         self._operation_stack.append(lambda circuit: circuit.compose(circuit_to_compose, quantum_registers, classical_registers, inplace=True))
 
     def push_measure_operation(self, quantum_registers : QuantumRegister, classical_registers : ClassicalRegister = None) -> None:
-        if(classical_registers == None):
-            classical_registers = self.declare_classical_register("measured_"+quantum_registers.name, quantum_registers.size)
-        self._operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).measure(quantum_registers, classical_registers))
+        if(classical_registers != None):
+            self._operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).measure(quantum_registers, classical_registers))
+            return
+        
+        classic_register_name = "measured_"+quantum_registers.name
+        classic_register = [reg for reg in self._classic_registers if reg.name == classic_register_name]
+        if(not any(classic_register)):
+            classic_register.append(self.declare_classical_register(classic_register_name, quantum_registers.size))
+        self._operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).measure(quantum_registers, classic_register[0]))
+
+    def run_and_measure(self, quantum_registers : QuantumRegister) -> str:        
+        self.push_measure_operation(quantum_registers)
+        result = self.run_circuit(self.create_circuit())[0].replace(' ', '')
+        self._operation_stack.pop()
+        return result

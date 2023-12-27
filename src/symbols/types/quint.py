@@ -56,9 +56,9 @@ class Quint():
         if(isinstance(var_value, str)):
             return Quint.init_from_string(var_value)
         if(isinstance(var_value, int)):
-            return Quint.init_from_integer(str(var_value))
+            return Quint.init_from_integer(var_value)
         if(isinstance(var_value, bool)):
-            return Quint.init_from_integer(str(var_value))
+            return Quint.init_from_integer(var_value)
         raise TypeError(f"Cannot convert {type(var_value)} to quint.")
     
     def __init__(self, qubits:list[Qubit] = [Qubit(complex(1),complex(0))]):
@@ -66,6 +66,7 @@ class Quint():
         self.size:int = len(self.qubit_state)
         
     def get_quantum_state(self) -> list[complex] :
+        #TODO: this doesn't make any sense, outside of the initialization phase we should not rely on the quantum state.
         quantum_state = [complex(1)] * (2**(self.size))
         for quantum_integer_state in range(2**self.size):
             quantum_binary_state = utils.binary(quantum_integer_state, self.size)
@@ -77,6 +78,7 @@ class Quint():
         return quantum_state
     
     def update_size_with_padding(self, new_size : int) -> 'Quint':
+        #TODO: qubit state is not reliable, we should add the qubit needed to expend the quint directly into the circuit.
         self.qubit_state = (Quint.default_value*(new_size - self.size) + self.qubit_state) if self.size <= new_size else self.qubit_state[:new_size-1]
         self.size = len(self.qubit_state)
         return self
