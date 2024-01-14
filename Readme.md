@@ -133,6 +133,19 @@ A high level programming language for quantum computing.
 
 ## Handle quantum scope
 ```csharp
+
+    //In this case we need to execute a piece of code in a quantum realm and another piece on a classical cpu before caming back to a quantum circuit.
+    //It's not clear how we should handle this. Should this be transparent to the user? Should we make clearer that a measurement is needed to sum 'input' and 'x'
+    {
+        quint x = 10q;
+        if(x > 0){
+            string input = classical_read_user_input(); //just an explanatory example for a function that cannot run on a quantum circuit and must run on classic CPU.
+            x += (int)input;
+        }
+        x = quantum_sqrt(x);
+        measure x;
+    }
+
     //This two blocks can be two different circuits.
     {
         qubit a = [true]q;
@@ -141,9 +154,9 @@ A high level programming language for quantum computing.
         measure x;
     }
     {
-        quint c = 10q;
+        quint a = 10q;
         quint d = 4q;
-        quint re = d + c;
+        quint re = a + c;
         measure re;
     }
 
@@ -159,8 +172,8 @@ A high level programming language for quantum computing.
         measure x;
     }
     {
-        quint c = 10q;
-        quint re = c + a;
+        quint b = 10q;
+        quint re = b + a;
         measure re;
     }
 ```
@@ -175,6 +188,24 @@ A high level programming language for quantum computing.
     //This could be implemented as a custom gate of the quantum circuit, but we need to handle the parameters allocation, release and the scope of the variables.
     public quint sum(quint a, quint b){
         return a + b;
+    }
+```
+
+## Proof of concept
+```csharp
+    public qubit string_contains(qustring dataset, qustring query){
+        //quantum circuit with rotation
+    }
+
+    //string where to search
+    Qustring a = "lorem ipsum"q;
+    
+    //list of indexes where a substring "ore" starts
+    Quint[] results = grover_find_results(string_contains(a, "ore"q));
+
+    //print the founded results if any
+    if(results.lenght > 0){
+        print results; 
     }
 ```
 
