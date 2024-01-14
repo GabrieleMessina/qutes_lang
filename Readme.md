@@ -118,11 +118,20 @@ A high level programming language for quantum computing.
 # Features to implement
 ## Branching on quantum functions and/or a mix of quantum and classical operations
 ```csharp
+    //This ifelse should create a controlled custom gate 
     if(grover_find()){
-        //do something
+        //do quantum operations
     }
     else{
-        //do something else
+        //do other quantum operations
+    }
+    
+    //This ifelse could convert all classical operations to quantum or cause a measure. 
+    if(grover_find()){
+        //do a mix of classical and quantum operations
+    }
+    else{
+        //do other mix of classical and quantum operations
     }
 ```
 ## Explicit casting
