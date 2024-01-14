@@ -130,6 +130,17 @@ A high level programming language for quantum computing.
     quint a = 1q;
     qubit b = (qubit)a;
 ```
+## Quantum types comparison
+```csharp
+    quint a = 0q;
+    qubit b = (qubit)a;
+    if(a){ //This should throw
+    }
+    if(b){ //This should be false
+    }
+    if(a > b){ //This and other comparing operator should be implemented for both qubit and quint
+    }
+```
 
 ## Handle quantum scope
 ```csharp
