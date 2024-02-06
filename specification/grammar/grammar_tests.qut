@@ -1,5 +1,6 @@
 //basic boolean 
 /*{
+    //a = 10; //TODO: this should not be possible if 'a' not declared before usage.
     bool a = true;
     bool b = FALSE;
     bool c = 1;
@@ -66,10 +67,29 @@ int c = 0;
 //     int c = 50;
 // }
 // int i=10;
-// int i=1+1;
-// while (i<10){
-//     i=i+i;
-// }
+
+/*int i=0;
+qubit qu = 0q;
+quint num = 1q;
+// quint num = 10q; //TODO: fix circuit register size
+// print num;
+while (i<3){
+    i=i+1;
+    hadamard qu;
+}
+
+// print num;
+int number = num;
+bool test = qu;
+//if(num > 0){ // TODO: implement
+if(number > 0){
+    print "positive";
+}
+else{
+    print "not positive";
+}*/
+
+// print i;
 
 //qubits tests
 /*{
@@ -80,6 +100,10 @@ int c = 0;
     //qubits with only a state 
     qubit c = [1]q; 
     qubit ad = 0q;
+   
+    bool bo = true;
+    // qubit qbo = bo; //TODO: handle
+
     // qubit ae = 1q;
     // qubit bd = -0q;
     // qubit be = +1q;
@@ -136,7 +160,7 @@ int c = 0;
 }*/
 
 //Circuit scope tests //TODO: handle quantum circuit and variable scopes  
-{
+/*{
     //This two blocks can be two different circuits.
     // {
     //     qubit a = [true]q;
@@ -167,10 +191,10 @@ int c = 0;
     //     quint re = c + a;
     //     measure re;
     // }
-}
+}*/
 
 //Quantum and classical variable collaboration tests
-{
+/*{
     // {
     //     qubit a = [1]q;
     //     qubit b = [1]q;
@@ -212,4 +236,31 @@ int c = 0;
     //     quint b = a; 
     //     qubit c = a; //TODO: downcast? 
     // }
+}*/
+
+//Functions tests
+{
+    //What we want to achieve:
+    // qustring entireBook;
+    // int resultStartIndex = entireBook.find("some string.");
+    // or
+    // int resultStartIndex = find(entireBook, "some string.");
+
+    bool A (int c = 10){ //TODO: handle return type and return statement
+        bool a = true;
+        print a;
+        print c;
+    }
+
+    void B ()
+        A();
+
+    B();
+
+
+    /*bool A (int c = 10, bool aa){ //TODO: right now everything should has a default value, so we can handle params with no default value after those with default values, but we should think about it because this could be problematic.
+        bool a = true;
+        print a;
+        print c;
+    }*/
 }

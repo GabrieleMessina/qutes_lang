@@ -16,17 +16,39 @@ statement
    | IF_STATEMENT expr statement ELSE_STATEMENT statement #IfElseStatement
    | WHILE_STATEMENT expr statement #WhileStatement
    | DO_STATEMENT statement WHILE_STATEMENT expr #DoWhileStatement
-   | CURLY_PARENTHESIS_OPEN statement* CURLY_PARENTHESIS_CLOSE #BlockStatement
-   | variableType variableName (ASSIGN expr)? END_OF_STATEMENT #DeclarationStatement //TODO: rename variableName to variableDeclarationName
+   | block #BlockStatement
+   | variableType functionName ROUND_PARENTHESIS_OPEN functionDeclarationParams? ROUND_PARENTHESIS_CLOSE statement #FunctionStatement
+   | variableDeclaration END_OF_STATEMENT #DeclarationStatement
    | qualifiedName ASSIGN expr END_OF_STATEMENT #AssignmentStatement
    | expr END_OF_STATEMENT #ExpressionStatement
    | END_OF_STATEMENT #EmptyStatement
    ;
 
+variableDeclaration
+   : variableType variableName (ASSIGN expr)? //TODO: rename variableName to variableDeclarationName
+   ;
+
+block
+   : CURLY_PARENTHESIS_OPEN statement* CURLY_PARENTHESIS_CLOSE
+   ;
+
+functionDeclarationParams
+   : variableDeclaration (COMMA functionDeclarationParams)*
+   ;
+
+functionCallParams
+   : qualifiedName (COMMA functionCallParams)*
+   ;
+
 expr
    : term
+   | functionCall
    | test
    | parenExpr
+   ;
+
+functionCall
+   : functionName ROUND_PARENTHESIS_OPEN functionCallParams? ROUND_PARENTHESIS_CLOSE
    ;
 
 parenExpr
@@ -69,6 +91,10 @@ qualifiedName
    ;
 
 variableName
+   : SYMBOL_LITERAL
+   ;
+
+functionName
    : SYMBOL_LITERAL
    ;
 

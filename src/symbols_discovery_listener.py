@@ -16,6 +16,7 @@ class SymbolsDiscoveryListener(qutesListener):
         self.scope_count = 0
         self.if_else_scope_count = 0
         self.loop_scope_count = 0
+        self.function_scope_count = 0
         self.variables_handler = VariablesHandler(self.scope_handler, self.quantum_cirtcuit_handler)
 
     # Enter a parse tree produced by qutesParser#program.
@@ -73,168 +74,37 @@ class SymbolsDiscoveryListener(qutesListener):
             self.scope_handler.push_scope(ScopeClass.BranchScope, f"BranchBlock{self.if_else_scope_count}")
         elif(self.scope_handler.current_symbols_scope.scope_class == ScopeClass.LoopScope):
             self.scope_handler.push_scope(ScopeClass.BranchScope, f"BranchBlock{self.loop_scope_count}")
+        elif(self.scope_handler.current_symbols_scope.scope_class == ScopeClass.FunctionScope):
+            #self.scope_handler.push_scope(ScopeClass.FunctionBlockScope, f"FunctionBlock{self.function_scope_count}")
+            pass
         else:
             self.scope_count += 1
             self.scope_handler.push_scope(ScopeClass.LocalScope, f"Block{self.scope_count}")
 
     # Exit a parse tree produced by qutesParser#BlockStatement.
     def exitBlockStatement(self, ctx:qutesParser.BlockStatementContext):
+        if(self.scope_handler.current_symbols_scope.scope_class == ScopeClass.FunctionScope):
+            pass
+        else:
+            self.scope_handler.pop_scope()
+
+
+    # Enter a parse tree produced by qutes_parser#FunctionStatement.
+    def enterFunctionStatement(self, ctx:qutesParser.FunctionStatementContext):
+        self.function_scope_count += 1
+        return_type = ctx.variableType().getText()
+        function_name = ctx.functionName().getText()
+        funtion_symbol = self.variables_handler.declare_function(return_type, function_name)
+        self.scope_handler.push_inner_scope(ScopeClass.FunctionScope, f"Function{self.function_scope_count}", funtion_symbol)
+
+    # Exit a parse tree produced by qutes_parser#FunctionStatement.
+    def exitFunctionStatement(self, ctx:qutesParser.FunctionStatementContext):
         self.scope_handler.pop_scope()
 
-
-    # Enter a parse tree produced by qutesParser#DeclarationStatement.
-    def enterDeclarationStatement(self, ctx:qutesParser.DeclarationStatementContext):
+    # Enter a parse tree produced by qutes_parser#variableDeclaration.
+    def enterVariableDeclaration(self, ctx:qutesParser.VariableDeclarationContext):
         var_type = ctx.variableType().getText()
         var_name = ctx.variableName().getText()
-        # This listener should not follow the executino path to understand what was the initial value assigned to the variable.
+        # This listener should not follow the execution path to understand what was the initial value assigned to the variable.
         # So we assign None and then variables_handler will put in the default value for the type.
         self.variables_handler.declare_variable(var_type, var_name)
-
-    # Exit a parse tree produced by qutesParser#DeclarationStatement.
-    def exitDeclarationStatement(self, ctx:qutesParser.DeclarationStatementContext):
-        pass
-
-
-    # Enter a parse tree produced by qutesParser#AssignmentStatement.
-    def enterAssignmentStatement(self, ctx:qutesParser.AssignmentStatementContext):
-        pass
-
-    # Exit a parse tree produced by qutesParser#AssignmentStatement.
-    def exitAssignmentStatement(self, ctx:qutesParser.AssignmentStatementContext):
-        pass
-
-
-    # Enter a parse tree produced by qutesParser#ExpressionStatement.
-    def enterExpressionStatement(self, ctx:qutesParser.ExpressionStatementContext):
-        pass
-
-    # Exit a parse tree produced by qutesParser#ExpressionStatement.
-    def exitExpressionStatement(self, ctx:qutesParser.ExpressionStatementContext):
-        pass
-
-
-    # Enter a parse tree produced by qutesParser#EmptyStatement.
-    def enterEmptyStatement(self, ctx:qutesParser.EmptyStatementContext):
-        pass
-
-    # Exit a parse tree produced by qutesParser#EmptyStatement.
-    def exitEmptyStatement(self, ctx:qutesParser.EmptyStatementContext):
-        pass
-
-
-    # Enter a parse tree produced by qutesParser#ParenExpr.
-    def enterParenExpr(self, ctx:qutesParser.ParenExprContext):
-        pass
-
-    # Exit a parse tree produced by qutesParser#ParenExpr.
-    def exitParenExpr(self, ctx:qutesParser.ParenExprContext):
-        pass
-
-
-    # Enter a parse tree produced by qutesParser#expr.
-    def enterExpr(self, ctx:qutesParser.ExprContext):
-        pass
-
-    # Exit a parse tree produced by qutesParser#expr.
-    def exitExpr(self, ctx:qutesParser.ExprContext):
-        pass
-
-
-    # Enter a parse tree produced by qutesParser#test.
-    def enterTest(self, ctx:qutesParser.TestContext):
-        pass
-
-    # Exit a parse tree produced by qutesParser#test.
-    def exitTest(self, ctx:qutesParser.TestContext):
-        pass
-
-
-    # Enter a parse tree produced by qutesParser#term.
-    def enterTerm(self, ctx:qutesParser.TermContext):
-        pass
-
-    # Exit a parse tree produced by qutesParser#term.
-    def exitTerm(self, ctx:qutesParser.TermContext):
-        pass
-
-
-    # Enter a parse tree produced by qutes_parser#type.
-    def enterType(self, ctx:qutesParser.TypeContext):
-        pass
-
-    # Exit a parse tree produced by qutes_parser#type.
-    def exitType(self, ctx:qutesParser.TypeContext):
-        pass
-
-
-    # Enter a parse tree produced by qutesParser#variableType.
-    def enterVariableType(self, ctx:qutesParser.VariableTypeContext):
-        pass
-
-    # Exit a parse tree produced by qutesParser#variableType.
-    def exitVariableType(self, ctx:qutesParser.VariableTypeContext):
-        pass
-
-
-    # Enter a parse tree produced by qutesParser#qualifiedName.
-    def enterQualifiedName(self, ctx:qutesParser.QualifiedNameContext):
-        pass
-
-    # Exit a parse tree produced by qutesParser#qualifiedName.
-    def exitQualifiedName(self, ctx:qutesParser.QualifiedNameContext):
-        pass
-
-
-    # Enter a parse tree produced by qutesParser#variableName.
-    def enterVariableName(self, ctx:qutesParser.VariableNameContext):
-        pass
-
-    # Exit a parse tree produced by qutesParser#variableName.
-    def exitVariableName(self, ctx:qutesParser.VariableNameContext):
-        pass
-
-
-    # Enter a parse tree produced by qutesParser#string.
-    def enterString(self, ctx:qutesParser.StringContext):
-        pass
-
-    # Exit a parse tree produced by qutesParser#string.
-    def exitString(self, ctx:qutesParser.StringContext):
-        pass
-
-
-    # Enter a parse tree produced by qutes_parser#qubit.
-    def enterQubit(self, ctx:qutesParser.QubitContext):
-        pass
-
-    # Exit a parse tree produced by qutes_parser#qubit.
-    def exitQubit(self, ctx:qutesParser.QubitContext):
-        pass
-
-
-    # Enter a parse tree produced by qutes_parser#float.
-    def enterFloat(self, ctx:qutesParser.FloatContext):
-        pass
-
-    # Exit a parse tree produced by qutes_parser#float.
-    def exitFloat(self, ctx:qutesParser.FloatContext):
-        pass
-
-
-    # Enter a parse tree produced by qutesParser#integer.
-    def enterInteger(self, ctx:qutesParser.IntegerContext):
-        pass
-
-    # Exit a parse tree produced by qutesParser#integer.
-    def exitInteger(self, ctx:qutesParser.IntegerContext):
-        pass
-    
-
-    # Enter a parse tree produced by qutes_parser#boolean.
-    def enterBoolean(self, ctx:qutesParser.BooleanContext):
-        pass
-
-    # Exit a parse tree produced by qutes_parser#boolean.
-    def exitBoolean(self, ctx:qutesParser.BooleanContext):
-        pass
-

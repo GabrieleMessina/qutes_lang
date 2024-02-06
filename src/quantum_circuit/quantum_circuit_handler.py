@@ -65,6 +65,8 @@ class QuantumCircuitHandler():
         
         #TODO-CRITICAL(pasted from above, i don't know if this applies here too): this update actually change the reference, so all the old references around the code are still there. For now i hack this returning the new value and changing the name from update to replace.
         
+        #TODO: check if we need to change the register size
+        #TODO: i don't know why we don't save the new quantum_register to the internal data structures.
         if(register_to_update != quantum_register):
             #Delete old quantum register reference from the variable
             del self._registers_states[register_to_update]

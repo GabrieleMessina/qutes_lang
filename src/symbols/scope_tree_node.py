@@ -9,6 +9,8 @@ class ScopeClass(Enum):
     IfElseScope = auto()
     LoopScope = auto()
     BranchScope = auto()
+    FunctionScope = auto()
+    FunctionBlockScope = auto()
 
 class ScopeTreeNode(NodeMixin): #TODO: rename to ASTNode?
     """A Node for the Scope Tree data structure"""

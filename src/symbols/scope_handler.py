@@ -30,6 +30,11 @@ class ScopeHandlerForSymbolsDiscovery(ScopeHandler):
         self.current_symbols_scope = new_scope
         return self.current_symbols_scope
     
+    def push_inner_scope(self, scope:ScopeClass, scope_detail:str, symbol_owner:Symbol, symbols:list[Symbol] = []) -> ScopeTreeNode:
+        inner_scope = self.push_scope(scope, scope_detail, symbols)
+        symbol_owner.inner_scope = inner_scope
+        return inner_scope
+    
     def pop_scope(self) -> ScopeTreeNode:
         self.current_symbols_scope = self.current_symbols_scope.parent
         return self.current_symbols_scope
@@ -45,6 +50,7 @@ class ScopeHandlerForSymbolsUpdate(ScopeHandler):
         self.current_symbols_scope:ScopeTreeNode = self.symbols_tree
         self.tree_preorder_iterator = PreOrderIter(self.symbols_tree)
         self.is_inside_loop = False
+        self.is_inside_function = False
 
     def start_loop(self) -> None:
         self.is_inside_loop = True
@@ -52,14 +58,20 @@ class ScopeHandlerForSymbolsUpdate(ScopeHandler):
     def end_loop(self) -> None:
         self.is_inside_loop = False
 
+    def start_function(self) -> None:
+        self.is_inside_function = True
+
+    def end_function(self) -> None:
+        self.is_inside_function = False
+
     #Start visiting scope
     def push_scope(self) -> ScopeTreeNode:
-        if(self.is_inside_loop == False):
+        if(self.is_inside_loop == False and self.is_inside_function == False):
             self.current_symbols_scope = next(self.tree_preorder_iterator)
         return self.current_symbols_scope
     
     #End visiting scope, return to parent and never(almost, see loops) visit this scope again
     def pop_scope(self) -> ScopeTreeNode:
-        if(self.is_inside_loop == False):
+        if(self.is_inside_loop == False and self.is_inside_function == False):
             self.current_symbols_scope = self.current_symbols_scope.parent
         return self.current_symbols_scope

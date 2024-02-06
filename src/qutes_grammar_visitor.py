@@ -28,6 +28,7 @@ class QutesGrammarVisitor(qutesVisitor):
         self.qutes_gates = QutesGates(self.quantum_cirtcuit_handler, self.variables_handler)
 
         # Debug flags
+        self.allow_program_print = True
         self.log_code_structure = False
         self.log_trace_enabled = False
         self.log_step_by_step_results_enabled = False
@@ -38,6 +39,8 @@ class QutesGrammarVisitor(qutesVisitor):
 
     # Visit a parse tree produced by qutesParser#program.
     def visitProgram(self, ctx:qutesParser.ProgramContext):
+        if self.allow_program_print:
+            print("\n----Program print----")
         self.scope_handler.push_scope()
         result = str()
         statement_count = 0
@@ -136,33 +139,43 @@ class QutesGrammarVisitor(qutesVisitor):
     # Visit a parse tree produced by qutesParser#BlockStatement.
     def visitBlockStatement(self, ctx:qutesParser.BlockStatementContext):
         self.scope_handler.push_scope()
-        result = str()
-        statement_count = 0
-        for child in ctx.getChildren(lambda child : isinstance(child, qutesParser.StatementContext)):
-            statement_count += 1
-            new_value = str(self.__visit("visitBlockStatement", lambda i=child : self.visit(i))).replace("\n", "\n\t")
-            result = f'{result}\n\tStatement[{statement_count}]: {new_value}'
-            if(self.log_code_structure): print(result, end=None)
+        self.__visit("visitBlockStatement", lambda : self.visitChildren(ctx))
         self.scope_handler.pop_scope()
         return None
     
+    
+    # Visit a parse tree produced by qutes_parser#FunctionStatement.
+    def visitFunctionStatement(self, ctx:qutesParser.FunctionStatementContext):
+        self.scope_handler.push_scope()
+        return_type = ctx.variableType().getText() # we already know the return type thanks to the discovery listener.
+        function_name = ctx.functionName().getText()
+        function_body = lambda : self.visitChildren(ctx)
+        self.variables_handler.get_symbol(function_name).value = function_body
+        self.scope_handler.pop_scope()
+        return None
+
 
     # Visit a parse tree produced by qutesParser#DeclarationStatement.
     def visitDeclarationStatement(self, ctx:qutesParser.DeclarationStatementContext):
+        return self.__visit("visitDeclarationStatement", lambda :  self.visitChildren(ctx.variableDeclaration()))
+        
+    # Visit a parse tree produced by qutes_parser#variableDeclaration.
+    def visitVariableDeclaration(self, ctx:qutesParser.VariableDeclarationContext):
         var_type = ctx.variableType().getText() # we already know the variable type thanks to the discovery listener.
         var_name = ctx.variableName().getText()
         var_value = None
 
-        return self.__visit("visitAssignmentStatement", lambda : self.__visit_assignment_statement(var_type, var_name, var_value, ctx))
-        
+        return self.__visit("visitVariableDeclaration", lambda : self.__visit_assignment_statement(var_type, var_name, var_value, ctx))
+
 
     # Visit a parse tree produced by qutesParser#AssignmentStatement.
-    def visitAssignmentStatement(self, ctx:qutesParser.AssignmentStatementContext): 
+    def visitAssignmentStatement(self, ctx:qutesParser.AssignmentStatementContext):
         var_name = ctx.qualifiedName().getText()
         var_value = None
         return self.__visit("visitAssignmentStatement", lambda : self.__visit_assignment_statement(None, var_name, var_value, ctx))
 
-    def __visit_assignment_statement(self, var_type : str, var_name : str, var_value, ctx:(qutesParser.AssignmentStatementContext | qutesParser.DeclarationStatementContext)):
+
+    def __visit_assignment_statement(self, var_type : str, var_name : str, var_value, ctx:(qutesParser.AssignmentStatementContext | qutesParser.VariableDeclarationContext)):
         if(ctx.expr()):
             var_value = self.visitChildren(ctx.expr())
 
@@ -180,6 +193,27 @@ class QutesGrammarVisitor(qutesVisitor):
                 if(self.log_code_structure): print(f"{str(var_type)} {str(var_name)}", end=None)        
         return var_symbol
 
+    
+    # Visit a parse tree produced by qutes_parser#block.
+    def visitBlock(self, ctx:qutesParser.BlockContext):
+        result = str()
+        statement_count = 0
+        for child in ctx.getChildren(lambda child : isinstance(child, qutesParser.StatementContext)):
+            statement_count += 1
+            new_value = str(self.__visit("visitBlockStatement", lambda i=child : self.visit(i))).replace("\n", "\n\t")
+            result = f'{result}\n\tStatement[{statement_count}]: {new_value}'
+            if(self.log_code_structure): print(result, end=None)
+
+
+    # Visit a parse tree produced by qutes_parser#functionParams.
+    def functionDeclarationParams(self, ctx:qutesParser.FunctionDeclarationParamsContext):
+        return self.__visit("functionDeclarationParams", lambda : self.visitChildren(ctx))
+    
+    
+     # Visit a parse tree produced by qutes_parser#functionCallParams.
+    def functionCallParams(self, ctx:qutesParser.FunctionCallParamsContext):
+        return self.__visit("functionCallParams", lambda : self.visitChildren(ctx))
+
 
     # Visit a parse tree produced by qutesParser#expr.
     def visitExpr(self, ctx:qutesParser.ExprContext):
@@ -195,6 +229,22 @@ class QutesGrammarVisitor(qutesVisitor):
         if(ctx.parenExpr()):
             if(self.log_trace_enabled): print("visitExpr -> parenExpr")
             result = self.visitChildren(ctx)
+        return result
+
+    # Visit a parse tree produced by qutes_parser#functionCall.
+    def visitFunctionCall(self, ctx:qutesParser.FunctionCallContext):
+        self.scope_handler.start_function() #To avoid block statement to push its scope
+        
+        var_name = ctx.functionName().getText()
+        function_symbol = self.variables_handler.get_symbol(var_name)
+        
+        scope_to_restore_on_exit = self.scope_handler.current_symbols_scope
+        self.scope_handler.current_symbols_scope = function_symbol.inner_scope
+        
+        result = self.__visit("visitFunctionCall", lambda : function_symbol.value())
+        self.scope_handler.current_symbols_scope = scope_to_restore_on_exit
+
+        self.scope_handler.end_function()
         return result
     
     
@@ -299,13 +349,16 @@ class QutesGrammarVisitor(qutesVisitor):
             if(ctx.PRINT()):
                 if(self.log_code_structure): print(f"print {first_term_print}", end=None)
                 if(self.log_trace_enabled): print("visitUnaryOperator -> PRINT")
-                if(first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
-                    new_value = int(self.quantum_cirtcuit_handler.run_and_measure(first_term_symbol.quantum_register), 2)
-                    print(new_value)
-                    #TODO: handle the conversion from a string of binadry digits to the current quantum variable type
-                    #TODO: adding the next line cause a crash in the circuit 
-                    # self.variables_handler.update_variable_state(first_term_symbol.name, new_value) 
-                print(first_term_symbol)
+                if(first_term_symbol):
+                    if(self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
+                        new_value = int(self.quantum_cirtcuit_handler.run_and_measure(first_term_symbol.quantum_register), 2)
+                        print(new_value)
+                        #TODO: handle the conversion from a string of binadry digits to the current quantum variable type
+                        #TODO: adding the next line cause a crash in the circuit 
+                        # self.variables_handler.update_variable_state(first_term_symbol.name, new_value) 
+                    print(first_term_symbol)
+                else:
+                    print(first_term)
             if(ctx.ADD()):
                 if(self.log_code_structure): print(f"+{first_term_print}", end=None)
                 if(self.log_trace_enabled): print("visitUnaryOperator -> ADD")
@@ -411,6 +464,13 @@ class QutesGrammarVisitor(qutesVisitor):
             return self.__visit("visitQualifiedName", lambda : value)
         else:
             raise SyntaxError(f"No variable declared with name '{var_name}'.")
+
+
+    # Visit a parse tree produced by qutes_parser#functionName.
+    def visitFunctionName(self, ctx:qutesParser.FunctionNameContext):
+        value = str(ctx.getText())
+        if(self.log_code_structure): print(value, end=None)
+        return self.__visit("visitFunctionName", lambda : value)
 
 
     # Visit a parse tree produced by qutesParser#id.

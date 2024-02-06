@@ -13,7 +13,7 @@ from quantum_circuit import QuantumCircuitHandler
 def main(argv):
     """Entrypoint for Qutes Lang compiler"""
 
-    log_symbols_scope = False
+    log_symbols_scope = True
     log_lisp_tree = False
     log_quantum_circuit = True
 

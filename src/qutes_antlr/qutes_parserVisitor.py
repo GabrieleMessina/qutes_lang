@@ -39,6 +39,11 @@ class qutes_parserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by qutes_parser#FunctionStatement.
+    def visitFunctionStatement(self, ctx:qutes_parser.FunctionStatementContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by qutes_parser#DeclarationStatement.
     def visitDeclarationStatement(self, ctx:qutes_parser.DeclarationStatementContext):
         return self.visitChildren(ctx)
@@ -59,8 +64,33 @@ class qutes_parserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by qutes_parser#variableDeclaration.
+    def visitVariableDeclaration(self, ctx:qutes_parser.VariableDeclarationContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by qutes_parser#block.
+    def visitBlock(self, ctx:qutes_parser.BlockContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by qutes_parser#functionDeclarationParams.
+    def visitFunctionDeclarationParams(self, ctx:qutes_parser.FunctionDeclarationParamsContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by qutes_parser#functionCallParams.
+    def visitFunctionCallParams(self, ctx:qutes_parser.FunctionCallParamsContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by qutes_parser#expr.
     def visitExpr(self, ctx:qutes_parser.ExprContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by qutes_parser#functionCall.
+    def visitFunctionCall(self, ctx:qutes_parser.FunctionCallContext):
         return self.visitChildren(ctx)
 
 
@@ -106,6 +136,11 @@ class qutes_parserVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by qutes_parser#variableName.
     def visitVariableName(self, ctx:qutes_parser.VariableNameContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by qutes_parser#functionName.
+    def visitFunctionName(self, ctx:qutes_parser.FunctionNameContext):
         return self.visitChildren(ctx)
 
 

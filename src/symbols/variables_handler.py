@@ -84,14 +84,23 @@ class VariablesHandler():
 
             return new_symbol
         else:
-            raise SyntaxError(f"Variable with name '{variable_name}' already declared.")
+            raise SyntaxError(f"Symbol with name '{variable_name}' already declared.")
+        
+    def declare_function(self, return_type : str, function_name : str, value = lambda : None) -> Symbol:
+        already_taken_symbol_in_this_scope = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.name == function_name and symbol.scope == self.scope_handler.current_symbols_scope]
+        if(len(already_taken_symbol_in_this_scope) == 0):
+            new_symbol = Symbol(function_name, SymbolClass.FunctionSymbol, return_type, return_type, value, self.scope_handler.current_symbols_scope)
+            self.scope_handler.current_symbols_scope.symbols.append(new_symbol)
+            return new_symbol
+        else:
+            raise SyntaxError(f"Symbol with name '{function_name}' return type already declared.")
     
     def get_value(self, var_value):
         if(isinstance(var_value, Symbol)):
             return var_value.value
         return var_value
 
-    def get_symbol(self, var_name:str):
+    def get_symbol(self, var_name:str) -> Symbol:
         eligible_symbols_to_update = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.name == var_name]
         return eligible_symbols_to_update[0]
     
