@@ -89,6 +89,15 @@ class qutes_parserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by qutes_parser#ReturnStatement.
+    def enterReturnStatement(self, ctx:qutes_parser.ReturnStatementContext):
+        pass
+
+    # Exit a parse tree produced by qutes_parser#ReturnStatement.
+    def exitReturnStatement(self, ctx:qutes_parser.ReturnStatementContext):
+        pass
+
+
     # Enter a parse tree produced by qutes_parser#ExpressionStatement.
     def enterExpressionStatement(self, ctx:qutes_parser.ExpressionStatementContext):
         pass
@@ -107,15 +116,6 @@ class qutes_parserListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by qutes_parser#variableDeclaration.
-    def enterVariableDeclaration(self, ctx:qutes_parser.VariableDeclarationContext):
-        pass
-
-    # Exit a parse tree produced by qutes_parser#variableDeclaration.
-    def exitVariableDeclaration(self, ctx:qutes_parser.VariableDeclarationContext):
-        pass
-
-
     # Enter a parse tree produced by qutes_parser#block.
     def enterBlock(self, ctx:qutes_parser.BlockContext):
         pass
@@ -131,6 +131,15 @@ class qutes_parserListener(ParseTreeListener):
 
     # Exit a parse tree produced by qutes_parser#functionDeclarationParams.
     def exitFunctionDeclarationParams(self, ctx:qutes_parser.FunctionDeclarationParamsContext):
+        pass
+
+
+    # Enter a parse tree produced by qutes_parser#variableDeclaration.
+    def enterVariableDeclaration(self, ctx:qutes_parser.VariableDeclarationContext):
+        pass
+
+    # Exit a parse tree produced by qutes_parser#variableDeclaration.
+    def exitVariableDeclaration(self, ctx:qutes_parser.VariableDeclarationContext):
         pass
 
 

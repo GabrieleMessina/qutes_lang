@@ -20,7 +20,7 @@ class VariablesHandler():
 
         	# check if the type of the varible match the type of the value we are trying to assign. 
             value_to_assign_qutes_type = QutesDataType.type_of(value_to_assign)
-            definition_qutes_type = QutesDataType.from_declaration_type(symbol_to_update.symbol_declaration_static_type)
+            definition_qutes_type = symbol_to_update.symbol_declaration_static_type
             promoted_type = value_to_assign_qutes_type.promote_type(definition_qutes_type)
             down_cast_type = value_to_assign_qutes_type.down_cast_type(definition_qutes_type)
             final_type = definition_qutes_type
@@ -51,32 +51,16 @@ class VariablesHandler():
         else:
             raise SyntaxError(f"No variable declared with name '{variable_name}'.")
         
-    def declare_variable(self, declaration_type : str, variable_name : str, value = None) -> Symbol:
-        if(value is None):
-            value = QutesDataType.get_default_value(QutesDataType.from_declaration_type(declaration_type))
-        else: 
-             value = self.get_value(value) 
-        already_taken_symbol_in_this_scope = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.name == variable_name and symbol.scope == self.scope_handler.current_symbols_scope]
+    def declare_variable(self, declaration_type : QutesDataType, variable_name : str, value = None) -> Symbol:
+        already_taken_symbol_in_this_scope = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.name == variable_name and symbol.parent_scope == self.scope_handler.current_symbols_scope]
         if(len(already_taken_symbol_in_this_scope) == 0):
-            value_qutes_type = QutesDataType.type_of(value)
-            definition_qutes_type = QutesDataType.from_declaration_type(declaration_type)
-            promoted_type = value_qutes_type.promote_type(definition_qutes_type)
-            down_cast_type = value_qutes_type.down_cast_type(definition_qutes_type)
-            final_type = definition_qutes_type
-
-            # check if the type of the varible match the type of the value we are trying to assign. 
-            if(value_qutes_type != definition_qutes_type):
-                # promote the current data type if needed.
-                if(promoted_type != QutesDataType.undefined):
-                    value = self.type_casting_handler.promote_value_to_type(value, value_qutes_type, promoted_type, None)
-                    final_type = promoted_type
-                elif(down_cast_type != QutesDataType.undefined):
-                    value = self.type_casting_handler.down_cast_value_to_type(value, value_qutes_type, down_cast_type, None)
-                    final_type = down_cast_type
-                else:
-                    raise SyntaxError(f"Cannot convert type '{definition_qutes_type}' to '{value_qutes_type}' for '{variable_name}'.")
-                
-            new_symbol = Symbol(variable_name, SymbolClass.VariableSymbol, declaration_type, final_type.name, value, self.scope_handler.current_symbols_scope)
+            if(value is None):
+                value = QutesDataType.get_default_value(declaration_type)
+            else: 
+                value = self.get_value(value)
+            
+            new_symbol = self.create_anonymous_symbol(declaration_type, value)
+            new_symbol.name = variable_name
             self.scope_handler.current_symbols_scope.symbols.append(new_symbol)
             #Handle quantum circuit update
             if(self.is_quantum_type(declaration_type)):
@@ -85,11 +69,38 @@ class VariablesHandler():
             return new_symbol
         else:
             raise SyntaxError(f"Symbol with name '{variable_name}' already declared.")
+
+    def create_anonymous_symbol(self, qutes_type : QutesDataType, value = None) -> Symbol:
+        if(value is None):
+            value = QutesDataType.get_default_value(qutes_type)
+
+        variable_name = None
+        value_qutes_type = QutesDataType.type_of(value)
+        definition_type = qutes_type
+        promoted_type = value_qutes_type.promote_type(definition_type)
+        down_cast_type = value_qutes_type.down_cast_type(definition_type)
+        final_type = definition_type
+
+        # check if the type of the varible match the type of the value we are trying to assign. 
+        if(value_qutes_type != definition_type):
+            # promote the current data type if needed.
+            if(promoted_type != QutesDataType.undefined):
+                value = self.type_casting_handler.promote_value_to_type(value, value_qutes_type, promoted_type, None)
+                final_type = promoted_type
+            elif(down_cast_type != QutesDataType.undefined):
+                value = self.type_casting_handler.down_cast_value_to_type(value, value_qutes_type, down_cast_type, None)
+                final_type = down_cast_type
+            else:
+                raise SyntaxError(f"Cannot convert type '{definition_type}' to '{value_qutes_type}' for '{variable_name}'.")
+            
+        new_symbol = Symbol(variable_name, SymbolClass.VariableSymbol, qutes_type, final_type, value, self.scope_handler.current_symbols_scope)
+        return new_symbol
         
-    def declare_function(self, return_type : str, function_name : str, value = lambda : None) -> Symbol:
-        already_taken_symbol_in_this_scope = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.name == function_name and symbol.scope == self.scope_handler.current_symbols_scope]
+    def declare_function(self, return_type : str, function_name : str, input_params_definition:list[Symbol] = list(), value = lambda : None) -> Symbol:
+        already_taken_symbol_in_this_scope = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.name == function_name and symbol.parent_scope == self.scope_handler.current_symbols_scope]
         if(len(already_taken_symbol_in_this_scope) == 0):
             new_symbol = Symbol(function_name, SymbolClass.FunctionSymbol, return_type, return_type, value, self.scope_handler.current_symbols_scope)
+            new_symbol.function_input_params_definition = input_params_definition.copy()
             self.scope_handler.current_symbols_scope.symbols.append(new_symbol)
             return new_symbol
         else:
@@ -110,4 +121,4 @@ class VariablesHandler():
         return QutesDataType.type_of(var_value)
     
     def is_quantum_type(self, declaration_type:str) -> bool:
-        return QutesDataType.from_declaration_type(declaration_type) in [QutesDataType.qubit, QutesDataType.quint]
+        return declaration_type in [QutesDataType.qubit, QutesDataType.quint]

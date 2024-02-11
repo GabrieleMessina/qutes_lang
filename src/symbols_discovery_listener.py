@@ -5,6 +5,7 @@ from qutes_antlr.qutes_parser import qutes_parser as qutesParser
 from symbols.scope_tree_node import ScopeClass
 from symbols.scope_handler import ScopeHandlerForSymbolsDiscovery
 from symbols.variables_handler import VariablesHandler
+from symbols.types import QutesDataType
 from quantum_circuit import QuantumCircuitHandler
 
 class SymbolsDiscoveryListener(qutesListener):
@@ -93,8 +94,11 @@ class SymbolsDiscoveryListener(qutesListener):
     def enterFunctionStatement(self, ctx:qutesParser.FunctionStatementContext):
         self.function_scope_count += 1
         return_type = ctx.variableType().getText()
+        qutes_type = QutesDataType.from_string_type(return_type)
         function_name = ctx.functionName().getText()
-        funtion_symbol = self.variables_handler.declare_function(return_type, function_name)
+        #TODO: input params should be part of function signature, so they should be retrieved here in order to declare the function
+        # but for semplicity we are currently doing this check only on the visitor.
+        funtion_symbol = self.variables_handler.declare_function(qutes_type, function_name, [])
         self.scope_handler.push_inner_scope(ScopeClass.FunctionScope, f"Function{self.function_scope_count}", funtion_symbol)
 
     # Exit a parse tree produced by qutes_parser#FunctionStatement.
@@ -105,6 +109,7 @@ class SymbolsDiscoveryListener(qutesListener):
     def enterVariableDeclaration(self, ctx:qutesParser.VariableDeclarationContext):
         var_type = ctx.variableType().getText()
         var_name = ctx.variableName().getText()
+        qutes_type = QutesDataType.from_string_type(var_type)
         # This listener should not follow the execution path to understand what was the initial value assigned to the variable.
         # So we assign None and then variables_handler will put in the default value for the type.
-        self.variables_handler.declare_variable(var_type, var_name)
+        self.variables_handler.declare_variable(qutes_type, var_name)

@@ -10,6 +10,7 @@ class QutesDataType(Enum):
     string = auto()
     qubit = auto()
     quint = auto()
+    void = auto()
 
     def is_quantum_type(type:'QutesDataType'):
         return type in [QutesDataType.qubit, QutesDataType.quint]
@@ -31,11 +32,13 @@ class QutesDataType(Enum):
             return QutesDataType.qubit
         if isinstance(var_value, Quint):
             return QutesDataType.quint
+        if isinstance(var_value, None):
+            return QutesDataType.void
         if isinstance(var_value, Symbol):
-            return QutesDataType.from_declaration_type(var_value.symbol_declaration_static_type)
+            return var_value.symbol_declaration_static_type
         return QutesDataType.undefined
 
-    def from_declaration_type(var_definition_type : str) -> 'QutesDataType':
+    def from_string_type(var_definition_type : str) -> 'QutesDataType':
         to_match = var_definition_type.lower()
         match to_match:
             case "bool":
@@ -50,6 +53,8 @@ class QutesDataType(Enum):
                 return QutesDataType.qubit
             case "quint":
                 return QutesDataType.quint
+            case "void":
+                return QutesDataType.void
             case _:
                 return QutesDataType.undefined
 
@@ -67,6 +72,8 @@ class QutesDataType(Enum):
                 return Qubit()
             case QutesDataType.quint:
                 return Quint()
+            case QutesDataType.void:
+                return None
             case _:
                 return QutesDataType.undefined
             
@@ -96,6 +103,7 @@ class TypeCastingHandler():
         QutesDataType.string: [QutesDataType.string, QutesDataType.float, QutesDataType.int, QutesDataType.bool],
         QutesDataType.qubit: [QutesDataType.qubit,  QutesDataType.string, QutesDataType.bool],
         QutesDataType.quint: [QutesDataType.quint, QutesDataType.qubit, QutesDataType.string, QutesDataType.int, QutesDataType.bool],
+        QutesDataType.void: [],
     }
     type_down_castable_to : dict[Enum, list[QutesDataType]] = {
         #..to this types <- this types can be converted(loosing information) to..
@@ -105,6 +113,7 @@ class TypeCastingHandler():
         QutesDataType.string: [QutesDataType.string],
         QutesDataType.qubit: [QutesDataType.quint, QutesDataType.qubit],
         QutesDataType.quint: [QutesDataType.quint],
+        QutesDataType.void: [],
     }
 
     def promote_value_to_type(self, var_value : any, from_type:'QutesDataType', to_type : 'QutesDataType', symbol_or_literal) -> any:

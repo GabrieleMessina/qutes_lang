@@ -7,7 +7,7 @@ from symbols.symbol import Symbol
 from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
 from symbols.variables_handler import VariablesHandler
 from quantum_circuit import QuantumCircuitHandler
-from symbols.types import Qubit, Quint
+from symbols.types import Qubit, Quint, QutesDataType
 from quantum_circuit.qutes_gates import QutesGates
 
 class QutesGrammarVisitor(qutesVisitor):
@@ -139,43 +139,48 @@ class QutesGrammarVisitor(qutesVisitor):
     # Visit a parse tree produced by qutesParser#BlockStatement.
     def visitBlockStatement(self, ctx:qutesParser.BlockStatementContext):
         self.scope_handler.push_scope()
-        self.__visit("visitBlockStatement", lambda : self.visitChildren(ctx))
+        result = self.__visit("visitBlockStatement", lambda : self.visitChildren(ctx))
         self.scope_handler.pop_scope()
-        return None
+        return result
     
     
     # Visit a parse tree produced by qutes_parser#FunctionStatement.
     def visitFunctionStatement(self, ctx:qutesParser.FunctionStatementContext):
         self.scope_handler.push_scope()
-        return_type = ctx.variableType().getText() # we already know the return type thanks to the discovery listener.
         function_name = ctx.functionName().getText()
-        function_body = lambda : self.visitChildren(ctx)
+        input_params_declaration = []
+        if(ctx.functionDeclarationParams()):
+            input_params_declaration = self.visit(ctx.functionDeclarationParams())
+        input_params_declaration.reverse()
+
+        function_body = lambda : self.visitChildren(ctx.statement())
         self.variables_handler.get_symbol(function_name).value = function_body
+        self.variables_handler.get_symbol(function_name).function_input_params_definition = input_params_declaration.copy()
         self.scope_handler.pop_scope()
         return None
 
 
     # Visit a parse tree produced by qutesParser#DeclarationStatement.
     def visitDeclarationStatement(self, ctx:qutesParser.DeclarationStatementContext):
-        return self.__visit("visitDeclarationStatement", lambda :  self.visitChildren(ctx.variableDeclaration()))
+        return self.__visit("visitDeclarationStatement", lambda :  self.visitChildren(ctx))
         
     # Visit a parse tree produced by qutes_parser#variableDeclaration.
     def visitVariableDeclaration(self, ctx:qutesParser.VariableDeclarationContext):
-        var_type = ctx.variableType().getText() # we already know the variable type thanks to the discovery listener.
+        var_type = None # we already know the variable type thanks to the discovery listener.
         var_name = ctx.variableName().getText()
         var_value = None
 
-        return self.__visit("visitVariableDeclaration", lambda : self.__visit_assignment_statement(var_type, var_name, var_value, ctx))
+        return self.__visit("visitVariableDeclaration", lambda : self.__visit_assignment_statement(var_name, var_value, ctx))
 
 
     # Visit a parse tree produced by qutesParser#AssignmentStatement.
     def visitAssignmentStatement(self, ctx:qutesParser.AssignmentStatementContext):
         var_name = ctx.qualifiedName().getText()
         var_value = None
-        return self.__visit("visitAssignmentStatement", lambda : self.__visit_assignment_statement(None, var_name, var_value, ctx))
+        return self.__visit("visitAssignmentStatement", lambda : self.__visit_assignment_statement(var_name, var_value, ctx))
 
 
-    def __visit_assignment_statement(self, var_type : str, var_name : str, var_value, ctx:(qutesParser.AssignmentStatementContext | qutesParser.VariableDeclarationContext)):
+    def __visit_assignment_statement(self, var_name : str, var_value, ctx:(qutesParser.AssignmentStatementContext | qutesParser.VariableDeclarationContext)):
         if(ctx.expr()):
             var_value = self.visitChildren(ctx.expr())
 
@@ -188,31 +193,56 @@ class QutesGrammarVisitor(qutesVisitor):
         else:
             if(var_value != None):
                 var_symbol = self.variables_handler.update_variable_state(var_name, var_value)
-                if(self.log_code_structure): print(f"{str(var_type)} {str(var_name)} = {str(var_value)}", end=None)
+                if(self.log_code_structure): print(f"{var_symbol.symbol_declaration_static_type.name} {str(var_name)} = {str(var_value)}", end=None)
             else:
-                if(self.log_code_structure): print(f"{str(var_type)} {str(var_name)}", end=None)        
+                if(self.log_code_structure): print(f"{var_symbol.symbol_declaration_static_type.name} {str(var_name)}", end=None)        
         return var_symbol
 
+
+    # Visit a parse tree produced by qutes_parser#ReturnStatement.
+    def visitReturnStatement(self, ctx:qutesParser.ReturnStatementContext):
+        result = self.__visit("visitReturnStatement", lambda : self.visitChildren(ctx.expr()))
+        if(isinstance(result, Symbol)):
+            result.is_return_value_of_function = True
+        return result
+    
     
     # Visit a parse tree produced by qutes_parser#block.
     def visitBlock(self, ctx:qutesParser.BlockContext):
-        result = str()
+        log_string = str()
         statement_count = 0
         for child in ctx.getChildren(lambda child : isinstance(child, qutesParser.StatementContext)):
             statement_count += 1
-            new_value = str(self.__visit("visitBlockStatement", lambda i=child : self.visit(i))).replace("\n", "\n\t")
-            result = f'{result}\n\tStatement[{statement_count}]: {new_value}'
-            if(self.log_code_structure): print(result, end=None)
+            new_value = self.__visit("visitBlockStatement", lambda i=child : self.visit(i))
+            log_string = f'{log_string}\n\tStatement[{statement_count}]: {new_value}'
+            if(self.log_code_structure): print(log_string, end=None)
+            if(isinstance(new_value, Symbol) and new_value.is_return_value_of_function):
+                return new_value
 
 
     # Visit a parse tree produced by qutes_parser#functionParams.
-    def functionDeclarationParams(self, ctx:qutesParser.FunctionDeclarationParamsContext):
-        return self.__visit("functionDeclarationParams", lambda : self.visitChildren(ctx))
+    def visitFunctionDeclarationParams(self, ctx:qutesParser.FunctionDeclarationParamsContext):
+        param = self.visit(ctx.variableDeclaration())
+        params = []
+        if(ctx.functionDeclarationParams()):
+            params = self.__visit("functionDeclarationParams", lambda : self.visit(ctx.functionDeclarationParams()))
+            if(not isinstance(params, list)):
+                params = [params]
+        params.append(param)
+        return params
     
     
      # Visit a parse tree produced by qutes_parser#functionCallParams.
-    def functionCallParams(self, ctx:qutesParser.FunctionCallParamsContext):
-        return self.__visit("functionCallParams", lambda : self.visitChildren(ctx))
+    def visitFunctionCallParams(self, ctx:qutesParser.FunctionCallParamsContext):
+        param = self.visit(ctx.qualifiedName())
+        params = []
+        if(ctx.functionCallParams()):
+            params = self.__visit("functionCallParams", lambda : self.visit(ctx.functionCallParams()))
+            if(not isinstance(params, list)):
+                params = [params]
+        params.append(param)
+        return params
+        # return self.__visit("functionCallParams", lambda : self.visitChildren(ctx))
 
 
     # Visit a parse tree produced by qutesParser#expr.
@@ -235,9 +265,21 @@ class QutesGrammarVisitor(qutesVisitor):
     def visitFunctionCall(self, ctx:qutesParser.FunctionCallContext):
         self.scope_handler.start_function() #To avoid block statement to push its scope
         
-        var_name = ctx.functionName().getText()
-        function_symbol = self.variables_handler.get_symbol(var_name)
+        function_name = self.visit(ctx.functionName())
+        function_params:list[Symbol] = []
+        if(ctx.functionCallParams()):
+            function_params = self.visit(ctx.functionCallParams())
+        function_params.reverse()
+
+        symbol_to_resolve = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.function_matches_signature(function_name, function_params)]
         
+        if len(symbol_to_resolve) <= 0:
+            raise SyntaxError(f"No function declared with name '{function_name}' and parameters {function_params}.")
+        
+        # Get the last matching symbol (so that we handle symbol hyding in a scope that is a child of another that already has this variable declared)
+        function_symbol:Symbol = symbol_to_resolve[-1]
+        #TODO: update the function scope (inside the round parenthesis) with this new values, but leaving the names of the signature
+
         scope_to_restore_on_exit = self.scope_handler.current_symbols_scope
         self.scope_handler.current_symbols_scope = function_symbol.inner_scope
         
@@ -477,51 +519,56 @@ class QutesGrammarVisitor(qutesVisitor):
     def visitString(self, ctx:qutesParser.StringContext):
         string_literal_enclosure = qutesParser.literal_to_string(qutesParser.STRING_ENCLOSURE)
         value = ctx.getText().removeprefix(string_literal_enclosure).removesuffix(string_literal_enclosure)
+        symbol = self.variables_handler.create_anonymous_symbol(QutesDataType.string, value)
         if(self.log_code_structure): print(value, end=None)
-        return self.__visit("visitString", lambda : value)
+        return self.__visit("visitString", lambda : symbol)
 
     
     # Visit a parse tree produced by qutesParser#qubit.
     def visitQubit(self, ctx:qutesParser.QubitContext):
         value = Qubit.from_string(ctx.getText())
+        symbol = self.variables_handler.create_anonymous_symbol(QutesDataType.qubit, value)
         if(self.log_code_structure): print(value, end=None)
-        return self.__visit("visitQubit", lambda : value)
+        return self.__visit("visitQubit", lambda : symbol)
     
     
     # Visit a parse tree produced by qutesParser#quint.
     def visitQuint(self, ctx:qutesParser.QuintContext):
-       #TODO: ctx.getText() could be a qubit literal, maybe is better to handle this with parser and not lexer.
         value = Quint.init_from_string(ctx.getText())
+        symbol = self.variables_handler.create_anonymous_symbol(QutesDataType.quint, value)
         if(self.log_code_structure): print(value, end=None)
-        return self.__visit("visitQuint", lambda : value)
+        return self.__visit("visitQuint", lambda : symbol)
 
     
     # Visit a parse tree produced by qutesParser#float.
     def visitFloat(self, ctx:qutesParser.FloatContext):
         value = float(ctx.getText())
+        symbol = self.variables_handler.create_anonymous_symbol(QutesDataType.float, value)
         if(self.log_code_structure): print(value, end=None)
-        return self.__visit("visitFloat", lambda : value)
+        return self.__visit("visitFloat", lambda : symbol)
 
 
     # Visit a parse tree produced by qutesParser#integer.
     def visitInteger(self, ctx:qutesParser.IntegerContext):
         value = int(ctx.getText())
+        symbol = self.variables_handler.create_anonymous_symbol(QutesDataType.int, value)
         if(self.log_code_structure): print(value, end=None)
-        return self.__visit("visitInteger", lambda : value)
+        return self.__visit("visitInteger", lambda : symbol)
 
 
+    # Visit a parse tree produced by qutes_parser#boolean.
+    def visitBoolean(self, ctx:qutesParser.BooleanContext):
+        value = ctx.getText().lower() == "true" or ctx.getText() == "1"
+        symbol = self.variables_handler.create_anonymous_symbol(QutesDataType.bool, value)
+        if(self.log_code_structure): print(value, end=None)
+        return self.__visit("visitBoolean", lambda : symbol)
+
+    
     # Visit a parse tree produced by qutesParser#integer.
     def visitVariableName(self, ctx:qutesParser.VariableNameContext):
         value = str(ctx.getText())
         if(self.log_code_structure): print(value, end=None)
         return self.__visit("visitVariableName", lambda : value)
-
-    # Visit a parse tree produced by qutes_parser#boolean.
-    def visitBoolean(self, ctx:qutesParser.BooleanContext):
-        value = ctx.getText().lower() == "true" or ctx.getText() == "1"
-        if(self.log_code_structure): print(value, end=None)
-        return self.__visit("visitBoolean", lambda : value)
-
 
     # Utility method for logging and scaffolding operation
     def __visit(self, parent_caller_name, func, push_pop_scope:bool = False):

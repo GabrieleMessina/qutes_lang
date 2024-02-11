@@ -20,12 +20,9 @@ statement
    | variableType functionName ROUND_PARENTHESIS_OPEN functionDeclarationParams? ROUND_PARENTHESIS_CLOSE statement #FunctionStatement
    | variableDeclaration END_OF_STATEMENT #DeclarationStatement
    | qualifiedName ASSIGN expr END_OF_STATEMENT #AssignmentStatement
+   | RETURN expr END_OF_STATEMENT #ReturnStatement
    | expr END_OF_STATEMENT #ExpressionStatement
    | END_OF_STATEMENT #EmptyStatement
-   ;
-
-variableDeclaration
-   : variableType variableName (ASSIGN expr)? //TODO: rename variableName to variableDeclarationName
    ;
 
 block
@@ -33,11 +30,16 @@ block
    ;
 
 functionDeclarationParams
-   : variableDeclaration (COMMA functionDeclarationParams)*
+   : variableDeclaration (COMMA functionDeclarationParams)?
+   ;
+
+//TODO: rename variableName to variableDeclarationName
+variableDeclaration
+   : variableType variableName (ASSIGN expr)?
    ;
 
 functionCallParams
-   : qualifiedName (COMMA functionCallParams)*
+   : qualifiedName (COMMA functionCallParams)?
    ;
 
 expr
@@ -47,7 +49,7 @@ expr
    | parenExpr
    ;
 
-functionCall
+functionCall //Function name should be a qualifiedName here.
    : functionName ROUND_PARENTHESIS_OPEN functionCallParams? ROUND_PARENTHESIS_CLOSE
    ;
 
@@ -79,6 +81,7 @@ type
    | STRING_TYPE
    | QUBIT_TYPE
    | QUINT_TYPE
+   | VOID_TYPE
    ;
 
 variableType

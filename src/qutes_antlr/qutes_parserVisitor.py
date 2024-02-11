@@ -54,6 +54,11 @@ class qutes_parserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by qutes_parser#ReturnStatement.
+    def visitReturnStatement(self, ctx:qutes_parser.ReturnStatementContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by qutes_parser#ExpressionStatement.
     def visitExpressionStatement(self, ctx:qutes_parser.ExpressionStatementContext):
         return self.visitChildren(ctx)
@@ -64,11 +69,6 @@ class qutes_parserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by qutes_parser#variableDeclaration.
-    def visitVariableDeclaration(self, ctx:qutes_parser.VariableDeclarationContext):
-        return self.visitChildren(ctx)
-
-
     # Visit a parse tree produced by qutes_parser#block.
     def visitBlock(self, ctx:qutes_parser.BlockContext):
         return self.visitChildren(ctx)
@@ -76,6 +76,11 @@ class qutes_parserVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by qutes_parser#functionDeclarationParams.
     def visitFunctionDeclarationParams(self, ctx:qutes_parser.FunctionDeclarationParamsContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by qutes_parser#variableDeclaration.
+    def visitVariableDeclaration(self, ctx:qutes_parser.VariableDeclarationContext):
         return self.visitChildren(ctx)
 
 

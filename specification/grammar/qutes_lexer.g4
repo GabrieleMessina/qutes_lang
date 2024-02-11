@@ -11,6 +11,8 @@ STRING_TYPE : 'string' ;
 QUBIT_TYPE : 'qubit' ;
 QUINT_TYPE : 'quint' ;
 FLOAT_TYPE : 'float' ;
+VOID_TYPE : 'void' ;
+RETURN : 'return' ;
 ADD : '+' ;
 SUB : '-' ;
 NOT : 'not' ;

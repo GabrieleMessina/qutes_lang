@@ -238,8 +238,8 @@ else{
     // }
 }*/
 
-//Functions tests
-{
+//Functions tests I
+/*{
     //What we want to achieve:
     // qustring entireBook;
     // int resultStartIndex = entireBook.find("some string.");
@@ -247,20 +247,35 @@ else{
     // int resultStartIndex = find(entireBook, "some string.");
 
     bool A (int c = 10){ //TODO: handle return type and return statement
-        bool a = true;
+        bool a = false;
         print a;
         print c;
+        return a;
+        print a;
     }
 
-    void B ()
-        A();
+    bool z = A();
+    print z;
+
+    void B (){
+        bool z = A();
+        print z;
+    }
 
     B();
+}*/
 
-
-    /*bool A (int c = 10, bool aa){ //TODO: right now everything should has a default value, so we can handle params with no default value after those with default values, but we should think about it because this could be problematic.
+//Functions tests II
+{
+    bool A (int c = 10, bool aa){ //TODO: right now everything should has a default value, so we can handle params with no default value after those with default values, but we should think about it because this could be problematic.
         bool a = true;
         print a;
         print c;
-    }*/
+        print aa;
+    }
+
+    int z = 1;
+    int zz = 1;
+    A(z, zz);
+    //print A(); //TODO: invali, A() is expression while print works on term.
 }
