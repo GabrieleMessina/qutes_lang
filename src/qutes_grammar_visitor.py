@@ -277,14 +277,23 @@ class QutesGrammarVisitor(qutesVisitor):
             raise SyntaxError(f"No function declared with name '{function_name}' and parameters {function_params}.")
         
         # Get the last matching symbol (so that we handle symbol hyding in a scope that is a child of another that already has this variable declared)
-        function_symbol:Symbol = symbol_to_resolve[-1]
-        #TODO: update the function scope (inside the round parenthesis) with this new values, but leaving the names of the signature
+        function_symbol:Symbol = symbol_to_resolve[-1]        
 
         scope_to_restore_on_exit = self.scope_handler.current_symbols_scope
         self.scope_handler.current_symbols_scope = function_symbol.inner_scope
         
+        default_params_to_restore_on_exit = function_symbol.inner_scope.symbols[1:len(function_params)+1].copy()
+        symbol_params_to_push = []
+        for index in range(len(function_params)):
+            symbol_to_push = function_params[index]
+            symbol_to_push.name = default_params_to_restore_on_exit[index].name
+            symbol_params_to_push.append(symbol_to_push)
+        function_symbol.inner_scope.symbols[1:len(function_params)+1] = symbol_params_to_push
+
         result = self.__visit("visitFunctionCall", lambda : function_symbol.value())
+
         self.scope_handler.current_symbols_scope = scope_to_restore_on_exit
+        function_symbol.inner_scope.symbols[1:len(function_params)+1] = default_params_to_restore_on_exit
 
         self.scope_handler.end_function()
         return result

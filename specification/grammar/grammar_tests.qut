@@ -275,7 +275,7 @@ else{
     }
 
     int z = 1;
-    int zz = 1;
+    bool zz = 1;
     A(z, zz);
     //print A(); //TODO: invali, A() is expression while print works on term.
 }
