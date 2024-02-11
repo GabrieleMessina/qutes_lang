@@ -293,8 +293,8 @@ class QutesGrammarVisitor(qutesVisitor):
         default_params_to_restore_on_exit = function_symbol.inner_scope.symbols[1:len(function_params)+1].copy()
         symbol_params_to_push = []
         for index in range(len(function_params)):
-            symbol_to_push = function_params[index]
-            symbol_to_push.name = default_params_to_restore_on_exit[index].name
+            symbol_to_push = default_params_to_restore_on_exit[index]
+            symbol_to_push.value = default_params_to_restore_on_exit[index].value
             symbol_params_to_push.append(symbol_to_push)
         function_symbol.inner_scope.symbols[1:len(function_params)+1] = symbol_params_to_push
 
