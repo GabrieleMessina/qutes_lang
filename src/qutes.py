@@ -7,7 +7,7 @@ from anytree import RenderTree
 from qutes_lexer import QutesLexer
 from qutes_parser import QutesParser
 from qutes_grammar_visitor import QutesGrammarVisitor
-from symbols_discovery_listener import SymbolsDiscoveryListener
+from symbols_discovery_visitor import SymbolsDiscoveryVisitor
 from quantum_circuit import QuantumCircuitHandler
 
 def main(argv):
@@ -32,9 +32,13 @@ def main(argv):
     else:
         quantum_cirtcuit_handler = QuantumCircuitHandler()
 
-        grammar_listener = SymbolsDiscoveryListener(quantum_cirtcuit_handler)
-        walker = ParseTreeWalker()
-        walker.walk(grammar_listener, tree)
+        grammar_listener = SymbolsDiscoveryVisitor(quantum_cirtcuit_handler)
+        grammar_listener.visit(tree)
+
+        # grammar_listener = SymbolsDiscoveryListener(quantum_cirtcuit_handler)
+        # walker = ParseTreeWalker()
+        # walker.walk(grammar_listener, tree)
+
         symbols_tree = grammar_listener.scope_handler.symbols_tree
         
         grammar_visitor = QutesGrammarVisitor(symbols_tree, quantum_cirtcuit_handler)

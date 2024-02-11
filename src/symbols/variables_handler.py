@@ -96,13 +96,16 @@ class VariablesHandler():
         new_symbol = Symbol(variable_name, SymbolClass.VariableSymbol, qutes_type, final_type, value, self.scope_handler.current_symbols_scope, ast_token_index)
         return new_symbol
         
-    def declare_function(self, return_type : str, function_name : str, ast_token_index:int, input_params_definition:list[Symbol] = list(), value = lambda : None) -> Symbol:
+    
+    def declare_function(self, anonymous_symbol : Symbol, function_name : str, input_params_definition:list[Symbol] = list(), value = None) -> Symbol:
         already_taken_symbol_in_this_scope = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.name == function_name and symbol.parent_scope == self.scope_handler.current_symbols_scope]
         if(len(already_taken_symbol_in_this_scope) == 0):
-            new_symbol = Symbol(function_name, SymbolClass.FunctionSymbol, return_type, return_type, value, self.scope_handler.current_symbols_scope, ast_token_index)
-            new_symbol.function_input_params_definition = input_params_definition.copy()
-            self.scope_handler.current_symbols_scope.symbols.append(new_symbol)
-            return new_symbol
+            anonymous_symbol.name = function_name
+            anonymous_symbol.symbol_class = SymbolClass.FunctionSymbol
+            anonymous_symbol.value = value
+            anonymous_symbol.function_input_params_definition = input_params_definition.copy()
+            self.scope_handler.current_symbols_scope.symbols.append(anonymous_symbol)
+            return anonymous_symbol
         else:
             raise SyntaxError(f"Symbol with name '{function_name}' return type already declared.")
     
@@ -111,12 +114,19 @@ class VariablesHandler():
             return var_value.value
         return var_value
 
-    def get_symbol(self, var_name:str, ast_token_index:int) -> Symbol:
-        eligible_symbols_to_update = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.name == var_name and symbol.ast_token_index <= ast_token_index]
-        if len(eligible_symbols_to_update) > 0:
-            return eligible_symbols_to_update[-1]
+    def get_variable_symbol(self, var_name:str, ast_token_index:int) -> Symbol:
+        eligible_symbols = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.name == var_name and symbol.ast_token_index <= ast_token_index]
+        if len(eligible_symbols) > 0:
+            return eligible_symbols[-1]
         else:
             raise SyntaxError(f"No variable declared with name '{var_name}'.")
+        
+    def get_function_symbol(self, function_name:str, ast_token_index:int, function_params:list[Symbol]) -> Symbol:
+        eligible_symbols = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.function_matches_signature(function_name, function_params)]
+        if len(eligible_symbols) > 0:
+            return eligible_symbols[-1]
+        else:
+            raise SyntaxError(f"No function declared with name '{function_name}' and parameters {function_params}.")
     
     def get_type_of(self, var_value):
         if(isinstance(var_value, Symbol)):
