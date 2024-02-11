@@ -52,7 +52,7 @@ class SymbolsDiscoveryListener(qutesListener):
     # Enter a parse tree produced by qutesParser#WhileStatement.
     def enterWhileStatement(self, ctx:qutesParser.WhileStatementContext):
         self.loop_scope_count += 1
-        self.scope_handler.push_scope(ScopeClass.LoopScope, f"While{self.if_else_scope_count}")
+        self.scope_handler.push_scope(ScopeClass.LoopScope, f"While{self.loop_scope_count}")
 
     # Exit a parse tree produced by qutesParser#WhileStatement.
     def exitWhileStatement(self, ctx:qutesParser.WhileStatementContext):
@@ -62,7 +62,7 @@ class SymbolsDiscoveryListener(qutesListener):
     # Enter a parse tree produced by qutesParser#DoWhileStatement.
     def enterDoWhileStatement(self, ctx:qutesParser.DoWhileStatementContext):
         self.loop_scope_count += 1
-        self.scope_handler.push_scope(ScopeClass.LoopScope, f"DoWhile{self.if_else_scope_count}")
+        self.scope_handler.push_scope(ScopeClass.LoopScope, f"DoWhile{self.loop_scope_count}")
 
     # Exit a parse tree produced by qutesParser#DoWhileStatement.
     def exitDoWhileStatement(self, ctx:qutesParser.DoWhileStatementContext):
@@ -98,7 +98,8 @@ class SymbolsDiscoveryListener(qutesListener):
         function_name = ctx.functionName().getText()
         #TODO: input params should be part of function signature, so they should be retrieved here in order to declare the function
         # but for semplicity we are currently doing this check only on the visitor.
-        funtion_symbol = self.variables_handler.declare_function(qutes_type, function_name, [])
+        token_index = ctx.start.tokenIndex
+        funtion_symbol = self.variables_handler.declare_function(qutes_type, function_name, token_index, [])
         self.scope_handler.push_inner_scope(ScopeClass.FunctionScope, f"Function{self.function_scope_count}", funtion_symbol)
 
     # Exit a parse tree produced by qutes_parser#FunctionStatement.
@@ -112,4 +113,5 @@ class SymbolsDiscoveryListener(qutesListener):
         qutes_type = QutesDataType.from_string_type(var_type)
         # This listener should not follow the execution path to understand what was the initial value assigned to the variable.
         # So we assign None and then variables_handler will put in the default value for the type.
-        self.variables_handler.declare_variable(qutes_type, var_name)
+        token_index = ctx.start.tokenIndex
+        self.variables_handler.declare_variable(qutes_type, var_name, token_index)

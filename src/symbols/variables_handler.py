@@ -51,7 +51,7 @@ class VariablesHandler():
         else:
             raise SyntaxError(f"No variable declared with name '{variable_name}'.")
         
-    def declare_variable(self, declaration_type : QutesDataType, variable_name : str, value = None) -> Symbol:
+    def declare_variable(self, declaration_type : QutesDataType, variable_name : str, ast_token_index:int, value = None) -> Symbol:
         already_taken_symbol_in_this_scope = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.name == variable_name and symbol.parent_scope == self.scope_handler.current_symbols_scope]
         if(len(already_taken_symbol_in_this_scope) == 0):
             if(value is None):
@@ -59,7 +59,7 @@ class VariablesHandler():
             else: 
                 value = self.get_value(value)
             
-            new_symbol = self.create_anonymous_symbol(declaration_type, value)
+            new_symbol = self.create_anonymous_symbol(declaration_type, value, ast_token_index)
             new_symbol.name = variable_name
             self.scope_handler.current_symbols_scope.symbols.append(new_symbol)
             #Handle quantum circuit update
@@ -70,7 +70,7 @@ class VariablesHandler():
         else:
             raise SyntaxError(f"Symbol with name '{variable_name}' already declared.")
 
-    def create_anonymous_symbol(self, qutes_type : QutesDataType, value = None) -> Symbol:
+    def create_anonymous_symbol(self, qutes_type : QutesDataType, value, ast_token_index:int) -> Symbol:
         if(value is None):
             value = QutesDataType.get_default_value(qutes_type)
 
@@ -93,13 +93,13 @@ class VariablesHandler():
             else:
                 raise SyntaxError(f"Cannot convert type '{definition_type}' to '{value_qutes_type}' for '{variable_name}'.")
             
-        new_symbol = Symbol(variable_name, SymbolClass.VariableSymbol, qutes_type, final_type, value, self.scope_handler.current_symbols_scope)
+        new_symbol = Symbol(variable_name, SymbolClass.VariableSymbol, qutes_type, final_type, value, self.scope_handler.current_symbols_scope, ast_token_index)
         return new_symbol
         
-    def declare_function(self, return_type : str, function_name : str, input_params_definition:list[Symbol] = list(), value = lambda : None) -> Symbol:
+    def declare_function(self, return_type : str, function_name : str, ast_token_index:int, input_params_definition:list[Symbol] = list(), value = lambda : None) -> Symbol:
         already_taken_symbol_in_this_scope = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.name == function_name and symbol.parent_scope == self.scope_handler.current_symbols_scope]
         if(len(already_taken_symbol_in_this_scope) == 0):
-            new_symbol = Symbol(function_name, SymbolClass.FunctionSymbol, return_type, return_type, value, self.scope_handler.current_symbols_scope)
+            new_symbol = Symbol(function_name, SymbolClass.FunctionSymbol, return_type, return_type, value, self.scope_handler.current_symbols_scope, ast_token_index)
             new_symbol.function_input_params_definition = input_params_definition.copy()
             self.scope_handler.current_symbols_scope.symbols.append(new_symbol)
             return new_symbol
@@ -111,9 +111,12 @@ class VariablesHandler():
             return var_value.value
         return var_value
 
-    def get_symbol(self, var_name:str) -> Symbol:
-        eligible_symbols_to_update = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.name == var_name]
-        return eligible_symbols_to_update[0]
+    def get_symbol(self, var_name:str, ast_token_index:int) -> Symbol:
+        eligible_symbols_to_update = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.name == var_name and symbol.ast_token_index <= ast_token_index]
+        if len(eligible_symbols_to_update) > 0:
+            return eligible_symbols_to_update[-1]
+        else:
+            raise SyntaxError(f"No variable declared with name '{var_name}'.")
     
     def get_type_of(self, var_value):
         if(isinstance(var_value, Symbol)):

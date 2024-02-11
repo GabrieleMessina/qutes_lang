@@ -9,7 +9,7 @@ class SymbolClass(Enum):
     VariableSymbol = auto()
 
 class Symbol():    
-    def __init__(self, name:str, symbol_class:SymbolClass, symbol_declaration_static_type:QutesDataType, casted_static_type:QutesDataType, value:any, parent_scope:ScopeTreeNode, quantum_register : QuantumRegister | None = None, params = []):
+    def __init__(self, name:str, symbol_class:SymbolClass, symbol_declaration_static_type:QutesDataType, casted_static_type:QutesDataType, value:any, parent_scope:ScopeTreeNode, ast_token_index:int, quantum_register : QuantumRegister | None = None, params = []):
         super().__init__()
         self.name:str = name
         self.symbol_class:SymbolClass = symbol_class
@@ -18,6 +18,7 @@ class Symbol():
         self.value = value #value is not reliable on quantum types
         self.parent_scope:ScopeTreeNode = parent_scope
         self.inner_scope:ScopeTreeNode = None
+        self.ast_token_index:int = ast_token_index
         self.is_return_value_of_function:bool = False
         self.function_input_params_definition:list[Symbol] = params
         self.quantum_register:QuantumRegister | None = quantum_register #quantum register is not used for classical variables
@@ -37,9 +38,9 @@ class Symbol():
 
     def __to_printable__(self) -> str:
         if self.symbol_class is SymbolClass.FunctionSymbol:
-            return f"{self.parent_scope.scope_type_detail}.{self.name}({self.function_input_params_definition}) -> {self.symbol_declaration_static_type.name}"
+            return f"{self.parent_scope.scope_type_detail}.{self.name}({self.function_input_params_definition}) -> {self.symbol_declaration_static_type.name}/{self.ast_token_index}"
         else:
-            return f"{self.parent_scope.scope_type_detail}.{self.name}={self.value}({self.symbol_declaration_static_type.name}/{self.casted_static_type.name})"
+            return f"{self.parent_scope.scope_type_detail}.{self.name}={self.value}({self.symbol_declaration_static_type.name}/{self.casted_static_type.name}/{self.ast_token_index})"
 
 
     def __str__(self) -> str:

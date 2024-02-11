@@ -147,15 +147,15 @@ class QutesGrammarVisitor(qutesVisitor):
     # Visit a parse tree produced by qutes_parser#FunctionStatement.
     def visitFunctionStatement(self, ctx:qutesParser.FunctionStatementContext):
         self.scope_handler.push_scope()
-        function_name = ctx.functionName().getText()
+        function_name = self.visit(ctx.functionName())
         input_params_declaration = []
         if(ctx.functionDeclarationParams()):
             input_params_declaration = self.visit(ctx.functionDeclarationParams())
         input_params_declaration.reverse()
 
         function_body = lambda : self.visitChildren(ctx.statement())
-        self.variables_handler.get_symbol(function_name).value = function_body
-        self.variables_handler.get_symbol(function_name).function_input_params_definition = input_params_declaration.copy()
+        self.variables_handler.get_symbol(function_name, ctx.start.tokenIndex).value = function_body
+        self.variables_handler.get_symbol(function_name, ctx.start.tokenIndex).function_input_params_definition = input_params_declaration.copy()
         self.scope_handler.pop_scope()
         return None
 
@@ -167,7 +167,7 @@ class QutesGrammarVisitor(qutesVisitor):
     # Visit a parse tree produced by qutes_parser#variableDeclaration.
     def visitVariableDeclaration(self, ctx:qutesParser.VariableDeclarationContext):
         var_type = None # we already know the variable type thanks to the discovery listener.
-        var_name = ctx.variableName().getText()
+        var_name = self.visit(ctx.variableName())
         var_value = None
 
         return self.__visit("visitVariableDeclaration", lambda : self.__visit_assignment_statement(var_name, var_value, ctx))
@@ -175,18 +175,25 @@ class QutesGrammarVisitor(qutesVisitor):
 
     # Visit a parse tree produced by qutesParser#AssignmentStatement.
     def visitAssignmentStatement(self, ctx:qutesParser.AssignmentStatementContext):
-        var_name = ctx.qualifiedName().getText()
+        var_name = self.visit(ctx.qualifiedName())
         var_value = None
         return self.__visit("visitAssignmentStatement", lambda : self.__visit_assignment_statement(var_name, var_value, ctx))
 
 
-    def __visit_assignment_statement(self, var_name : str, var_value, ctx:(qutesParser.AssignmentStatementContext | qutesParser.VariableDeclarationContext)):
+    def __visit_assignment_statement(self, var_name : str | Symbol, var_value, ctx:(qutesParser.AssignmentStatementContext | qutesParser.VariableDeclarationContext)):
         if(ctx.expr()):
             var_value = self.visitChildren(ctx.expr())
 
-        var_symbol = self.variables_handler.get_symbol(var_name)
-        if(var_value != None):
-            var_symbol = self.variables_handler.update_variable_state(var_name, var_value)
+        if(isinstance(var_name, Symbol)):
+            var_symbol = var_name
+            var_name = var_symbol.name
+        else: 
+            var_symbol = self.variables_handler.get_symbol(var_name, ctx.start.tokenIndex)
+
+        if(var_value == None):
+            var_value =  QutesDataType.get_default_value(var_symbol.symbol_declaration_static_type)
+        
+        var_symbol = self.variables_handler.update_variable_state(var_name, var_value)
 
         if(isinstance(ctx, qutesParser.AssignmentStatementContext)):
             if(self.log_code_structure): print(f"{str(var_name)} = {str(var_value)}", end=None)
@@ -218,6 +225,7 @@ class QutesGrammarVisitor(qutesVisitor):
             if(self.log_code_structure): print(log_string, end=None)
             if(isinstance(new_value, Symbol) and new_value.is_return_value_of_function):
                 return new_value
+        return None
 
 
     # Visit a parse tree produced by qutes_parser#functionParams.
@@ -505,16 +513,11 @@ class QutesGrammarVisitor(qutesVisitor):
 
     # Visit a parse tree produced by qutesParser#qualifiedName.
     def visitQualifiedName(self, ctx:qutesParser.QualifiedNameContext):
-        var_name = str(ctx.getText());
-        symbol_to_resolve = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.name == var_name]
-        
-        if len(symbol_to_resolve) > 0:
-            # Get the last matching symbol (so that we handle symbol hyding in a scope that is a child of another that already has this variable declared)
-            value = symbol_to_resolve[-1]
-            if(self.log_code_structure): print(value, end=None)
-            return self.__visit("visitQualifiedName", lambda : value)
-        else:
-            raise SyntaxError(f"No variable declared with name '{var_name}'.")
+        var_name = str(ctx.getText())
+        token_index = ctx.start.tokenIndex
+        symbol_to_resolve = self.variables_handler.get_symbol(var_name, token_index)
+        if(self.log_code_structure): print(symbol_to_resolve, end=None)
+        return self.__visit("visitQualifiedName", lambda : self.variables_handler.get_symbol(var_name, token_index))
 
 
     # Visit a parse tree produced by qutes_parser#functionName.
@@ -528,7 +531,7 @@ class QutesGrammarVisitor(qutesVisitor):
     def visitString(self, ctx:qutesParser.StringContext):
         string_literal_enclosure = qutesParser.literal_to_string(qutesParser.STRING_ENCLOSURE)
         value = ctx.getText().removeprefix(string_literal_enclosure).removesuffix(string_literal_enclosure)
-        symbol = self.variables_handler.create_anonymous_symbol(QutesDataType.string, value)
+        symbol = self.variables_handler.create_anonymous_symbol(QutesDataType.string, value, ctx.start.tokenIndex)
         if(self.log_code_structure): print(value, end=None)
         return self.__visit("visitString", lambda : symbol)
 
@@ -536,7 +539,7 @@ class QutesGrammarVisitor(qutesVisitor):
     # Visit a parse tree produced by qutesParser#qubit.
     def visitQubit(self, ctx:qutesParser.QubitContext):
         value = Qubit.from_string(ctx.getText())
-        symbol = self.variables_handler.create_anonymous_symbol(QutesDataType.qubit, value)
+        symbol = self.variables_handler.create_anonymous_symbol(QutesDataType.qubit, value, ctx.start.tokenIndex)
         if(self.log_code_structure): print(value, end=None)
         return self.__visit("visitQubit", lambda : symbol)
     
@@ -544,7 +547,7 @@ class QutesGrammarVisitor(qutesVisitor):
     # Visit a parse tree produced by qutesParser#quint.
     def visitQuint(self, ctx:qutesParser.QuintContext):
         value = Quint.init_from_string(ctx.getText())
-        symbol = self.variables_handler.create_anonymous_symbol(QutesDataType.quint, value)
+        symbol = self.variables_handler.create_anonymous_symbol(QutesDataType.quint, value, ctx.start.tokenIndex)
         if(self.log_code_structure): print(value, end=None)
         return self.__visit("visitQuint", lambda : symbol)
 
@@ -552,7 +555,7 @@ class QutesGrammarVisitor(qutesVisitor):
     # Visit a parse tree produced by qutesParser#float.
     def visitFloat(self, ctx:qutesParser.FloatContext):
         value = float(ctx.getText())
-        symbol = self.variables_handler.create_anonymous_symbol(QutesDataType.float, value)
+        symbol = self.variables_handler.create_anonymous_symbol(QutesDataType.float, value, ctx.start.tokenIndex)
         if(self.log_code_structure): print(value, end=None)
         return self.__visit("visitFloat", lambda : symbol)
 
@@ -560,7 +563,7 @@ class QutesGrammarVisitor(qutesVisitor):
     # Visit a parse tree produced by qutesParser#integer.
     def visitInteger(self, ctx:qutesParser.IntegerContext):
         value = int(ctx.getText())
-        symbol = self.variables_handler.create_anonymous_symbol(QutesDataType.int, value)
+        symbol = self.variables_handler.create_anonymous_symbol(QutesDataType.int, value, ctx.start.tokenIndex)
         if(self.log_code_structure): print(value, end=None)
         return self.__visit("visitInteger", lambda : symbol)
 
@@ -568,7 +571,7 @@ class QutesGrammarVisitor(qutesVisitor):
     # Visit a parse tree produced by qutes_parser#boolean.
     def visitBoolean(self, ctx:qutesParser.BooleanContext):
         value = ctx.getText().lower() == "true" or ctx.getText() == "1"
-        symbol = self.variables_handler.create_anonymous_symbol(QutesDataType.bool, value)
+        symbol = self.variables_handler.create_anonymous_symbol(QutesDataType.bool, value, ctx.start.tokenIndex)
         if(self.log_code_structure): print(value, end=None)
         return self.__visit("visitBoolean", lambda : symbol)
 
