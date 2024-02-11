@@ -3,7 +3,7 @@
 from qutes_parser import QutesParser as qutesParser
 from qutes_antlr.qutes_parserVisitor import qutes_parserVisitor as qutesVisitor
 from symbols.scope_tree_node import ScopeTreeNode
-from symbols.symbol import Symbol
+from symbols.symbol import Symbol, SymbolClass
 from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
 from symbols.variables_handler import VariablesHandler
 from quantum_circuit import QuantumCircuitHandler
@@ -148,14 +148,9 @@ class QutesGrammarVisitor(qutesVisitor):
     def visitFunctionStatement(self, ctx:qutesParser.FunctionStatementContext):
         self.scope_handler.push_scope()
         function_name = self.visit(ctx.functionName())
-        input_params_declaration = []
-        if(ctx.functionDeclarationParams()):
-            input_params_declaration = self.visit(ctx.functionDeclarationParams())
-        input_params_declaration.reverse()
-
-        function_body = lambda : self.visitChildren(ctx.statement())
-        self.variables_handler.get_symbol(function_name, ctx.start.tokenIndex).value = function_body
-        self.variables_handler.get_symbol(function_name, ctx.start.tokenIndex).function_input_params_definition = input_params_declaration.copy()
+        function_params = self.visit(ctx.functionDeclarationParams())
+        function_params.reverse()
+        #do not call a visit on the statement here, or on all the context, the statement is being saved by the discovery and should be traversed only on function execution
         self.scope_handler.pop_scope()
         return None
 
@@ -188,7 +183,7 @@ class QutesGrammarVisitor(qutesVisitor):
             var_symbol = var_name
             var_name = var_symbol.name
         else: 
-            var_symbol = self.variables_handler.get_symbol(var_name, ctx.start.tokenIndex)
+            var_symbol = self.variables_handler.get_variable_symbol(var_name, ctx.start.tokenIndex)
 
         if(var_value == None):
             var_value =  QutesDataType.get_default_value(var_symbol.symbol_declaration_static_type)
@@ -250,7 +245,6 @@ class QutesGrammarVisitor(qutesVisitor):
                 params = [params]
         params.append(param)
         return params
-        # return self.__visit("functionCallParams", lambda : self.visitChildren(ctx))
 
 
     # Visit a parse tree produced by qutesParser#expr.
@@ -279,29 +273,24 @@ class QutesGrammarVisitor(qutesVisitor):
             function_params = self.visit(ctx.functionCallParams())
         function_params.reverse()
 
-        symbol_to_resolve = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.function_matches_signature(function_name, function_params)]
-        
-        if len(symbol_to_resolve) <= 0:
-            raise SyntaxError(f"No function declared with name '{function_name}' and parameters {function_params}.")
-        
-        # Get the last matching symbol (so that we handle symbol hyding in a scope that is a child of another that already has this variable declared)
-        function_symbol:Symbol = symbol_to_resolve[-1]        
+        function_symbol = self.variables_handler.get_function_symbol(function_name, ctx.start.tokenIndex, function_params)  
 
         scope_to_restore_on_exit = self.scope_handler.current_symbols_scope
         self.scope_handler.current_symbols_scope = function_symbol.inner_scope
         
-        default_params_to_restore_on_exit = function_symbol.inner_scope.symbols[1:len(function_params)+1].copy()
+        default_params_to_restore_on_exit = function_symbol.function_input_params_definition.copy()
+
         symbol_params_to_push = []
         for index in range(len(function_params)):
             symbol_to_push = default_params_to_restore_on_exit[index]
-            symbol_to_push.value = default_params_to_restore_on_exit[index].value
+            symbol_to_push.value = function_params[index].value
             symbol_params_to_push.append(symbol_to_push)
-        function_symbol.inner_scope.symbols[1:len(function_params)+1] = symbol_params_to_push
+        [symbol for symbol in function_symbol.inner_scope.symbols if symbol.symbol_class == SymbolClass.FunctionSymbol][:len(function_params)] = symbol_params_to_push
 
-        result = self.__visit("visitFunctionCall", lambda : function_symbol.value())
+        result = self.__visit("visitFunctionCall", lambda : self.visitChildren(function_symbol.value))
 
         self.scope_handler.current_symbols_scope = scope_to_restore_on_exit
-        function_symbol.inner_scope.symbols[1:len(function_params)+1] = default_params_to_restore_on_exit
+        [symbol for symbol in function_symbol.inner_scope.symbols if symbol.symbol_class == SymbolClass.FunctionSymbol][:len(function_params)] = default_params_to_restore_on_exit
 
         self.scope_handler.end_function()
         return result
@@ -515,9 +504,9 @@ class QutesGrammarVisitor(qutesVisitor):
     def visitQualifiedName(self, ctx:qutesParser.QualifiedNameContext):
         var_name = str(ctx.getText())
         token_index = ctx.start.tokenIndex
-        symbol_to_resolve = self.variables_handler.get_symbol(var_name, token_index)
+        symbol_to_resolve = self.variables_handler.get_variable_symbol(var_name, token_index)
         if(self.log_code_structure): print(symbol_to_resolve, end=None)
-        return self.__visit("visitQualifiedName", lambda : self.variables_handler.get_symbol(var_name, token_index))
+        return self.__visit("visitQualifiedName", lambda : self.variables_handler.get_variable_symbol(var_name, token_index))
 
 
     # Visit a parse tree produced by qutes_parser#functionName.
