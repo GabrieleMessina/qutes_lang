@@ -20,6 +20,8 @@ class QutesDataType(Enum):
 
     def type_of(var_value : any) -> 'QutesDataType':
         from symbols import Symbol
+        if var_value is None:
+            return QutesDataType.void
         if isinstance(var_value, bool):
             return QutesDataType.bool
         if isinstance(var_value, int):
@@ -32,8 +34,6 @@ class QutesDataType(Enum):
             return QutesDataType.qubit
         if isinstance(var_value, Quint):
             return QutesDataType.quint
-        if isinstance(var_value, None):
-            return QutesDataType.void
         if isinstance(var_value, Symbol):
             return var_value.symbol_declaration_static_type
         return QutesDataType.undefined

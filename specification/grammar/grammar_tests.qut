@@ -51,45 +51,34 @@
 //     int d = 6;
 // }
 
-/* what about this?
-if(false) int c = 34;
-else int d = 6;
-int c = 0;
-*/
+
 //{ ; }
 //{ }
-// if(1==2){
-//     int c = 10;
-// }
 
-// if(false){
-//     int i=1;
-//     int c = 50;
-// }
-// int i=10;
+//Miscellaneous
+/*{
+    int i=0;
+    qubit qu = 0q;
+    quint num = 1q;
+    //quint num = 10q; //TODO: fix circuit register size
+    //print num;
+    while (i<3){
+        i=i+1;
+        hadamard qu;
+    }
 
-/*int i=0;
-qubit qu = 0q;
-quint num = 1q;
-// quint num = 10q; //TODO: fix circuit register size
-// print num;
-while (i<3){
-    i=i+1;
-    hadamard qu;
-}
-
-// print num;
-int number = num;
-bool test = qu;
-//if(num > 0){ // TODO: implement
-if(number > 0){
-    print "positive";
-}
-else{
-    print "not positive";
+    // print num;
+    int number = num;
+    bool test = qu;
+    //if(num > 0){ // TODO: implement operator on quntum types
+    print number;
+    if(number > 0){
+        print "positive";
+    }
+    else{
+        print "not positive";
+    }
 }*/
-
-// print i;
 
 //qubits tests
 /*{
@@ -148,15 +137,15 @@ else{
 
 //measures tests
 /*{
-    //qubit a = [1]q;
-    //qubit b = [1]q;
-    //quint x = a + b;
-    //measure x;
+    // qubit a = [1]q;
+    // qubit b = [1]q;
+    // quint x = a + b;
+    // measure x;
     
-    quint c = 10q;
-    quint d = 4q;
-    quint re = c + d;
-    measure re;
+    // quint c = 10q;
+    // quint d = 4q;
+    // quint re = c + d;
+    // measure re;
 }*/
 
 //Circuit scope tests //TODO: handle quantum circuit and variable scopes  
@@ -266,7 +255,7 @@ else{
 }*/
 
 //Functions tests II
-{
+/*{
     // bool A (int c = 10, bool aa){ //TODO: right now everything should has a default value, so we can handle params with no default value after those with default values, but we should think about it because this could be problematic.
     //     bool a = true;
     //     print a;
@@ -287,4 +276,20 @@ else{
         }
     }
     //print A(); //TODO: invali, A() is expression while print works on term.
-}
+}*/
+
+//Functions tests III with quantum types
+/*{
+    // void A (qubit a = 1q){
+    //     print a;
+    // }
+    // qubit c = 1q;
+    // A(c);
+
+    qubit B (qubit a = 1q){
+        not a;
+    }
+    qubit d = 0q;
+    qubit result = B(d); //TODO: handle return assignment for quantum types.
+    print result;
+}*/

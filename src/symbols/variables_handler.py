@@ -43,7 +43,7 @@ class VariablesHandler():
 
             #Handle quantum circuit update
             if(self.is_quantum_type(symbol_to_update.symbol_declaration_static_type)):
-                if(isinstance(new_state, Symbol)):
+                if(isinstance(new_state, Symbol) and not new_state.is_anonymous):
                     symbol_to_update.quantum_register = self.quantum_cirtcuit_handler.assign_quantum_register_to_variable(variable_name, new_state.quantum_register)
                 else:
                     self.quantum_cirtcuit_handler.replace_quantum_register(variable_name, symbol_to_update.value)
@@ -61,6 +61,7 @@ class VariablesHandler():
             
             new_symbol = self.create_anonymous_symbol(declaration_type, value, ast_token_index)
             new_symbol.name = variable_name
+            new_symbol.is_anonymous = False
             self.scope_handler.current_symbols_scope.symbols.append(new_symbol)
             #Handle quantum circuit update
             if(self.is_quantum_type(declaration_type)):
@@ -94,6 +95,7 @@ class VariablesHandler():
                 raise SyntaxError(f"Cannot convert type '{definition_type}' to '{value_qutes_type}' for '{variable_name}'.")
             
         new_symbol = Symbol(variable_name, SymbolClass.VariableSymbol, qutes_type, final_type, value, self.scope_handler.current_symbols_scope, ast_token_index)
+        new_symbol.is_anonymous = True
         return new_symbol
         
     
@@ -103,6 +105,7 @@ class VariablesHandler():
             anonymous_symbol.name = function_name
             anonymous_symbol.symbol_class = SymbolClass.FunctionSymbol
             anonymous_symbol.value = value
+            anonymous_symbol.is_anonymous = False
             anonymous_symbol.function_input_params_definition = input_params_definition.copy()
             self.scope_handler.current_symbols_scope.symbols.append(anonymous_symbol)
             return anonymous_symbol

@@ -20,6 +20,7 @@ class Symbol():
         self.inner_scope:ScopeTreeNode = None
         self.ast_token_index:int = ast_token_index
         self.is_return_value_of_function:bool = False
+        self.is_anonymous:bool = False
         self.function_input_params_definition:list[Symbol] = params
         self.quantum_register:QuantumRegister | None = quantum_register #quantum register is not used for classical variables
 

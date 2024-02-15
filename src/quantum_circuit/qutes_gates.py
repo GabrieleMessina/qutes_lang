@@ -1,5 +1,5 @@
 from quantum_circuit import QuantumCircuit, ClassicalRegister, QuantumCircuitHandler
-from symbols.types import Qubit, Quint
+from symbols.types import Qubit, Quint, QutesDataType
 
 class QutesGates():
     def __init__(self, ciruit_handler : QuantumCircuitHandler, variables_handler : 'VariablesHandler'):
@@ -86,7 +86,7 @@ class QutesGates():
 
         carry = handler.declare_quantum_register(f"carry{self.count}", Qubit())
         ancilla = handler.declare_quantum_register(f"ancilla{self.count}", Quint.init_from_size(5))
-        result_symbol = self.variables_handler.declare_variable("Quint", f"results{self.count}", Quint.init_from_size(number_bits_number+1))
+        result_symbol = self.variables_handler.declare_variable(QutesDataType.quint, f"results{self.count}", Quint.init_from_size(number_bits_number+1))
         results = result_symbol.quantum_register
         
         # TODO: who calls full adder gate needs to handle the clening of the first 3 qubits, in, out and carry
