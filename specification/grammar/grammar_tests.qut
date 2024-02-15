@@ -290,7 +290,19 @@
     qubit B (qubit a = 1q){
         not a;
     }
-    qubit d = 1q;
-    qubit result = B(d); //TODO: handle return assignment for quantum types.
-    print result;
+    qubit d = 0q;
+    B(d); //By Reference
+    print d;
+}*/
+
+//Functions tests IV with quantum types
+/*{
+    quint sum(quint a, quint b){
+        return a+b;
+    }
+
+    quint z = 2q;
+    quint y = 5q;
+    quint c = sum(z, y);
+    print c;
 }*/

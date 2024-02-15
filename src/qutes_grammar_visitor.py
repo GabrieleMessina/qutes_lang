@@ -285,6 +285,7 @@ class QutesGrammarVisitor(qutesVisitor):
         for index in range(len(function_params)):
             symbol_to_push = default_params_to_restore_on_exit[index]
             symbol_to_push.value = function_params[index].value
+            symbol_to_push.quantum_register = function_params[index].quantum_register
             symbol_params_to_push.append(symbol_to_push)
         [symbol for symbol in function_symbol.inner_scope.symbols if symbol.symbol_class == SymbolClass.FunctionSymbol][:len(function_params)] = symbol_params_to_push
 
