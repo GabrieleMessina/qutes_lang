@@ -192,6 +192,7 @@ class QutesGrammarVisitor(qutesVisitor):
 
         if(isinstance(ctx, qutesParser.AssignmentStatementContext)):
             if(self.log_code_structure): print(f"{str(var_name)} = {str(var_value)}", end=None)
+            var_symbol = self.variables_handler.update_variable_state(var_name, var_value)
         else:
             if(var_value != None):
                 var_symbol = self.variables_handler.update_variable_state(var_name, var_value)
@@ -480,7 +481,7 @@ class QutesGrammarVisitor(qutesVisitor):
                     #At first i was thinking about measure on assignment, but that is not actually needed,
                     #We can measure only when classical computation is required
                     #Or when explicitly required by the user.
-                    result = self.qutes_gates.sum(first_term_symbol.name, second_term_symbol.name)
+                    result = self.qutes_gates.sum(first_term_symbol, second_term_symbol)
                 else:
                     result = first_term + second_term
             if(ctx.SUB()):

@@ -142,10 +142,11 @@
     // quint x = a + b;
     // measure x;
     
-    // quint c = 10q;
-    // quint d = 4q;
-    // quint re = c + d;
-    // measure re;
+    quint c = 10q;
+    quint d = 4q;
+    quint re = c + d;
+    print re;
+    //measure re;
 }*/
 
 //Circuit scope tests //TODO: handle quantum circuit and variable scopes  
@@ -289,7 +290,7 @@
     qubit B (qubit a = 1q){
         not a;
     }
-    qubit d = 0q;
+    qubit d = 1q;
     qubit result = B(d); //TODO: handle return assignment for quantum types.
     print result;
 }*/

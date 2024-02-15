@@ -71,12 +71,14 @@ class QutesGates():
         handler.push_measure_operation(ancilla[4], results[number_bits_number]) # last carry
 
     
-    def sum(self, var_a_name:str, var_b_name:str) -> 'Symbol':
+    def sum(self, var_a_symbol:'Symbol', var_b_symbol:'Symbol') -> 'Symbol':
         self.count+=1
         handler = self.ciruit_handler
 
-        var_a = self.ciruit_handler._varname_to_register[var_a_name]
-        var_b = self.ciruit_handler._varname_to_register[var_b_name]
+        var_a_name = var_a_symbol.name
+        var_b_name = var_b_symbol.name
+        var_a = var_a_symbol.quantum_register
+        var_b = var_b_symbol.quantum_register
         number_bits_number = max(var_a.size, var_b.size)
 
         if(var_a.size != number_bits_number):
@@ -86,7 +88,7 @@ class QutesGates():
 
         carry = handler.declare_quantum_register(f"carry{self.count}", Qubit())
         ancilla = handler.declare_quantum_register(f"ancilla{self.count}", Quint.init_from_size(5))
-        result_symbol = self.variables_handler.declare_variable(QutesDataType.quint, f"results{self.count}", Quint.init_from_size(number_bits_number+1))
+        result_symbol = self.variables_handler.declare_variable(QutesDataType.quint, f"results{self.count}", max(var_a_symbol.ast_token_index, var_b_symbol.ast_token_index), Quint.init_from_size(number_bits_number+1))
         results = result_symbol.quantum_register
         
         # TODO: who calls full adder gate needs to handle the clening of the first 3 qubits, in, out and carry

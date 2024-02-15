@@ -46,7 +46,7 @@ class VariablesHandler():
                 if(isinstance(new_state, Symbol) and not new_state.is_anonymous):
                     symbol_to_update.quantum_register = self.quantum_cirtcuit_handler.assign_quantum_register_to_variable(variable_name, new_state.quantum_register)
                 else:
-                    self.quantum_cirtcuit_handler.replace_quantum_register(variable_name, symbol_to_update.value)
+                    symbol_to_update.quantum_register = self.quantum_cirtcuit_handler.replace_quantum_register(variable_name, symbol_to_update.value)
             return symbol_to_update
         else:
             raise SyntaxError(f"No variable declared with name '{variable_name}'.")

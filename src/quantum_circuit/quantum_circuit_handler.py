@@ -39,7 +39,7 @@ class QuantumCircuitHandler():
         self._registers_states[new_register] = quantum_variable.get_quantum_state()
         return new_register
     
-    def replace_quantum_register(self,  variable_name : str, quantum_variable : any) -> None:
+    def replace_quantum_register(self,  variable_name : str, quantum_variable : any) -> QuantumRegister:
         register_to_update = self._varname_to_register[variable_name]
         if(register_to_update is None):
             raise SystemError("Error trying to update an undeclared quantum register")
