@@ -42,7 +42,7 @@ class VariablesHandler():
             symbol_to_update.promoted_static_type = final_type
 
             #Handle quantum circuit update
-            if(self.is_quantum_type(symbol_to_update.symbol_declaration_static_type)):
+            if(QutesDataType.is_quantum_type(symbol_to_update.symbol_declaration_static_type)):
                 if(isinstance(new_state, Symbol) and not new_state.is_anonymous):
                     symbol_to_update.quantum_register = self.quantum_cirtcuit_handler.assign_quantum_register_to_variable(variable_name, new_state.quantum_register)
                 else:
@@ -64,7 +64,7 @@ class VariablesHandler():
             new_symbol.is_anonymous = False
             self.scope_handler.current_symbols_scope.symbols.append(new_symbol)
             #Handle quantum circuit update
-            if(self.is_quantum_type(declaration_type)):
+            if(QutesDataType.is_quantum_type(declaration_type)):
                 new_symbol.quantum_register = self.quantum_cirtcuit_handler.declare_quantum_register(variable_name, new_symbol.value)
 
             return new_symbol
@@ -135,6 +135,3 @@ class VariablesHandler():
         if(isinstance(var_value, Symbol)):
             return var_value.symbol_declaration_static_type
         return QutesDataType.type_of(var_value)
-    
-    def is_quantum_type(self, declaration_type:str) -> bool:
-        return declaration_type in [QutesDataType.qubit, QutesDataType.quint]

@@ -2,7 +2,7 @@ from typing import Any, Callable, cast
 from quantum_circuit.classical_register import ClassicalRegister
 from quantum_circuit.quantum_circuit import QuantumCircuit
 from quantum_circuit.quantum_register import QuantumRegister
-from symbols.types import Qubit, Quint
+from symbols.types import Qubit, Quint, Qustring
 from qiskit import IBMQ, Aer, transpile
 
 class QuantumCircuitHandler():
@@ -26,10 +26,7 @@ class QuantumCircuitHandler():
     def declare_quantum_register(self,  variable_name : str, quantum_variable : any) -> QuantumRegister:
         new_register = None
 
-        if(isinstance(quantum_variable, Qubit)):
-            new_register = QuantumRegister(1, variable_name, quantum_variable)
-        if(isinstance(quantum_variable, Quint)):
-            new_register = QuantumRegister(quantum_variable.size, variable_name, quantum_variable)
+        new_register = QuantumRegister(1, variable_name, quantum_variable)
 
         if(new_register is None):
             raise SystemError("Error trying to declare a quantum variable of unsupported type")
@@ -44,9 +41,10 @@ class QuantumCircuitHandler():
         if(register_to_update is None):
             raise SystemError("Error trying to update an undeclared quantum register")
 
+        #TODO: can we handle qubit like quint and qustring?
         if(isinstance(quantum_variable, Qubit)):
             pass
-        if(isinstance(quantum_variable, Quint)):
+        if(isinstance(quantum_variable, Quint) or isinstance(quantum_variable, Qustring)):
             #TODO-CRITICAL: this update actually change the reference, so all the old references around the code are still there. For now i hack this returning the new value and changing the name from update to replace.
             #Delete old quantum register and reference
             del self._registers_states[register_to_update]

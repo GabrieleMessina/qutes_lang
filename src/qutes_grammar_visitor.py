@@ -7,7 +7,7 @@ from symbols.symbol import Symbol, SymbolClass
 from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
 from symbols.variables_handler import VariablesHandler
 from quantum_circuit import QuantumCircuitHandler
-from symbols.types import Qubit, Quint, QutesDataType
+from symbols.types import Qubit, Quint, Qustring, QutesDataType
 from quantum_circuit.qutes_gates import QutesGates
 
 class QutesGrammarVisitor(qutesVisitor):
@@ -400,9 +400,20 @@ class QutesGrammarVisitor(qutesVisitor):
                 if(self.log_code_structure): print(f"print {first_term_print}", end=None)
                 if(self.log_trace_enabled): print("visitUnaryOperator -> PRINT")
                 if(first_term_symbol):
-                    if(self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
-                        new_value = int(self.quantum_cirtcuit_handler.run_and_measure(first_term_symbol.quantum_register), 2)
-                        print(new_value)
+                    if(QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
+                        if(first_term_symbol.symbol_declaration_static_type == QutesDataType.qustring):
+                            bytes_str = self.quantum_cirtcuit_handler.run_and_measure(first_term_symbol.quantum_register)
+                            index = 0
+                            string_value = ""
+                            #TODO: chr and ord, works only for char of size 7 bits
+                            while index < first_term_symbol.value.number_of_chars * Qustring.default_char_size:
+                                bin_char = bytes_str[index:Qustring.default_char_size + index]
+                                string_value = string_value + chr(int(bin_char, 2))
+                                index = index + Qustring.default_char_size
+                            print(string_value)
+                        else:
+                            new_value = int(self.quantum_cirtcuit_handler.run_and_measure(first_term_symbol.quantum_register), 2)
+                            print(new_value)
                         #TODO: handle the conversion from a string of binadry digits to the current quantum variable type
                         #TODO: adding the next line cause a crash in the circuit 
                         # self.variables_handler.update_variable_state(first_term_symbol.name, new_value) 
@@ -415,35 +426,35 @@ class QutesGrammarVisitor(qutesVisitor):
             if(ctx.SUB()):
                 if(self.log_code_structure): print(f"-{first_term_print}", end=None)
                 if(self.log_trace_enabled): print("visitUnaryOperator -> SUB")
-                if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
+                if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
                     result = self.quantum_cirtcuit_handler.push_pauliz_operation(first_term_symbol.quantum_register)
                 result = -first_term
             if(ctx.NOT()):
                 if(self.log_code_structure): print(f"NOT{first_term_print}", end=None)
                 if(self.log_trace_enabled): print("visitUnaryOperator -> NOT")
-                if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
+                if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
                     result = self.quantum_cirtcuit_handler.push_not_operation(first_term_symbol.quantum_register)
                 else:
                     result = not first_term
             if(ctx.PAULIY()):
                 if(self.log_code_structure): print(f"NOT{first_term_print}", end=None)
                 if(self.log_trace_enabled): print("visitUnaryOperator -> NOT")
-                if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
+                if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
                     result = self.quantum_cirtcuit_handler.push_pauliy_operation(first_term_symbol.quantum_register)
             if(ctx.PAULIZ()):
                 if(self.log_code_structure): print(f"PAULIZ{first_term_print}", end=None)
                 if(self.log_trace_enabled): print("visitUnaryOperator -> PAULIZ")
-                if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
+                if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
                     result = self.quantum_cirtcuit_handler.push_pauliz_operation(first_term_symbol.quantum_register)
             if(ctx.HADAMARD()):
                 if(self.log_code_structure): print(f"HADAMARD{first_term_print}", end=None)
                 if(self.log_trace_enabled): print("visitUnaryOperator -> HADAMARD")
-                if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
+                if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
                     result = self.quantum_cirtcuit_handler.push_hadamard_operation(first_term_symbol.quantum_register)
             if(ctx.MEASURE()):
                 if(self.log_code_structure): print(f"MEASURE{first_term_print}", end=None)
                 if(self.log_trace_enabled): print("visitUnaryOperator -> MEASURE")
-                if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
+                if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
                     result = self.quantum_cirtcuit_handler.push_measure_operation(first_term_symbol.quantum_register)
         return result
 
@@ -474,8 +485,8 @@ class QutesGrammarVisitor(qutesVisitor):
             if(ctx.ADD()):
                 if(self.log_code_structure): print(f"{first_term_print} + {second_term_print}", end=None)
                 if(self.log_trace_enabled): print("visitBinaryOperator -> ADD")
-                if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)
-                    and second_term_symbol and self.variables_handler.is_quantum_type(second_term_symbol.symbol_declaration_static_type)):
+                if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)
+                    and second_term_symbol and QutesDataType.is_quantum_type(second_term_symbol.symbol_declaration_static_type)):
                     #TODO: we should measure the circuit and assign the value to the result variable.
                     #But we don't want to measure the circuit at every operation, so we need to return a kind of promise
                     #Promise that will be measured only when needed
@@ -488,7 +499,7 @@ class QutesGrammarVisitor(qutesVisitor):
             if(ctx.SUB()):
                 if(self.log_code_structure): print(f"{first_term_print} - {second_term_print}", end=None)
                 if(self.log_trace_enabled): print("visitBinaryOperator -> SUB")
-                if (first_term_symbol and self.variables_handler.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
+                if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
                     #TODO: handle sub operation of quantum variables
                     pass
                 result = first_term - second_term
@@ -541,6 +552,14 @@ class QutesGrammarVisitor(qutesVisitor):
         symbol = self.variables_handler.create_anonymous_symbol(QutesDataType.quint, value, ctx.start.tokenIndex)
         if(self.log_code_structure): print(value, end=None)
         return self.__visit("visitQuint", lambda : symbol)
+
+    
+    # Visit a parse tree produced by qutes_parser#qustring.
+    def visitQustring(self, ctx:qutesParser.QustringContext):
+        value = Qustring.init_from_string(ctx.getText())
+        symbol = self.variables_handler.create_anonymous_symbol(QutesDataType.qustring, value, ctx.start.tokenIndex)
+        if(self.log_code_structure): print(value, end=None)
+        return self.__visit("visitQustring", lambda : symbol)
 
     
     # Visit a parse tree produced by qutesParser#float.

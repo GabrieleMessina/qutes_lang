@@ -287,6 +287,15 @@ class qutes_parserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by qutes_parser#qustring.
+    def enterQustring(self, ctx:qutes_parser.QustringContext):
+        pass
+
+    # Exit a parse tree produced by qutes_parser#qustring.
+    def exitQustring(self, ctx:qutes_parser.QustringContext):
+        pass
+
+
     # Enter a parse tree produced by qutes_parser#float.
     def enterFloat(self, ctx:qutes_parser.FloatContext):
         pass

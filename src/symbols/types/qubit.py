@@ -44,6 +44,7 @@ class Qubit():
         raise TypeError(f"Cannot convert {type(var_value)} to qubit.")
     
     def __init__(self, alpha : complex = complex(1), beta : complex = complex(0)):
+        self.size:int = 1
         self.alpha = alpha
         self.beta = beta
         self.phase = Phase.Positive if (alpha * beta).real >= 0 else Phase.Negative 

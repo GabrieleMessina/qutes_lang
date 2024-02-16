@@ -81,6 +81,7 @@ type
    | STRING_TYPE
    | QUBIT_TYPE
    | QUINT_TYPE
+   | QUSTRING_TYPE
    | VOID_TYPE
    ;
 
@@ -111,6 +112,10 @@ qubit
 
 quint
    : QUINT_LITERAL
+   ;
+
+qustring
+   : QUSTRING_LITERAL
    ;
 
 float

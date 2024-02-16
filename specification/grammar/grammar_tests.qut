@@ -306,3 +306,9 @@
     quint c = sum(z, y);
     print c;
 }*/
+
+//Qustring
+{
+    qustring a = "ab";
+    print a;
+}

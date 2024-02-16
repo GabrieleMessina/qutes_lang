@@ -1,5 +1,6 @@
 from symbols.types.qubit import Qubit
 from symbols.types.quint import Quint
+from symbols.types.qustring import Qustring
 from enum import Enum, auto
 
 class QutesDataType(Enum):
@@ -10,13 +11,20 @@ class QutesDataType(Enum):
     string = auto()
     qubit = auto()
     quint = auto()
+    qustring = auto()
     void = auto()
 
+    def is_quantum_type(type:str):
+        return QutesDataType.is_quantum_type(QutesDataType.from_string_type(type))
+
     def is_quantum_type(type:'QutesDataType'):
-        return type in [QutesDataType.qubit, QutesDataType.quint]
+        return type in [QutesDataType.qubit, QutesDataType.quint, QutesDataType.qustring]
     
+    def is_classical_type(type:str):
+        return QutesDataType.is_classical_type(QutesDataType.from_string_type(type))
+
     def is_classical_type(type:'QutesDataType'):
-        return type not in [QutesDataType.qubit, QutesDataType.quint]
+        return type not in [QutesDataType.qubit, QutesDataType.quint, QutesDataType.qustring]
 
     def type_of(var_value : any) -> 'QutesDataType':
         from symbols import Symbol
@@ -34,6 +42,8 @@ class QutesDataType(Enum):
             return QutesDataType.qubit
         if isinstance(var_value, Quint):
             return QutesDataType.quint
+        if isinstance(var_value, Qustring):
+            return QutesDataType.qustring
         if isinstance(var_value, Symbol):
             return var_value.symbol_declaration_static_type
         return QutesDataType.undefined
@@ -53,6 +63,8 @@ class QutesDataType(Enum):
                 return QutesDataType.qubit
             case "quint":
                 return QutesDataType.quint
+            case "qustring":
+                return QutesDataType.qustring
             case "void":
                 return QutesDataType.void
             case _:
@@ -72,6 +84,8 @@ class QutesDataType(Enum):
                 return Qubit()
             case QutesDataType.quint:
                 return Quint()
+            case QutesDataType.qustring:
+                return Qustring()
             case QutesDataType.void:
                 return None
             case _:
@@ -103,6 +117,7 @@ class TypeCastingHandler():
         QutesDataType.string: [QutesDataType.string, QutesDataType.float, QutesDataType.int, QutesDataType.bool],
         QutesDataType.qubit: [QutesDataType.qubit,  QutesDataType.string, QutesDataType.bool],
         QutesDataType.quint: [QutesDataType.quint, QutesDataType.qubit, QutesDataType.string, QutesDataType.int, QutesDataType.bool],
+        QutesDataType.qustring: [QutesDataType.qustring, QutesDataType.quint, QutesDataType.qubit, QutesDataType.string, QutesDataType.int, QutesDataType.bool],
         QutesDataType.void: [],
     }
     type_down_castable_to : dict[Enum, list[QutesDataType]] = {
@@ -113,6 +128,7 @@ class TypeCastingHandler():
         QutesDataType.string: [QutesDataType.string],
         QutesDataType.qubit: [QutesDataType.quint, QutesDataType.qubit],
         QutesDataType.quint: [QutesDataType.quint],
+        QutesDataType.qustring: [QutesDataType.qustring],
         QutesDataType.void: [],
     }
 
@@ -130,6 +146,8 @@ class TypeCastingHandler():
                 return Qubit.fromValue(var_value)
             case QutesDataType.quint:
                 return Quint.fromValue(var_value)
+            case QutesDataType.qustring:
+                return Qustring.fromValue(var_value)
             case _:
                 return QutesDataType.undefined
             
@@ -167,6 +185,8 @@ class TypeCastingHandler():
             case QutesDataType.qubit:
                 return Qubit.fromValue(var_value)
             case QutesDataType.quint:
+                return Quint.fromValue(var_value)
+            case QutesDataType.qustring:
                 return Quint.fromValue(var_value)
             case _:
                 return QutesDataType.undefined

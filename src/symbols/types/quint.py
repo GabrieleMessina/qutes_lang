@@ -37,7 +37,7 @@ class Quint():
             return Quint.init_from_integer(int(literal))
         return Quint(qubits)
     
-    def init_from_integer(literal : int | bool) -> 'Quint':
+    def init_from_integer(literal : int | bool, initial_size:int = -1) -> 'Quint':
         binary_rapresentation = utils.binary(literal)
         temp_state = []
         for digit in binary_rapresentation:
@@ -45,6 +45,9 @@ class Quint():
                 temp_state.append(Qubit(complex(1),complex(0)))
             else:
                 temp_state.append(Qubit(complex(0),complex(1)))
+        if(initial_size != -1 and (len(temp_state) % initial_size != 0)):
+            to_add = initial_size - len(temp_state) % initial_size
+            temp_state.extend(Quint.default_value * to_add)
         return Quint(temp_state)
 
     def init_from_size(number_of_bits : int) -> 'Quint':

@@ -13,9 +13,9 @@ from quantum_circuit import QuantumCircuitHandler
 def main(argv):
     """Entrypoint for Qutes Lang compiler"""
 
-    log_symbols_scope = True
+    log_symbols_scope = False
     log_lisp_tree = False
-    log_quantum_circuit = True
+    log_quantum_circuit = False
 
     parser = argparse.ArgumentParser(description='Compile Qutes Lang source code.')
     parser.add_argument('file_path', metavar='file_path', help='The file path of the Qutes source code.')

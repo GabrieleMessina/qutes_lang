@@ -10,6 +10,7 @@ BOOL_TYPE : 'bool' ;
 STRING_TYPE : 'string' ;
 QUBIT_TYPE : 'qubit' ;
 QUINT_TYPE : 'quint' ;
+QUSTRING_TYPE : 'qustring' ;
 FLOAT_TYPE : 'float' ;
 VOID_TYPE : 'void' ;
 RETURN : 'return' ;
@@ -111,12 +112,18 @@ QUINT_LITERAL
    | MATH_SIGN? DIGIT+ [q]
    ;
 
+QUSTRING_LITERAL
+   : STRING_LITERAL [q]
+   ;
+
+
 SYMBOL_LITERAL
    : [a-z0-9]+
    ;
 
 STRING_LITERAL
-   :  '"' ('\\' . | '""' | ~["\\])* '"';
+   :  '"' ('\\' . | '""' | ~["\\])* '"'
+   ;
 
 
 // ----- Whitespace Character Handling -----

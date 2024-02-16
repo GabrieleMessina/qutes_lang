@@ -164,6 +164,11 @@ class qutes_parserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by qutes_parser#qustring.
+    def visitQustring(self, ctx:qutes_parser.QustringContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by qutes_parser#float.
     def visitFloat(self, ctx:qutes_parser.FloatContext):
         return self.visitChildren(ctx)
