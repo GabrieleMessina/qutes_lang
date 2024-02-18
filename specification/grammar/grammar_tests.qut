@@ -308,7 +308,30 @@
 }*/
 
 //Qustring
-{
+/*{
     qustring a = "ab";
     print a;
+}*/
+
+
+//Grover
+{
+    qubit a; qubit b; qubit c;
+    //mcz a, b, c;
+    void oracle(){
+        //001
+        not c;
+        mcz a, b, c;
+        not c;
+
+        //110
+        not a;
+        not b;
+        mcz a, b, c;
+        not b;
+        not a;
+    }
+
+    grover oracle();
+    measure;
 }

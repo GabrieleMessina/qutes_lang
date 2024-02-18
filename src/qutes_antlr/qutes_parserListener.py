@@ -188,6 +188,24 @@ class qutes_parserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by qutes_parser#MultipleUnaryOperator.
+    def enterMultipleUnaryOperator(self, ctx:qutes_parser.MultipleUnaryOperatorContext):
+        pass
+
+    # Exit a parse tree produced by qutes_parser#MultipleUnaryOperator.
+    def exitMultipleUnaryOperator(self, ctx:qutes_parser.MultipleUnaryOperatorContext):
+        pass
+
+
+    # Enter a parse tree produced by qutes_parser#GroverOperator.
+    def enterGroverOperator(self, ctx:qutes_parser.GroverOperatorContext):
+        pass
+
+    # Exit a parse tree produced by qutes_parser#GroverOperator.
+    def exitGroverOperator(self, ctx:qutes_parser.GroverOperatorContext):
+        pass
+
+
     # Enter a parse tree produced by qutes_parser#IdentityOperator.
     def enterIdentityOperator(self, ctx:qutes_parser.IdentityOperatorContext):
         pass
@@ -212,6 +230,15 @@ class qutes_parserListener(ParseTreeListener):
 
     # Exit a parse tree produced by qutes_parser#BinaryOperator.
     def exitBinaryOperator(self, ctx:qutes_parser.BinaryOperatorContext):
+        pass
+
+
+    # Enter a parse tree produced by qutes_parser#termList.
+    def enterTermList(self, ctx:qutes_parser.TermListContext):
+        pass
+
+    # Exit a parse tree produced by qutes_parser#termList.
+    def exitTermList(self, ctx:qutes_parser.TermListContext):
         pass
 
 

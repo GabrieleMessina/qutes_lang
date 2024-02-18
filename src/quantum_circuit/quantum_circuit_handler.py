@@ -1,16 +1,20 @@
+import math
 from typing import Any, Callable, cast
 from quantum_circuit.classical_register import ClassicalRegister
 from quantum_circuit.quantum_circuit import QuantumCircuit
 from quantum_circuit.quantum_register import QuantumRegister
 from symbols.types import Qubit, Quint, Qustring
 from qiskit import IBMQ, Aer, transpile
+from qiskit.circuit.library import GroverOperator, MCMT, ZGate, StatePreparation
+from qiskit.circuit.gate import Gate
 
 class QuantumCircuitHandler():
     def __init__(self):
         self._quantum_registers : list[QuantumRegister] = []
         self._registers_states : dict[QuantumRegister | ClassicalRegister, list[complex] | str | None] = {}
         self._classic_registers : list[ClassicalRegister] = []
-        self._operation_stack : list[Callable[[QuantumCircuit], None]] = []
+        self._operation_stacks :  list[list[Callable[[QuantumCircuit], None]]] = [[]]
+        self._current_operation_stack :  list[Callable[[QuantumCircuit], None]] = self._operation_stacks[-1]
         self._varname_to_register : dict[str, QuantumRegister] = {}
 
     def declare_classical_register(self,  variable_name : str, bits_number : int) -> ClassicalRegister:
@@ -71,22 +75,29 @@ class QuantumCircuitHandler():
             self._quantum_registers.remove(register_to_update)
             #Assign already created register reference to the variable
             self._varname_to_register[variable_name] = quantum_register
-
         return register_to_update
+    
+    def start_quantum_function(self):
+        self._operation_stacks.append([])
+        self._current_operation_stack = self._operation_stacks[-1]
+
+    def end_quantum_function(self, gate_name:str, create_gate:bool = False) -> Gate:
+        gate = self.create_circuit()
+        if(create_gate):
+            gate = gate.to_gate()
+        gate.name = gate_name
+        self._operation_stacks.pop()
+        self._current_operation_stack = self._operation_stacks[-1]
+        return gate
 
     def create_circuit(self) -> QuantumCircuit:
         circuit = QuantumCircuit(*self._quantum_registers, *self._classic_registers)
         for register in self._quantum_registers:
             # circuit.initialize('01', register, True)
             # circuit.initialize([0, 1/np.sqrt(2), -1.j/np.sqrt(2), 0], register, True)
-            circuit.initialize(self._registers_states[register], register, True)
-
-        circuit.barrier()
-
-        for operation in self._operation_stack:
+            circuit.prepare_state(self._registers_states[register], register, "Init" ,normalize=True)
+        for operation in self._current_operation_stack:
             operation(circuit)
-
-        circuit.barrier()
         return circuit
 
     def print_circuit(self, circuit:QuantumCircuit):
@@ -128,45 +139,66 @@ class QuantumCircuitHandler():
 
 
     def push_not_operation(self, quantum_register : QuantumRegister) -> None:
-        self._operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).x(quantum_register))
+        self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).x(quantum_register))
     
     def push_cnot_operation(self, quantum_register_control : QuantumRegister, quantum_register_target : QuantumRegister) -> None:
-        self._operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).cx(quantum_register_control, quantum_register_target))
+        self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).cx(quantum_register_control, quantum_register_target))
 
     def push_pauliy_operation(self, quantum_register : QuantumRegister) -> None:
-        self._operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).y(quantum_register))
+        self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).y(quantum_register))
 
     def push_pauliz_operation(self, quantum_register : QuantumRegister) -> None:
-        self._operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).z(quantum_register))
+        self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).z(quantum_register))
+
+    def push_MCZ_operation(self, quantum_registers : list[QuantumRegister]) -> None:
+        mcz_gate = MCMT(ZGate(), len(quantum_registers) - 1, 1)
+        self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).compose(mcz_gate, [qubit[0] for qubit in quantum_registers], inplace=True))
 
     def push_hadamard_operation(self, quantum_register : QuantumRegister) -> None:
-        self._operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).h(quantum_register))
+        self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).h(quantum_register))
 
     def push_barrier_operation(self) -> None:
-        self._operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).barrier())
+        self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).barrier())
 
     def push_swap_operation(self, quantum_register_a : QuantumRegister, quantum_register_b : QuantumRegister) -> None:
-        self._operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).swap(quantum_register_a, quantum_register_b))
+        self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).swap(quantum_register_a, quantum_register_b))
 
     def push_reset_operation(self, quantum_register : QuantumRegister) -> None:
-        self._operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).reset(quantum_register))
+        self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).reset(quantum_register))
 
-    def push_compose_circuit_operation(self, circuit_to_compose : QuantumCircuit, quantum_registers : QuantumRegister, classical_registers : ClassicalRegister = None) -> None:
-        self._operation_stack.append(lambda circuit: circuit.compose(circuit_to_compose, quantum_registers, classical_registers, inplace=True))
+    def push_compose_circuit_operation(self, circuit_to_compose : QuantumCircuit, quantum_registers : QuantumRegister = None, classical_registers : ClassicalRegister = []) -> None:
+        if(quantum_registers == None):
+            quantum_registers = self._quantum_registers
+        self._current_operation_stack.append(lambda circuit: circuit.compose(circuit_to_compose, [qubit[0] for qubit in quantum_registers], [bit[0] for bit in classical_registers], inplace=True))
 
-    def push_measure_operation(self, quantum_registers : QuantumRegister, classical_registers : ClassicalRegister = None) -> None:
-        if(classical_registers != None):
-            self._operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).measure(quantum_registers, classical_registers))
-            return
+    def push_measure_operation(self, quantum_registers : list[QuantumRegister] = None, classical_registers : list[ClassicalRegister] = None) -> None:
+        if(quantum_registers == None):
+            quantum_registers = self._quantum_registers
+
+        if(classical_registers == None):
+            classical_registers = []
+            for quantum_register in quantum_registers:
+                classic_register_name = "measured_"+quantum_register.name
+                classic_register = [reg for reg in self._classic_registers if reg.name == classic_register_name]
+                if(not any(classic_register)):
+                    classical_registers.append(self.declare_classical_register(classic_register_name, quantum_register.size))
         
-        classic_register_name = "measured_"+quantum_registers.name
-        classic_register = [reg for reg in self._classic_registers if reg.name == classic_register_name]
-        if(not any(classic_register)):
-            classic_register.append(self.declare_classical_register(classic_register_name, quantum_registers.size))
-        self._operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).measure(quantum_registers, classic_register[0]))
+        self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).measure([qubit[0] for qubit in quantum_registers], [bit[0] for bit in classical_registers]))
+
+    def push_grover_operation(self, quantum_function:QuantumCircuit, n_iteration = 1) -> None:
+        grover_op = GroverOperator(quantum_function)
+        
+        optimal_num_iterations = math.floor(
+            math.pi / (4 * math.asin(math.sqrt(2 / 2**grover_op.num_qubits)))
+        )
+        n_iteration = optimal_num_iterations
+
+        for register in self._quantum_registers:
+            self.push_hadamard_operation(register)
+        self.push_compose_circuit_operation(grover_op.power(n_iteration))
 
     def run_and_measure(self, quantum_registers : QuantumRegister) -> str:        
         self.push_measure_operation(quantum_registers)
         result = self.run_circuit(self.create_circuit())[0].replace(' ', '')
-        self._operation_stack.pop()
+        self._current_operation_stack.pop()
         return result
