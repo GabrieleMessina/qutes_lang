@@ -16,7 +16,7 @@ def main(argv):
     log_symbols_scope = False
     log_lisp_tree = False
     log_quantum_circuit = True
-    number_of_iterations = 100
+    number_of_iterations = 1000
 
     parser = argparse.ArgumentParser(description='Compile Qutes Lang source code.')
     parser.add_argument('file_path', metavar='file_path', help='The file path of the Qutes source code.')

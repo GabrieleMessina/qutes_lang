@@ -70,6 +70,28 @@ class QutesDataType(Enum):
             case _:
                 return QutesDataType.undefined
 
+    def promote_classical_to_quantum_value(classical_value: any) -> Qubit | Quint | Qustring:
+        type = QutesDataType.type_of(classical_value)
+        match type:
+            case QutesDataType.bool:
+                return Qubit.fromValue(classical_value)
+            case QutesDataType.int:
+                return Quint.fromValue(classical_value)
+            case QutesDataType.float:
+                raise NotImplementedError()
+            case QutesDataType.string:
+                return Qustring.fromValue(classical_value)
+            case QutesDataType.qubit:
+                return classical_value
+            case QutesDataType.quint:
+                return classical_value
+            case QutesDataType.qustring:
+                return classical_value
+            case QutesDataType.void:
+                return None
+            case _:
+                return QutesDataType.undefined
+
     def get_default_value(var_type : 'QutesDataType'):
         match var_type:
             case QutesDataType.bool:
