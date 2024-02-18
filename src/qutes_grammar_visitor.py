@@ -149,7 +149,7 @@ class QutesGrammarVisitor(qutesVisitor):
         self.scope_handler.push_scope()
         function_name = self.visit(ctx.functionName())
         if(ctx.functionDeclarationParams()):
-            function_params = self.visit()
+            function_params = self.visit(ctx.functionDeclarationParams())
         #do not call a visit on the statement here, or on all the context, the statement is being saved by the discovery and should be traversed only on function execution
         self.scope_handler.pop_scope()
         return None
@@ -339,7 +339,12 @@ class QutesGrammarVisitor(qutesVisitor):
         elif(ctx.EQUAL()):
             if(self.log_code_structure): print(f"{first_term_symbol} == {second_term_symbol}", end=None)
             if(self.log_trace_enabled): print("visitTest -> equal")
-            result = first_term == second_term
+            if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)
+                and second_term_symbol and not QutesDataType.is_quantum_type(second_term_symbol.symbol_declaration_static_type)):
+                # At the moment this only works for comparing quantum variables to classical values.
+                result = self.quantum_cirtcuit_handler.push_equals_operation(first_term_symbol.quantum_register, second_term_symbol.value)
+            else:
+                result = first_term == second_term
         elif(ctx.GREATEREQUAL()):
             if(self.log_code_structure): print(f"{first_term_symbol} >= {second_term_symbol}", end=None)
             if(self.log_trace_enabled): print("visitTest -> greater equal")

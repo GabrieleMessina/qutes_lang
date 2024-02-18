@@ -163,6 +163,17 @@ class QuantumCircuitHandler():
     def push_swap_operation(self, quantum_register_a : QuantumRegister, quantum_register_b : QuantumRegister) -> None:
         self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).swap(quantum_register_a, quantum_register_b))
 
+    def push_equals_operation(self, quantum_register_a : QuantumRegister, classical_value : Any) -> None:
+        quantum_value : Qubit | Quint | Qustring = QutesDataType.promote_classical_to_quantum_value(classical_value)
+        for index in range(quantum_register_a.size):
+            if(len(quantum_value.qubit_state) > index):
+                qubit = quantum_value.qubit_state[index]
+                if(qubit.alpha == 1 and qubit.beta == 0):
+                    self.push_not_operation(quantum_register_a[index])
+            else:
+                self.push_not_operation(quantum_register_a[index])
+
+
     def push_reset_operation(self, quantum_register : QuantumRegister) -> None:
         self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).reset(quantum_register))
 
