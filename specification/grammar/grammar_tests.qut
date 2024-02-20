@@ -314,17 +314,17 @@
 }*/
 
 
-//Grover
-{
+//Grover I
+/*{
     qubit a; qubit b; qubit c;
     //mcz a, b, c;
     void oracle(){
-        //001
+        //011
         not c;
         mcz a, b, c;
         not c;
 
-        //110
+        //100
         not a;
         not b;
         mcz a, b, c;
@@ -334,4 +334,43 @@
 
     grover oracle();
     measure;
+}*/
+
+
+//Grover II
+{
+    //TODO: in the current implementation the parser counts for each bit the times it's equal to 1,
+    //      but this means we could have a 5 from measuring 'a' below.
+    //      there is a way of initialize the qubits so that they cannot reach unwanted values?
+    //quint a = [1,4,6]q;
+
+    quint a = [[0,1]q,[0,1]q,[0,1]q];
+    void oracle(){
+        //011
+        a == 3;
+        mcz a;
+        a == 3;
+
+        // a == 4;
+        // mcz a;
+        // a == 4;
+
+        // a == 7;
+        // mcz a;
+        // a == 7;
+
+        // //100
+        // a == 4;
+        // mcz a;
+        // a == 4;
+
+        // //110
+        // a == 6;
+        // mcz a;
+        // a == 6;
+    }
+
+    //oracle();
+    grover oracle();
+    //measure;
 }
