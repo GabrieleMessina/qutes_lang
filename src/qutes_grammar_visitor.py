@@ -268,8 +268,9 @@ class QutesGrammarVisitor(qutesVisitor):
         if(ctx.functionCallParams()):
             function_params = self.visit(ctx.functionCallParams())
         result:Symbol = self.__visit("visitFunctionCall", lambda : self.__visitFunctionCall(function_name, function_params, ctx.start.tokenIndex))
-        function_symbol = self.variables_handler.get_function_symbol(function_name, ctx.start.tokenIndex, function_params)
-        self.quantum_cirtcuit_handler.push_compose_circuit_operation(function_symbol.quantum_function)
+        #TODO: staff commented for make return value work for quantum variable, do some tests to assure the behaviour is correct
+        # function_symbol = self.variables_handler.get_function_symbol(function_name, ctx.start.tokenIndex, function_params)
+        # self.quantum_cirtcuit_handler.push_compose_circuit_operation(function_symbol.quantum_function)
         return result
         
     def __visitFunctionCall(self, function_name, function_params, tokenIndex):
@@ -290,10 +291,11 @@ class QutesGrammarVisitor(qutesVisitor):
             symbol_params_to_push.append(symbol_to_push)
         [symbol for symbol in function_symbol.inner_scope.symbols if symbol.symbol_class == SymbolClass.FunctionSymbol][:len(function_params)] = symbol_params_to_push
 
-        self.quantum_cirtcuit_handler.start_quantum_function()
+        #TODO: staff commented for make return value work for quantum variable, do some tests to assure the behaviour is correct
+        # self.quantum_cirtcuit_handler.start_quantum_function()
         result = self.__visit("visitFunctionCall", lambda : self.visitChildren(function_symbol.value))
-        gate = self.quantum_cirtcuit_handler.end_quantum_function(function_symbol.name)
-        function_symbol.quantum_function = gate
+        # gate = self.quantum_cirtcuit_handler.end_quantum_function(function_symbol.name)
+        # function_symbol.quantum_function = gate
 
         self.scope_handler.current_symbols_scope = scope_to_restore_on_exit
         [symbol for symbol in function_symbol.inner_scope.symbols if symbol.symbol_class == SymbolClass.FunctionSymbol][:len(function_params)] = default_params_to_restore_on_exit
