@@ -161,7 +161,7 @@ class QutesGrammarVisitor(qutesVisitor):
         
     # Visit a parse tree produced by qutes_parser#variableDeclaration.
     def visitVariableDeclaration(self, ctx:qutesParser.VariableDeclarationContext):
-        var_type = None # we already know the variable type thanks to the discovery listener.
+        var_type =  self.visit(ctx.variableType()) # we already know the variable type thanks to the discovery listener.
         var_name = self.visit(ctx.variableName())
         var_value = None
 
@@ -177,7 +177,7 @@ class QutesGrammarVisitor(qutesVisitor):
 
     def __visit_assignment_statement(self, var_name : str | Symbol, var_value, ctx:(qutesParser.AssignmentStatementContext | qutesParser.VariableDeclarationContext)):
         if(ctx.expr()):
-            var_value = self.visitChildren(ctx.expr())
+            var_value = self.visit(ctx.expr())
 
         if(isinstance(var_name, Symbol)):
             var_symbol = var_name
@@ -188,8 +188,6 @@ class QutesGrammarVisitor(qutesVisitor):
         if(var_value == None):
             var_value =  QutesDataType.get_default_value(var_symbol.symbol_declaration_static_type)
         
-        var_symbol = self.variables_handler.update_variable_state(var_name, var_value)
-
         if(isinstance(ctx, qutesParser.AssignmentStatementContext)):
             if(self.log_code_structure): print(f"{str(var_name)} = {str(var_value)}", end=None)
             var_symbol = self.variables_handler.update_variable_state(var_name, var_value)
@@ -252,16 +250,15 @@ class QutesGrammarVisitor(qutesVisitor):
     def visitExpr(self, ctx:qutesParser.ExprContext):
         return self.__visit("visitExpr", lambda : self.__visit_expr(ctx))
     def __visit_expr(self, ctx:qutesParser.ExprContext):
-        result = None
+        result = self.visitChildren(ctx)
         if(ctx.term()):
             if(self.log_trace_enabled): print("visitExpr -> term")
-            result = self.visitChildren(ctx)
+        if(ctx.functionCall()):
+            if(self.log_trace_enabled): print("functionCall -> term")
         if(ctx.test()):
             if(self.log_trace_enabled): print("visitExpr -> test")
-            result = self.visitChildren(ctx)
         if(ctx.parenExpr()):
             if(self.log_trace_enabled): print("visitExpr -> parenExpr")
-            result = self.visitChildren(ctx)
         return result
 
     # Visit a parse tree produced by qutes_parser#functionCall.
@@ -270,8 +267,8 @@ class QutesGrammarVisitor(qutesVisitor):
         function_params:list[Symbol] = []
         if(ctx.functionCallParams()):
             function_params = self.visit(ctx.functionCallParams())
-        result = self.__visit("visitFunctionCall", lambda : self.__visitFunctionCall(function_name, function_params, ctx.start.tokenIndex))
-        function_symbol = self.variables_handler.get_function_symbol(function_name, ctx.start.tokenIndex, function_params)  
+        result:Symbol = self.__visit("visitFunctionCall", lambda : self.__visitFunctionCall(function_name, function_params, ctx.start.tokenIndex))
+        function_symbol = self.variables_handler.get_function_symbol(function_name, ctx.start.tokenIndex, function_params)
         self.quantum_cirtcuit_handler.push_compose_circuit_operation(function_symbol.quantum_function)
         return result
         

@@ -76,7 +76,7 @@ class QuantumCircuitHandler():
             self._quantum_registers.remove(register_to_update)
             #Assign already created register reference to the variable
             self._varname_to_register[variable_name] = quantum_register
-        return register_to_update
+        return quantum_register
     
     def start_quantum_function(self):
         self._operation_stacks.append([])
