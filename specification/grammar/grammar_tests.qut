@@ -236,7 +236,7 @@
     // or
     // int resultStartIndex = find(entireBook, "some string.");
 
-    bool A (int c = 10){ //TODO: handle return type and return statement
+    bool A (int c = 10){
         bool a = false;
         print a;
         print c;
@@ -300,9 +300,10 @@
     quint sum(quint a, quint b){
         return a+b;
     }
+    
 
-    quint z = 2q;
-    quint y = 5q;
+    quint z = 1q;
+    quint y = 3q;
     quint c = sum(z, y);
     print c;
 }*/
@@ -344,33 +345,6 @@
     //      there is a way of initialize the qubits so that they cannot reach unwanted values?
     //quint a = [1,4,6]q;
 
-    quint a = [[0,1]q,[0,1]q,[0,1]q];
-    void oracle(){
-        //011
-        a == 3;
-        mcz a;
-        a == 3;
-
-        // a == 4;
-        // mcz a;
-        // a == 4;
-
-        // a == 7;
-        // mcz a;
-        // a == 7;
-
-        // //100
-        // a == 4;
-        // mcz a;
-        // a == 4;
-
-        // //110
-        // a == 6;
-        // mcz a;
-        // a == 6;
-    }
-
-    //oracle();
-    grover oracle();
-    //measure;
+    quint a = [[0,1]q,[0,1]q,[0,1]q]; //hadamard applied by grover operator
+    search 6,3 in a;
 }

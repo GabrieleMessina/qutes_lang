@@ -385,15 +385,23 @@ class QutesGrammarVisitor(qutesVisitor):
     def visitGroverOperator(self, ctx:qutesParser.GroverOperatorContext):
         return self.__visit("visitGroverOperator", lambda : self.__visitGroverOperator(ctx))
 
+    grover_count = 1
     def __visitGroverOperator(self, ctx:qutesParser.GroverOperatorContext):
-        if(ctx.GROVER()):
-            function_name = self.visit(ctx.functionCall().functionName())
-            function_params:list[Symbol] = []
-            if(ctx.functionCall().functionCallParams()):
-                function_params = self.visit(ctx.functionCall().functionCallParams())
-            self.__visitFunctionCall(function_name, function_params, ctx.start.tokenIndex)
-            function_symbol = self.variables_handler.get_function_symbol(function_name, ctx.start.tokenIndex, function_params)  
-            self.quantum_cirtcuit_handler.push_grover_operation(function_symbol.quantum_function)
+        target_symbol:Symbol = self.visit(ctx.qualifiedName())
+        if(ctx.IN_STATEMENT()):
+            self.quantum_cirtcuit_handler.start_quantum_function()
+            self.grover_count = self.grover_count+1
+            termList:list[Symbol] = self.visit(ctx.termList())
+            grover_result = self.quantum_cirtcuit_handler.declare_quantum_register("grover_phase_ancilla", Qubit())
+            for term in termList:
+                self.quantum_cirtcuit_handler.push_equals_operation(target_symbol.quantum_register, term.value)
+                self.quantum_cirtcuit_handler.push_MCX_operation([target_symbol.quantum_register, grover_result])
+                self.quantum_cirtcuit_handler.push_equals_operation(target_symbol.quantum_register, term.value)
+                
+            quantum_function = self.quantum_cirtcuit_handler.end_quantum_function(f"grover_oracle_{self.grover_count}", create_gate=False)
+
+            oracle_result = self.quantum_cirtcuit_handler.declare_quantum_register("oracle_phase_ancilla", Qubit())
+            self.quantum_cirtcuit_handler.push_grover_operation(quantum_function, [target_symbol.quantum_register, grover_result, oracle_result])
 
     # Visit a parse tree produced by qutes_parser#IdentityOperator.
     def visitIdentityOperator(self, ctx:qutesParser.IdentityOperatorContext):
@@ -450,8 +458,9 @@ class QutesGrammarVisitor(qutesVisitor):
                 if(self.log_trace_enabled): print("visitUnaryOperator -> PRINT")
                 if(first_term_symbol):
                     if(QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
+                        classical_register = self.quantum_cirtcuit_handler.run_and_measure([first_term_symbol.quantum_register])
+                        bytes_str = [reg.measured_values[0] for reg in classical_register if first_term_symbol.quantum_register.name in reg.name][0]
                         if(first_term_symbol.symbol_declaration_static_type == QutesDataType.qustring):
-                            bytes_str = self.quantum_cirtcuit_handler.run_and_measure(first_term_symbol.quantum_register)
                             index = 0
                             string_value = ""
                             #TODO: chr and ord, works only for char of size 7 bits
@@ -461,7 +470,7 @@ class QutesGrammarVisitor(qutesVisitor):
                                 index = index + Qustring.default_char_size
                             print(string_value)
                         else:
-                            new_value = int(self.quantum_cirtcuit_handler.run_and_measure(first_term_symbol.quantum_register), 2)
+                            new_value = int(bytes_str, 2)
                             print(new_value)
                         #TODO: handle the conversion from a string of binadry digits to the current quantum variable type
                         #TODO: adding the next line cause a crash in the circuit 
@@ -504,7 +513,7 @@ class QutesGrammarVisitor(qutesVisitor):
                 if(self.log_code_structure): print(f"MEASURE{first_term_print}", end=None)
                 if(self.log_trace_enabled): print("visitUnaryOperator -> MEASURE")
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
-                    result = self.quantum_cirtcuit_handler.push_measure_operation(first_term_symbol.quantum_register)
+                    result = self.quantum_cirtcuit_handler.push_measure_operation([first_term_symbol.quantum_register])
         return result
 
 

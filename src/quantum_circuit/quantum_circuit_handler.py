@@ -6,8 +6,17 @@ from quantum_circuit.quantum_register import QuantumRegister
 from symbols.types import Qubit, Quint, Qustring, QutesDataType
 from qiskit import IBMQ, Aer, transpile
 from qiskit.primitives import Sampler
-from qiskit.circuit.library import GroverOperator, MCMT, ZGate, QFT
+from qiskit.circuit.library import GroverOperator, MCMT, ZGate, QFT, XGate, YGate, HGate
 from qiskit.circuit.gate import Gate
+
+def unwrap(l:list[QuantumRegister|ClassicalRegister]) -> list:
+    unwrapped = []
+    for el in l:
+        if(not isinstance(el, QuantumRegister) and not isinstance(el, ClassicalRegister)):
+            unwrapped.append(el)
+        else:
+            unwrapped.extend(el)
+    return unwrapped
 
 class QuantumCircuitHandler():
     def __init__(self):
@@ -31,7 +40,7 @@ class QuantumCircuitHandler():
     def declare_quantum_register(self,  variable_name : str, quantum_variable : any) -> QuantumRegister:
         new_register = None
 
-        new_register = QuantumRegister(1, variable_name, quantum_variable)
+        new_register = QuantumRegister(quantum_variable.size, variable_name, quantum_variable)
 
         if(new_register is None):
             raise SystemError("Error trying to declare a quantum variable of unsupported type")
@@ -47,9 +56,9 @@ class QuantumCircuitHandler():
             raise SystemError("Error trying to update an undeclared quantum register")
 
         #TODO: can we handle qubit like quint and qustring?
-        if(isinstance(quantum_variable, Qubit)):
-            pass
-        if(isinstance(quantum_variable, Quint) or isinstance(quantum_variable, Qustring)):
+        # if(isinstance(quantum_variable, Qubit)):
+        #     pass
+        if(isinstance(quantum_variable, Qubit) or isinstance(quantum_variable, Quint) or isinstance(quantum_variable, Qustring)):
             #TODO-CRITICAL: this update actually change the reference, so all the old references around the code are still there. For now i hack this returning the new value and changing the name from update to replace.
             #Delete old quantum register and reference
             del self._registers_states[register_to_update]
@@ -127,24 +136,36 @@ class QuantumCircuitHandler():
         job = simulator.run(compiled_circuit, shots=shots)
         
         # Grab results from the job
-        result = job.result()  
+        result = job.result()
         cnt = result.get_counts(compiled_circuit)
+        sorted(cnt.items(), key=lambda item: item[1], reverse=True)
+        measurement_for_runs = [res.split(" ") for res in cnt.keys()]
+        counts_for_runs = [res for res in cnt.items()]
+
+        for index in range(len(cnt.creg_sizes)):
+            measurement_for_variable = [a[index] for a in measurement_for_runs]
+            counts_for_variable = [a[index] for a in counts_for_runs]
+            Classical_registers = [reg for reg in self._classic_registers if reg.name == cnt.creg_sizes[index][0]]
+            Classical_registers[0].measured_values = measurement_for_variable
+            Classical_registers[0].measured_counts = counts_for_variable
+
         return cnt
 
     def run_circuit(self, circuit:QuantumCircuit, repetition:int = 1, max_results = 1) -> list[str]:
         try:
             cnt:dict = self.__run__(circuit, repetition)
             self.__revcounts__(cnt)
+
             result_with_max_count = sorted(cnt.items(), key=lambda item: item[1], reverse=True)
             return result_with_max_count[:max_results]
         except Exception as ex:
             print(ex)
 
-    def run_and_measure(self, quantum_registers : QuantumRegister, repetition = 100, max_results = 2) -> str:        
-        self.push_measure_operation(quantum_registers)
+    def run_and_measure(self, quantum_registers : list[QuantumRegister] = None, classical_registers : list[ClassicalRegister] = None, repetition = 100, max_results = 2) -> list[ClassicalRegister]:        
+        classical_registers = self.push_measure_operation(quantum_registers, classical_registers)
         result = self.run_circuit(self.create_circuit(), repetition, max_results)
         self._current_operation_stack.pop()
-        return result
+        return classical_registers
 
     def run_circuit_result(self, circuit:QuantumCircuit, repetition:int = 1, max_results = 1) -> list[str]:
         # Use Aer's qasm_simulator
@@ -174,8 +195,16 @@ class QuantumCircuitHandler():
         self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).z(quantum_register))
 
     def push_MCZ_operation(self, quantum_registers : list[QuantumRegister]) -> None:
-        mcz_gate = MCMT(ZGate(), len(*quantum_registers) - 1, 1)
-        self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).compose(mcz_gate, *quantum_registers, inplace=True))
+        mcz_gate = MCMT(ZGate(), sum([q.size for q in quantum_registers]) - 1, 1)
+        self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).compose(mcz_gate, unwrap(quantum_registers), inplace=True))
+
+    def push_MCX_operation(self, quantum_registers : list[QuantumRegister]) -> None:
+        mcx_gate = MCMT(XGate(), sum([q.size for q in quantum_registers]) - 1, 1)        
+        self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).compose(mcx_gate, unwrap(quantum_registers), inplace=True))
+
+    def push_MCY_operation(self, quantum_registers : list[QuantumRegister]) -> None:
+        mcy_gate = MCMT(YGate(), sum([q.size for q in quantum_registers]) - 1, 1)        
+        self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).compose(mcy_gate, unwrap(quantum_registers), inplace=True))
 
     def push_hadamard_operation(self, quantum_register : QuantumRegister) -> None:
         self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).h(quantum_register))
@@ -196,16 +225,15 @@ class QuantumCircuitHandler():
             else:
                 self.push_not_operation(quantum_register_a[index])
 
-
     def push_reset_operation(self, quantum_register : QuantumRegister) -> None:
         self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).reset(quantum_register))
 
-    def push_compose_circuit_operation(self, circuit_to_compose : QuantumCircuit, quantum_registers : QuantumRegister = None, classical_registers : ClassicalRegister = []) -> None:
+    def push_compose_circuit_operation(self, circuit_to_compose : QuantumCircuit, quantum_registers : list[QuantumRegister] = None, classical_registers : list[ClassicalRegister] = []) -> None:
         if(quantum_registers == None):
             quantum_registers = self._quantum_registers
-        self._current_operation_stack.append(lambda circuit: circuit.compose(circuit_to_compose, *quantum_registers, *classical_registers, inplace=True))
+        self._current_operation_stack.append(lambda circuit: circuit.compose(circuit_to_compose, unwrap(quantum_registers), unwrap(classical_registers), inplace=True))
 
-    def push_measure_operation(self, quantum_registers : list[QuantumRegister] = None, classical_registers : list[ClassicalRegister] = None) -> None:
+    def push_measure_operation(self, quantum_registers : list[QuantumRegister] = None, classical_registers : list[ClassicalRegister] = None) -> list[ClassicalRegister]:
         if(quantum_registers == None):
             quantum_registers = self._quantum_registers
 
@@ -221,45 +249,31 @@ class QuantumCircuitHandler():
                     classic_register = search[0]
                 classical_registers.append(classic_register)
         
-        self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).measure(*quantum_registers, *classical_registers))
+        self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).measure(unwrap(quantum_registers), unwrap(classical_registers)))
+        return classical_registers
 
-    def push_grover_operation(self, quantum_function:QuantumCircuit, n_iteration = 1) -> None:
-        grover_op = GroverOperator(quantum_function)
+    def push_grover_operation(self, quantum_function:QuantumCircuit, quantum_registers:list[QuantumRegister], n_iteration = 1) -> None:
+        input = quantum_registers[0]
+        grover_result = quantum_registers[1]
+        oracle_result = quantum_registers[2]
+
+        phase_oracle = quantum_function.compose(XGate(), grover_result, front=True).compose(HGate(), grover_result, front=True)
+        phase_oracle = phase_oracle.compose(XGate(), grover_result).compose(HGate(), grover_result)
+        grover_op = GroverOperator(phase_oracle)
         
-        thetas = self.phase_estimation(quantum_function)
+        n_iteration = 2
+        print(f"Grover iterations: {n_iteration}")
+        self.push_compose_circuit_operation(grover_op.power(n_iteration), [input, grover_result])
+        self.push_measure_operation([input])
+
+        # check if the grover result is actually a hit.
+        self.push_barrier_operation()
+        self.push_compose_circuit_operation(quantum_function, [input, oracle_result])
+        self.push_measure_operation([oracle_result])
         
-        database_size = 2**quantum_function.num_qubits
-
-        #TODO: find the best theta.
-        # for theta in thetas:
-        #     if(theta == 0):
-        #         continue
-            
-        #     n_solutions = database_size * (math.sin(theta/2) ** 2)
-
-        #     optimal_num_iterations = math.floor(
-        #         (math.pi / 4) * math.sqrt(database_size/n_solutions)
-        #         #(math.pi / (4 * theta))
-        #         # it = int(np.pi/4 * np.sqrt(N/N*(np.sin(theta/2)**2)))
-        #         # math.pi / (4 * math.asin(math.sqrt(n_solutions / database_size)))
-        #     )
-        #     n_iteration = optimal_num_iterations
-
-        #     print(f"Grover iterations: {n_iteration}")
-
-        for index in range(quantum_function.num_qubits):
-            n_iteration = 2**index
-            print(f"Grover iterations: {n_iteration}")
-            self.push_compose_circuit_operation(grover_op.power(n_iteration))
-            grover_result = self.run_and_measure(self._quantum_registers, max_results=1)[0]
-            
-            #TODO: check if the grover result is actually a hit.
-            # self.push_compose_circuit_operation(quantum_function)
-            # self.decl
-            # boolean_oracle_result = self.run_and_measure(self._quantum_registers, max_results=1)[0]
-
-            # if(boolean_oracle_result):
-            #     return grover_result
+        # self.run_circuit(self.create_circuit(), 1000)
+        # if(boolean_oracle_result):
+        #     return grover_result
 
     def phase_estimation(self, quantum_function:QuantumCircuit, input_preparation:QuantumCircuit = None, precision = 3) -> float:
         m = precision  # Number of control qubits
