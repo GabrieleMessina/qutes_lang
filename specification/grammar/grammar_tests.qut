@@ -345,6 +345,10 @@
     //      there is a way of initialize the qubits so that they cannot reach unwanted values?
     //quint a = [1,4,6]q;
 
-    quint a = [[0,1]q,[0,1]q,[0,1]q]; //hadamard applied by grover operator
-    search 6,3 in a;
+    //quint a = [[0,1]q,[0,1]q,[0,1]q,[0,1]q,[0,1]q,[0,1]q]; //hadamard applied by grover operator
+    //search 10 in a;
+
+    qustring a = "b";
+    //print a;
+    search "b" in a;
 }

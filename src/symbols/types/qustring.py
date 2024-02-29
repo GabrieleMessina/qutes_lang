@@ -35,7 +35,7 @@ class Qustring():
         raise TypeError(f"Cannot convert {type(var_value)} to quint.")
     
     def __init__(self, qubits:list[Qubit] = [Qubit(complex(1),complex(0))]):
-        self.qubit_state:list[Qubit] = qubits[::-1]
+        self.qubit_state:list[Qubit] = qubits
         self.size:int = len(self.qubit_state)
         self.number_of_chars:int = int(self.size / Qustring.default_char_size)
         

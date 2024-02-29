@@ -154,7 +154,7 @@ class QuantumCircuitHandler():
     def run_circuit(self, circuit:QuantumCircuit, repetition:int = 1, max_results = 1) -> list[str]:
         try:
             cnt:dict = self.__run__(circuit, repetition)
-            self.__revcounts__(cnt)
+            self.__counts__(cnt)
 
             result_with_max_count = sorted(cnt.items(), key=lambda item: item[1], reverse=True)
             return result_with_max_count[:max_results]
@@ -219,7 +219,7 @@ class QuantumCircuitHandler():
         quantum_value : Qubit | Quint | Qustring = QutesDataType.promote_classical_to_quantum_value(classical_value)
         for index in range(quantum_register_a.size):
             if(len(quantum_value.qubit_state) > index):
-                qubit = quantum_value.qubit_state[index]
+                qubit = quantum_value.qubit_state[-1-index]
                 if(qubit.alpha == 1 and qubit.beta == 0):
                     self.push_not_operation(quantum_register_a[index])
             else:
@@ -261,7 +261,10 @@ class QuantumCircuitHandler():
         phase_oracle = phase_oracle.compose(XGate(), grover_result).compose(HGate(), grover_result)
         grover_op = GroverOperator(phase_oracle)
         
-        n_iteration = 2
+        n_results = 1
+        n_iteration = math.floor(
+            math.pi / (4 * math.asin(math.sqrt(n_results / 2**grover_op.num_qubits)))
+        )
         print(f"Grover iterations: {n_iteration}")
         self.push_compose_circuit_operation(grover_op.power(n_iteration), [input, grover_result])
         self.push_measure_operation([input])
