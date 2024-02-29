@@ -118,5 +118,11 @@ class SymbolsDiscoveryVisitor(qutesVisitor):
         qutes_type = QutesDataType.from_string_type(var_type)
         # This listener should not follow the execution path to understand what was the initial value assigned to the variable.
         # So we assign None and then variables_handler will put in the default value for the type.
+        if(ctx.expr()):
+            self.visitChildren(ctx.expr())
+        
+
         token_index = ctx.start.tokenIndex
-        return self.variables_handler.declare_variable(qutes_type, var_name, token_index)
+        # Variable should be declared after expr is evaluated.
+        result = self.variables_handler.declare_variable(qutes_type, var_name, token_index)
+        return result

@@ -148,8 +148,8 @@ class QutesGrammarVisitor(qutesVisitor):
     def visitFunctionStatement(self, ctx:qutesParser.FunctionStatementContext):
         self.scope_handler.push_scope()
         function_name = self.visit(ctx.functionName())
-        function_params = self.visit(ctx.functionDeclarationParams())
-        function_params.reverse()
+        if(ctx.functionDeclarationParams()):
+            function_params = self.visit(ctx.functionDeclarationParams())
         #do not call a visit on the statement here, or on all the context, the statement is being saved by the discovery and should be traversed only on function execution
         self.scope_handler.pop_scope()
         return None
@@ -161,7 +161,7 @@ class QutesGrammarVisitor(qutesVisitor):
         
     # Visit a parse tree produced by qutes_parser#variableDeclaration.
     def visitVariableDeclaration(self, ctx:qutesParser.VariableDeclarationContext):
-        var_type = None # we already know the variable type thanks to the discovery listener.
+        var_type =  self.visit(ctx.variableType()) # we already know the variable type thanks to the discovery listener.
         var_name = self.visit(ctx.variableName())
         var_value = None
 
@@ -177,7 +177,7 @@ class QutesGrammarVisitor(qutesVisitor):
 
     def __visit_assignment_statement(self, var_name : str | Symbol, var_value, ctx:(qutesParser.AssignmentStatementContext | qutesParser.VariableDeclarationContext)):
         if(ctx.expr()):
-            var_value = self.visitChildren(ctx.expr())
+            var_value = self.visit(ctx.expr())
 
         if(isinstance(var_name, Symbol)):
             var_symbol = var_name
@@ -188,8 +188,6 @@ class QutesGrammarVisitor(qutesVisitor):
         if(var_value == None):
             var_value =  QutesDataType.get_default_value(var_symbol.symbol_declaration_static_type)
         
-        var_symbol = self.variables_handler.update_variable_state(var_name, var_value)
-
         if(isinstance(ctx, qutesParser.AssignmentStatementContext)):
             if(self.log_code_structure): print(f"{str(var_name)} = {str(var_value)}", end=None)
             var_symbol = self.variables_handler.update_variable_state(var_name, var_value)
@@ -233,7 +231,7 @@ class QutesGrammarVisitor(qutesVisitor):
             if(not isinstance(params, list)):
                 params = [params]
         params.append(param)
-        return params
+        return params[::-1]
     
     
      # Visit a parse tree produced by qutes_parser#functionCallParams.
@@ -245,36 +243,40 @@ class QutesGrammarVisitor(qutesVisitor):
             if(not isinstance(params, list)):
                 params = [params]
         params.append(param)
-        return params
+        return params[::-1]
 
 
     # Visit a parse tree produced by qutesParser#expr.
     def visitExpr(self, ctx:qutesParser.ExprContext):
         return self.__visit("visitExpr", lambda : self.__visit_expr(ctx))
     def __visit_expr(self, ctx:qutesParser.ExprContext):
-        result = None
+        result = self.visitChildren(ctx)
         if(ctx.term()):
             if(self.log_trace_enabled): print("visitExpr -> term")
-            result = self.visitChildren(ctx)
+        if(ctx.functionCall()):
+            if(self.log_trace_enabled): print("functionCall -> term")
         if(ctx.test()):
             if(self.log_trace_enabled): print("visitExpr -> test")
-            result = self.visitChildren(ctx)
         if(ctx.parenExpr()):
             if(self.log_trace_enabled): print("visitExpr -> parenExpr")
-            result = self.visitChildren(ctx)
         return result
 
     # Visit a parse tree produced by qutes_parser#functionCall.
     def visitFunctionCall(self, ctx:qutesParser.FunctionCallContext):
-        self.scope_handler.start_function() #To avoid block statement to push its scope
-        
         function_name = self.visit(ctx.functionName())
         function_params:list[Symbol] = []
         if(ctx.functionCallParams()):
             function_params = self.visit(ctx.functionCallParams())
-        function_params.reverse()
+        result:Symbol = self.__visit("visitFunctionCall", lambda : self.__visitFunctionCall(function_name, function_params, ctx.start.tokenIndex))
+        #TODO: staff commented for make return value work for quantum variable, do some tests to assure the behaviour is correct
+        # function_symbol = self.variables_handler.get_function_symbol(function_name, ctx.start.tokenIndex, function_params)
+        # self.quantum_cirtcuit_handler.push_compose_circuit_operation(function_symbol.quantum_function)
+        return result
+        
+    def __visitFunctionCall(self, function_name, function_params, tokenIndex):
+        self.scope_handler.start_function() #To avoid block statement to push its scope
 
-        function_symbol = self.variables_handler.get_function_symbol(function_name, ctx.start.tokenIndex, function_params)  
+        function_symbol = self.variables_handler.get_function_symbol(function_name, tokenIndex, function_params)  
 
         scope_to_restore_on_exit = self.scope_handler.current_symbols_scope
         self.scope_handler.current_symbols_scope = function_symbol.inner_scope
@@ -289,7 +291,11 @@ class QutesGrammarVisitor(qutesVisitor):
             symbol_params_to_push.append(symbol_to_push)
         [symbol for symbol in function_symbol.inner_scope.symbols if symbol.symbol_class == SymbolClass.FunctionSymbol][:len(function_params)] = symbol_params_to_push
 
+        #TODO: staff commented for make return value work for quantum variable, do some tests to assure the behaviour is correct
+        # self.quantum_cirtcuit_handler.start_quantum_function()
         result = self.__visit("visitFunctionCall", lambda : self.visitChildren(function_symbol.value))
+        # gate = self.quantum_cirtcuit_handler.end_quantum_function(function_symbol.name)
+        # function_symbol.quantum_function = gate
 
         self.scope_handler.current_symbols_scope = scope_to_restore_on_exit
         [symbol for symbol in function_symbol.inner_scope.symbols if symbol.symbol_class == SymbolClass.FunctionSymbol][:len(function_params)] = default_params_to_restore_on_exit
@@ -332,7 +338,12 @@ class QutesGrammarVisitor(qutesVisitor):
         elif(ctx.EQUAL()):
             if(self.log_code_structure): print(f"{first_term_symbol} == {second_term_symbol}", end=None)
             if(self.log_trace_enabled): print("visitTest -> equal")
-            result = first_term == second_term
+            if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)
+                and second_term_symbol and not QutesDataType.is_quantum_type(second_term_symbol.symbol_declaration_static_type)):
+                # At the moment this only works for comparing quantum variables to classical values.
+                result = self.quantum_cirtcuit_handler.push_equals_operation(first_term_symbol.quantum_register, second_term_symbol.value)
+            else:
+                result = first_term == second_term
         elif(ctx.GREATEREQUAL()):
             if(self.log_code_structure): print(f"{first_term_symbol} >= {second_term_symbol}", end=None)
             if(self.log_trace_enabled): print("visitTest -> greater equal")
@@ -347,6 +358,51 @@ class QutesGrammarVisitor(qutesVisitor):
             result = first_term
         return result
 
+
+    # Visit a parse tree produced by qutes_parser#MultipleUnaryOperator.
+    def visitMultipleUnaryOperator(self, ctx:qutesParser.MultipleUnaryOperatorContext):
+        return self.__visit("visitMultipleUnaryOperator", lambda : self.__visitMultipleUnaryOperator(ctx))
+
+    def __visitMultipleUnaryOperator(self, ctx:qutesParser.MultipleUnaryOperatorContext):
+        if(ctx.MCZ()):
+            terms:list[Symbol] = self.visit(ctx.termList())
+            registers = [register.quantum_register for register in terms]
+            self.quantum_cirtcuit_handler.push_MCZ_operation(registers)
+
+    # Visit a parse tree produced by qutes_parser#termList.
+    def visitTermList(self, ctx:qutesParser.TermListContext):
+        term = self.visit(ctx.term())
+        terms = []
+        if(ctx.termList()):
+            terms = self.__visit("visitTermList", lambda : self.visit(ctx.termList()))
+            if(not isinstance(terms, list)):
+                terms = [terms]
+        terms.append(term)
+        return terms[::-1]
+
+
+    # Visit a parse tree produced by qutes_parser#GroverOperator.
+    def visitGroverOperator(self, ctx:qutesParser.GroverOperatorContext):
+        return self.__visit("visitGroverOperator", lambda : self.__visitGroverOperator(ctx))
+
+    grover_count = 1
+    def __visitGroverOperator(self, ctx:qutesParser.GroverOperatorContext):
+        target_symbol:Symbol = self.visit(ctx.qualifiedName())
+        if(ctx.IN_STATEMENT()):
+            self.quantum_cirtcuit_handler.start_quantum_function()
+            self.grover_count = self.grover_count+1
+            termList:list[Symbol] = self.visit(ctx.termList())
+            grover_result = self.quantum_cirtcuit_handler.declare_quantum_register("grover_phase_ancilla", Qubit())
+            for term in termList:
+                self.quantum_cirtcuit_handler.push_equals_operation(target_symbol.quantum_register, term.value)
+                self.quantum_cirtcuit_handler.push_MCX_operation([target_symbol.quantum_register, grover_result])
+                self.quantum_cirtcuit_handler.push_equals_operation(target_symbol.quantum_register, term.value)
+                
+            quantum_function = self.quantum_cirtcuit_handler.end_quantum_function(f"grover_oracle_{self.grover_count}", create_gate=False)
+
+            oracle_result = self.quantum_cirtcuit_handler.declare_quantum_register("oracle_phase_ancilla", Qubit())
+            self.quantum_cirtcuit_handler.push_grover_operation(quantum_function, [target_symbol.quantum_register, grover_result, oracle_result])
+
     # Visit a parse tree produced by qutes_parser#IdentityOperator.
     def visitIdentityOperator(self, ctx:qutesParser.IdentityOperatorContext):
         result = self.__visit_identity_operator(ctx)
@@ -354,28 +410,29 @@ class QutesGrammarVisitor(qutesVisitor):
         return self.__visit("visitIdentityOperator", lambda : result)
     
     def __visit_identity_operator(self, ctx:qutesParser.IdentityOperatorContext):
-        result = None
+        result = self.visitChildren(ctx)
         if(ctx.boolean()):
             if(self.log_trace_enabled): print("visitTerm -> boolean")
-            result = self.visitChildren(ctx)
         if(ctx.integer()):
             if(self.log_trace_enabled): print("visitTerm -> integer")
-            result = self.visitChildren(ctx)
         if(ctx.float_()):
             if(self.log_trace_enabled): print("visitTerm -> float")
-            result = self.visitChildren(ctx)
         if(ctx.qubit()):
             if(self.log_trace_enabled): print("visitTerm -> qubit")
-            result = self.visitChildren(ctx)
         if(ctx.quint()):
             if(self.log_trace_enabled): print("visitTerm -> quint")
-            result = self.visitChildren(ctx)
+        if(ctx.qustring()):
+            if(self.log_trace_enabled): print("visitTerm -> qustring")
         if(ctx.qualifiedName()):
             if(self.log_trace_enabled): print("visitTerm -> qualifiedName")
-            result = self.visitChildren(ctx)
         if(ctx.string()):
             if(self.log_trace_enabled): print("visitTerm -> string")
-            result = self.visitChildren(ctx)
+        if(ctx.MEASURE()):
+            if(self.log_trace_enabled): print("visitTerm -> measure")
+            self.quantum_cirtcuit_handler.push_measure_operation()
+        if(ctx.BARRIER()):
+            if(self.log_trace_enabled): print("visitTerm -> barrier")
+            self.quantum_cirtcuit_handler.push_barrier_operation()
         return result
 
 
@@ -401,8 +458,9 @@ class QutesGrammarVisitor(qutesVisitor):
                 if(self.log_trace_enabled): print("visitUnaryOperator -> PRINT")
                 if(first_term_symbol):
                     if(QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
+                        classical_register = self.quantum_cirtcuit_handler.run_and_measure([first_term_symbol.quantum_register])
+                        bytes_str = [reg.measured_values[0] for reg in classical_register if first_term_symbol.quantum_register.name in reg.name][0]
                         if(first_term_symbol.symbol_declaration_static_type == QutesDataType.qustring):
-                            bytes_str = self.quantum_cirtcuit_handler.run_and_measure(first_term_symbol.quantum_register)
                             index = 0
                             string_value = ""
                             #TODO: chr and ord, works only for char of size 7 bits
@@ -412,7 +470,7 @@ class QutesGrammarVisitor(qutesVisitor):
                                 index = index + Qustring.default_char_size
                             print(string_value)
                         else:
-                            new_value = int(self.quantum_cirtcuit_handler.run_and_measure(first_term_symbol.quantum_register), 2)
+                            new_value = int(bytes_str, 2)
                             print(new_value)
                         #TODO: handle the conversion from a string of binadry digits to the current quantum variable type
                         #TODO: adding the next line cause a crash in the circuit 
@@ -455,7 +513,7 @@ class QutesGrammarVisitor(qutesVisitor):
                 if(self.log_code_structure): print(f"MEASURE{first_term_print}", end=None)
                 if(self.log_trace_enabled): print("visitUnaryOperator -> MEASURE")
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
-                    result = self.quantum_cirtcuit_handler.push_measure_operation(first_term_symbol.quantum_register)
+                    result = self.quantum_cirtcuit_handler.push_measure_operation([first_term_symbol.quantum_register])
         return result
 
 
@@ -524,6 +582,7 @@ class QutesGrammarVisitor(qutesVisitor):
 
     # Visit a parse tree produced by qutes_parser#functionName.
     def visitFunctionName(self, ctx:qutesParser.FunctionNameContext):
+        #TODO: this should be aligned to visitQualifiedName which returns a symbol
         value = str(ctx.getText())
         if(self.log_code_structure): print(value, end=None)
         return self.__visit("visitFunctionName", lambda : value)

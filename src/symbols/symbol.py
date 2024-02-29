@@ -1,5 +1,5 @@
 from enum import Enum, auto
-from quantum_circuit import QuantumRegister
+from quantum_circuit import QuantumRegister, QuantumCircuit
 from symbols.scope_tree_node import ScopeTreeNode
 from symbols.types import QutesDataType
 
@@ -22,7 +22,8 @@ class Symbol():
         self.is_return_value_of_function:bool = False
         self.is_anonymous:bool = False
         self.function_input_params_definition:list[Symbol] = params
-        self.quantum_register:QuantumRegister | None = quantum_register #quantum register is not used for classical variables
+        self.quantum_register:QuantumRegister | None = quantum_register #quantum_register is not used for classical variables
+        self.quantum_function:QuantumCircuit | None = None #quantum_function is not used for classical variables
 
     def function_matches_signature(self, function_name:str, function_params:list['Symbol']) -> bool:
         if self.symbol_class is not SymbolClass.FunctionSymbol:

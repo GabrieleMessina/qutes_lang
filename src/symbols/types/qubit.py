@@ -49,6 +49,7 @@ class Qubit():
         self.beta = beta
         self.phase = Phase.Positive if (alpha * beta).real >= 0 else Phase.Negative 
         self.is_superposition = cmath.isclose(abs(alpha), abs(beta))
+        self.qubit_state:list[Qubit] = [self]
 
     def get_quantum_state(self) -> list[complex]:
         return [self.alpha, self.beta]

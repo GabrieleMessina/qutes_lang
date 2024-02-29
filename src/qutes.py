@@ -13,9 +13,10 @@ from quantum_circuit import QuantumCircuitHandler
 def main(argv):
     """Entrypoint for Qutes Lang compiler"""
 
-    log_symbols_scope = False
+    log_symbols_scope = True
     log_lisp_tree = False
-    log_quantum_circuit = False
+    log_quantum_circuit = True
+    number_of_iterations = 1000
 
     parser = argparse.ArgumentParser(description='Compile Qutes Lang source code.')
     parser.add_argument('file_path', metavar='file_path', help='The file path of the Qutes source code.')
@@ -65,7 +66,7 @@ def main(argv):
             print("----Quantum Circuit----")
             circuit = quantum_cirtcuit_handler.create_circuit()
             quantum_cirtcuit_handler.print_circuit(circuit)
-            quantum_cirtcuit_handler.run_circuit(circuit)
+            quantum_cirtcuit_handler.run_circuit(circuit, number_of_iterations)
 
         print()
 

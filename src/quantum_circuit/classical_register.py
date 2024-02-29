@@ -1,4 +1,5 @@
 from qiskit import ClassicalRegister as cr
 
 class ClassicalRegister(cr):
-    pass
+    measured_values:list = None
+    measured_counts:list = None

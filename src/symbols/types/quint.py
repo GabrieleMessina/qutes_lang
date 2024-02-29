@@ -25,7 +25,8 @@ class Quint():
                     for index in range(number_of_qubits):
                         counts[index] += int(binary_number[index])
                 for count in counts:
-                    prob_of_being_true = (count/number_of_qubits)
+                    number_of_values = 2**number_of_qubits
+                    prob_of_being_true = (count/number_of_values)
                     qubits.append(Qubit(complex(1-prob_of_being_true), complex(prob_of_being_true)))
             #we have an array of qubits that indicates the single qubits state the quint can take on
             else:
