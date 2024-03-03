@@ -345,10 +345,28 @@
     //      there is a way of initialize the qubits so that they cannot reach unwanted values?
     //quint a = [1,4,6]q;
 
-    //quint a = [[0,1]q,[0,1]q,[0,1]q,[0,1]q,[0,1]q,[0,1]q]; //hadamard applied by grover operator
-    //search 10 in a;
+    //TODO: we need to implement arrays, because we cannot assume to execute a query on a quint/qubit in superposition.
+    //      in the case of string (but the same is true for quint) "abaa" is actually an array of quchar,
+    //      we need to search for a char in this array, 
+    //      while currently we are just checking that the qustring is equal to the pattern we provide to the search operartion.
+    //
+    //      seeing that a qustring is already some sort of array, we can use the current implementation of the search,
+    //      we just need to execute the search in parallel upon all chars in qustring.
+    //      The same approch could be used for quint.
+    //
+    //      In the future, we could handle the substring matching procedure, 
+    //      so that we can choose to search for a single element in the sequence or
+    //      or a sequence in the sequence.
 
-    qustring a = "b";
+    //quint a = [[0,1]q, [0,1]q, [0,1]q, [0,1]q]; //hadamard applied by grover operator
+    //search 4 in a;
+
+    //qustring a = "*";
     //print a;
+    qustring a = "ab";
     search "b" in a;
+
+    //TODO: even number of solutions cause a fail, we need to add ancillas to avoi this.
+    // qustring a = "abb";
+    // search "b" in a;
 }

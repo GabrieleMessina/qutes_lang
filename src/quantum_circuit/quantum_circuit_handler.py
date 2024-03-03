@@ -6,6 +6,7 @@ from quantum_circuit.quantum_register import QuantumRegister
 from symbols.types import Qubit, Quint, Qustring, QutesDataType
 from qiskit import IBMQ, Aer, transpile
 from qiskit.primitives import Sampler
+from qiskit.circuit.quantumcircuit import QubitSpecifier
 from qiskit.circuit.library import GroverOperator, MCMT, ZGate, QFT, XGate, YGate, HGate
 from qiskit.circuit.gate import Gate
 
@@ -37,7 +38,7 @@ class QuantumCircuitHandler():
         register = self._varname_to_register[variable_name]
         self._classic_registers.remove(register)
 
-    def declare_quantum_register(self,  variable_name : str, quantum_variable : any) -> QuantumRegister:
+    def declare_quantum_register(self, variable_name : str, quantum_variable : any) -> QuantumRegister:
         new_register = None
 
         new_register = QuantumRegister(quantum_variable.size, variable_name, quantum_variable)
@@ -91,8 +92,8 @@ class QuantumCircuitHandler():
         self._operation_stacks.append([])
         self._current_operation_stack = self._operation_stacks[-1]
 
-    def end_quantum_function(self, gate_name:str, create_gate:bool = False) -> Gate:
-        gate = self.create_circuit(do_initialization=False)
+    def end_quantum_function(self, *regs, gate_name:str, create_gate:bool = False) -> Gate:
+        gate = self.create_circuit(*regs, do_initialization=False)
         if(create_gate):
             gate = gate.to_gate()
         gate.name = gate_name
@@ -100,14 +101,18 @@ class QuantumCircuitHandler():
         self._current_operation_stack = self._operation_stacks[-1]
         return gate
 
-    def create_circuit(self, do_initialization:bool = True) -> QuantumCircuit:
-        circuit = QuantumCircuit(*self._quantum_registers, *self._classic_registers)
+    def create_circuit(self, *regs, do_initialization:bool = True) -> QuantumCircuit:
+        if(len(regs) == 0):
+            circuit = QuantumCircuit(*self._quantum_registers, *self._classic_registers)
+        else:
+            circuit = QuantumCircuit(*regs)
+
         for register in self._quantum_registers:
             # circuit.initialize('01', register, True)
             # circuit.initialize([0, 1/np.sqrt(2), -1.j/np.sqrt(2), 0], register, True)
             # TODO: the following should be pushed as an operation because we don't want this to execute while creating gates.
             if(do_initialization):
-                circuit.prepare_state(self._registers_states[register], register, "|0⟩-|1⟩/√2 " ,normalize=True)
+                circuit.prepare_state(self._registers_states[register], register, "|0⟩-|1⟩/√2 ",normalize=True)
         for operation in self._current_operation_stack:
             operation(circuit)
         return circuit
@@ -199,7 +204,11 @@ class QuantumCircuitHandler():
         self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).compose(mcz_gate, unwrap(quantum_registers), inplace=True))
 
     def push_MCX_operation(self, quantum_registers : list[QuantumRegister]) -> None:
-        mcx_gate = MCMT(XGate(), sum([q.size for q in quantum_registers]) - 1, 1)        
+        mcx_gate = MCMT(XGate(), sum([len(q) for q in quantum_registers]) - 1, 1)        
+        self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).compose(mcx_gate, unwrap(quantum_registers), inplace=True))
+
+    def push_MCX_operation(self, quantum_registers : list[Qubit]) -> None:
+        mcx_gate = MCMT(XGate(), len(quantum_registers) - 1, 1)        
         self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).compose(mcx_gate, unwrap(quantum_registers), inplace=True))
 
     def push_MCY_operation(self, quantum_registers : list[QuantumRegister]) -> None:
@@ -217,7 +226,7 @@ class QuantumCircuitHandler():
 
     def push_equals_operation(self, quantum_register_a : QuantumRegister, classical_value : Any) -> None:
         quantum_value : Qubit | Quint | Qustring = QutesDataType.promote_classical_to_quantum_value(classical_value)
-        for index in range(quantum_register_a.size):
+        for index in range(len(quantum_register_a)):
             if(len(quantum_value.qubit_state) > index):
                 qubit = quantum_value.qubit_state[-1-index]
                 if(qubit.alpha == 1 and qubit.beta == 0):
@@ -244,7 +253,7 @@ class QuantumCircuitHandler():
                 search = [reg for reg in self._classic_registers if reg.name == classic_register_name]
                 already_exists = any(search)
                 if(not already_exists):
-                    classic_register = self.declare_classical_register(classic_register_name, quantum_register.size)
+                    classic_register = self.declare_classical_register(classic_register_name, len(quantum_register))
                 else:
                     classic_register = search[0]
                 classical_registers.append(classic_register)
@@ -252,11 +261,7 @@ class QuantumCircuitHandler():
         self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).measure(unwrap(quantum_registers), unwrap(classical_registers)))
         return classical_registers
 
-    def push_grover_operation(self, quantum_function:QuantumCircuit, quantum_registers:list[QuantumRegister], n_iteration = 1) -> None:
-        input = quantum_registers[0]
-        grover_result = quantum_registers[1]
-        oracle_result = quantum_registers[2]
-
+    def push_grover_operation(self, quantum_function:QuantumCircuit, input, grover_result:QuantumRegister, oracle_result:QuantumRegister, n_iteration = 1) -> None:
         phase_oracle = quantum_function.compose(XGate(), grover_result, front=True).compose(HGate(), grover_result, front=True)
         phase_oracle = phase_oracle.compose(XGate(), grover_result).compose(HGate(), grover_result)
         grover_op = GroverOperator(phase_oracle)
@@ -266,12 +271,12 @@ class QuantumCircuitHandler():
             math.pi / (4 * math.asin(math.sqrt(n_results / 2**grover_op.num_qubits)))
         )
         print(f"Grover iterations: {n_iteration}")
-        self.push_compose_circuit_operation(grover_op.power(n_iteration), [input, grover_result])
+        self.push_compose_circuit_operation(grover_op.power(n_iteration), [*input, *grover_result])
         self.push_measure_operation([input])
 
         # check if the grover result is actually a hit.
         self.push_barrier_operation()
-        self.push_compose_circuit_operation(quantum_function, [input, oracle_result])
+        self.push_compose_circuit_operation(quantum_function, [*input, *oracle_result])
         self.push_measure_operation([oracle_result])
         
         # self.run_circuit(self.create_circuit(), 1000)
