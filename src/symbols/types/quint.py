@@ -5,6 +5,7 @@ from symbols.types import Qubit
 
 class Quint():
     default_value = [Qubit(complex(1),complex(0))]
+    default_superposition_value = [Qubit(complex(0.5),complex(0.5))]
 
     def init_from_string(literal : str) -> 'Quint':
         qubits = []
@@ -50,7 +51,10 @@ class Quint():
                 temp_state.append(Qubit(complex(0),complex(1)))
         if(initial_size != -1 and (len(temp_state) % initial_size != 0)):
             to_add = initial_size - len(temp_state) % initial_size
-            temp_state.extend(Quint.default_value * to_add)
+            if(init_in_superposition):
+                temp_state.extend(Quint.default_superposition_value * to_add)
+            else:
+                temp_state.extend(Quint.default_value * to_add)
         return Quint(temp_state)
 
     def init_from_size(number_of_bits : int) -> 'Quint':

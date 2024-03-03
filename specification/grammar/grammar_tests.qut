@@ -339,7 +339,7 @@
 
 
 //Grover II
-{
+/*{
     //TODO: in the current implementation the parser counts for each bit the times it's equal to 1,
     //      but this means we could have a 5 from measuring 'a' below.
     //      there is a way of initialize the qubits so that they cannot reach unwanted values?
@@ -364,9 +364,16 @@
     //qustring a = "*";
     //print a;
     qustring a = "ab";
-    search "b" in a;
+    search "a" in a;
 
-    //TODO: even number of solutions cause a fail, we need to add ancillas to avoi this.
+    //TODO: even number of solutions cause a fail, we need to add ancillas to avoid this.
     // qustring a = "abb";
     // search "b" in a;
+}*/
+
+
+//Grover III - SubArray Match
+{
+    qustring a = "0110";
+    search "11" in a;
 }

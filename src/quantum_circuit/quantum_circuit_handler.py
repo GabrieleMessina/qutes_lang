@@ -260,8 +260,26 @@ class QuantumCircuitHandler():
         
         self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).measure(unwrap(quantum_registers), unwrap(classical_registers)))
         return classical_registers
+    
+    def push_ESM_operation(self, input:QuantumRegister, grover_result:QuantumRegister, rotation_register:QuantumRegister, to_match_register:QuantumRegister, to_match) -> None:
+        array_len = len(input)
+        to_match_len = len(to_match.qubit_state)
+        logn = int(math.log2(array_len))
 
-    def push_grover_operation(self, quantum_function:QuantumCircuit, input, grover_result:QuantumRegister, oracle_result:QuantumRegister, n_iteration = 1) -> None:
+        # rotate input array
+        from quantum_circuit.qutes_gates import QutesGates
+        for i in range(logn):
+            self.push_compose_circuit_operation(QutesGates.crot(array_len,2**i,Qustring.default_char_size), [rotation_register[i], *input])
+
+        # compare x and y[:m]
+        for i in range(to_match_len):
+            self.push_cnot_operation(to_match_register[i], input[i])
+            self.push_not_operation(input[i])
+        #uncompute = qc.reverse_ops()
+        self.push_MCX_operation([*input[:to_match_len], *grover_result])
+        
+
+    def push_grover_operation(self, quantum_function:QuantumCircuit, input, grover_result:QuantumRegister, oracle_result:QuantumRegister, rotation_register, to_match_register, n_iteration = 1) -> None:
         phase_oracle = quantum_function.compose(XGate(), grover_result, front=True).compose(HGate(), grover_result, front=True)
         phase_oracle = phase_oracle.compose(XGate(), grover_result).compose(HGate(), grover_result)
         grover_op = GroverOperator(phase_oracle)
@@ -271,12 +289,12 @@ class QuantumCircuitHandler():
             math.pi / (4 * math.asin(math.sqrt(n_results / 2**grover_op.num_qubits)))
         )
         print(f"Grover iterations: {n_iteration}")
-        self.push_compose_circuit_operation(grover_op.power(n_iteration), [*input, *grover_result])
+        self.push_compose_circuit_operation(grover_op.power(n_iteration), [*rotation_register, *to_match_register, *input, *grover_result])
         self.push_measure_operation([input])
 
         # check if the grover result is actually a hit.
         self.push_barrier_operation()
-        self.push_compose_circuit_operation(quantum_function, [*input, *oracle_result])
+        self.push_compose_circuit_operation(quantum_function, [*rotation_register, *to_match_register, *input, *oracle_result])
         self.push_measure_operation([oracle_result])
         
         # self.run_circuit(self.create_circuit(), 1000)
