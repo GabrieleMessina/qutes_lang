@@ -384,11 +384,11 @@ class QutesGrammarVisitor(qutesVisitor):
 
 
     # Visit a parse tree produced by qutes_parser#GroverOperator.
-    def visitGroverOperator(self, ctx:qutesParser.GroverOperatorContext):
+    def visitGroverExpr(self, ctx:qutesParser.GroverExprContext):
         return self.__visit("visitGroverOperator", lambda : self.__visitGroverOperator(ctx))
 
     grover_count = 1
-    def __visitGroverOperator(self, ctx:qutesParser.GroverOperatorContext):
+    def __visitGroverOperator(self, ctx:qutesParser.GroverExprContext):
         target_symbol:Symbol = self.visit(ctx.qualifiedName())
         if(not QutesDataType.is_quantum_type(target_symbol.casted_static_type)):
             #TODO: Handle promotion to quantum type?

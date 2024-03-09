@@ -47,6 +47,11 @@ expr
    | functionCall
    | test
    | parenExpr
+   | groverExpr
+   ;
+
+groverExpr
+   : termList op=IN_STATEMENT qualifiedName
    ;
 
 functionCall //Function name should be a qualifiedName here.
@@ -66,7 +71,6 @@ term
    : term op=(ADD | SUB) term #BinaryOperator
    | op=(PRINT | NOT | PAULIY | PAULIZ | HADAMARD | MEASURE | ADD | SUB) term #UnaryOperator
    | op=MCZ termList #MultipleUnaryOperator
-   | SEARCH_STATEMENT termList op=IN_STATEMENT qualifiedName #GroverOperator
    | (boolean
    | integer
    | float

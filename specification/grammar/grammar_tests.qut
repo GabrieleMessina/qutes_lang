@@ -385,7 +385,7 @@
     //search "1" in a;
     
     qustring a = "00111111";
-    if(search "01" in a){
+    if("01" in a){
         print "Trovato!";
     }
     else{

@@ -94,6 +94,11 @@ class qutes_parserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by qutes_parser#groverExpr.
+    def visitGroverExpr(self, ctx:qutes_parser.GroverExprContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by qutes_parser#functionCall.
     def visitFunctionCall(self, ctx:qutes_parser.FunctionCallContext):
         return self.visitChildren(ctx)
@@ -111,11 +116,6 @@ class qutes_parserVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by qutes_parser#MultipleUnaryOperator.
     def visitMultipleUnaryOperator(self, ctx:qutes_parser.MultipleUnaryOperatorContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by qutes_parser#GroverOperator.
-    def visitGroverOperator(self, ctx:qutes_parser.GroverOperatorContext):
         return self.visitChildren(ctx)
 
 
