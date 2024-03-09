@@ -398,9 +398,9 @@ class QutesGrammarVisitor(qutesVisitor):
             self.quantum_cirtcuit_handler.start_quantum_function()
             self.grover_count = self.grover_count+1
             termList:list[Symbol] = self.visit(ctx.termList())
-            block_size = Qustring.default_char_size
-            array_size = len(target_symbol.quantum_register)
-            logn = int(math.log2(array_size/block_size))
+            block_size = target_symbol.value.default_block_size
+            array_size = len(target_symbol.quantum_register)/block_size
+            logn = int(math.log2(array_size))
             
             rotation_register = self.quantum_cirtcuit_handler.declare_quantum_register("rotation", Quint.init_from_integer(0,logn,True))
             grover_result = self.quantum_cirtcuit_handler.declare_quantum_register("grover_phase_ancilla", Qubit())
@@ -428,9 +428,16 @@ class QutesGrammarVisitor(qutesVisitor):
             quantum_function = self.quantum_cirtcuit_handler.end_quantum_function(array_register, rotation_register, grover_result , gate_name=f"grover_oracle_{self.grover_count}", create_gate=False)
                 
             oracle_result = self.quantum_cirtcuit_handler.declare_quantum_register("oracle_phase_ancilla", Qubit())
-            # self.quantum_cirtcuit_handler.push_not_operation(grover_result)
-            # self.quantum_cirtcuit_handler.push_hadamard_operation(grover_result)
-            self.quantum_cirtcuit_handler.push_grover_operation(quantum_function, array_register, grover_result, oracle_result, rotation_register)
+
+            for n_results in range(1, int(array_size/2)):
+                self.quantum_cirtcuit_handler.push_grover_operation(quantum_function, array_register, grover_result, oracle_result, rotation_register, array_size, n_results)
+                results = self.quantum_cirtcuit_handler.get_run_and_measure_results([rotation_register, oracle_result], max_results=1)[0]
+                results_strings = results[0].split(" ")
+                results_counts = results[1]
+                if (results_strings[0] == "1"):
+                    print(f"Solution found with probability {results_counts}% and rotation: {results_strings[1]}")
+                    return True
+            return False
                 
                 
     # Visit a parse tree produced by qutes_parser#IdentityOperator.

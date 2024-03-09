@@ -4,7 +4,7 @@ from quantum_circuit.classical_register import ClassicalRegister
 from quantum_circuit.quantum_circuit import QuantumCircuit
 from quantum_circuit.quantum_register import QuantumRegister
 from symbols.types import Qubit, Quint, Qustring, QutesDataType
-from qiskit import IBMQ, Aer, transpile
+from qiskit import IBMQ, Aer, QiskitError, transpile
 from qiskit.primitives import Sampler
 from qiskit.circuit.quantumcircuit import QubitSpecifier, CircuitInstruction
 from qiskit.circuit.library import GroverOperator, MCMT, ZGate, QFT, XGate, YGate, HGate, CXGate, MCXGate
@@ -142,28 +142,49 @@ class QuantumCircuitHandler():
         
         # Grab results from the job
         result = job.result()
-        cnt = result.get_counts(compiled_circuit)
-        sorted(cnt.items(), key=lambda item: item[1], reverse=True)
-        measurement_for_runs = [res.split(" ") for res in cnt.keys()]
-        counts_for_runs = [res for res in cnt.items()]
+        cnt = None
+        try:
+            cnt = result.get_counts(compiled_circuit)
+        except QiskitError as er:
+            if(er.message.startswith("No counts for experiment")):
+                print(er.message)
+            else: 
+                raise er
 
+        if(cnt != None):
+            sorted(cnt.items(), key=lambda item: item[1], reverse=True)
+            measurement_for_runs = [res.split(" ") for res in cnt.keys()]
+            counts_for_runs = [res for res in cnt.items()]
+
+            for index in range(len(cnt.creg_sizes)):
+                measurement_for_variable = [a[index] for a in measurement_for_runs]
+                counts_for_variable = [a[1] for a in counts_for_runs]
+                Classical_registers = [reg for reg in self._classic_registers if reg.name == cnt.creg_sizes[index][0]]
+                Classical_registers[0].measured_values = measurement_for_variable
+                Classical_registers[0].measured_counts = counts_for_variable
         return cnt
 
     def run_circuit(self, circuit:QuantumCircuit, repetition:int = 1, max_results = 1) -> list[str]:
-        #try:
         cnt:dict = self.__run__(circuit, repetition)
+        if(cnt == None):
+            return None
+
         self.__counts__(cnt)
 
         result_with_max_count = sorted(cnt.items(), key=lambda item: item[1], reverse=True)
         return result_with_max_count[:max_results]
-        #except Exception as ex:
-            #print(ex)
 
     def run_and_measure(self, quantum_registers : list[QuantumRegister] = None, classical_registers : list[ClassicalRegister] = None, repetition = 100, max_results = 2) -> list[ClassicalRegister]:        
         classical_registers = self.push_measure_operation(quantum_registers, classical_registers)
         result = self.run_circuit(self.create_circuit(), repetition, max_results)
         self._current_operation_stack.pop()
         return classical_registers
+    
+    def get_run_and_measure_results(self, quantum_registers : list[QuantumRegister] = None, classical_registers : list[ClassicalRegister] = None, repetition = 100, max_results = 2) -> list[ClassicalRegister]:        
+        classical_registers = self.push_measure_operation(quantum_registers, classical_registers)
+        result = self.run_circuit(self.create_circuit(), repetition, max_results)
+        self._current_operation_stack.pop()
+        return result
 
     def run_circuit_result(self, circuit:QuantumCircuit, repetition:int = 1, max_results = 1) -> list[str]:
         # Use Aer's qasm_simulator
@@ -279,37 +300,21 @@ class QuantumCircuitHandler():
             self.push_compose_circuit_operation(QutesGates.crot(array_len,2**i,Qustring.default_char_size).inverse(), [rotation_register[i], *input])
         
 
-    def push_grover_operation(self, quantum_function:QuantumCircuit, input, grover_result:QuantumRegister, oracle_result:QuantumRegister, rotation_register, n_iteration = 1) -> None:
+    def push_grover_operation(self, quantum_function:QuantumCircuit, input, grover_result:QuantumRegister, oracle_result:QuantumRegister, rotation_register, dataset_size, n_results = 1) -> None:
         qubits_involved_in_grover = [*range(quantum_function.num_qubits-len(rotation_register)-1, quantum_function.num_qubits-1), quantum_function.num_qubits-1]
         grover_op = GroverOperator(quantum_function, reflection_qubits=qubits_involved_in_grover, insert_barriers=True)
 
         self.print_circuit(quantum_function)
         self.print_circuit(grover_op.decompose())
         
-        n_results = 1
-        # n_iteration = math.floor(
-        #     math.pi / (4 * math.asin(math.sqrt(n_results / 2**grover_op.num_qubits)))
-        # )
         n_iteration = math.floor(
-            (math.pi / 4) * math.sqrt(2**grover_op.num_qubits / n_results)
+            (math.pi / 4) * math.sqrt(dataset_size / n_results)
         )
-        n_iteration = 1
         
         print(f"Grover iterations: {n_iteration}")
 
-        #Custom Grover diffuser
-        # quantum_function.h(rotation_register)
-        # quantum_function.mcx(rotation_register, grover_result)
-        # quantum_function.h(rotation_register)
-
-        # for bit in range(len(rotation_register)):
-        #     quantum_function = quantum_function.compose(HGate(), rotation_register[bit])
-
-        #self.push_compose_circuit_operation(quantum_function, [*input, *rotation_register, *grover_result])
         self.push_compose_circuit_operation(grover_op.power(n_iteration), [*input, *rotation_register, *grover_result])
-        self.push_measure_operation([input])
-        if(rotation_register != []):
-            self.push_measure_operation([rotation_register])
+
 
         # Make the Z Controlled Oracle a X Controlled Oracle
         self.push_barrier_operation()
@@ -323,7 +328,6 @@ class QuantumCircuitHandler():
         
         # check if the grover result is actually a hit.
         self.push_compose_circuit_operation(boolean_quantum_function, [*input, *rotation_register, *oracle_result])
-        self.push_measure_operation([oracle_result])
 
 
     def phase_estimation(self, quantum_function:QuantumCircuit, input_preparation:QuantumCircuit = None, precision = 3) -> float:

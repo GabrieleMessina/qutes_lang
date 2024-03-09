@@ -11,6 +11,7 @@ class Qustring():
     # allowed_chars = ['0', '1', superposition_char, not_valid_char]
     allowed_chars = ['0', '1']
     default_char_size = math.ceil(math.log2(len(allowed_chars)))
+    default_block_size = default_char_size
 
     def get_char_from_int(int_value:int):
         if(int_value > len(Qustring.allowed_chars)):

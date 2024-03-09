@@ -3,6 +3,7 @@ from utils.phase import Phase
 import cmath
 
 class Qubit():
+    default_block_size = 1
     def from_string(literal : str) -> 'Qubit':
         try:
             literal = literal.removesuffix(QutesParser.literal_to_string(QutesParser.QUBIT_LITERAL_POSTFIX))

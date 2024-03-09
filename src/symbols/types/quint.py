@@ -6,6 +6,7 @@ from symbols.types import Qubit
 class Quint():
     default_value = [Qubit(complex(1),complex(0))]
     default_superposition_value = [Qubit(complex(0.5),complex(0.5))]
+    default_block_size = 1
 
     def init_from_string(literal : str) -> 'Quint':
         qubits = []
