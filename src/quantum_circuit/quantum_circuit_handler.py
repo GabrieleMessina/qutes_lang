@@ -6,8 +6,8 @@ from quantum_circuit.quantum_register import QuantumRegister
 from symbols.types import Qubit, Quint, Qustring, QutesDataType
 from qiskit import IBMQ, Aer, transpile
 from qiskit.primitives import Sampler
-from qiskit.circuit.quantumcircuit import QubitSpecifier
-from qiskit.circuit.library import GroverOperator, MCMT, ZGate, QFT, XGate, YGate, HGate
+from qiskit.circuit.quantumcircuit import QubitSpecifier, CircuitInstruction
+from qiskit.circuit.library import GroverOperator, MCMT, ZGate, QFT, XGate, YGate, HGate, CXGate, MCXGate
 from qiskit.circuit.gate import Gate
 
 def unwrap(l:list[QuantumRegister|ClassicalRegister]) -> list:
@@ -147,24 +147,17 @@ class QuantumCircuitHandler():
         measurement_for_runs = [res.split(" ") for res in cnt.keys()]
         counts_for_runs = [res for res in cnt.items()]
 
-        for index in range(len(cnt.creg_sizes)):
-            measurement_for_variable = [a[index] for a in measurement_for_runs]
-            counts_for_variable = [a[index] for a in counts_for_runs]
-            Classical_registers = [reg for reg in self._classic_registers if reg.name == cnt.creg_sizes[index][0]]
-            Classical_registers[0].measured_values = measurement_for_variable
-            Classical_registers[0].measured_counts = counts_for_variable
-
         return cnt
 
     def run_circuit(self, circuit:QuantumCircuit, repetition:int = 1, max_results = 1) -> list[str]:
-        try:
-            cnt:dict = self.__run__(circuit, repetition)
-            self.__counts__(cnt)
+        #try:
+        cnt:dict = self.__run__(circuit, repetition)
+        self.__counts__(cnt)
 
-            result_with_max_count = sorted(cnt.items(), key=lambda item: item[1], reverse=True)
-            return result_with_max_count[:max_results]
-        except Exception as ex:
-            print(ex)
+        result_with_max_count = sorted(cnt.items(), key=lambda item: item[1], reverse=True)
+        return result_with_max_count[:max_results]
+        #except Exception as ex:
+            #print(ex)
 
     def run_and_measure(self, quantum_registers : list[QuantumRegister] = None, classical_registers : list[ClassicalRegister] = None, repetition = 100, max_results = 2) -> list[ClassicalRegister]:        
         classical_registers = self.push_measure_operation(quantum_registers, classical_registers)
@@ -201,6 +194,10 @@ class QuantumCircuitHandler():
 
     def push_MCZ_operation(self, quantum_registers : list[QuantumRegister]) -> None:
         mcz_gate = MCMT(ZGate(), sum([q.size for q in quantum_registers]) - 1, 1)
+        self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).compose(mcz_gate, unwrap(quantum_registers), inplace=True))
+
+    def push_MCZ_operation(self, quantum_registers : list[Qubit]) -> None:
+        mcz_gate = MCMT(ZGate(), len(quantum_registers) - 1, 1)
         self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).compose(mcz_gate, unwrap(quantum_registers), inplace=True))
 
     def push_MCX_operation(self, quantum_registers : list[QuantumRegister]) -> None:
@@ -261,45 +258,73 @@ class QuantumCircuitHandler():
         self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).measure(unwrap(quantum_registers), unwrap(classical_registers)))
         return classical_registers
     
-    def push_ESM_operation(self, input:QuantumRegister, grover_result:QuantumRegister, rotation_register:QuantumRegister, to_match_register:QuantumRegister, to_match) -> None:
+    def push_ESM_operation(self, input:QuantumRegister, grover_result:QuantumRegister, rotation_register:QuantumRegister, to_match) -> None:
         array_len = len(input)
         to_match_len = len(to_match.qubit_state)
-        logn = int(math.log2(array_len))
+        block_size = Qustring.default_char_size
+        logn = int(math.log2(array_len/block_size))
 
         # rotate input array
         from quantum_circuit.qutes_gates import QutesGates
         for i in range(logn):
-            self.push_compose_circuit_operation(QutesGates.crot(array_len,2**i,Qustring.default_char_size), [rotation_register[i], *input])
+            self.push_compose_circuit_operation(QutesGates.crot(array_len, 2**i, block_size), [rotation_register[i], *input])
 
         # compare x and y[:m]
-        for i in range(to_match_len):
-            self.push_cnot_operation(to_match_register[i], input[i])
-            self.push_not_operation(input[i])
-        #uncompute = qc.reverse_ops()
-        self.push_MCX_operation([*input[:to_match_len], *grover_result])
+        self.push_equals_operation(input[:to_match_len], to_match)
+        self.push_MCZ_operation([*input[:to_match_len]])
+        #self.push_MCX_operation([*input[:to_match_len], *grover_result])
+        self.push_equals_operation(input[:to_match_len], to_match)
+
+        for i in range(logn)[::-1]:
+            self.push_compose_circuit_operation(QutesGates.crot(array_len,2**i,Qustring.default_char_size).inverse(), [rotation_register[i], *input])
         
 
-    def push_grover_operation(self, quantum_function:QuantumCircuit, input, grover_result:QuantumRegister, oracle_result:QuantumRegister, rotation_register, to_match_register, n_iteration = 1) -> None:
-        phase_oracle = quantum_function.compose(XGate(), grover_result, front=True).compose(HGate(), grover_result, front=True)
-        phase_oracle = phase_oracle.compose(XGate(), grover_result).compose(HGate(), grover_result)
-        grover_op = GroverOperator(phase_oracle)
+    def push_grover_operation(self, quantum_function:QuantumCircuit, input, grover_result:QuantumRegister, oracle_result:QuantumRegister, rotation_register, n_iteration = 1) -> None:
+        qubits_involved_in_grover = [*range(quantum_function.num_qubits-len(rotation_register)-1, quantum_function.num_qubits-1), quantum_function.num_qubits-1]
+        grover_op = GroverOperator(quantum_function, reflection_qubits=qubits_involved_in_grover, insert_barriers=True)
+
+        self.print_circuit(quantum_function)
+        self.print_circuit(grover_op.decompose())
         
         n_results = 1
+        # n_iteration = math.floor(
+        #     math.pi / (4 * math.asin(math.sqrt(n_results / 2**grover_op.num_qubits)))
+        # )
         n_iteration = math.floor(
-            math.pi / (4 * math.asin(math.sqrt(n_results / 2**grover_op.num_qubits)))
+            (math.pi / 4) * math.sqrt(2**grover_op.num_qubits / n_results)
         )
-        print(f"Grover iterations: {n_iteration}")
-        self.push_compose_circuit_operation(grover_op.power(n_iteration), [*rotation_register, *to_match_register, *input, *grover_result])
-        self.push_measure_operation([input])
-
-        # check if the grover result is actually a hit.
-        self.push_barrier_operation()
-        self.push_compose_circuit_operation(quantum_function, [*rotation_register, *to_match_register, *input, *oracle_result])
-        self.push_measure_operation([oracle_result])
+        n_iteration = 1
         
-        # self.run_circuit(self.create_circuit(), 1000)
-        # if(boolean_oracle_result):
-        #     return grover_result
+        print(f"Grover iterations: {n_iteration}")
+
+        #Custom Grover diffuser
+        # quantum_function.h(rotation_register)
+        # quantum_function.mcx(rotation_register, grover_result)
+        # quantum_function.h(rotation_register)
+
+        # for bit in range(len(rotation_register)):
+        #     quantum_function = quantum_function.compose(HGate(), rotation_register[bit])
+
+        #self.push_compose_circuit_operation(quantum_function, [*input, *rotation_register, *grover_result])
+        self.push_compose_circuit_operation(grover_op.power(n_iteration), [*input, *rotation_register, *grover_result])
+        self.push_measure_operation([input])
+        if(rotation_register != []):
+            self.push_measure_operation([rotation_register])
+
+        # Make the Z Controlled Oracle a X Controlled Oracle
+        self.push_barrier_operation()
+        boolean_quantum_function = quantum_function.copy()
+        for index, instruction in enumerate(boolean_quantum_function.data):
+            if(isinstance(instruction, CircuitInstruction)):
+                name : str = instruction.operation.name
+                op = instruction.operation
+                if(name.startswith("c") and name.endswith("z")):
+                    boolean_quantum_function.data[index] = CircuitInstruction(MCXGate(op.num_qubits), [*instruction.qubits,*grover_result], instruction.clbits)
+        
+        # check if the grover result is actually a hit.
+        self.push_compose_circuit_operation(boolean_quantum_function, [*input, *rotation_register, *oracle_result])
+        self.push_measure_operation([oracle_result])
+
 
     def phase_estimation(self, quantum_function:QuantumCircuit, input_preparation:QuantumCircuit = None, precision = 3) -> float:
         m = precision  # Number of control qubits

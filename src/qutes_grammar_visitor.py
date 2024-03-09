@@ -398,10 +398,13 @@ class QutesGrammarVisitor(qutesVisitor):
             self.quantum_cirtcuit_handler.start_quantum_function()
             self.grover_count = self.grover_count+1
             termList:list[Symbol] = self.visit(ctx.termList())
+            block_size = Qustring.default_char_size
+            array_size = len(target_symbol.quantum_register)
+            logn = int(math.log2(array_size/block_size))
+            
+            rotation_register = self.quantum_cirtcuit_handler.declare_quantum_register("rotation", Quint.init_from_integer(0,logn,True))
             grover_result = self.quantum_cirtcuit_handler.declare_quantum_register("grover_phase_ancilla", Qubit())
-            quantum_function = None
-            rotation_register = []
-            term_to_quantum_register = []
+
             for term in termList:
                 if(not QutesDataType.is_array_type(target_symbol.casted_static_type)):
                     self.quantum_cirtcuit_handler.push_equals_operation(array_register, term.value)
@@ -420,28 +423,14 @@ class QutesGrammarVisitor(qutesVisitor):
                             self.quantum_cirtcuit_handler.push_equals_operation(array_element, term.value)
                             index += word_size
                     else:
-                        logn = int(math.log2(array_size))
-                        term_to_quantum_register = self.quantum_cirtcuit_handler.declare_quantum_register("term_to_quantum", term_to_quantum)
-                        rotation_register = self.quantum_cirtcuit_handler.declare_quantum_register("rotation", Quint.init_from_integer(2,logn,True))
-
-                        self.quantum_cirtcuit_handler.push_ESM_operation(array_register, grover_result, rotation_register, term_to_quantum_register, term_to_quantum)
-                        
-                        quantum_function = self.quantum_cirtcuit_handler.end_quantum_function(array_register, grover_result, rotation_register, term_to_quantum_register, gate_name=f"grover_oracle_{self.grover_count}", create_gate=False)
-                        self.quantum_cirtcuit_handler.push_compose_circuit_operation(quantum_function, [*array_register, *grover_result, *rotation_register, *term_to_quantum_register])
-                        self.quantum_cirtcuit_handler.push_measure_operation([grover_result])
-                        self.quantum_cirtcuit_handler.push_measure_operation([array_register])
-                        return
-                        # quantum_function = esm_oracle = self.qutes_gates.Create_ESM_Oracle(array_size, term_to_quantum)
-                        # self.quantum_cirtcuit_handler.end_quantum_function(rotation_register, array_register, term_to_quantum_register, grover_result, gate_name=f"grover_oracle_ESM_{self.grover_count}", create_gate=False)
-                        # self.quantum_cirtcuit_handler.push_compose_circuit_operation(esm_oracle, [*rotation_register, *array_register, *term_to_quantum_register, *grover_result])
-                        # oracle_result = self.quantum_cirtcuit_handler.declare_quantum_register("oracle_phase_ancilla", Qubit())
-                        # self.quantum_cirtcuit_handler.push_grover_operation(quantum_function, array_register, grover_result, oracle_result, rotation_register, term_to_quantum_register)
-                
-            if(quantum_function == None):
-                quantum_function = self.quantum_cirtcuit_handler.end_quantum_function(array_register, grover_result, rotation_register, term_to_quantum_register, gate_name=f"grover_oracle_{self.grover_count}", create_gate=False)
+                        self.quantum_cirtcuit_handler.push_ESM_operation(array_register, grover_result, rotation_register, term_to_quantum)
+                    
+            quantum_function = self.quantum_cirtcuit_handler.end_quantum_function(array_register, rotation_register, grover_result , gate_name=f"grover_oracle_{self.grover_count}", create_gate=False)
                 
             oracle_result = self.quantum_cirtcuit_handler.declare_quantum_register("oracle_phase_ancilla", Qubit())
-            self.quantum_cirtcuit_handler.push_grover_operation(quantum_function, array_register, grover_result, oracle_result, rotation_register, term_to_quantum_register)
+            # self.quantum_cirtcuit_handler.push_not_operation(grover_result)
+            # self.quantum_cirtcuit_handler.push_hadamard_operation(grover_result)
+            self.quantum_cirtcuit_handler.push_grover_operation(quantum_function, array_register, grover_result, oracle_result, rotation_register)
                 
                 
     # Visit a parse tree produced by qutes_parser#IdentityOperator.

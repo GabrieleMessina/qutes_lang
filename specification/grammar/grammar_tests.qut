@@ -358,7 +358,7 @@
     //      so that we can choose to search for a single element in the sequence or
     //      or a sequence in the sequence.
 
-    //quint a = [[0,1]q, [0,1]q, [0,1]q, [0,1]q]; //hadamard applied by grover operator
+    //quint a = [[0,1]q, [0,1]q, [0,1]q, [0,1]q];
     //search 4 in a;
 
     //qustring a = "*";
@@ -374,6 +374,18 @@
 
 //Grover III - SubArray Match
 {
-    qustring a = "0110";
-    search "11" in a;
+    //quint a = [[0,1]q, [0,1]q, [0,1]q, [0,1]q];
+    //search 4 in a;
+    
+    //qustring a = "0100";
+    //search "1" in a;
+
+    //qustring a = "0*00";
+    //quint a = [0q, 0q, [0,1]q, [0,1]q, 0q, 0q, 0q, 0q];
+    //search "1" in a;
+    
+    qustring a = "00111111";
+    search "01" in a;
+
+    //if ("01" in a)
 }

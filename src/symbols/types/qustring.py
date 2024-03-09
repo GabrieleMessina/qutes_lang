@@ -1,15 +1,16 @@
 from qutes_parser import QutesParser
-import utils 
+import utils, math
 from symbols.types import Qubit, Quint
 
 class Qustring():
     # note: chr and ord, parse int and char in ASCII for char of size 7 bits
     default_value = [Qubit(complex(1),complex(0))]
-    default_char_size = 2
     superposition_char = '*'
     not_valid_char = 'X'
     # allowed_chars = ['a', 'b', 'c', 'd', superposition_char, not_valid_char]
-    allowed_chars = ['0', '1', superposition_char, not_valid_char]
+    # allowed_chars = ['0', '1', superposition_char, not_valid_char]
+    allowed_chars = ['0', '1']
+    default_char_size = math.ceil(math.log2(len(allowed_chars)))
 
     def get_char_from_int(int_value:int):
         if(int_value > len(Qustring.allowed_chars)):
