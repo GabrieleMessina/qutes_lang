@@ -3,10 +3,24 @@
     "image":"mcr.microsoft.com/devcontainers/python:0-3.11-bullseye",
     "customizations": {
         "vscode": {
-            "extensions": ["ms-python.python", "mike-lischke.vscode-antlr4", "ms-python.vscode-pylance", "ms-python.pylint", "Gruntfuggly.todo-tree"]
+            "extensions": ["ms-python.python", "mike-lischke.vscode-antlr4", "ms-python.vscode-pylance", "ms-python.pylint", "Gruntfuggly.todo-tree"],
+            "launch": {
+                "version": "0.2.0",
+                "configurations": [
+                {
+                    "name": "Python: Run Qutes with test source code",
+                    "type": "python",
+                    "request": "launch",
+                    "program": "src/qutes.py",
+                    "console": "integratedTerminal",
+                    "args": ["./specification/grammar/grammar_tests.qut"],
+                    "justMyCode": true
+                }
+            ]
+            }
         },
         "codespaces": {
-            "openFiles": ["./.devcontainer/DevContainerReadme.md", "./specification/grammar/qutes_lexer.g4", "./specification/grammar/qutes_parser.g4", "./specification/grammar/grammar_tests.qut", "./src/qutes.py"]
+            "openFiles": ["./.devcontainer/DevContainerReadme.md", "./specification/grammar/grammar_tests.qut"]
         }
     },
     "features": {
@@ -15,5 +29,5 @@
         "ghcr.io/devcontainers/features/git-lfs": "latest",
         "ghcr.io/devcontainers/features/java": "17"
     },
-    "postCreateCommand": "pip install --user -r requirements.txt --upgrade"
+    "postCreateCommand": "pip install --user -r requirements.txt --upgrade && python src/qutes.py specification/grammar/grammar_tests.qut"
 }
