@@ -86,6 +86,8 @@ fragment
 BOOL_LITERAL
    : TRUE
    | FALSE
+   | '1'
+   | '0'
    ;
 
 INT_LITERAL
