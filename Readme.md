@@ -1,31 +1,9 @@
 # Qutes Lang
-<!-- A **High Level programming language** for **quantum computing** that allows **everyone**, even those who do not know the theory behind quantum computing in detail, **to exploit its potential** and adapt it to their field of interest -->
-
-<style>
-.nano{
-    font-size: .5rem;
-}
-#cool-divider{
-/* SVG by SVGBackgrounds.com */
-margin: 8px;
-padding: 16px;
-background-color: #07253677;
-background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 800 800'%3E%3Cg fill='none' stroke='%23169F92' stroke-width='1'%3E%3Cpath d='M769 229L1037 260.9M927 880L731 737 520 660 309 538 40 599 295 764 126.5 879.5 40 599-197 493 102 382-31 229 126.5 79.5-69-63'/%3E%3Cpath d='M-31 229L237 261 390 382 603 493 308.5 537.5 101.5 381.5M370 905L295 764'/%3E%3Cpath d='M520 660L578 842 731 737 840 599 603 493 520 660 295 764 309 538 390 382 539 269 769 229 577.5 41.5 370 105 295 -36 126.5 79.5 237 261 102 382 40 599 -69 737 127 880'/%3E%3Cpath d='M520-140L578.5 42.5 731-63M603 493L539 269 237 261 370 105M902 382L539 269M390 382L102 382'/%3E%3Cpath d='M-222 42L126.5 79.5 370 105 539 269 577.5 41.5 927 80 769 229 902 382 603 493 731 737M295-36L577.5 41.5M578 842L295 764M40-201L127 80M102 382L-261 269'/%3E%3C/g%3E%3Cg fill='%233CFFA7'%3E%3Ccircle cx='769' cy='229' r='6'/%3E%3Ccircle cx='539' cy='269' r='6'/%3E%3Ccircle cx='603' cy='493' r='6'/%3E%3Ccircle cx='731' cy='737' r='6'/%3E%3Ccircle cx='520' cy='660' r='6'/%3E%3Ccircle cx='309' cy='538' r='6'/%3E%3Ccircle cx='295' cy='764' r='6'/%3E%3Ccircle cx='40' cy='599' r='6'/%3E%3Ccircle cx='102' cy='382' r='6'/%3E%3Ccircle cx='127' cy='80' r='6'/%3E%3Ccircle cx='370' cy='105' r='6'/%3E%3Ccircle cx='578' cy='42' r='6'/%3E%3Ccircle cx='237' cy='261' r='6'/%3E%3Ccircle cx='390' cy='382' r='6'/%3E%3C/g%3E%3C/svg%3E");
-}
-</style>
-
-<div id="cool-divider" style="position: relative;">
-<center><h1>Qutes Lang</h1></center>
-<center><big>A <b>High Level programming language</b> for <b>quantum computing</b> that allows <b>everyone</b>, even those who do not know the theory behind quantum computing in detail, <b>to exploit its potential</b> and adapt it to their field of interest
-</big></center>
-<div class="nano" style="position: absolute; bottom:0; right:0;">
-<a style="color:#FFF" href="https://www.svgbackgrounds.com/set/free-svg-backgrounds-and-patterns/">SVG by SVGBackgrounds.com</a>
-</div>
-</div>
-
+A **High Level programming language** for **quantum computing** that allows **everyone**, even those who do not know the theory behind quantum computing in detail, **to exploit its potential** and adapt it to their field of interest.
 
 ## How to Run - 🧭 Easy Start
-You can use a GitHub Codespace to start work with Qutes quickly.
+> [!TIP]
+> You can use a GitHub Codespace to start work with Qutes quickly.
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/GabrieleMessina/qutes_lang?quickstart=1)
 
@@ -57,9 +35,9 @@ quint e = 10q;
 ```csharp
 bool b = false;
 {
-    int b = 100; //this int b override the upper bool b.  
+    int b = 100; //this int b overrides the upper bool b.  
 }
-b = true; //this b refer to the bool b.
+b = true; //this b refers to the bool b.
 ```
 
 ### Printing
@@ -110,9 +88,9 @@ while(!b)
 ```csharp
 //alpha and beta values
 qubit a = 0.7,0.3q;
-//states we want the qubit is able to take
+//states we want the qubit to be able to take
 qubit b = [0, 1]q;
-//shorter syntax for a qubit that take only the zero value
+//shorter syntax for a qubit that takes only the zero value
 qubit c = 0q;
 //special syntax for common superposition
 qubit d = |+>;
@@ -211,26 +189,26 @@ if(a){ //This should throw
 }
 if(b){ //This should be false
 }
-if(a > b){ //This and other comparing operator should be implemented for both qubit and quint
+if(a > b){ //This and other comparing operators should be implemented for both qubit and quint
 }
 ```
 
 ### Handle quantum scope
 ```csharp
 
-//In this case we need to execute a piece of code in a quantum realm and another piece on a classical cpu before caming back to a quantum circuit.
-//It's not clear how we should handle this. Should this be transparent to the user? Should we make clearer that a measurement is needed to sum 'input' and 'x'
+//In this case, we must execute a piece of code in a quantum realm and another piece on a classical CPU before returning to a quantum circuit.
+//It's not clear how we should handle this. Should this be transparent to the user? Should we make it more straightforward that a measurement is needed to sum 'input' and 'x'
 {
     quint x = 10q;
     if(x > 0){
-        string input = classical_read_user_input(); //just an explanatory example for a function that cannot run on a quantum circuit and must run on classic CPU.
+        string input = classical_read_user_input(); //just an explanatory example for a function that cannot run on a quantum circuit and must run on a classic CPU.
         x += (int)input;
     }
     x = quantum_sqrt(x);
     measure x;
 }
 
-//This two blocks can be two different circuits.
+//These two blocks can be two different circuits.
 {
     qubit a = [true]q;
     qubit b = [true]q;
@@ -246,9 +224,9 @@ if(a > b){ //This and other comparing operator should be implemented for both qu
 
 //-----------
 
-//This two blocks cannot be two different circuits because they use the same global variable.
-//But we can say that we have two custom gate in the circuit,
-//So if a custom gate doesn't take anything as input then it's a new circuit.
+//These two blocks cannot be two different circuits because they use the same global variable.
+//But we can say that we have two custom gates in the circuit,
+//So if a custom gate takes nothing as input, it's a new circuit.
 qubit a = [1]q;
 {
     qubit b = [1]q;
