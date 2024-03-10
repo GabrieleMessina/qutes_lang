@@ -1,10 +1,29 @@
 from qutes_parser import QutesParser
-import utils 
+import utils, math
 from symbols.types import Qubit, Quint
 
 class Qustring():
+    # note: chr and ord, parse int and char in ASCII for char of size 7 bits
     default_value = [Qubit(complex(1),complex(0))]
-    default_char_size = 7
+    superposition_char = '*'
+    not_valid_char = 'X'
+    # allowed_chars = ['a', 'b', 'c', 'd', superposition_char, not_valid_char]
+    # allowed_chars = ['0', '1', superposition_char, not_valid_char]
+    allowed_chars = ['0', '1']
+    default_char_size = math.ceil(math.log2(len(allowed_chars)))
+    default_block_size = default_char_size
+
+    def get_char_from_int(int_value:int):
+        if(int_value > len(Qustring.allowed_chars)):
+            return Qustring.allowed_chars[-1]
+        return Qustring.allowed_chars[int_value]
+
+    def get_int_from_char(char_value:str):
+        try:
+            return Qustring.allowed_chars.index(char_value)
+        except:
+            return len(Qustring.allowed_chars)-1
+        
 
     def init_from_string(literal : str) -> 'Qustring':
         qubits = []
@@ -12,15 +31,12 @@ class Qustring():
         literal = literal.removesuffix(qubit_literal_postfix)
         literal = literal.removesuffix('"')
         literal = literal.removeprefix('"')
-        
-        # byte_literal = literal.encode('ascii')
-        # for byte in byte_literal:
-        #     qubyte:Quint = Quint.init_from_integer(byte, Qustring.default_char_size)
-        #     qubits.extend(qubyte.qubit_state)
 
-        #TODO: chr and ord, works only for char of size 7 bits
         for char in literal:
-            qubyte:Quint = Quint.init_from_integer(ord(char), Qustring.default_char_size)
+            if(char == Qustring.superposition_char):
+                qubyte:Quint = Quint.init_from_integer(Qustring.get_int_from_char(char), Qustring.default_char_size, True)
+            else:
+                qubyte:Quint = Quint.init_from_integer(Qustring.get_int_from_char(char), Qustring.default_char_size)
             qubits.extend(qubyte.qubit_state)
         return Qustring(qubits)
 

@@ -161,6 +161,15 @@ class qutes_parserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by qutes_parser#groverExpr.
+    def enterGroverExpr(self, ctx:qutes_parser.GroverExprContext):
+        pass
+
+    # Exit a parse tree produced by qutes_parser#groverExpr.
+    def exitGroverExpr(self, ctx:qutes_parser.GroverExprContext):
+        pass
+
+
     # Enter a parse tree produced by qutes_parser#functionCall.
     def enterFunctionCall(self, ctx:qutes_parser.FunctionCallContext):
         pass
@@ -194,15 +203,6 @@ class qutes_parserListener(ParseTreeListener):
 
     # Exit a parse tree produced by qutes_parser#MultipleUnaryOperator.
     def exitMultipleUnaryOperator(self, ctx:qutes_parser.MultipleUnaryOperatorContext):
-        pass
-
-
-    # Enter a parse tree produced by qutes_parser#GroverOperator.
-    def enterGroverOperator(self, ctx:qutes_parser.GroverOperatorContext):
-        pass
-
-    # Exit a parse tree produced by qutes_parser#GroverOperator.
-    def exitGroverOperator(self, ctx:qutes_parser.GroverOperatorContext):
         pass
 
 

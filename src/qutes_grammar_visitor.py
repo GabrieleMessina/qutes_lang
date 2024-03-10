@@ -6,9 +6,11 @@ from symbols.scope_tree_node import ScopeTreeNode
 from symbols.symbol import Symbol, SymbolClass
 from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
 from symbols.variables_handler import VariablesHandler
-from quantum_circuit import QuantumCircuitHandler
 from symbols.types import Qubit, Quint, Qustring, QutesDataType
+from quantum_circuit import QuantumCircuitHandler
+from quantum_circuit.quantum_register import QuantumRegister
 from quantum_circuit.qutes_gates import QutesGates
+import math
 
 class QutesGrammarVisitor(qutesVisitor):
     """An antlr visitor for the qutes grammar."""
@@ -382,27 +384,62 @@ class QutesGrammarVisitor(qutesVisitor):
 
 
     # Visit a parse tree produced by qutes_parser#GroverOperator.
-    def visitGroverOperator(self, ctx:qutesParser.GroverOperatorContext):
+    def visitGroverExpr(self, ctx:qutesParser.GroverExprContext):
         return self.__visit("visitGroverOperator", lambda : self.__visitGroverOperator(ctx))
 
     grover_count = 1
-    def __visitGroverOperator(self, ctx:qutesParser.GroverOperatorContext):
+    def __visitGroverOperator(self, ctx:qutesParser.GroverExprContext):
         target_symbol:Symbol = self.visit(ctx.qualifiedName())
+        if(not QutesDataType.is_quantum_type(target_symbol.casted_static_type)):
+            #TODO: Handle promotion to quantum type?
+            return
         if(ctx.IN_STATEMENT()):
+            array_register = target_symbol.quantum_register
             self.quantum_cirtcuit_handler.start_quantum_function()
             self.grover_count = self.grover_count+1
             termList:list[Symbol] = self.visit(ctx.termList())
+            block_size = target_symbol.value.default_block_size
+            array_size = len(target_symbol.quantum_register)/block_size
+            logn = int(math.log2(array_size))
+            
+            rotation_register = self.quantum_cirtcuit_handler.declare_quantum_register("rotation", Quint.init_from_integer(0,logn,True))
             grover_result = self.quantum_cirtcuit_handler.declare_quantum_register("grover_phase_ancilla", Qubit())
+
             for term in termList:
-                self.quantum_cirtcuit_handler.push_equals_operation(target_symbol.quantum_register, term.value)
-                self.quantum_cirtcuit_handler.push_MCX_operation([target_symbol.quantum_register, grover_result])
-                self.quantum_cirtcuit_handler.push_equals_operation(target_symbol.quantum_register, term.value)
+                if(not QutesDataType.is_array_type(target_symbol.casted_static_type)):
+                    self.quantum_cirtcuit_handler.push_equals_operation(array_register, term.value)
+                    self.quantum_cirtcuit_handler.push_MCX_operation([*array_register, *grover_result])
+                    self.quantum_cirtcuit_handler.push_equals_operation(array_register, term.value)
+                else:
+                    array_size = len(target_symbol.quantum_register)
+                    word_size = QutesDataType.get_array_word_bit(target_symbol.casted_static_type)
+                    term_to_quantum = QutesDataType.promote_classical_to_quantum_value(term.value)
+                    if(term_to_quantum.size <= word_size):
+                        index = 0
+                        while index < array_size:
+                            array_element = QuantumRegister(None, target_symbol.name + f"[{index}]", None, target_symbol.quantum_register[index:index+word_size])
+                            self.quantum_cirtcuit_handler.push_equals_operation(array_element, term.value)
+                            self.quantum_cirtcuit_handler.push_MCX_operation([*array_element, *grover_result])
+                            self.quantum_cirtcuit_handler.push_equals_operation(array_element, term.value)
+                            index += word_size
+                    else:
+                        self.quantum_cirtcuit_handler.push_ESM_operation(array_register, grover_result, rotation_register, term_to_quantum)
+                    
+            quantum_function = self.quantum_cirtcuit_handler.end_quantum_function(array_register, rotation_register, grover_result , gate_name=f"grover_oracle_{self.grover_count}", create_gate=False)
                 
-            quantum_function = self.quantum_cirtcuit_handler.end_quantum_function(f"grover_oracle_{self.grover_count}", create_gate=False)
-
             oracle_result = self.quantum_cirtcuit_handler.declare_quantum_register("oracle_phase_ancilla", Qubit())
-            self.quantum_cirtcuit_handler.push_grover_operation(quantum_function, [target_symbol.quantum_register, grover_result, oracle_result])
 
+            for n_results in range(1, int(array_size/2)):
+                self.quantum_cirtcuit_handler.push_grover_operation(quantum_function, array_register, grover_result, oracle_result, rotation_register, array_size, n_results)
+                results = self.quantum_cirtcuit_handler.get_run_and_measure_results([rotation_register, oracle_result], max_results=1)[0]
+                results_strings = results[0].split(" ")
+                results_counts = results[1]
+                if (results_strings[0] == "1"):
+                    print(f"Solution found with probability {results_counts}% and rotation: {results_strings[1]}")
+                    return True
+            return False
+                
+                
     # Visit a parse tree produced by qutes_parser#IdentityOperator.
     def visitIdentityOperator(self, ctx:qutesParser.IdentityOperatorContext):
         result = self.__visit_identity_operator(ctx)
@@ -463,10 +500,9 @@ class QutesGrammarVisitor(qutesVisitor):
                         if(first_term_symbol.symbol_declaration_static_type == QutesDataType.qustring):
                             index = 0
                             string_value = ""
-                            #TODO: chr and ord, works only for char of size 7 bits
                             while index < first_term_symbol.value.number_of_chars * Qustring.default_char_size:
                                 bin_char = bytes_str[index:Qustring.default_char_size + index]
-                                string_value = string_value + chr(int(bin_char, 2))
+                                string_value = string_value + Qustring.get_char_from_int(int(bin_char, 2))
                                 index = index + Qustring.default_char_size
                             print(string_value)
                         else:

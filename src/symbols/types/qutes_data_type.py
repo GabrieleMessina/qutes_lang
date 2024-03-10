@@ -25,6 +25,22 @@ class QutesDataType(Enum):
 
     def is_classical_type(type:'QutesDataType'):
         return type not in [QutesDataType.qubit, QutesDataType.quint, QutesDataType.qustring]
+    
+    def is_array_type(type:str):
+        return QutesDataType.is_array_type(QutesDataType.from_string_type(type))
+    
+    def get_array_word_bit(type:str):
+        return QutesDataType.get_array_word_bit(QutesDataType.from_string_type(type))
+    
+    def is_array_type(type:'QutesDataType'):
+        return type in [QutesDataType.qustring]
+    
+    def get_array_word_bit(type:'QutesDataType'):
+         match type:
+            case QutesDataType.qustring:
+                return Qustring.default_char_size
+            case _:
+                return 1
 
     def type_of(var_value : any) -> 'QutesDataType':
         from symbols import Symbol
