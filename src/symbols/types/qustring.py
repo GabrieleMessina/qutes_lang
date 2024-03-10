@@ -67,6 +67,10 @@ class Qustring():
                     quantum_state[quantum_integer_state] *= self.qubit_state[index].beta
         return quantum_state
     
+    def to_classical_type(self) -> int:
+        bin_number = str.join("", [str(int(qubit.alpha.real)) for qubit in self.qubit_state])[::-1]
+        return int(bin_number, 2) #TODO: this is not the correct way to convert a qustring to a classical type.
+    
     def __to_printable__(self) -> str:
         str = '['
         for qubit in self.qubit_state:

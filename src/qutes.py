@@ -8,6 +8,8 @@ from grammar_frontend.qutes_lexer import QutesLexer
 from grammar_frontend.qutes_parser import QutesParser
 from grammar_frontend.qutes_grammar_visitor import QutesGrammarVisitor
 from grammar_frontend.symbols_discovery_visitor import SymbolsDiscoveryVisitor
+from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
+from symbols.variables_handler import VariablesHandler
 from quantum_circuit import QuantumCircuitHandler
 
 def main(argv):
@@ -38,7 +40,10 @@ def main(argv):
 
         symbols_tree = grammar_listener.scope_handler.symbols_tree
         
-        grammar_visitor = QutesGrammarVisitor(symbols_tree, quantum_circuit_handler)
+        scope_handler = ScopeHandlerForSymbolsUpdate(symbols_tree)
+        variables_handler = VariablesHandler(scope_handler, quantum_circuit_handler)
+
+        grammar_visitor = QutesGrammarVisitor(symbols_tree, quantum_circuit_handler, scope_handler, variables_handler)
         result = str(grammar_visitor.visit(tree))
         
         print()

@@ -93,6 +93,10 @@ class Quint():
         self.qubit_state = (Quint.default_value*(new_size - self.size) + self.qubit_state) if self.size <= new_size else self.qubit_state[:new_size-1]
         self.size = len(self.qubit_state)
         return self
+
+    def to_classical_type(self) -> int:
+        bin_number = str.join("", [str(int(qubit.alpha.real)) for qubit in self.qubit_state])[::-1]
+        return int(bin_number, 2)
     
     def __to_printable__(self) -> str:
         str = '['
