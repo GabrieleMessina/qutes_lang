@@ -1,7 +1,8 @@
 # Qutes Lang
 A **High Level programming language** for **quantum computing** that allows **everyone**, even those who do not know the theory behind quantum computing in detail, **to exploit its potential** and adapt it to their field of interest.
 
-[![Python application](https://github.com/GabrieleMessina/qutes_lang/actions/workflows/python-app.yml/badge.svg)](https://github.com/GabrieleMessina/qutes_lang/actions/workflows/python-app.yml)
+[![Qutes Build and Tests](https://github.com/GabrieleMessina/qutes_lang/actions/workflows/python-app.yml/badge.svg)](https://github.com/GabrieleMessina/qutes_lang/actions/workflows/python-app.yml)
+[![Codespaces Prebuilds](https://github.com/GabrieleMessina/qutes_lang/actions/workflows/codespaces/create_codespaces_prebuilds/badge.svg)](https://github.com/GabrieleMessina/qutes_lang/actions/workflows/codespaces/create_codespaces_prebuilds)
 ## How to Run - 🧭 Easy Start
 > [!TIP]
 > You can use a GitHub Codespace to start work with Qutes quickly.
