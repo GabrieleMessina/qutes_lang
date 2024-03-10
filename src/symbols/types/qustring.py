@@ -1,4 +1,4 @@
-from qutes_parser import QutesParser
+from grammar_frontend.qutes_parser import QutesParser
 import utils, math
 from symbols.types import Qubit, Quint
 

@@ -1,7 +1,7 @@
 import unittest
 from antlr4 import CommonTokenStream, InputStream
-from qutes_antlr import QutesLexer
-from qutes_antlr import QutesParser
+from qutes_lexer import QutesLexer
+from qutes_parser import QutesParser
 from qutes_grammar_visitor import QutesGrammarVisitor
 from symbols_discovery_visitor import SymbolsDiscoveryVisitor
 from quantum_circuit import QuantumCircuitHandler

@@ -1,4 +1,4 @@
-from qutes_parser import QutesParser
+from grammar_frontend.qutes_parser import QutesParser
 from utils.phase import Phase
 import utils 
 from symbols.types import Qubit

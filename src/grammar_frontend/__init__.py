@@ -1,0 +1,5 @@
+# Aliasing for easy importing through the code
+from grammar_frontend.qutes_lexer import QutesLexer
+from grammar_frontend.qutes_parser import QutesParser
+from grammar_frontend.qutes_grammar_visitor import QutesGrammarVisitor
+from grammar_frontend.symbols_discovery_visitor import SymbolsDiscoveryVisitor

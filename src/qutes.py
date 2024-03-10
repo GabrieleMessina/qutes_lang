@@ -4,10 +4,10 @@ import sys
 import argparse
 from antlr4 import FileStream, CommonTokenStream
 from anytree import RenderTree
-from qutes_lexer import QutesLexer
-from qutes_parser import QutesParser
-from qutes_grammar_visitor import QutesGrammarVisitor
-from symbols_discovery_visitor import SymbolsDiscoveryVisitor
+from grammar_frontend.qutes_lexer import QutesLexer
+from grammar_frontend.qutes_parser import QutesParser
+from grammar_frontend.qutes_grammar_visitor import QutesGrammarVisitor
+from grammar_frontend.symbols_discovery_visitor import SymbolsDiscoveryVisitor
 from quantum_circuit import QuantumCircuitHandler
 
 def main(argv):

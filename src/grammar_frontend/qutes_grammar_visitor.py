@@ -1,6 +1,6 @@
 """An antlr visitor for the qutes grammar."""
 
-from qutes_parser import QutesParser as qutesParser
+from grammar_frontend.qutes_parser import QutesParser as qutesParser
 from qutes_antlr.qutes_parserVisitor import qutes_parserVisitor as qutesVisitor
 from symbols.scope_tree_node import ScopeTreeNode
 from symbols.symbol import Symbol, SymbolClass
