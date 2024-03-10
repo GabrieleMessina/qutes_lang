@@ -1,4 +1,4 @@
-from qutes_parser import QutesParser
+from grammar_frontend.qutes_parser import QutesParser
 from utils.phase import Phase
 import cmath
 
@@ -41,13 +41,16 @@ class Qubit():
         if(isinstance(var_value, str)):
             return Qubit.from_string(var_value)
         if(isinstance(var_value, bool)):
-            return Qubit.from_string(str(var_value))
+            if(var_value):
+                return Qubit(complex(0), complex(1))
+            else:
+                return Qubit(complex(1), complex(0))
         raise TypeError(f"Cannot convert {type(var_value)} to qubit.")
     
     def __init__(self, alpha : complex = complex(1), beta : complex = complex(0)):
         self.size:int = 1
-        self.alpha = alpha
-        self.beta = beta
+        self.alpha = complex(alpha)
+        self.beta = complex(beta)
         self.phase = Phase.Positive if (alpha * beta).real >= 0 else Phase.Negative 
         self.is_superposition = cmath.isclose(abs(alpha), abs(beta))
         self.qubit_state:list[Qubit] = [self]
@@ -58,6 +61,9 @@ class Qubit():
     def update_size_with_padding(self, new_size : int) -> 'Quint':
         from symbols.types import Quint
         return Quint([self]).update_size_with_padding(new_size)
+
+    def to_classical_type(self) -> bool:
+        return self.alpha.real == 0.0 and self.beta.real == 1.0
 
     def __to_printable__(self) -> str:
         spin_str = '+' if self.phase == Phase.Positive else '-'

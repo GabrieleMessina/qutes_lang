@@ -1,6 +1,6 @@
 """An antlr visitor for the qutes grammar."""
 
-from qutes_parser import QutesParser as qutesParser
+from grammar_frontend.qutes_parser import QutesParser as qutesParser
 from qutes_antlr.qutes_parserVisitor import qutes_parserVisitor as qutesVisitor
 from symbols.scope_tree_node import ScopeTreeNode
 from symbols.symbol import Symbol, SymbolClass
@@ -15,19 +15,19 @@ import math
 class QutesGrammarVisitor(qutesVisitor):
     """An antlr visitor for the qutes grammar."""
 
-    def __init__(self, symbols_tree:ScopeTreeNode, quantum_cirtcuit_handler : QuantumCircuitHandler):
+    def __init__(self, symbols_tree:ScopeTreeNode, quantum_circuit_handler : QuantumCircuitHandler, scope_handler:ScopeHandlerForSymbolsUpdate, variables_handler:VariablesHandler):
         if not symbols_tree:
             raise ValueError("A symbols tree must be provided to the QutesGrammarVisitor.")
         self.symbols_tree = symbols_tree
-        self.quantum_cirtcuit_handler = quantum_cirtcuit_handler
+        self.quantum_circuit_handler = quantum_circuit_handler
         #We need to travers the symbols_tree going orderly like in a breadth first search
         #Every time we need to create a new scope, we visit instead the next node in the tree
         #And every time we need to close a scope, we return to the parent of the current node
         #This way we know, at each moment, what symbols are defined.
-        self.scope_handler = ScopeHandlerForSymbolsUpdate(self.symbols_tree)
-        self.variables_handler = VariablesHandler(self.scope_handler, self.quantum_cirtcuit_handler)
+        self.scope_handler = scope_handler
+        self.variables_handler = variables_handler
 
-        self.qutes_gates = QutesGates(self.quantum_cirtcuit_handler, self.variables_handler)
+        self.qutes_gates = QutesGates(self.quantum_circuit_handler, self.variables_handler)
 
         # Debug flags
         self.allow_program_print = True
@@ -343,7 +343,7 @@ class QutesGrammarVisitor(qutesVisitor):
             if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)
                 and second_term_symbol and not QutesDataType.is_quantum_type(second_term_symbol.symbol_declaration_static_type)):
                 # At the moment this only works for comparing quantum variables to classical values.
-                result = self.quantum_cirtcuit_handler.push_equals_operation(first_term_symbol.quantum_register, second_term_symbol.value)
+                result = self.quantum_circuit_handler.push_equals_operation(first_term_symbol.quantum_register, second_term_symbol.value)
             else:
                 result = first_term == second_term
         elif(ctx.GREATEREQUAL()):
@@ -369,7 +369,7 @@ class QutesGrammarVisitor(qutesVisitor):
         if(ctx.MCZ()):
             terms:list[Symbol] = self.visit(ctx.termList())
             registers = [register.quantum_register for register in terms]
-            self.quantum_cirtcuit_handler.push_MCZ_operation(registers)
+            self.quantum_circuit_handler.push_MCZ_operation(registers)
 
     # Visit a parse tree produced by qutes_parser#termList.
     def visitTermList(self, ctx:qutesParser.TermListContext):
@@ -395,21 +395,21 @@ class QutesGrammarVisitor(qutesVisitor):
             return
         if(ctx.IN_STATEMENT()):
             array_register = target_symbol.quantum_register
-            self.quantum_cirtcuit_handler.start_quantum_function()
+            self.quantum_circuit_handler.start_quantum_function()
             self.grover_count = self.grover_count+1
             termList:list[Symbol] = self.visit(ctx.termList())
             block_size = target_symbol.value.default_block_size
             array_size = len(target_symbol.quantum_register)/block_size
             logn = int(math.log2(array_size))
             
-            rotation_register = self.quantum_cirtcuit_handler.declare_quantum_register("rotation", Quint.init_from_integer(0,logn,True))
-            grover_result = self.quantum_cirtcuit_handler.declare_quantum_register("grover_phase_ancilla", Qubit())
+            rotation_register = self.quantum_circuit_handler.declare_quantum_register("rotation", Quint.init_from_integer(0,logn,True))
+            grover_result = self.quantum_circuit_handler.declare_quantum_register("grover_phase_ancilla", Qubit())
 
             for term in termList:
                 if(not QutesDataType.is_array_type(target_symbol.casted_static_type)):
-                    self.quantum_cirtcuit_handler.push_equals_operation(array_register, term.value)
-                    self.quantum_cirtcuit_handler.push_MCX_operation([*array_register, *grover_result])
-                    self.quantum_cirtcuit_handler.push_equals_operation(array_register, term.value)
+                    self.quantum_circuit_handler.push_equals_operation(array_register, term.value)
+                    self.quantum_circuit_handler.push_MCX_operation([*array_register, *grover_result])
+                    self.quantum_circuit_handler.push_equals_operation(array_register, term.value)
                 else:
                     array_size = len(target_symbol.quantum_register)
                     word_size = QutesDataType.get_array_word_bit(target_symbol.casted_static_type)
@@ -418,20 +418,20 @@ class QutesGrammarVisitor(qutesVisitor):
                         index = 0
                         while index < array_size:
                             array_element = QuantumRegister(None, target_symbol.name + f"[{index}]", None, target_symbol.quantum_register[index:index+word_size])
-                            self.quantum_cirtcuit_handler.push_equals_operation(array_element, term.value)
-                            self.quantum_cirtcuit_handler.push_MCX_operation([*array_element, *grover_result])
-                            self.quantum_cirtcuit_handler.push_equals_operation(array_element, term.value)
+                            self.quantum_circuit_handler.push_equals_operation(array_element, term.value)
+                            self.quantum_circuit_handler.push_MCX_operation([*array_element, *grover_result])
+                            self.quantum_circuit_handler.push_equals_operation(array_element, term.value)
                             index += word_size
                     else:
-                        self.quantum_cirtcuit_handler.push_ESM_operation(array_register, grover_result, rotation_register, term_to_quantum)
+                        self.quantum_circuit_handler.push_ESM_operation(array_register, grover_result, rotation_register, term_to_quantum)
                     
-            quantum_function = self.quantum_cirtcuit_handler.end_quantum_function(array_register, rotation_register, grover_result , gate_name=f"grover_oracle_{self.grover_count}", create_gate=False)
+            quantum_function = self.quantum_circuit_handler.end_quantum_function(array_register, rotation_register, grover_result , gate_name=f"grover_oracle_{self.grover_count}", create_gate=False)
                 
-            oracle_result = self.quantum_cirtcuit_handler.declare_quantum_register("oracle_phase_ancilla", Qubit())
+            oracle_result = self.quantum_circuit_handler.declare_quantum_register("oracle_phase_ancilla", Qubit())
 
             for n_results in range(1, int(array_size/2)):
-                self.quantum_cirtcuit_handler.push_grover_operation(quantum_function, array_register, grover_result, oracle_result, rotation_register, array_size, n_results)
-                results = self.quantum_cirtcuit_handler.get_run_and_measure_results([rotation_register, oracle_result], max_results=1)[0]
+                self.quantum_circuit_handler.push_grover_operation(quantum_function, array_register, grover_result, oracle_result, rotation_register, array_size, n_results)
+                results = self.quantum_circuit_handler.get_run_and_measure_results([rotation_register, oracle_result], max_results=1)[0]
                 results_strings = results[0].split(" ")
                 results_counts = results[1]
                 if (results_strings[0] == "1"):
@@ -466,10 +466,10 @@ class QutesGrammarVisitor(qutesVisitor):
             if(self.log_trace_enabled): print("visitTerm -> string")
         if(ctx.MEASURE()):
             if(self.log_trace_enabled): print("visitTerm -> measure")
-            self.quantum_cirtcuit_handler.push_measure_operation()
+            self.quantum_circuit_handler.push_measure_operation()
         if(ctx.BARRIER()):
             if(self.log_trace_enabled): print("visitTerm -> barrier")
-            self.quantum_cirtcuit_handler.push_barrier_operation()
+            self.quantum_circuit_handler.push_barrier_operation()
         return result
 
 
@@ -495,7 +495,7 @@ class QutesGrammarVisitor(qutesVisitor):
                 if(self.log_trace_enabled): print("visitUnaryOperator -> PRINT")
                 if(first_term_symbol):
                     if(QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
-                        classical_register = self.quantum_cirtcuit_handler.run_and_measure([first_term_symbol.quantum_register])
+                        classical_register = self.quantum_circuit_handler.run_and_measure([first_term_symbol.quantum_register])
                         bytes_str = [reg.measured_values[0] for reg in classical_register if first_term_symbol.quantum_register.name in reg.name][0]
                         if(first_term_symbol.symbol_declaration_static_type == QutesDataType.qustring):
                             index = 0
@@ -521,35 +521,35 @@ class QutesGrammarVisitor(qutesVisitor):
                 if(self.log_code_structure): print(f"-{first_term_print}", end=None)
                 if(self.log_trace_enabled): print("visitUnaryOperator -> SUB")
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
-                    result = self.quantum_cirtcuit_handler.push_pauliz_operation(first_term_symbol.quantum_register)
+                    result = self.quantum_circuit_handler.push_pauliz_operation(first_term_symbol.quantum_register)
                 result = -first_term
             if(ctx.NOT()):
                 if(self.log_code_structure): print(f"NOT{first_term_print}", end=None)
                 if(self.log_trace_enabled): print("visitUnaryOperator -> NOT")
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
-                    result = self.quantum_cirtcuit_handler.push_not_operation(first_term_symbol.quantum_register)
+                    result = self.quantum_circuit_handler.push_not_operation(first_term_symbol.quantum_register)
                 else:
                     result = not first_term
             if(ctx.PAULIY()):
                 if(self.log_code_structure): print(f"NOT{first_term_print}", end=None)
                 if(self.log_trace_enabled): print("visitUnaryOperator -> NOT")
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
-                    result = self.quantum_cirtcuit_handler.push_pauliy_operation(first_term_symbol.quantum_register)
+                    result = self.quantum_circuit_handler.push_pauliy_operation(first_term_symbol.quantum_register)
             if(ctx.PAULIZ()):
                 if(self.log_code_structure): print(f"PAULIZ{first_term_print}", end=None)
                 if(self.log_trace_enabled): print("visitUnaryOperator -> PAULIZ")
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
-                    result = self.quantum_cirtcuit_handler.push_pauliz_operation(first_term_symbol.quantum_register)
+                    result = self.quantum_circuit_handler.push_pauliz_operation(first_term_symbol.quantum_register)
             if(ctx.HADAMARD()):
                 if(self.log_code_structure): print(f"HADAMARD{first_term_print}", end=None)
                 if(self.log_trace_enabled): print("visitUnaryOperator -> HADAMARD")
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
-                    result = self.quantum_cirtcuit_handler.push_hadamard_operation(first_term_symbol.quantum_register)
+                    result = self.quantum_circuit_handler.push_hadamard_operation(first_term_symbol.quantum_register)
             if(ctx.MEASURE()):
                 if(self.log_code_structure): print(f"MEASURE{first_term_print}", end=None)
                 if(self.log_trace_enabled): print("visitUnaryOperator -> MEASURE")
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
-                    result = self.quantum_cirtcuit_handler.push_measure_operation([first_term_symbol.quantum_register])
+                    result = self.quantum_circuit_handler.push_measure_operation([first_term_symbol.quantum_register])
         return result
 
 

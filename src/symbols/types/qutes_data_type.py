@@ -160,11 +160,11 @@ class TypeCastingHandler():
     }
     type_down_castable_to : dict[Enum, list[QutesDataType]] = {
         #..to this types <- this types can be converted(loosing information) to..
-        QutesDataType.bool: [QutesDataType.quint, QutesDataType.qubit, QutesDataType.int, QutesDataType.float, QutesDataType.string, QutesDataType.bool],
-        QutesDataType.int: [QutesDataType.quint, QutesDataType.qubit, QutesDataType.float, QutesDataType.int],
-        QutesDataType.float: [QutesDataType.quint, QutesDataType.qubit, QutesDataType.float],
+        QutesDataType.bool: [QutesDataType.qubit, QutesDataType.bool],
+        QutesDataType.int: [QutesDataType.quint, QutesDataType.qubit, QutesDataType.int],
+        QutesDataType.float: [QutesDataType.quint, QutesDataType.qubit, QutesDataType.float, QutesDataType.int],
         QutesDataType.string: [QutesDataType.string],
-        QutesDataType.qubit: [QutesDataType.quint, QutesDataType.qubit],
+        QutesDataType.qubit: [QutesDataType.qubit],
         QutesDataType.quint: [QutesDataType.quint],
         QutesDataType.qustring: [QutesDataType.qustring],
         QutesDataType.void: [],
@@ -191,40 +191,29 @@ class TypeCastingHandler():
             
     def down_cast_value_to_type(self, var_value : any, from_type:'QutesDataType', to_type : 'QutesDataType', symbol_or_literal) -> any:
         from symbols import Symbol
+        from_type_value = None
+        if QutesDataType.is_quantum_type(from_type):
+            from_type_value = self.quantum_cirtcuit_handler.get_run_and_measure_results(symbol_or_literal.quantum_register)
+            if from_type_value == None and isinstance(symbol_or_literal, Symbol):
+                from_type_value = symbol_or_literal.value.to_classical_type()
+
+        if(from_type_value == None):
+            from_type_value = var_value
+
         match to_type:
             case QutesDataType.bool:
-                if QutesDataType.is_quantum_type(from_type):
-                    if(isinstance(symbol_or_literal, Symbol)):
-                        return bool(self.quantum_cirtcuit_handler.run_and_measure(symbol_or_literal.quantum_register))
-                    else:
-                        return bool() #TODO: handle int classical = [1]q and similar //(downcasting from literal)
-                return bool(var_value)
+                return bool(from_type_value)
             case QutesDataType.int:
-                if QutesDataType.is_quantum_type(from_type):
-                    if(isinstance(symbol_or_literal, Symbol)):
-                        return int(self.quantum_cirtcuit_handler.run_and_measure(symbol_or_literal.quantum_register), 2)
-                    else:
-                        return int()
-                return int(var_value)
+               return int(from_type_value)
             case QutesDataType.float:
-                if QutesDataType.is_quantum_type(from_type):
-                    if(isinstance(symbol_or_literal, Symbol)):
-                        return float(self.quantum_cirtcuit_handler.run_and_measure(symbol_or_literal.quantum_register))
-                    else:
-                        return float()
-                return float(var_value)
+                return float(from_type_value)
             case QutesDataType.string:
-                if QutesDataType.is_quantum_type(from_type):
-                    if(isinstance(symbol_or_literal, Symbol)):
-                        return str(self.quantum_cirtcuit_handler.run_and_measure(symbol_or_literal.quantum_register))
-                    else:
-                        return str()
-                return str(var_value)
+                return str(from_type_value)
             case QutesDataType.qubit:
                 return Qubit.fromValue(var_value)
             case QutesDataType.quint:
                 return Quint.fromValue(var_value)
             case QutesDataType.qustring:
-                return Quint.fromValue(var_value)
+                return Qustring.fromValue(var_value)
             case _:
                 return QutesDataType.undefined

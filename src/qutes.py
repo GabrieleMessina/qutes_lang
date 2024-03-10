@@ -2,12 +2,14 @@
 
 import sys
 import argparse
-from antlr4 import FileStream, CommonTokenStream, ParseTreeWalker
+from antlr4 import FileStream, CommonTokenStream
 from anytree import RenderTree
-from qutes_lexer import QutesLexer
-from qutes_parser import QutesParser
-from qutes_grammar_visitor import QutesGrammarVisitor
-from symbols_discovery_visitor import SymbolsDiscoveryVisitor
+from grammar_frontend.qutes_lexer import QutesLexer
+from grammar_frontend.qutes_parser import QutesParser
+from grammar_frontend.qutes_grammar_visitor import QutesGrammarVisitor
+from grammar_frontend.symbols_discovery_visitor import SymbolsDiscoveryVisitor
+from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
+from symbols.variables_handler import VariablesHandler
 from quantum_circuit import QuantumCircuitHandler
 
 def main(argv):
@@ -31,18 +33,17 @@ def main(argv):
     if parser.getNumberOfSyntaxErrors() > 0:
         print("syntax errors")
     else:
-        quantum_cirtcuit_handler = QuantumCircuitHandler()
+        quantum_circuit_handler = QuantumCircuitHandler()
 
-        grammar_listener = SymbolsDiscoveryVisitor(quantum_cirtcuit_handler)
+        grammar_listener = SymbolsDiscoveryVisitor(quantum_circuit_handler)
         grammar_listener.visit(tree)
-
-        # grammar_listener = SymbolsDiscoveryListener(quantum_cirtcuit_handler)
-        # walker = ParseTreeWalker()
-        # walker.walk(grammar_listener, tree)
 
         symbols_tree = grammar_listener.scope_handler.symbols_tree
         
-        grammar_visitor = QutesGrammarVisitor(symbols_tree, quantum_cirtcuit_handler)
+        scope_handler = ScopeHandlerForSymbolsUpdate(symbols_tree)
+        variables_handler = VariablesHandler(scope_handler, quantum_circuit_handler)
+
+        grammar_visitor = QutesGrammarVisitor(symbols_tree, quantum_circuit_handler, scope_handler, variables_handler)
         result = str(grammar_visitor.visit(tree))
         
         print()
@@ -64,9 +65,9 @@ def main(argv):
         if(log_quantum_circuit):
             print()
             print("----Quantum Circuit----")
-            circuit = quantum_cirtcuit_handler.create_circuit()
-            quantum_cirtcuit_handler.print_circuit(circuit)
-            quantum_cirtcuit_handler.run_circuit(circuit, number_of_iterations)
+            circuit = quantum_circuit_handler.create_circuit()
+            quantum_circuit_handler.print_circuit(circuit)
+            quantum_circuit_handler.run_circuit(circuit, number_of_iterations)
 
         print()
 
