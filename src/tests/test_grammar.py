@@ -31,9 +31,11 @@ class TestGrammar(unittest.TestCase):
         symbols_tree = grammar_listener.scope_handler.symbols_tree
 
         scope_handler = ScopeHandlerForSymbolsUpdate(symbols_tree)
+        #TODO: This is a workaround to avoid the variable scope to be destroyed after program execution.
+        scope_handler_to_work_on = ScopeHandlerForSymbolsUpdate(symbols_tree)
         variables_handler = VariablesHandler(scope_handler, quantum_circuit_handler)
 
-        grammar_visitor = QutesGrammarVisitor(symbols_tree, quantum_circuit_handler, scope_handler, variables_handler)
+        grammar_visitor = QutesGrammarVisitor(symbols_tree, quantum_circuit_handler, scope_handler_to_work_on, variables_handler)
         result = grammar_visitor.visit(tree)
         return TestGrammarResult(result, scope_handler, variables_handler, quantum_circuit_handler)
 
