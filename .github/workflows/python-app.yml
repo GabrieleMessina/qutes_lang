@@ -28,5 +28,6 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Test with pytest
       run: |
-        pytest
+        python -m pytest tests/
         # python -m unittest discover -s ./test -p 'test*.py'
+        # python -m unittest tests.grammar_test
