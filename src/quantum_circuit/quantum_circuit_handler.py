@@ -186,7 +186,7 @@ class QuantumCircuitHandler():
         self._current_operation_stack.pop()
         return result
 
-    def run_circuit_result(self, circuit:QuantumCircuit, repetition:int = 1, max_results = 1) -> list[str]:
+    def run_circuit_result(self, circuit:QuantumCircuit, repetition:int = 1, max_results = 100) -> list[str]:
         # Use Aer's qasm_simulator
         simulator = Aer.get_backend('aer_simulator')
 
@@ -283,7 +283,7 @@ class QuantumCircuitHandler():
         array_len = len(input)
         to_match_len = len(to_match.qubit_state)
         block_size = Qustring.default_char_size
-        logn = int(math.log2(array_len/block_size))
+        logn = max(int(math.log2(array_len/block_size)),1)
 
         # rotate input array
         from quantum_circuit.qutes_gates import QutesGates

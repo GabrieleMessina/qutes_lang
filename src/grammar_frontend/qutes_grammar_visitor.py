@@ -399,7 +399,8 @@ class QutesGrammarVisitor(qutesVisitor):
             array_register = target_symbol.quantum_register
             self.quantum_circuit_handler.start_quantum_function()
             termList:list[Symbol] = self.visit(ctx.termList())            
-            
+            array_size = len(target_symbol.quantum_register)
+
             grover_result = self.quantum_circuit_handler.declare_quantum_register("grover_phase_ancilla", Qubit())
             oracle_registers = [array_register]
             registers_to_measure = []
@@ -420,11 +421,10 @@ class QutesGrammarVisitor(qutesVisitor):
                         self.quantum_circuit_handler.push_MCZ_operation([*array_register])
                     self.quantum_circuit_handler.push_equals_operation(array_register, term.value)
                 else:
-                    array_size = len(target_symbol.quantum_register)
                     term_to_quantum = QutesDataType.promote_classical_to_quantum_value(term.value)
                     block_size = target_symbol.value.default_block_size
-                    array_size = len(target_symbol.quantum_register)/block_size
-                    logn = int(math.log2(array_size))
+                    array_size = int(len(target_symbol.quantum_register)/block_size)
+                    logn = max(int(math.log2(array_size)),1)
                     if(term_to_quantum.size == 1):
                         if(phase_kickback_ancilla == None):
                             phase_kickback_ancilla = self.quantum_circuit_handler.declare_quantum_register(f"phase_kickback_ancilla_{current_grover_count}", Qubit(0,1))
@@ -443,16 +443,18 @@ class QutesGrammarVisitor(qutesVisitor):
             if(rotation_register != None):
                 qubits_involved_in_grover = [*range(quantum_function.num_qubits-len(rotation_register)-1, quantum_function.num_qubits-1), quantum_function.num_qubits-1]
 
-            for n_results in range(1, int(array_size/2)):
+            for n_results in range(1, array_size+1):
                 oracle_result = self.quantum_circuit_handler.push_grover_operation(*oracle_registers, quantum_function=quantum_function, register_involved_indexes=qubits_involved_in_grover, dataset_size=array_size, n_results=n_results)
                 registers_to_measure.append(oracle_result)
-                results = self.quantum_circuit_handler.get_run_and_measure_results(registers_to_measure, max_results=1)[0]
-                results_strings = results[0].split(" ")
-                results_counts = results[1]
-                if (results_strings[0] == "1"):
-                    print(f"Solution found with probability {results_counts}%")
-                    if(len(results_strings) > 1):
-                        print(f"and rotation: {results_strings[1]}\n")
+                circuit_runs = 3
+                results = self.quantum_circuit_handler.get_run_and_measure_results(registers_to_measure, repetition=circuit_runs)
+
+                positive_results = [result for result in results if result[0].split(" ")[0] == "1"]
+                if (len(positive_results) > 0):
+                    results_counts = sum([result[1] for result in positive_results])
+                    print(f"Solution found with probability {results_counts}/{circuit_runs}")
+                    if(len(positive_results[0][0].split(" ")) > 1):
+                        print(f"and rotation: {positive_results[0][0].split(' ')[1]} (for the first hit)")
                     return True
                 registers_to_measure.remove(oracle_result)
             return False

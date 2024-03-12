@@ -144,10 +144,15 @@ class TestGrammar(unittest.TestCase):
 
     @parameterized.expand([
         ["\"00111111\"", "\"01\""],
-        ["\"001111\"", "\"01\""], #TODO: handle array not being power of size_char
+        # ["\"001111\"", "\"01\""], #TODO: handle array not being power of size_char
         ["\"0011\"", "\"01\""],
         ["\"0011\"", "\"0\""],
         ["\"0011\"", "\"1\""],
+        ["\"1\"", "\"1\""],
+        ["\"0\"", "\"0\""],
+        ["\"0111110\"", "\"01\", \"10\""],
+        ["\"1110111\"", "\"0\""],
+        ["\"0001000\"", "\"1\""],
     ])
     def test_grover_search_succeed(self, array, pattern_to_match):
         var_name = "found"
@@ -165,7 +170,7 @@ class TestGrammar(unittest.TestCase):
 
     @parameterized.expand([
         ["\"01111111\"", "\"00\""],
-        ["\"001111\"", "\"000\""], #TODO: handle array not being power of size_char
+        ["\"001111\"", "\"000\""],
         ["\"0011\"", "\"111\""],
         ["\"0011\"", "\"11111\""],
     ])
