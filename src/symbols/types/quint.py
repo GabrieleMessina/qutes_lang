@@ -62,15 +62,19 @@ class Quint():
         return Quint(Quint.default_value*number_of_bits)
     
     def fromValue(var_value : any) -> 'Quint':
-        if(isinstance(var_value, Qubit)):
-            return Quint([var_value])
-        if(isinstance(var_value, str)):
-            return Quint.init_from_string(var_value)
-        if(isinstance(var_value, int)):
-            return Quint.init_from_integer(var_value)
-        if(isinstance(var_value, bool)):
-            return Quint.init_from_integer(var_value)
-        raise TypeError(f"Cannot convert {type(var_value)} to quint.")
+        try:
+            if(isinstance(var_value, Qubit)):
+                return Quint([var_value])
+            if(isinstance(var_value, str)):
+                return Quint.init_from_string(var_value)
+            if(isinstance(var_value, int)):
+                return Quint.init_from_integer(var_value)
+            if(isinstance(var_value, bool)):
+                return Quint.init_from_integer(var_value)
+            raise TypeError(f"Cannot convert {type(var_value)} to quint.")
+        except:
+            raise TypeError(f"Cannot convert {type(var_value)} to quint.")
+
     
     def __init__(self, qubits:list[Qubit] = [Qubit(complex(1),complex(0))]):
         self.qubit_state:list[Qubit] = qubits

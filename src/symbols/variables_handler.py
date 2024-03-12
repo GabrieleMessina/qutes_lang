@@ -35,7 +35,7 @@ class VariablesHandler():
                     value_to_assign = self.type_casting_handler.down_cast_value_to_type(value_to_assign, value_to_assign_qutes_type, down_cast_type, new_state)
                     final_type = down_cast_type
                 else:
-                    raise SyntaxError(f"Cannot convert type '{definition_qutes_type}' to '{value_to_assign_qutes_type}' for '{variable_name}'.")
+                    raise TypeError(f"Cannot convert type '{definition_qutes_type}' to '{value_to_assign_qutes_type}' for '{variable_name}'.")
 
             # Update the variable value if everything is ok.
             symbol_to_update.value = value_to_assign
@@ -92,7 +92,7 @@ class VariablesHandler():
                 value = self.type_casting_handler.down_cast_value_to_type(value, value_qutes_type, down_cast_type, None)
                 final_type = down_cast_type
             else:
-                raise SyntaxError(f"Cannot convert type '{definition_type}' to '{value_qutes_type}' for '{variable_name}'.")
+                raise TypeError(f"Cannot convert type '{definition_type}' to '{value_qutes_type}' for '{variable_name}'.")
             
         new_symbol = Symbol(variable_name, SymbolClass.VariableSymbol, qutes_type, final_type, value, self.scope_handler.current_symbols_scope, ast_token_index)
         new_symbol.is_anonymous = True

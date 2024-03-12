@@ -67,11 +67,16 @@ class ScopeHandlerForSymbolsUpdate(ScopeHandler):
     #Start visiting scope
     def push_scope(self) -> ScopeTreeNode:
         if(self.is_inside_loop == False and self.is_inside_function == False):
-            self.current_symbols_scope = next(self.tree_preorder_iterator)
+            nextNode = next(self.tree_preorder_iterator)
+            if(nextNode != None):
+                self.current_symbols_scope = nextNode
         return self.current_symbols_scope
     
     #End visiting scope, return to parent and never(almost, see loops) visit this scope again
     def pop_scope(self) -> ScopeTreeNode:
         if(self.is_inside_loop == False and self.is_inside_function == False):
-            self.current_symbols_scope = self.current_symbols_scope.parent
+            parentNode = self.current_symbols_scope.parent
+            if(parentNode != None):
+                self.tree_preorder_iterator = PreOrderIter(parentNode)
+                self.current_symbols_scope = next(self.tree_preorder_iterator)
         return self.current_symbols_scope
