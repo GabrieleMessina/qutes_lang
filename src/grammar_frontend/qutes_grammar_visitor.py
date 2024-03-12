@@ -34,6 +34,7 @@ class QutesGrammarVisitor(qutesVisitor):
         self.log_code_structure = False
         self.log_trace_enabled = False
         self.log_step_by_step_results_enabled = False
+        self.log_grover_verbose = False
 
         if(self.log_code_structure or self.log_trace_enabled or self.log_step_by_step_results_enabled):
             print()
@@ -387,8 +388,9 @@ class QutesGrammarVisitor(qutesVisitor):
     def visitGroverExpr(self, ctx:qutesParser.GroverExprContext):
         return self.__visit("visitGroverOperator", lambda : self.__visitGroverOperator(ctx))
 
-    grover_count = 1
+    grover_count = iter(range(1, 1000))
     def __visitGroverOperator(self, ctx:qutesParser.GroverExprContext):
+        current_grover_count = next(self.grover_count)
         target_symbol:Symbol = self.visit(ctx.qualifiedName())
         if(not QutesDataType.is_quantum_type(target_symbol.casted_static_type)):
             #TODO: Handle promotion to quantum type?
@@ -396,47 +398,65 @@ class QutesGrammarVisitor(qutesVisitor):
         if(ctx.IN_STATEMENT()):
             array_register = target_symbol.quantum_register
             self.quantum_circuit_handler.start_quantum_function()
-            self.grover_count = self.grover_count+1
-            termList:list[Symbol] = self.visit(ctx.termList())
-            block_size = target_symbol.value.default_block_size
-            array_size = len(target_symbol.quantum_register)/block_size
-            logn = int(math.log2(array_size))
-            
-            rotation_register = self.quantum_circuit_handler.declare_quantum_register("rotation", Quint.init_from_integer(0,logn,True))
+            termList:list[Symbol] = self.visit(ctx.termList())            
+            array_size = len(target_symbol.quantum_register)
+
             grover_result = self.quantum_circuit_handler.declare_quantum_register("grover_phase_ancilla", Qubit())
+            oracle_registers = [array_register]
+            registers_to_measure = []
+            if(self.log_grover_verbose):
+                registers_to_measure.append(array_register)
+            rotation_register = None
+            phase_kickback_ancilla = None
 
             for term in termList:
                 if(not QutesDataType.is_array_type(target_symbol.casted_static_type)):
                     self.quantum_circuit_handler.push_equals_operation(array_register, term.value)
-                    self.quantum_circuit_handler.push_MCX_operation([*array_register, *grover_result])
+                    if(len(array_register) == 1):
+                        if(phase_kickback_ancilla == None):
+                            phase_kickback_ancilla = self.quantum_circuit_handler.declare_quantum_register(f"phase_kickback_ancilla_{current_grover_count}", Qubit(0,1))
+                            oracle_registers.append(phase_kickback_ancilla)
+                        self.quantum_circuit_handler.push_MCZ_operation([*array_register, phase_kickback_ancilla])
+                    else:
+                        self.quantum_circuit_handler.push_MCZ_operation([*array_register])
                     self.quantum_circuit_handler.push_equals_operation(array_register, term.value)
                 else:
-                    array_size = len(target_symbol.quantum_register)
-                    word_size = QutesDataType.get_array_word_bit(target_symbol.casted_static_type)
                     term_to_quantum = QutesDataType.promote_classical_to_quantum_value(term.value)
-                    if(term_to_quantum.size <= word_size):
-                        index = 0
-                        while index < array_size:
-                            array_element = QuantumRegister(None, target_symbol.name + f"[{index}]", None, target_symbol.quantum_register[index:index+word_size])
-                            self.quantum_circuit_handler.push_equals_operation(array_element, term.value)
-                            self.quantum_circuit_handler.push_MCX_operation([*array_element, *grover_result])
-                            self.quantum_circuit_handler.push_equals_operation(array_element, term.value)
-                            index += word_size
-                    else:
-                        self.quantum_circuit_handler.push_ESM_operation(array_register, grover_result, rotation_register, term_to_quantum)
-                    
-            quantum_function = self.quantum_circuit_handler.end_quantum_function(array_register, rotation_register, grover_result , gate_name=f"grover_oracle_{self.grover_count}", create_gate=False)
-                
-            oracle_result = self.quantum_circuit_handler.declare_quantum_register("oracle_phase_ancilla", Qubit())
+                    block_size = target_symbol.value.default_block_size
+                    array_size = int(len(target_symbol.quantum_register)/block_size)
+                    logn = max(int(math.log2(array_size)),1)
+                    if(term_to_quantum.size == 1):
+                        if(phase_kickback_ancilla == None):
+                            phase_kickback_ancilla = self.quantum_circuit_handler.declare_quantum_register(f"phase_kickback_ancilla_{current_grover_count}", Qubit(0,1))
+                            oracle_registers.append(phase_kickback_ancilla)
+                    if(rotation_register == None):
+                        rotation_register = self.quantum_circuit_handler.declare_quantum_register(f"rotation(grover:{current_grover_count})", Quint.init_from_integer(0,logn,True))
+                        oracle_registers.append(rotation_register)
+                        if(self.log_grover_verbose):
+                            registers_to_measure.append(rotation_register)
+                    self.quantum_circuit_handler.push_ESM_operation(array_register, rotation_register, term_to_quantum, phase_kickback_ancilla)
+                   
+            oracle_registers.append(grover_result)
+            quantum_function = self.quantum_circuit_handler.end_quantum_function(*oracle_registers, gate_name=f"grover_oracle_{current_grover_count}", create_gate=False)
+            
+            qubits_involved_in_grover = [*range(quantum_function.num_qubits)]
+            if(rotation_register != None):
+                qubits_involved_in_grover = [*range(quantum_function.num_qubits-len(rotation_register)-1, quantum_function.num_qubits-1), quantum_function.num_qubits-1]
 
-            for n_results in range(1, int(array_size/2)):
-                self.quantum_circuit_handler.push_grover_operation(quantum_function, array_register, grover_result, oracle_result, rotation_register, array_size, n_results)
-                results = self.quantum_circuit_handler.get_run_and_measure_results([rotation_register, oracle_result], max_results=1)[0]
-                results_strings = results[0].split(" ")
-                results_counts = results[1]
-                if (results_strings[0] == "1"):
-                    print(f"Solution found with probability {results_counts}% and rotation: {results_strings[1]}")
+            for n_results in range(1, array_size+1):
+                oracle_result = self.quantum_circuit_handler.push_grover_operation(*oracle_registers, quantum_function=quantum_function, register_involved_indexes=qubits_involved_in_grover, dataset_size=array_size, n_results=n_results)
+                registers_to_measure.append(oracle_result)
+                circuit_runs = 3
+                results = self.quantum_circuit_handler.get_run_and_measure_results(registers_to_measure, repetition=circuit_runs)
+
+                positive_results = [result for result in results if result[0].split(" ")[0] == "1"]
+                if (len(positive_results) > 0):
+                    results_counts = sum([result[1] for result in positive_results])
+                    print(f"Solution found with probability {results_counts}/{circuit_runs}")
+                    if(len(positive_results[0][0].split(" ")) > 1):
+                        print(f"and rotation: {positive_results[0][0].split(' ')[1]} (for the first hit)")
                     return True
+                registers_to_measure.remove(oracle_result)
             return False
                 
                 
