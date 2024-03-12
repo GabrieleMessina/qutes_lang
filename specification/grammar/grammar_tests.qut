@@ -384,8 +384,8 @@
     //quint a = [0q, 0q, [0,1]q, [0,1]q, 0q, 0q, 0q, 0q];
     //search "1" in a;
     
-    qustring a = "00111111";
-    if("01" in a){
+    qustring a = "0111110";
+    if("01", "10" in a){
         print "Trovato!";
     }
     else{
