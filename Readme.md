@@ -1,16 +1,35 @@
 # Qutes Lang
 A **High Level programming language** for **quantum computing** that allows **everyone**, even those who do not know the theory behind quantum computing in detail, **to exploit its potential** and adapt it to their field of interest.
 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/GabrieleMessina/qutes_lang/blob/main/playground/Home.ipynb)
+
 [![Qutes Build and Tests](https://github.com/GabrieleMessina/qutes_lang/actions/workflows/python-app.yml/badge.svg)](https://github.com/GabrieleMessina/qutes_lang/actions/workflows/python-app.yml)
 [![Codespaces Prebuilds](https://github.com/GabrieleMessina/qutes_lang/actions/workflows/codespaces/create_codespaces_prebuilds/badge.svg)](https://github.com/GabrieleMessina/qutes_lang/actions/workflows/codespaces/create_codespaces_prebuilds)
+
+
 ## How to Run - 🧭 Easy Start
 > [!TIP]
-> You can use a GitHub Codespace to start work with Qutes quickly.
+> You can use Colab or GitHub Codespace to start work with Qutes quickly.
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/GabrieleMessina/qutes_lang?quickstart=1)
+### Colab
+<a href="https://colab.research.google.com/github/googlecolab/colabtools/blob/master/notebooks/colab-github-demo.ipynb">
+    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab" height="36">
+</a>
 
-Everything will be already settled, you just need to open the VSCode Workspace when requested and run the code from the Debug panel.
+<br/>
+<br/>
 
+or
+
+### Codespace
+<a href="https://codespaces.new/GabrieleMessina/qutes_lang?quickstart=1">
+    <img src="https://github.com/codespaces/badge.svg" alt="Open in GitHub Codespaces" height="36">
+</a>
+
+<br/>
+<br/>
+
+- Everything will be already settled, you just need to open the VSCode Workspace when requested and run the code from the Debug panel.
 If needed, remember to update the code with a Git Pull command!
 
 ## How to Run - 🛠️ On your own Environment
