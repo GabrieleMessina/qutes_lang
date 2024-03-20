@@ -4,3 +4,4 @@ qiskit-aer
 anytree
 matplotlib
 parameterized
+ipywidgets
