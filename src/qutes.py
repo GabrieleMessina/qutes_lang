@@ -17,7 +17,7 @@ def main(argv):
 
     parser = argparse.ArgumentParser(description='Compile Qutes Lang source code.')
     parser.add_argument('-scope', '--log_symbols_scope', dest='log_symbols_scope', action='store_true', help='Toggle symbols scope print on console.')
-    parser.add_argument('-tree', '--log_lisp_tree', dest='log_lisp_tree', action='store_true', help='Toggle syntax tree print on console.')
+    parser.add_argument('-tree', '--log_ast_tree', dest='log_ast_tree', action='store_true', help='Toggle syntax tree print on console.')
     parser.add_argument('-circuit', '--log_quantum_circuit', dest='log_quantum_circuit', action='store_true', help='Toggle quantum cicuit print on console.')
     parser.add_argument('-v', '--verbose', dest='log_verbose', action='store_true', help='Print all log as verbose on console.')
     parser.add_argument('-iter', '--number_of_iterations', dest='number_of_iterations', default='100', action='store', type=int, help='Set number of iteration for quauntum circuit run.')
@@ -56,11 +56,11 @@ def main(argv):
             for pre, _, node in RenderTree(symbols_tree):
                 print("%s%s(%s) Symbols: %s" % (pre, node.scope_class, node.scope_type_detail, node.symbols))
 
-        if(args.log_lisp_tree):
+        if(args.log_ast_tree):
             print()
-            lisp_tree_str = tree.toStringTree(recog=parser)
-            print("-------Lisp Tree--------")
-            print(lisp_tree_str)
+            ast_tree_str = tree.toStringTree(recog=parser)
+            print("-------Abstract Syntax Tree--------")
+            print(ast_tree_str)
         
         if(args.log_quantum_circuit):
             print()
