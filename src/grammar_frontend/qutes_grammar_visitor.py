@@ -15,7 +15,7 @@ import math
 class QutesGrammarVisitor(qutesVisitor):
     """An antlr visitor for the qutes grammar."""
 
-    def __init__(self, symbols_tree:ScopeTreeNode, quantum_circuit_handler : QuantumCircuitHandler, scope_handler:ScopeHandlerForSymbolsUpdate, variables_handler:VariablesHandler):
+    def __init__(self, symbols_tree:ScopeTreeNode, quantum_circuit_handler : QuantumCircuitHandler, scope_handler:ScopeHandlerForSymbolsUpdate, variables_handler:VariablesHandler, verbose:bool = False):
         if not symbols_tree:
             raise ValueError("A symbols tree must be provided to the QutesGrammarVisitor.")
         self.symbols_tree = symbols_tree
@@ -31,10 +31,10 @@ class QutesGrammarVisitor(qutesVisitor):
 
         # Debug flags
         self.allow_program_print = True
-        self.log_code_structure = False
-        self.log_trace_enabled = False
-        self.log_step_by_step_results_enabled = False
-        self.log_grover_verbose = False
+        self.log_code_structure = verbose
+        self.log_trace_enabled = verbose
+        self.log_step_by_step_results_enabled = verbose
+        self.log_grover_verbose = verbose
 
         if(self.log_code_structure or self.log_trace_enabled or self.log_step_by_step_results_enabled):
             print()
@@ -444,7 +444,7 @@ class QutesGrammarVisitor(qutesVisitor):
                 qubits_involved_in_grover = [*range(quantum_function.num_qubits-len(rotation_register)-1, quantum_function.num_qubits-1), quantum_function.num_qubits-1]
 
             for n_results in range(1, array_size+1):
-                oracle_result = self.quantum_circuit_handler.push_grover_operation(*oracle_registers, quantum_function=quantum_function, register_involved_indexes=qubits_involved_in_grover, dataset_size=array_size, n_results=n_results)
+                oracle_result = self.quantum_circuit_handler.push_grover_operation(*oracle_registers, quantum_function=quantum_function, register_involved_indexes=qubits_involved_in_grover, dataset_size=array_size, n_results=n_results, verbose=self.log_grover_verbose)
                 registers_to_measure.append(oracle_result)
                 circuit_runs = 3
                 results = self.quantum_circuit_handler.get_run_and_measure_results(registers_to_measure, repetition=circuit_runs)
