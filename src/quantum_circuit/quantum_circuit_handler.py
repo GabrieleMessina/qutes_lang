@@ -304,12 +304,13 @@ class QuantumCircuitHandler():
         
     grover_count = iter(range(1, 1000))
     # It expects the register to put the result into to be the last one in the list
-    def push_grover_operation(self, *oracle_registers, quantum_function:QuantumCircuit, register_involved_indexes, dataset_size, n_results = 1) -> QuantumRegister:
+    def push_grover_operation(self, *oracle_registers, quantum_function:QuantumCircuit, register_involved_indexes, dataset_size, n_results = 1, verbose:bool = False) -> QuantumRegister:
         current_grover_count = next(self.grover_count)
         grover_op = GroverOperator(quantum_function, reflection_qubits=register_involved_indexes, insert_barriers=True)
 
-        self.print_circuit(quantum_function)
-        self.print_circuit(grover_op.decompose())
+        if(verbose):
+            self.print_circuit(quantum_function)
+            self.print_circuit(grover_op.decompose())
         
         n_iteration = math.floor(
             (math.pi / 4) * math.sqrt(dataset_size / n_results)
