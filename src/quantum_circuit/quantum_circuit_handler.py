@@ -120,6 +120,8 @@ class QuantumCircuitHandler():
     def print_circuit(self, circuit:QuantumCircuit, print_circuit_as_image:bool = False):
         if(print_circuit_as_image):
             import os 
+            import matplotlib.pyplot as plt
+            import matplotlib.image as mpimg
             directory = "temp"
             file_name = "circuit.png"            
             file_path = os.path.join(directory, file_name)
@@ -127,7 +129,10 @@ class QuantumCircuitHandler():
                 os.mkdir(directory)
             circuit.draw(output='mpl', filename=file_path)
             from PIL import Image
-            Image.open(file_path).show()
+            img = mpimg.imread(file_path)
+            plt.imshow(img)
+            plt.axis('off')
+            plt.show()
         else:
             print(circuit.draw())
 
