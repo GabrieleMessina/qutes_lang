@@ -5,3 +5,4 @@ anytree
 matplotlib
 parameterized
 ipywidgets
+pylatexenc
