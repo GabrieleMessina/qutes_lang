@@ -1,3 +1,6 @@
+# ======= CUSTOM SECTION =======
+temp/
+
 # ======= VISUAL STUDIO SECTION =======
 .vscode/*
 !.vscode/settings.json

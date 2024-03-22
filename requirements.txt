@@ -6,3 +6,4 @@ matplotlib
 parameterized
 ipywidgets
 pylatexenc
+pillow

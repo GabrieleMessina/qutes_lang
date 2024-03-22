@@ -119,7 +119,15 @@ class QuantumCircuitHandler():
 
     def print_circuit(self, circuit:QuantumCircuit, print_circuit_as_image:bool = False):
         if(print_circuit_as_image):
-            print(circuit.draw(output='mpl'))
+            import os 
+            directory = "temp"
+            file_name = "circuit.png"            
+            file_path = os.path.join(directory, file_name)
+            if not os.path.exists(directory):
+                os.mkdir(directory)
+            circuit.draw(output='mpl', filename=file_path)
+            from PIL import Image
+            Image.open(file_path).show()
         else:
             print(circuit.draw())
 
