@@ -117,8 +117,18 @@ class QuantumCircuitHandler():
             operation(circuit)
         return circuit
 
-    def print_circuit(self, circuit:QuantumCircuit):
-        print(circuit.draw())
+    def print_circuit(self, circuit:QuantumCircuit, save_image:bool = False, print_circuit_to_console = True):
+        if(save_image):
+            import os 
+            directory = "temp"
+            file_name = "circuit.png"            
+            file_path = os.path.join(directory, file_name)
+            if not os.path.exists(directory):
+                os.mkdir(directory)
+            circuit.draw(output='mpl', filename=file_path)
+            print(f"Circuit image printed at: {file_path}")
+        if(print_circuit_to_console):
+            print(circuit.draw())
 
     def __counts__(self, vec):
         for i in vec:

@@ -43,7 +43,7 @@
             "request": "launch",
             "program": "src/qutes.py",
             "console": "integratedTerminal",
-            "args": ["-circuit","./specification/grammar/grammar_tests.qut"],
+            "args": ["-image","-circuit","./specification/grammar/grammar_tests.qut"],
             "justMyCode": true
         }
     ]
