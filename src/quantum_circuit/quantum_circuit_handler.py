@@ -117,8 +117,11 @@ class QuantumCircuitHandler():
             operation(circuit)
         return circuit
 
-    def print_circuit(self, circuit:QuantumCircuit):
-        print(circuit.draw())
+    def print_circuit(self, circuit:QuantumCircuit, print_circuit_as_image:bool = False):
+        if(print_circuit_as_image):
+            print(circuit.draw(output='mpl'))
+        else:
+            print(circuit.draw())
 
     def __counts__(self, vec):
         for i in vec:

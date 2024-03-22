@@ -19,6 +19,7 @@ def main(argv):
     parser.add_argument('-scope', '--log_symbols_scope', dest='log_symbols_scope', action='store_true', help='Toggle symbols scope print on console.')
     parser.add_argument('-tree', '--log_ast_tree', dest='log_ast_tree', action='store_true', help='Toggle syntax tree print on console.')
     parser.add_argument('-circuit', '--log_quantum_circuit', dest='log_quantum_circuit', action='store_true', help='Toggle quantum cicuit print on console.')
+    parser.add_argument('-image', '--print_circuit_as_image', dest='print_circuit_as_image', action='store_true', help='Toggle circuit printing as image instead of console text.')
     parser.add_argument('-v', '--verbose', dest='log_verbose', action='store_true', help='Print all log as verbose on console.')
     parser.add_argument('-iter', '--number_of_iterations', dest='number_of_iterations', default='100', action='store', type=int, help='Set number of iteration for quauntum circuit run.')
     parser.add_argument('file_path', metavar='file_path', help='The file path of the Qutes source code.')
@@ -66,7 +67,7 @@ def main(argv):
             print()
             print("----Quantum Circuit----")
             circuit = quantum_circuit_handler.create_circuit()
-            quantum_circuit_handler.print_circuit(circuit)
+            quantum_circuit_handler.print_circuit(circuit, args.print_circuit_as_image)
             quantum_circuit_handler.run_circuit(circuit, args.number_of_iterations)
 
         print()
