@@ -1,0 +1,29 @@
+{
+    "name": "qutes",
+    "displayName": "Qutes",
+    "description": "Syntax highlighting for Qutes Lang",
+    "version": "0.0.1",
+    "engines": {
+      "vscode": "^1.52.0"
+    },
+    "categories": [
+      "Programming Languages"
+    ],
+    "contributes": {
+      "languages": [
+        {
+          "id": "qutes",
+          "extensions": [".qut"],
+          "aliases": ["Qutes", "qutes"],
+          "configuration": "./language-configuration.json"
+        }
+      ],
+      "grammars": [
+        {
+          "language": "qutes",
+          "scopeName": "source.qutes",
+          "path": "./syntaxes/qutes.tmLanguage.json"
+        }
+      ]
+    }
+  }

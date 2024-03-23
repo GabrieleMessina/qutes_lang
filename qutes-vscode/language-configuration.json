@@ -1,0 +1,36 @@
+{
+    "name": "Qutes",
+    "scopeName": "source.qutes",
+    "patterns": [
+      {
+        "name": "keyword.control.qutes",
+        "match": "\\b(if|else|while|do|return)\\b"
+      },
+      {
+        "name": "keyword.declaration.qutes",
+        "match": "\\b(int|float|char|double|bool)\\b"
+      },
+      {
+        "name": "punctuation.terminator.qutes",
+        "match": ";"
+      },
+      {
+        "name": "punctuation.definition.block.qutes",
+        "begin": "\\{",
+        "end": "\\}"
+      },
+      {
+        "name": "punctuation.definition.parameters.qutes",
+        "begin": "\\(",
+        "end": "\\)"
+      },
+      {
+        "name": "variable.other.qutes",
+        "match": "\\b[A-Za-z_][A-Za-z0-9_]*\\b"
+      },
+      {
+        "name": "keyword.operator.assignment.qutes",
+        "match": "="
+      }
+    ]
+  }
