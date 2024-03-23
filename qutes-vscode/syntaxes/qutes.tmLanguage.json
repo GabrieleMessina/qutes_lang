@@ -4,15 +4,31 @@
   "patterns": [
     {
       "name": "keyword.control.qutes",
-      "match": "\\b(if|else|while|do|return)\\b"
+      "match": "\\b(if|else|while|do|return|in)\\b"
+    },
+    {
+      "name": "keyword.operator.qutes",
+      "match": "\\b(not|pauliy|pauliz|mcz|hadamard|measure|print|barrier|barrier|barrier|barrier|barrier|barrier|)\\b"
     },
     {
       "name": "keyword.declaration.qutes",
-      "match": "\\b(int|float|char|double|bool)\\b"
+      "match": "\\b(qustring|quint|qubit|int|string|bool)\\b"
     },
     {
       "name": "punctuation.terminator.qutes",
       "match": ";"
+    },
+    {
+      "name": "support.constant.qutes",
+      "match": "(\\|0>|\\|1>|\\|+>\\|->)"
+    },
+    {
+      "name": "constant.numeric.qutes",
+      "match": "[0-9]*[q]?"
+    },
+    {
+      "name": "constant.language.qutes",
+      "match": "(true|false)"
     },
     {
       "name": "punctuation.definition.block.qutes",
