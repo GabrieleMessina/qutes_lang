@@ -1,251 +1,113 @@
 //basic boolean 
-/*{
-    //a = 10; //TODO: this should not be possible if 'a' not declared before usage.
+{
     bool a = true;
+    bool a = false;
     bool b = FALSE;
+    bool b = TRUE;
     bool c = 1;
     bool d = 0;
-}*/
+}
 
 //basic integer
-/*{
+{
     int a=2+3;
     int i=1;
-    int x=0xa1;//TODO:handle
-    int h=0b01;//TODO:handle
-    a;
-    i=i+i;
-    //2+"a"; //this gives an error and that it's as intended, it's how the lower level language handle this kind of operation between two types.
-    int z = true;
-    int zz = 10;
-    z + zz;
-
-    not z;
-    not zz;
-    not 0;
-}*/
+    int i=6546511654564684561;
+    //int x=0xa1;//TODO:handle
+    //int h=0b01;//TODO:handle
+}
 
 //strings and basic operations
-/*{
+{
     string a;
     string b = "aa";
     string bb = b;
     string c = "aa\"" + "as";
     int d = 12 + 16543;
-    //int e = 12-16543;
+    int e = 12-16543;
     int e = 12 - 16543;
     int f = false + false;
     int g = true + true;
-    //int b.b = 1; //this gives error, because variable cannot be declared with qualified names (at least at the moment)
-    //b = 4; //this gives an error, wrong type assignment and no conversion available.
-    //g = 4; //this gives an error, g is not declared.
-}*/
+}
 
 //variable scope tests
-// bool b = (0);
-// if(b){ int a = 100; }
-// if(false){
-//     int c = 34;
-// }
-// else{
-//     int d = 6;
-// }
+{
+    bool b = (0);
+    if(b){ int a = 100; }
+    if(false){
+        int c = 34;
+    }
+    else{
+        int d = 6;
+    }
 
-
-//{ ; }
-//{ }
-
+    { ; }
+    { }
+}
 //Miscellaneous
-/*{
-    int i=0;
+{
     qubit qu = 0q;
     quint num = 1q;
-    //quint num = 10q; //TODO: fix circuit register size
-    //print num;
-    while (i<3){
+    num = 10q;
+    while(i<3){
         i=i+1;
         hadamard qu;
     }
-
-    // print num;
-    int number = num;
-    bool test = qu;
-    //if(num > 0){ // TODO: implement operator on quntum types
-    print number;
-    if(number > 0){
+    if(number>0){
         print "positive";
     }
     else{
         print "not positive";
     }
-}*/
+}
 
 //qubits tests
-/*{
+{
     //alpha and beta values
     qubit a = 0.7,0.3q;
     //states we want the qubit is able to take
     qubit b = [0, 1]q; 
     //qubits with only a state 
     qubit c = [1]q; 
-    qubit ad = 0q;
+    qubit ad = [1,2]q;
    
-    bool bo = true;
-    // qubit qbo = bo; //TODO: handle
-
-    // qubit ae = 1q;
-    // qubit bd = -0q;
-    // qubit be = +1q;
-    // be = -1q;
     //qubits in superposition 
-    qubit f = |+> ;
-    qubit g = |-> ;
-    qubit h = |0> ;
-    qubit i = |1> ;
+    qubit f = |+>;
+    qubit g = |->;
+    qubit h = |0>;
+    qubit i = |1>;
     not i;
     pauliz f;
     hadamard g;
     f + g;
-    // qubit hx = f + g; //TODO: handle assignment after expression
-}*/
+    qubit hx = f + g;
+    measure hx;
+}
 
 //quints tests
-/*{
-    
-    //qubit a = [0,1]q;
-    //not a;
-    //qubit b = 0q;
-    //a + b;
-    
-    //qubit a = [1]q;
-    //qubit b = [1]q;
-    //a + b;
-    //quint x = a + b;
-    
-    //qubit ax = 1q;
-    //quint c = 10q;
-    //quint d = 4q;
-    //quint re = c + d;
-    //c + d + ax; //TODO: handle multiple quantum variable sum
-
-    //quint aa = [0q, 0q, 1q]; //quint representing the number 1
-    //quint bb = [[0, 1]q, 0q, 1q]; //quint with a superposition state where the most significant bit can be 0(50%) or 1(50%)
-    //quint cc = [0.7,0.3q, 0q, 1q]; //quint with a superposition state where the most significant bit can be 0(70%) or 1(30%)
-    //quint dd = [1, 3]q; //quint with a superposition state that can be both 1(50%) or 3(50%)
-    //quint d = -12q; //TODO: handle negative numbers (two's complement?)
-}*/
-
-//measures tests
-/*{
-    // qubit a = [1]q;
-    // qubit b = [1]q;
-    // quint x = a + b;
-    // measure x;
-    
+{   
+    qubit ax = 1q;
     quint c = 10q;
     quint d = 4q;
     quint re = c + d;
-    print re;
-    //measure re;
-}*/
+    c + d + ax;
 
-//Circuit scope tests //TODO: handle quantum circuit and variable scopes  
-/*{
-    //This two blocks can be two different circuits.
-    // {
-    //     qubit a = [true]q;
-    //     qubit b = [true]q;
-    //     quint x = a + b;
-    //     measure x;
-    // }
-    
-    // {
-    //     quint c = 10q;
-    //     quint d = 4q;
-    //     quint re = d + c;
-    //     measure re;
-    // }
-
-    //This two blocks cannot be two different circuits because they use the same global variable.
-    //But we can say that we have two custom gate in the circuit,
-    //So if a custom gate doesn't take anything as input then it's a new circuit.
-    // qubit a = [1]q;
-    // {
-    //     qubit b = [1]q;
-    //     quint x = a + b;
-    //     measure x;
-    // }
-    
-    // {
-    //     quint c = 10q;
-    //     quint re = c + a;
-    //     measure re;
-    // }
-}*/
-
-//Quantum and classical variable collaboration tests
-/*{
-    // {
-    //     qubit a = [1]q;
-    //     qubit b = [1]q;
-    //     quint x = a + b;
-    //     print x;
-    //     int classical = x; //TODO: this triggers two measures
-    //     print classical;
-        
-    //     //TODO: this prints too many times because a measure gate it's permanently added to the circuit
-    //     // measure x;
-    //     // print x;
-    // }
-
-    // {
-    //     qubit a = [true]q;
-    //     qubit b = [true]q;
-    //     int classical = a + b;
-    //     print classical;
-    // }
-
-    // {
-    //     qubit a = [true]q;
-    //     qubit b = [true]q;
-    //     int classical = a + 1; //TODO: handle operation between different types
-    // }
-
-    // {
-    //     int a = 12;
-    //     qubit b = [true]q;
-    //     //TODO: 'a' should be casted to quint.
-    //             //We can measure 'b' and then sum classically to 'a' but that would not be a smart choice because 'c' cannot take advantage from the quantum state of 'b' 
-    //     quint c = a + b;
-    // }
-
-    // {
-    //     quint a = 12;
-    //     //TODO: this should be handle as an aliasing of 'b' -> 'a' 
-    //             //or should be handle as a correlation between 'a' and 'b' with cnot(s)?
-    //     quint b = a; 
-    //     qubit c = a; //TODO: downcast? 
-    // }
-}*/
+    quint aa = [0q, 0q, 1q]; //quint representing the number 1
+    quint bb = [[0, 1]q, 0q, 1q]; //quint with a superposition state where the most significant bit can be 0(50%) or 1(50%)
+    quint cc = [0.7,0.3q, 0q, 1q]; //quint with a superposition state where the most significant bit can be 0(70%) or 1(30%)
+    quint dd = [1, 3]q; //quint with a superposition state that can be both 1(50%) or 3(50%)
+    quint d = -12q;
+}
 
 //Functions tests I
-/*{
-    //What we want to achieve:
-    // qustring entireBook;
-    // int resultStartIndex = entireBook.find("some string.");
-    // or
-    // int resultStartIndex = find(entireBook, "some string.");
-
+{
     bool A (int c = 10){
         bool a = false;
-        print a;
-        print c;
         return a;
-        print a;
+        print a; //TODO: gray out unreachable code
     }
 
     bool z = A();
-    print z;
 
     void B (){
         bool z = A();
@@ -253,139 +115,11 @@
     }
 
     B();
-}*/
+}
 
-//Functions tests II
-/*{
-    // bool A (int c = 10, bool aa){ //TODO: right now everything should has a default value, so we can handle params with no default value after those with default values, but we should think about it because this could be problematic.
-    //     bool a = true;
-    //     print a;
-    //     print c;
-    //     print aa;
-    // }
-
-    int z = 1;
-    bool zz = true;
-    // A(z, zz);
-
-    B(zz);
-    bool B (bool aa){
-        print aa;
-        if(aa){
-            aa = not aa;
-            B(aa);
-        }
-    }
-    //print A(); //TODO: invali, A() is expression while print works on term.
-}*/
-
-//Functions tests III with quantum types
-/*{
-    // void A (qubit a = 1q){
-    //     print a;
-    // }
-    // qubit c = 1q;
-    // A(c);
-
-    qubit B (qubit a = 1q){
-        not a;
-    }
-    qubit d = 0q;
-    B(d); //By Reference
-    print d;
-}*/
-
-//Functions tests IV with quantum types
-/*{
-    quint sum(quint a, quint b){
-        return a+b;
-    }
-    
-
-    quint z = 1q;
-    quint y = 3q;
-    quint c = sum(z, y);
-    print c;
-}*/
-
-//Qustring
-/*{
-    qustring a = "ab";
-    print a;
-}*/
-
-
-//Grover I
-/*{
-    qubit a; qubit b; qubit c;
-    //mcz a, b, c;
-    void oracle(){
-        //011
-        not c;
-        mcz a, b, c;
-        not c;
-
-        //100
-        not a;
-        not b;
-        mcz a, b, c;
-        not b;
-        not a;
-    }
-
-    grover oracle();
-    measure;
-}*/
-
-
-//Grover II
-/*{
-    //TODO: in the current implementation the parser counts for each bit the times it's equal to 1,
-    //      but this means we could have a 5 from measuring 'a' below.
-    //      there is a way of initialize the qubits so that they cannot reach unwanted values?
-    //quint a = [1,4,6]q;
-
-    //TODO: we need to implement arrays, because we cannot assume to execute a query on a quint/qubit in superposition.
-    //      in the case of string (but the same is true for quint) "abaa" is actually an array of quchar,
-    //      we need to search for a char in this array, 
-    //      while currently we are just checking that the qustring is equal to the pattern we provide to the search operartion.
-    //
-    //      seeing that a qustring is already some sort of array, we can use the current implementation of the search,
-    //      we just need to execute the search in parallel upon all chars in qustring.
-    //      The same approch could be used for quint.
-    //
-    //      In the future, we could handle the substring matching procedure, 
-    //      so that we can choose to search for a single element in the sequence or
-    //      or a sequence in the sequence.
-
-    //quint a = [[0,1]q, [0,1]q, [0,1]q, [0,1]q];
-    //search 4 in a;
-
-    //qustring a = "*";
-    //print a;
-    qustring a = "ab";
-    search "a" in a;
-
-    //TODO: even number of solutions cause a fail, we need to add ancillas to avoid this.
-    // qustring a = "abb";
-    // search "b" in a;
-}*/
-
-
-//Grover III - SubArray Match
+//Grover
 {
-    //quint a = [[0,1]q, [0,1]q, [0,1]q, [0,1]q];
-    //search 4 in a;
-    
-    //qustring a = "0100";
-    //search "1" in a;
-
-    //qustring a = "0*00";
-    //quint a = [0q, 0q, [0,1]q, [0,1]q, 0q, 0q, 0q, 0q];
-    //search "1" in a;
-    
     qustring a = "1110111";
-    // qustring a = "0111110";
     if("0" in a){
         print "Trovato!";
     }
