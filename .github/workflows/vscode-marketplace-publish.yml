@@ -1,0 +1,32 @@
+name: Publish VSCode Extension
+
+on:
+  push:
+    paths:
+      - qutes-vscode/**
+    branches:
+      - main
+  release:
+    types:
+    - created
+
+jobs:
+  publish:
+    defaults:
+      run:
+        working-directory: qutes-vscode
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Install Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18.x
+    - name: Install npm dependencies
+      run: | 
+        npm install -g @vscode/vsce
+    - name: Publish extension
+      run: vsce publish
+      env:
+        VSCE_PAT: ${{ secrets.VSCE_PAT }}
