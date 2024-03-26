@@ -26,6 +26,7 @@ jobs:
         npm install
   publish:
     runs-on: ubuntu-latest
+    needs: build
     steps:
     - name: VSCE Publish
       run: | 
