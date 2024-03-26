@@ -28,8 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: VSCE Publish
-      if: success() && startsWith(github.ref, 'refs/tags/')
       run: | 
-        npm run deploy
+        vsce publish patch | git commit -a -F -
       env:
         VSCE_PAT: ${{ secrets.VSCE_PAT }}
