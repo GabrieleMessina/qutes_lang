@@ -11,11 +11,12 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./app
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-    - name: Change directory
-      run: cd qutes-vscode
     - name: Install Node.js
       uses: actions/setup-node@v4
       with:
