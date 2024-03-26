@@ -27,7 +27,8 @@ jobs:
     runs-on: ubuntu-latest
     #needs: build
     steps:
+    - working-directory: qutes-vscode
     - name: Publish extension and increment 
-      run: ls . | echo
+      run: vsce publish
       env:
         VSCE_PAT: ${{ secrets.VSCE_PAT }}
