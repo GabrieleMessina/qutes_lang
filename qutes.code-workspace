@@ -31,7 +31,8 @@
 		"recommendations": [
 			"mike-lischke.vscode-antlr4",
 			"ms-python.python",
-			"gruntfuggly.todo-tree"
+			"gruntfuggly.todo-tree",
+			"gabrielemessina.qutes"
 		]
 	},
 	"launch": {

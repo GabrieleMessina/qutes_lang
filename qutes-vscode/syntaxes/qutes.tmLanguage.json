@@ -1,0 +1,85 @@
+{
+  "name": "Qutes",
+  "scopeName": "source.qutes",
+  "fileTypes": ["qut"],
+  "patterns": [
+    {
+      "name": "keyword.control.qutes",
+      "match": "\\b(if|else|while|do|return|in)\\b"
+    },
+    {
+      "name": "keyword.operator.qutes",
+      "match": "(\\+|\\-|==|>|>=|<|<=|=)|\\b(not|pauliy|pauliz|grover|mcz|hadamard|measure|print|barrier)\\b"
+    },
+    {
+      "name": "storage.type.qutes",
+      "match": "\\b(qustring|quint|qubit|int|string|bool|void)\\b"
+    },
+    {
+      "name": "punctuation.terminator.qutes",
+      "match": "(;|\\(|\\)|\\{|\\}|\\[|\\]|\\.|,)"
+    },
+    {
+      "name": "string.quoted.double.qutes",
+      "match": "(\"(\\\\.|\"\"|[^\"\\\\])*\")"
+    },
+    {
+      "name": "comment.line.double-slash.qutes",
+      "match": "//.*$"
+    },
+    {
+      "name": "comment.block.qutes",
+      "begin": "/\\*",
+      "end": "\\*/"
+    },
+    {
+      "name": "string.quoted.single.qutes",
+      "begin": "'",
+      "end": "'"
+    },
+    {
+      "name": "support.constant.qutes",
+      "match": "(\\|0>|\\|1>)"
+    },
+    {
+      "name": "support.constant.qutes",
+      "match": "(\\|\\+>)"
+    },
+    {
+      "name": "support.constant.qutes",
+      "match": "(\\|\\->)"
+    },
+    {
+      "name": "constant.numeric.int.qutes",
+      "match": "\\b((\\+|\\-)?[0-9]+)\\b"
+    },
+    {
+      "name": "constant.numeric.float.qutes",
+      "match": "\\b((\\+|\\-)?[0-9]*\\.[0-9]+)\\b"
+    },
+    {
+      "name": "constant.numeric.quantum.value.qutes",
+      "match": "\\b((\\+|\\-)?[0-9]+q)\\b"
+    },
+    {
+      "name": "constant.numeric.quantum.states.qutes",
+      "match": "\\b(\\[[0-9]+(,\\s*[0-9]+)*\\]q)\\b"
+    },
+    {
+      "name": "constant.numeric.quantum.amplitude.qutes",
+      "match": "\\b((\\+|\\-)?[0-9]*\\.[0-9]+,\\s*(\\+|\\-)?[0-9]*\\.[0-9]+q)\\b"
+    },
+    {
+      "name": "constant.language.qutes",
+      "match": "(true|false|TRUE|FALSE)"
+    },
+    {
+      "name": "variable.qutes",
+      "match": "[A-Za-z_][A-Za-z0-9_]*"
+    },
+    {
+      "name": "keyword.operator.assignment.qutes",
+      "match": "="
+    }
+  ]
+}

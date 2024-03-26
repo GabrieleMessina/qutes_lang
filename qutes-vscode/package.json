@@ -1,0 +1,37 @@
+{
+    "name": "qutes",
+    "displayName": "Qutes",
+    "description": "Syntax highlighting for Qutes language",
+    "author": "Gabriele Messina",
+    "publisher": "GabrieleMessina",	
+    "license": "MIT",
+    "version": "1.0.2",
+    "engines": {
+      "vscode": "^1.52.0"
+    },
+    "homepage": "https://gabrielemessina.github.io/qutes_lang/",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/GabrieleMessina/qutes_lang"
+    },
+    "categories": [
+      "Programming Languages"
+    ],
+    "contributes": {
+      "languages": [
+        {
+          "id": "qutes",
+          "extensions": [".qut"],
+          "aliases": ["Qutes", "qutes"],
+          "configuration": "./language-configuration.json"
+        }
+      ],
+      "grammars": [
+        {
+          "language": "qutes",
+          "scopeName": "source.qutes",
+          "path": "./syntaxes/qutes.tmLanguage.json"
+        }
+      ]
+    }
+  }
