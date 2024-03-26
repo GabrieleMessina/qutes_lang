@@ -2,6 +2,8 @@ name: Publish VSCode Extension
 
 on:
   push:
+     paths:
+      - qutes-vscode/**
     branches:
       - test-vsce-publish
   release:
@@ -11,9 +13,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: qutes-vscode
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -21,14 +20,16 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: 18.x
-    - name: Install VSCE with npm
+    - name: Install npm dependencies
+      working-directory: qutes-vscode
       run: | 
         npm install
   publish:
     runs-on: ubuntu-latest
     needs: build
     steps:
-    - name: VSCE Publish
+    - name: Publish extension and increment 
+      working-directory: qutes-vscode
       run: | 
         vsce publish patch | git commit -a -F -
       env:
