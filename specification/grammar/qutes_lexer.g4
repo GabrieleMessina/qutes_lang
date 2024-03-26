@@ -1,7 +1,7 @@
 lexer grammar qutes_lexer;
 
 options {
-   caseInsensitive = true;
+   caseInsensitive = true; //TODO: we should remove this for better variable declaration?
 }
 
 // ----- Reserved keyword ----- 
@@ -127,7 +127,7 @@ QUSTRING_LITERAL
 
 
 SYMBOL_LITERAL
-   : [a-z0-9]+
+   : [a-z0-9]+ //TODO: [A-Za-z_][A-Za-z0-9_]*
    ;
 
 STRING_LITERAL
