@@ -28,8 +28,8 @@ jobs:
     needs: build
     steps:
     - name: Publish extension and increment 
-      working-directory: ./qutes-vscode
       run: | 
+        cd qutes-vscode
         vsce publish
       env:
         VSCE_PAT: ${{ secrets.VSCE_PAT }}
