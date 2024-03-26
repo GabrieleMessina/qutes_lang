@@ -5,12 +5,9 @@
     "author": "Gabriele Messina",
     "publisher": "GabrieleMessina",
     "license": "MIT",
-    "version": "1.0.3",
+    "version": "1.0.5",
     "engines": {
         "vscode": "^1.52.0"
-    },
-    "scripts": {
-        "deploy": "vsce publish --yarn"
     },
     "homepage": "https://gabrielemessina.github.io/qutes_lang/",
     "repository": {
