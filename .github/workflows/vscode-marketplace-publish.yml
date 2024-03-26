@@ -25,11 +25,11 @@ jobs:
         npm install -g @vscode/vsce
   publish:
     runs-on: ubuntu-latest
-    needs: build
+    #needs: build
     steps:
     - name: Publish extension and increment 
       run: | 
-        cd './qutes-vscode'
+        ls
         vsce publish
       env:
         VSCE_PAT: ${{ secrets.VSCE_PAT }}
