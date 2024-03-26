@@ -2,10 +2,10 @@ name: Publish VSCode Extension
 
 on:
   push:
-    #paths:
-     # - qutes-vscode/**
+    paths:
+      - qutes-vscode/**
     branches:
-      - test-vsce-publish
+      - main
   release:
     types:
     - created
