@@ -16,6 +16,9 @@ jobs:
       run:
         working-directory: qutes-vscode
     runs-on: ubuntu-latest
+    environment: 
+      name: vscode-extension
+      url: https://marketplace.visualstudio.com/items?itemName=GabrieleMessina.qutes
     steps:
     - name: Checkout
       uses: actions/checkout@v4
