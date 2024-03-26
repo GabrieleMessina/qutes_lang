@@ -18,8 +18,10 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: 18.x
-    - run: npm install
-    - run: xvfb-run -a npm test
+    - name: VSCE Test
+      run: | 
+        npm install
+        xvfb-run -a npm test
   publish:
     runs-on: ubuntu-latest
     steps:
