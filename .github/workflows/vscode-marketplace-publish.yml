@@ -14,7 +14,7 @@ jobs:
   publish:
     defaults:
       run:
-        working-directory: ./app
+        working-directory: qutes-vscode
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
