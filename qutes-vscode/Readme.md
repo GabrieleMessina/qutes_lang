@@ -11,6 +11,10 @@ This extension provides syntax highlighting for the Qutes language in Visual Stu
 
 Once installed, the extension automatically provides syntax highlighting for all `.qut` files.
 
+## Qutes Language Documentation
+
+For a comprehensive understanding of Qutes language syntax, constructs, and usage, please refer to the official [Qutes Language Documentation](https://github.com/GabrieleMessina/qutes_lang/wiki).
+
 ## License
 
 This extension is released under the [MIT License](LICENSE).
