@@ -1,0 +1,28 @@
+//qubit a = 0.7,0.3q;
+qubit a = 0q;
+//measure a;
+
+qubit bell1 = 0q;
+qubit bell2 = 0q;
+
+//Provider
+hadamard bell1;
+mcx bell1, bell2;
+
+//Alice
+mcx a, bell1;
+hadamard a;
+// measure a;
+// measure bell1;
+
+//Bob
+bool do_z = a;
+bool do_x = bell1;
+if(do_x){
+   not bell2;
+}
+if(do_z){
+   pauliz bell2;
+}
+
+measure bell2;
