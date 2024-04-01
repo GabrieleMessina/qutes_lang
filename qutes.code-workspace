@@ -16,15 +16,14 @@
 			"Antlr"
 		],
 		"pylint.importStrategy": "fromEnvironment",
+		"python.testing.cwd": "./src",
 		"python.testing.unittestArgs": [
 			"-v",
-			"-s",
-			"./src",
 			"-p",
 			"test*.py"
 		],
-		"python.testing.pytestEnabled": false,
-		"python.testing.unittestEnabled": true,
+    	"python.testing.pytestEnabled": false,
+    	"python.testing.unittestEnabled": true,
 		"python.testing.autoTestDiscoverOnSaveEnabled": true,
 	},
 	"extensions": {
@@ -44,7 +43,7 @@
             "request": "launch",
             "program": "src/qutes.py",
             "console": "integratedTerminal",
-            "args": ["-image","-circuit","./specification/grammar/grammar_tests.qut"],
+            "args": ["-image","-circuit","-iter","1","./playground/examples/quantum_teleportation.qut"],
             "justMyCode": true
         }
     ]

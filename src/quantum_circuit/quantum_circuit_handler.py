@@ -139,7 +139,7 @@ class QuantumCircuitHandler():
                 print(" - " + str(i)[::-1] +" : "+ str(vec[i]))
 
     # simulate the execution of a Quantum Circuit and get the results
-    def __run__(self, circuit, shots):
+    def __run__(self, circuit, shots, print_counts:bool = False):
         # Use Aer's qasm_simulator
         simulator = Aer.get_backend('aer_simulator')
 
@@ -162,38 +162,42 @@ class QuantumCircuitHandler():
                 raise er
 
         if(cnt != None):
-            sorted(cnt.items(), key=lambda item: item[1], reverse=True)
-            measurement_for_runs = [res.split(" ") for res in cnt.keys()]
-            counts_for_runs = [res for res in cnt.items()]
+            table = []
+            for run in cnt:
+                count = cnt[run]
+                values = run.split(" ")
+                values.append(count)
+                table.append(values)
 
+            if(print_counts):
+                from tabulate import tabulate
+                print(tabulate(table, headers=[f"{creg[0]}[{creg[1]}]" for creg in cnt.creg_sizes] + ["count"]))
+
+            measurement_for_runs = [res.split(" ") for res in cnt.keys()]
+            counts_for_runs = [res[1] for res in cnt.items()]
             for index in range(len(cnt.creg_sizes)):
                 measurement_for_variable = [a[index] for a in measurement_for_runs]
-                counts_for_variable = [a[1] for a in counts_for_runs]
                 Classical_registers = [reg for reg in self._classic_registers if reg.name == cnt.creg_sizes[index][0]]
                 Classical_registers[0].measured_values = measurement_for_variable
-                Classical_registers[0].measured_counts = counts_for_variable
+                Classical_registers[0].measured_counts = counts_for_runs
         return cnt
 
-    def run_circuit(self, circuit:QuantumCircuit, repetition:int = 1, max_results = 1) -> list[str]:
+    def run_circuit(self, circuit:QuantumCircuit, repetition:int = 1, max_results = 1, print_count:bool = False) -> list[str]:
         cnt:dict = self.__run__(circuit, repetition)
         if(cnt == None):
             return None
 
-        self.__counts__(cnt)
-
         result_with_max_count = sorted(cnt.items(), key=lambda item: item[1], reverse=True)
         return result_with_max_count[:max_results]
 
-    def run_and_measure(self, quantum_registers : list[QuantumRegister] = None, classical_registers : list[ClassicalRegister] = None, repetition = 100, max_results = 2) -> list[ClassicalRegister]:        
-        classical_registers = self.push_measure_operation(quantum_registers, classical_registers)
-        result = self.run_circuit(self.create_circuit(), repetition, max_results)
-        self._current_operation_stack.pop()
+    def run_and_measure(self, quantum_registers : list[QuantumRegister] = None, classical_registers : list[ClassicalRegister] = None, repetition = 1, max_results = 1, print_count:bool = False) -> list[ClassicalRegister]:        
+        self.get_run_and_measure_results(quantum_registers, classical_registers, repetition, max_results, print_count)
         return classical_registers
     
-    def get_run_and_measure_results(self, quantum_registers : list[QuantumRegister] = None, classical_registers : list[ClassicalRegister] = None, repetition = 100, max_results = 2) -> list[ClassicalRegister]:        
+    def get_run_and_measure_results(self, quantum_registers : list[QuantumRegister] = None, classical_registers : list[ClassicalRegister] = None, repetition = 1, max_results = 1, print_count:bool = False) -> list[ClassicalRegister]:        
         classical_registers = self.push_measure_operation(quantum_registers, classical_registers)
-        result = self.run_circuit(self.create_circuit(), repetition, max_results)
-        self._current_operation_stack.pop()
+        result = self.run_circuit(self.create_circuit(), repetition, max_results, print_count)
+        # self._current_operation_stack.pop()
         return result
 
     def run_circuit_result(self, circuit:QuantumCircuit, repetition:int = 1, max_results = 100) -> list[str]:
@@ -325,7 +329,8 @@ class QuantumCircuitHandler():
         n_iteration = math.floor(
             (math.pi / 4) * math.sqrt(dataset_size / n_results)
         )
-        print(f"Grover iterations: {n_iteration}")
+        if(verbose):
+            print(f"Grover iterations: {n_iteration}")
 
         self.push_compose_circuit_operation(grover_op.power(n_iteration), oracle_registers)
 

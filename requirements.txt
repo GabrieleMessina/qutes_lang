@@ -3,6 +3,6 @@ qiskit<1.0
 qiskit-aer
 anytree
 matplotlib
-parameterized
 ipywidgets
 pylatexenc
+tabulate

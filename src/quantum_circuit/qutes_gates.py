@@ -98,7 +98,6 @@ class QutesGates():
         n_iteration = math.floor(
             math.pi / (4 * math.asin(math.sqrt(n_results / 2**grover_op.num_qubits)))
         )
-        print(f"Grover iterations: {n_iteration}")
 
         qc.compose(grover_op.power(n_iteration), inplace=True)
 

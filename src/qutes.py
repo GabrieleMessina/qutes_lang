@@ -8,6 +8,7 @@ from grammar_frontend.qutes_lexer import QutesLexer
 from grammar_frontend.qutes_parser import QutesParser
 from grammar_frontend.qutes_grammar_visitor import QutesGrammarVisitor
 from grammar_frontend.symbols_discovery_visitor import SymbolsDiscoveryVisitor
+from grammar_frontend.qutes_syntax_error_listener import QutesErrorListener
 from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
 from symbols.variables_handler import VariablesHandler
 from quantum_circuit import QuantumCircuitHandler
@@ -27,49 +28,55 @@ def main(argv):
 
     input_stream = FileStream(args.file_path)
     lexer = QutesLexer(input_stream)
+    lexer.removeErrorListeners()
+    lexer.addErrorListener(QutesErrorListener())
+    
     stream = CommonTokenStream(lexer)
     parser = QutesParser(stream)
+    parser.removeErrorListeners()
+    parser.addErrorListener(QutesErrorListener())
+
     tree = parser.program()
 
     if parser.getNumberOfSyntaxErrors() > 0:
-        print("syntax errors")
-    else:
-        quantum_circuit_handler = QuantumCircuitHandler()
+        raise SyntaxError()
 
-        grammar_listener = SymbolsDiscoveryVisitor(quantum_circuit_handler)
-        grammar_listener.visit(tree)
+    quantum_circuit_handler = QuantumCircuitHandler()
 
-        symbols_tree = grammar_listener.scope_handler.symbols_tree
-        
-        scope_handler = ScopeHandlerForSymbolsUpdate(symbols_tree)
-        variables_handler = VariablesHandler(scope_handler, quantum_circuit_handler)
+    grammar_listener = SymbolsDiscoveryVisitor(quantum_circuit_handler)
+    grammar_listener.visit(tree)
 
-        grammar_visitor = QutesGrammarVisitor(symbols_tree, quantum_circuit_handler, scope_handler, variables_handler, args.log_verbose)
-        result = str(grammar_visitor.visit(tree))
-        
+    symbols_tree = grammar_listener.scope_handler.symbols_tree
+    
+    scope_handler = ScopeHandlerForSymbolsUpdate(symbols_tree)
+    variables_handler = VariablesHandler(scope_handler, quantum_circuit_handler)
+
+    grammar_visitor = QutesGrammarVisitor(symbols_tree, quantum_circuit_handler, scope_handler, variables_handler, args.log_verbose)
+    result = str(grammar_visitor.visit(tree))
+    
+    print()
+    print("----Result----")
+    print(result.replace("\n", "", 1))
+    
+    if(args.log_symbols_scope):
         print()
-        print("----Result----")
-        print(result.replace("\n", "", 1))
-        
-        if(args.log_symbols_scope):
-            print()
-            print("----Symbols Scope----")
-            for pre, _, node in RenderTree(symbols_tree):
-                print("%s%s(%s) Symbols: %s" % (pre, node.scope_class, node.scope_type_detail, node.symbols))
+        print("----Symbols Scope----")
+        for pre, _, node in RenderTree(symbols_tree):
+            print("%s%s(%s) Symbols: %s" % (pre, node.scope_class, node.scope_type_detail, node.symbols))
 
-        if(args.log_ast_tree):
-            print()
-            ast_tree_str = tree.toStringTree(recog=parser)
-            print("-------Abstract Syntax Tree--------")
-            print(ast_tree_str)
-        
+    if(args.log_ast_tree):
         print()
-        print("----Quantum Circuit----")
-        circuit = quantum_circuit_handler.create_circuit()
-        quantum_circuit_handler.print_circuit(circuit, args.save_circuit_as_image, args.log_quantum_circuit)
-        quantum_circuit_handler.run_circuit(circuit, args.number_of_iterations)
+        ast_tree_str = tree.toStringTree(recog=parser)
+        print("-------Abstract Syntax Tree--------")
+        print(ast_tree_str)
+    
+    print()
+    print("----Quantum Circuit----")
+    circuit = quantum_circuit_handler.create_circuit()
+    quantum_circuit_handler.print_circuit(circuit, args.save_circuit_as_image, args.log_quantum_circuit)
+    quantum_circuit_handler.run_circuit(circuit, args.number_of_iterations, print_count=True)
 
-        print()
+    print()
 
 if __name__ == '__main__':
     main(sys.argv)

@@ -193,7 +193,7 @@ class TypeCastingHandler():
         from symbols import Symbol
         from_type_value = None
         if QutesDataType.is_quantum_type(from_type):
-            from_type_value = self.quantum_cirtcuit_handler.get_run_and_measure_results(symbol_or_literal.quantum_register)
+            from_type_value = self.quantum_cirtcuit_handler.get_run_and_measure_results([symbol_or_literal.quantum_register])
             if from_type_value == None and isinstance(symbol_or_literal, Symbol):
                 from_type_value = symbol_or_literal.value.to_classical_type()
 
