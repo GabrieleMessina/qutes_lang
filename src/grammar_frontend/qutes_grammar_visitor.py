@@ -367,10 +367,12 @@ class QutesGrammarVisitor(qutesVisitor):
         return self.__visit("visitMultipleUnaryOperator", lambda : self.__visitMultipleUnaryOperator(ctx))
 
     def __visitMultipleUnaryOperator(self, ctx:qutesParser.MultipleUnaryOperatorContext):
+        terms:list[Symbol] = self.visit(ctx.termList())
+        registers = [register.quantum_register for register in terms]
         if(ctx.MCZ()):
-            terms:list[Symbol] = self.visit(ctx.termList())
-            registers = [register.quantum_register for register in terms]
             self.quantum_circuit_handler.push_MCZ_operation(registers)
+        if(ctx.MCX()):
+            self.quantum_circuit_handler.push_MCX_operation(registers)
 
     # Visit a parse tree produced by qutes_parser#termList.
     def visitTermList(self, ctx:qutesParser.TermListContext):
@@ -452,9 +454,10 @@ class QutesGrammarVisitor(qutesVisitor):
                 positive_results = [result for result in results if result[0].split(" ")[0] == "1"]
                 if (len(positive_results) > 0):
                     results_counts = sum([result[1] for result in positive_results])
-                    print(f"Solution found with probability {results_counts}/{circuit_runs}")
-                    if(len(positive_results[0][0].split(" ")) > 1):
-                        print(f"and rotation: {positive_results[0][0].split(' ')[1]} (for the first hit)")
+                    if(self.log_grover_verbose):
+                        print(f"Solution found with probability {results_counts}/{circuit_runs}")
+                        if(len(positive_results[0][0].split(" ")) > 1):
+                            print(f"and rotation: {positive_results[0][0].split(' ')[1]} (for the first hit)")
                     return True
                 registers_to_measure.remove(oracle_result)
             return False
