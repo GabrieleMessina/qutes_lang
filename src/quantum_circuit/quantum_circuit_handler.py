@@ -165,7 +165,7 @@ class QuantumCircuitHandler():
             table = []
             for run in cnt:
                 count = cnt[run]
-                values = run.split(" ")
+                values = run.split(" ")[::-1]
                 values.append(count)
                 table.append(values)
 
