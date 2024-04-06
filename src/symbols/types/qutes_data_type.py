@@ -163,7 +163,7 @@ class TypeCastingHandler():
         QutesDataType.bool: [QutesDataType.qubit, QutesDataType.bool],
         QutesDataType.int: [QutesDataType.quint, QutesDataType.qubit, QutesDataType.int],
         QutesDataType.float: [QutesDataType.quint, QutesDataType.qubit, QutesDataType.float, QutesDataType.int],
-        QutesDataType.string: [QutesDataType.string],
+        QutesDataType.string: [QutesDataType.qustring, QutesDataType.string],
         QutesDataType.qubit: [QutesDataType.qubit],
         QutesDataType.quint: [QutesDataType.quint],
         QutesDataType.qustring: [QutesDataType.qustring],
@@ -173,7 +173,7 @@ class TypeCastingHandler():
     def promote_value_to_type(self, var_value : any, from_type:'QutesDataType', to_type : 'QutesDataType', symbol_or_literal) -> any:
         match to_type:
             case QutesDataType.bool:
-                return bool(var_value)
+                return bool(int(var_value))
             case QutesDataType.int:
                 return int(var_value)
             case QutesDataType.float:
@@ -193,7 +193,7 @@ class TypeCastingHandler():
         from symbols import Symbol
         from_type_value = None
         if QutesDataType.is_quantum_type(from_type):
-            from_type_value, _ = self.quantum_cirtcuit_handler.get_run_and_measure_results([symbol_or_literal.quantum_register])
+            from_type_value, _ = self.quantum_cirtcuit_handler.get_run_and_measure_result_for_quantum_var(symbol_or_literal.quantum_register)
             if from_type_value == None and isinstance(symbol_or_literal, Symbol):
                 from_type_value = symbol_or_literal.value.to_classical_type()
 
@@ -202,7 +202,7 @@ class TypeCastingHandler():
 
         match to_type:
             case QutesDataType.bool:
-                return bool(from_type_value)
+                return bool(int(from_type_value))
             case QutesDataType.int:
                return int(from_type_value)
             case QutesDataType.float:

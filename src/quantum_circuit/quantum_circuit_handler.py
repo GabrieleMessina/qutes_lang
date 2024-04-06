@@ -173,7 +173,7 @@ class QuantumCircuitHandler():
                 from tabulate import tabulate
                 print(tabulate(table, headers=[f"{creg[0]}[{creg[1]}]" for creg in cnt.creg_sizes] + ["count"]))
 
-            measurement_for_runs = [res.split(" ") for res in cnt.keys()]
+            measurement_for_runs = [res.split(" ")[::-1] for res in cnt.keys()]
             counts_for_runs = [res[1] for res in cnt.items()]
             for index in range(len(cnt.creg_sizes)):
                 measurement_for_variable = [a[index] for a in measurement_for_runs]
@@ -196,9 +196,14 @@ class QuantumCircuitHandler():
     
     def get_run_and_measure_results(self, quantum_registers : list[QuantumRegister] = None, classical_registers : list[ClassicalRegister] = None, repetition = 1, max_results = 1, print_count:bool = False) -> tuple[list[str], list[ClassicalRegister]]:        
         classical_registers = self.push_measure_operation(quantum_registers, classical_registers)
-        result = self.run_circuit(self.create_circuit(), repetition, max_results, print_count)
+        self.run_circuit(self.create_circuit(), repetition, max_results, print_count)
         # self._current_operation_stack.pop()
-        return (result, classical_registers)
+        results = [reg.measured_values for reg in classical_registers]
+        return (results, classical_registers)
+    
+    def get_run_and_measure_result_for_quantum_var(self, quantum_register : QuantumRegister, classical_register : ClassicalRegister = None, repetition = 1, max_results = 1, print_count:bool = False) -> tuple[str, ClassicalRegister]:        
+        (_, classical_register) = self.get_run_and_measure_results([quantum_register], [classical_register] if classical_register != None else None, repetition, max_results, print_count)
+        return (classical_register[0].measured_values[0], classical_register[0])
 
     def run_circuit_result(self, circuit:QuantumCircuit, repetition:int = 1, max_results = 100) -> list[str]:
         # Use Aer's qasm_simulator
