@@ -7,7 +7,9 @@ mcx bell2, bell1;
 // - Send bell2 to Alice and Bell1 to Bob
 
 //Alice
-string message = "01";
+qustring qu_message = "**";
+string message = qu_message;
+
 if(message == "00"){
    //do nothing
 }
@@ -21,6 +23,7 @@ else if(message == "11"){
    pauliz bell2;
    not bell2;
 }
+
 // - Send transformed bell2 to Bob
 
 
@@ -28,11 +31,14 @@ else if(message == "11"){
 mcx bell2, bell1;
 hadamard bell2;
 
-measure bell1;
-measure bell2;
+
+bool received_bit1 = bell1;
+bool received_bit2 = bell2;
 
 print "Messaggio Inviato: ";
 print message;
 print "Messaggio Ricevuto: ";
-print bell2;
-print bell1;
+//TODO:  Here we print always the first message because the circuit is created upon that.
+//       We should run Qutes 'runs' times or create the circuit with Qiskit if statements upon classical registers. 
+print received_bit1;
+print received_bit2;

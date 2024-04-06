@@ -1,0 +1,4 @@
+qubit a = 0q;
+bool b = a;
+
+print b;

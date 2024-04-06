@@ -28,6 +28,13 @@ if(do_z){
 measure bell2;
 
 
+print "Initial Message:";
+print a;
+print "Teleported Message:";
+print bell2;
+
+
+
 //TODO: There is some error when multiple functions are declared
 // qubit aliceMessage = 0q;
 

@@ -70,7 +70,16 @@
             "request": "launch",
             "program": "src/qutes.py",
             "console": "integratedTerminal",
-            "args": ["-image","-circuit","-iter","1","./playground/examples/superdense_coding.qut"],
+            "args": ["-image","-circuit","-iter","100","./playground/examples/superdense_coding.qut"],
+            "justMyCode": true
+        },
+		{
+            "name": "Qutes: Run Test example",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "src/qutes.py",
+            "console": "integratedTerminal",
+            "args": ["-image","-circuit","-iter","100","./playground/examples/test.qut"],
             "justMyCode": true
         },
     ]
