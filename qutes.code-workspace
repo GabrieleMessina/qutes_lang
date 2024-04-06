@@ -38,14 +38,41 @@
 		"version": "0.2.0",
 		"configurations": [
         {
-            "name": "Python: Run Qutes with test source code",
-            "type": "python",
+            "name": "Qutes: Run test source code",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "src/qutes.py",
+            "console": "integratedTerminal",
+            "args": ["-image","-circuit","-iter","1","./specification/grammar/grammar_tests.qut"],
+            "justMyCode": true
+        },
+		{
+            "name": "Qutes: Run Quantum key Distribution BB84 example",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "src/qutes.py",
+            "console": "integratedTerminal",
+            "args": ["-image","-circuit","-iter","1","./playground/examples/quantum_key_distribution_bb84.qut"],
+            "justMyCode": true
+        },
+		{
+            "name": "Qutes: Run Quantum Teleportation example",
+            "type": "debugpy",
             "request": "launch",
             "program": "src/qutes.py",
             "console": "integratedTerminal",
             "args": ["-image","-circuit","-iter","1","./playground/examples/quantum_teleportation.qut"],
             "justMyCode": true
-        }
+        },
+		{
+            "name": "Qutes: Run Superdense Coding example",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "src/qutes.py",
+            "console": "integratedTerminal",
+            "args": ["-image","-circuit","-iter","1","./playground/examples/superdense_coding.qut"],
+            "justMyCode": true
+        },
     ]
 	}
 }

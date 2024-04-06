@@ -449,7 +449,7 @@ class QutesGrammarVisitor(qutesVisitor):
                 oracle_result = self.quantum_circuit_handler.push_grover_operation(*oracle_registers, quantum_function=quantum_function, register_involved_indexes=qubits_involved_in_grover, dataset_size=array_size, n_results=n_results, verbose=self.log_grover_verbose)
                 registers_to_measure.append(oracle_result)
                 circuit_runs = 3
-                results = self.quantum_circuit_handler.get_run_and_measure_results(registers_to_measure, repetition=circuit_runs)
+                results, _ = self.quantum_circuit_handler.get_run_and_measure_results(registers_to_measure, repetition=circuit_runs)
 
                 positive_results = [result for result in results if result[0].split(" ")[0] == "1"]
                 if (len(positive_results) > 0):

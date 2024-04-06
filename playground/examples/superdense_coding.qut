@@ -1,0 +1,38 @@
+//Provider
+qubit bell1;
+qubit bell2;
+
+hadamard bell2;
+mcx bell2, bell1;
+// - Send bell2 to Alice and Bell1 to Bob
+
+//Alice
+string message = "01";
+if(message == "00"){
+   //do nothing
+}
+else if(message == "01"){
+   pauliz bell2;
+}
+else if(message == "10"){
+   not bell2;
+}
+else if(message == "11"){
+   pauliz bell2;
+   not bell2;
+}
+// - Send transformed bell2 to Bob
+
+
+//Bob
+mcx bell2, bell1;
+hadamard bell2;
+
+measure bell1;
+measure bell2;
+
+print "Messaggio Inviato: ";
+print message;
+print "Messaggio Ricevuto: ";
+print bell2;
+print bell1;

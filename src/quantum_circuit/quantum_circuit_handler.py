@@ -183,7 +183,7 @@ class QuantumCircuitHandler():
         return cnt
 
     def run_circuit(self, circuit:QuantumCircuit, repetition:int = 1, max_results = 1, print_count:bool = False) -> list[str]:
-        cnt:dict = self.__run__(circuit, repetition)
+        cnt:dict = self.__run__(circuit, repetition, print_count)
         if(cnt == None):
             return None
 
@@ -191,14 +191,14 @@ class QuantumCircuitHandler():
         return result_with_max_count[:max_results]
 
     def run_and_measure(self, quantum_registers : list[QuantumRegister] = None, classical_registers : list[ClassicalRegister] = None, repetition = 1, max_results = 1, print_count:bool = False) -> list[ClassicalRegister]:        
-        self.get_run_and_measure_results(quantum_registers, classical_registers, repetition, max_results, print_count)
+        (_, classical_registers) = self.get_run_and_measure_results(quantum_registers, classical_registers, repetition, max_results, print_count)
         return classical_registers
     
-    def get_run_and_measure_results(self, quantum_registers : list[QuantumRegister] = None, classical_registers : list[ClassicalRegister] = None, repetition = 1, max_results = 1, print_count:bool = False) -> list[ClassicalRegister]:        
+    def get_run_and_measure_results(self, quantum_registers : list[QuantumRegister] = None, classical_registers : list[ClassicalRegister] = None, repetition = 1, max_results = 1, print_count:bool = False) -> tuple[list[str], list[ClassicalRegister]]:        
         classical_registers = self.push_measure_operation(quantum_registers, classical_registers)
         result = self.run_circuit(self.create_circuit(), repetition, max_results, print_count)
         # self._current_operation_stack.pop()
-        return result
+        return (result, classical_registers)
 
     def run_circuit_result(self, circuit:QuantumCircuit, repetition:int = 1, max_results = 100) -> list[str]:
         # Use Aer's qasm_simulator

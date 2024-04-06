@@ -1,0 +1,215 @@
+int n = 8; //number of qubits
+
+//Alice create a random binary sequence
+string message_0 = "0";
+string message_1 = "0";
+string message_2 = "1";
+string message_3 = "0";
+string message_4 = "0";
+string message_5 = "1";
+string message_6 = "0";
+string message_7 = "1";
+
+//Alice create a random binary sequence of basis
+string alice_bases0 = "1";
+string alice_bases1 = "1";
+string alice_bases2 = "0";
+string alice_bases3 = "0";
+string alice_bases4 = "0";
+string alice_bases5 = "1";
+string alice_bases6 = "1";
+string alice_bases7 = "1";
+
+//Alice encodes the message with the basis
+//for each character in message, if the corresponding character in bases is 0, then encode the character in Z basis, otherwise in X basis
+qubit alice_0 = 0q;
+qubit alice_1 = 0q;
+qubit alice_2 = 1q;
+qubit alice_3 = 0q;
+qubit alice_4 = 0q;
+qubit alice_5 = 1q;
+qubit alice_6 = 0q;
+qubit alice_7 = 1q;
+
+
+while (n >= 0){
+    if(n == 0){
+        if (alice_bases0 == "0"){
+            //encode message_1 in Z basis
+            //do nothing.
+        } else {
+            //encode message_0 in X basis
+            hadamard alice_0;
+        }
+    }
+    if(n == 1){
+        if (alice_bases1 == "0"){
+            //encode message_1 in Z basis
+            //do nothing.
+        } else {
+            //encode message_1 in X basis
+            hadamard alice_1;
+        }
+    }
+    if(n == 2){
+        if (alice_bases2 == "0"){
+            //encode message_2 in Z basis
+            //do nothing.
+        } else {
+            //encode message_2 in X basis
+            hadamard alice_2;
+        }
+    }
+    if(n == 3){
+        if (alice_bases3 == "0"){
+            //encode message_3 in Z basis
+            //do nothing.
+        } else {
+            //encode message_3 in X basis
+            hadamard alice_3;
+        }
+    }
+    if(n == 4){
+        if (alice_bases4 == "0"){
+            //encode message_4 in Z basis
+            //do nothing.
+        } else {
+            //encode message_4 in X basis
+            hadamard alice_4;
+        }
+    }
+    if(n == 5){
+        if (alice_bases5 == "0"){
+            //encode message_5 in Z basis
+            //do nothing.
+        } else {
+            //encode message_5 in X basis
+            hadamard alice_5;
+        }
+    }
+    if(n == 6){
+        if (alice_bases6 == "0"){
+            //encode message_6 in Z basis
+            //do nothing.
+        } else {
+            //encode message_6 in X basis
+            hadamard alice_6;
+        }
+    }
+    if(n == 7){
+        if (alice_bases7 == "0"){
+            //encode message_7 in Z basis
+            //do nothing.
+        } else {
+            //encode message_7 in X basis
+            hadamard alice_7;
+        }
+    }
+
+    n = n-1;
+}
+n = 8;
+
+//Alice sends the encoded message to Bob
+
+
+
+//Bob create a random binary sequence of basis
+string bob_bases0 = "1";
+string bob_bases1 = "0";
+string bob_bases2 = "1";
+string bob_bases3 = "0";
+string bob_bases4 = "1";
+string bob_bases5 = "0";
+string bob_bases6 = "1";
+string bob_bases7 = "0";
+
+while (n >= 0){
+    if(n == 0){
+        if (bob_bases0 == "0"){
+            //encode message_1 in Z basis
+            //do nothing.
+        } else {
+            //encode message_0 in X basis
+            hadamard alice_0;
+        }
+    }
+    if(n == 1){
+        if (bob_bases1 == "0"){
+            //encode message_1 in Z basis
+            //do nothing.
+        } else {
+            //encode message_1 in X basis
+            hadamard alice_1;
+        }
+    }
+    if(n == 2){
+        if (bob_bases2 == "0"){
+            //encode message_2 in Z basis
+            //do nothing.
+        } else {
+            //encode message_2 in X basis
+            hadamard alice_2;
+        }
+    }
+    if(n == 3){
+        if (bob_bases3 == "0"){
+            //encode message_3 in Z basis
+            //do nothing.
+        } else {
+            //encode message_3 in X basis
+            hadamard alice_3;
+        }
+    }
+    if(n == 4){
+        if (bob_bases4 == "0"){
+            //encode message_4 in Z basis
+            //do nothing.
+        } else {
+            //encode message_4 in X basis
+            hadamard alice_4;
+        }
+    }
+    if(n == 5){
+        if (bob_bases5 == "0"){
+            //encode message_5 in Z basis
+            //do nothing.
+        } else {
+            //encode message_5 in X basis
+            hadamard alice_5;
+        }
+    }
+    if(n == 6){
+        if (bob_bases6 == "0"){
+            //encode message_6 in Z basis
+            //do nothing.
+        } else {
+            //encode message_6 in X basis
+            hadamard alice_6;
+        }
+    }
+    if(n == 7){
+        if (bob_bases7 == "0"){
+            //encode message_7 in Z basis
+            //do nothing.
+        } else {
+            //encode message_7 in X basis
+            hadamard alice_7;
+        }
+    }
+
+    n = n-1;
+}
+n = 8;
+
+
+//Bob measures all
+measure alice_0;
+measure alice_1;
+measure alice_2;
+measure alice_3;
+measure alice_4;
+measure alice_5;
+measure alice_6;
+measure alice_7;
+
