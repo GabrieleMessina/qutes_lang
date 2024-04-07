@@ -3,6 +3,8 @@ from .qutes_base_test import QutesBaseTest
 class TestGrover(QutesBaseTest):
     TOKEN_AST_INDEX_FOR_TESTS = 100000
 
+    # Grover search is probabilistic, there is a little chance no solution is found even if there should be one, and vice versa.
+    # So if we fail the first time, we try again
     def assert_grover_test(self, code, var_name, expected_value_of_var):
         try:
             result = self.parse_qutes_code(code)
