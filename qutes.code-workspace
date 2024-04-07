@@ -82,6 +82,15 @@
             "args": ["-image","-circuit","-iter","100","./playground/examples/test.qut"],
             "justMyCode": true
         },
+		{
+            "name": "Qutes: Run Grover Search example",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "src/qutes.py",
+            "console": "integratedTerminal",
+            "args": ["-image","-iter","1","./playground/examples/grover_search.qut"],
+            "justMyCode": true
+        },
     ]
 	}
 }

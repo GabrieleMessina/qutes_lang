@@ -33,7 +33,7 @@ class QutesDataType(Enum):
         return QutesDataType.get_array_word_bit(QutesDataType.from_string_type(type))
     
     def is_array_type(type:'QutesDataType'):
-        return type in [QutesDataType.qustring]
+        return type in [QutesDataType.qustring, QutesDataType.quint]
     
     def get_array_word_bit(type:'QutesDataType'):
          match type:
