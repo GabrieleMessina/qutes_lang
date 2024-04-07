@@ -41,7 +41,7 @@ class QuantumCircuitHandler():
     def declare_quantum_register(self, variable_name : str, quantum_variable : any) -> QuantumRegister:
         new_register = None
 
-        new_register = QuantumRegister(quantum_variable.size, variable_name, quantum_variable)
+        new_register = QuantumRegister(quantum_variable.size, variable_name)
 
         if(new_register is None):
             raise SystemError("Error trying to declare a quantum variable of unsupported type")
@@ -65,7 +65,7 @@ class QuantumCircuitHandler():
             del self._registers_states[register_to_update]
             self._quantum_registers.remove(register_to_update)
             #Add new quantum register
-            register_to_update = self._varname_to_register[variable_name] = QuantumRegister(quantum_variable.size, variable_name, quantum_variable)
+            register_to_update = self._varname_to_register[variable_name] = QuantumRegister(quantum_variable.size, variable_name)
             self._quantum_registers.append(register_to_update)
 
         self._registers_states[register_to_update] = quantum_variable.get_quantum_state()
@@ -182,43 +182,30 @@ class QuantumCircuitHandler():
                 Classical_registers[0].measured_counts = counts_for_runs
         return cnt
 
-    def run_circuit(self, circuit:QuantumCircuit, repetition:int = 1, max_results = 1, print_count:bool = False) -> list[str]:
-        cnt:dict = self.__run__(circuit, repetition, print_count)
-        if(cnt == None):
-            return None
+    def run_circuit(self, circuit:QuantumCircuit, repetition:int = 1, print_count:bool = False):
+        self.__run__(circuit, repetition, print_count)
+    
+    def get_run_and_measure_results(self, quantum_registers : list[QuantumRegister] = None, classical_registers : list[ClassicalRegister] = None, repetition = 1, max_results = None, print_count:bool = False) -> tuple[list[str], list[ClassicalRegister]]:        
+        quantum_registers = quantum_registers or self._quantum_registers
+        classical_registers = self.push_measure_operation(quantum_registers, classical_registers)
+        self.run_circuit(self.create_circuit(), repetition, print_count)
+        # self._current_operation_stack.pop()
 
-        result_with_max_count = sorted(cnt.items(), key=lambda item: item[1], reverse=True)
-        return result_with_max_count[:max_results]
+        for creg in classical_registers:
+            [qreg for qreg in quantum_registers if qreg.name in creg.name][0].measured_classical_register = creg
+
+        results = [reg.measured_values for reg in classical_registers]
+        if(max_results is not None):
+            results = results[:max_results]
+        return (results, classical_registers)
 
     def run_and_measure(self, quantum_registers : list[QuantumRegister] = None, classical_registers : list[ClassicalRegister] = None, repetition = 1, max_results = 1, print_count:bool = False) -> list[ClassicalRegister]:        
         (_, classical_registers) = self.get_run_and_measure_results(quantum_registers, classical_registers, repetition, max_results, print_count)
         return classical_registers
     
-    def get_run_and_measure_results(self, quantum_registers : list[QuantumRegister] = None, classical_registers : list[ClassicalRegister] = None, repetition = 1, max_results = 1, print_count:bool = False) -> tuple[list[str], list[ClassicalRegister]]:        
-        classical_registers = self.push_measure_operation(quantum_registers, classical_registers)
-        self.run_circuit(self.create_circuit(), repetition, max_results, print_count)
-        # self._current_operation_stack.pop()
-        results = [reg.measured_values for reg in classical_registers]
-        return (results, classical_registers)
-    
     def get_run_and_measure_result_for_quantum_var(self, quantum_register : QuantumRegister, classical_register : ClassicalRegister = None, repetition = 1, max_results = 1, print_count:bool = False) -> tuple[str, ClassicalRegister]:        
         (_, classical_register) = self.get_run_and_measure_results([quantum_register], [classical_register] if classical_register != None else None, repetition, max_results, print_count)
         return (classical_register[0].measured_values[0], classical_register[0])
-
-    def run_circuit_result(self, circuit:QuantumCircuit, repetition:int = 1, max_results = 100) -> list[str]:
-        # Use Aer's qasm_simulator
-        simulator = Aer.get_backend('aer_simulator')
-
-        # compile the circuit down to low-level QASM instructions
-        # supported by the backend (not needed for simple circuits)
-        compiled_circuit = transpile(circuit, simulator)
-
-        # Execute the circuit on the qasm simulator
-        job = Sampler().run(compiled_circuit, shots=repetition)
-        
-        # Grab results from the job
-        result = job.result()  
-        return result
 
     def push_not_operation(self, quantum_register : QuantumRegister) -> None:
         self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).x(quantum_register))
@@ -353,40 +340,3 @@ class QuantumCircuitHandler():
         oracle_result = self.declare_quantum_register(f"oracle_phase_ancilla_{current_grover_count}", Qubit())
         self.push_compose_circuit_operation(boolean_quantum_function, [*oracle_registers[:-1],oracle_result])
         return oracle_result
-
-    def phase_estimation(self, quantum_function:QuantumCircuit, input_preparation:QuantumCircuit = None, precision = 3) -> float:
-        m = precision  # Number of control qubits
-        n = quantum_function.num_qubits # Number of qubits the oracle works on.
-
-        control_register = QuantumRegister(m, "Control", None)
-        target_register = QuantumRegister(n, "|ψ>", None)
-        output_register = ClassicalRegister(m, "Result", None)
-        qc = QuantumCircuit(control_register, target_register, output_register)
-
-        # Prepare the eigenvector |ψ>
-        # qc.compose(input_preparation, target_register, inplace=True)
-        qc.h(target_register)
-        qc.barrier()
-
-        # Perform phase estimation
-        for index, qubit in enumerate(control_register):
-            qc.h(qubit)
-            for _ in range(2**index):
-                qc.compose(quantum_function.control(num_ctrl_qubits=1), [qubit, *target_register], inplace=True)
-        qc.barrier()
-
-        # Do inverse quantum Fourier transform
-        qc.compose(QFT(m, inverse=True), control_register, inplace=True)
-
-        # Measure everything
-        qc.measure(control_register, output_register)
-        #self.print_circuit(qc)
-        result:dict = self.run_circuit_result(qc, 1000, 200).quasi_dists[0]
-
-        thetas = sorted([((2*_result)/2**m)*math.pi for _result in result.keys()])
-
-        most_probable = max(result, key=result.get)
-        print(f"Most probable output: {most_probable}")
-        print(f"output: {result}")
-        print(f"Estimated theta: {thetas}")
-        return thetas
