@@ -46,22 +46,13 @@
             "args": ["-image","-circuit","-iter","1","./specification/grammar/grammar_tests.qut"],
             "justMyCode": true
         },
-		{
-            "name": "Qutes: Run Quantum key Distribution BB84 example",
+        {
+            "name": "Qutes: Run Test example",
             "type": "debugpy",
             "request": "launch",
             "program": "src/qutes.py",
             "console": "integratedTerminal",
-            "args": ["-image","-circuit","-iter","1","./playground/examples/quantum_key_distribution_bb84.qut"],
-            "justMyCode": true
-        },
-		{
-            "name": "Qutes: Run Quantum Teleportation example",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "src/qutes.py",
-            "console": "integratedTerminal",
-            "args": ["-image","-circuit","-iter","1","./playground/examples/quantum_teleportation.qut"],
+            "args": ["-image","-circuit","-iter","100","./playground/examples/test.qut"],
             "justMyCode": true
         },
 		{
@@ -74,21 +65,30 @@
             "justMyCode": true
         },
 		{
-            "name": "Qutes: Run Test example",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "src/qutes.py",
-            "console": "integratedTerminal",
-            "args": ["-image","-circuit","-iter","100","./playground/examples/test.qut"],
-            "justMyCode": true
-        },
-		{
             "name": "Qutes: Run Grover Search example",
             "type": "debugpy",
             "request": "launch",
             "program": "src/qutes.py",
             "console": "integratedTerminal",
             "args": ["-image","-iter","1","./playground/examples/grover_search.qut"],
+            "justMyCode": true
+        },
+        {
+            "name": "Qutes: Run Quantum Teleportation example [WIP]",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "src/qutes.py",
+            "console": "integratedTerminal",
+            "args": ["-image","-circuit","-iter","1","./playground/examples/quantum_teleportation.qut"],
+            "justMyCode": true
+        },
+        {
+            "name": "Qutes: Run Quantum key Distribution BB84 example",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "src/qutes.py",
+            "console": "integratedTerminal",
+            "args": ["-image","-circuit","-iter","1","./playground/examples/quantum_key_distribution_bb84.qut"],
             "justMyCode": true
         },
     ]
