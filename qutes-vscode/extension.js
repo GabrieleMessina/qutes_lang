@@ -15,7 +15,7 @@ function runQutes(runs, params = []){
         request: "launch",
         program: "src/qutes.py",
         console: "integratedTerminal",
-        args: [params,"-image","-circuit","-iter",runs,filePath],
+        args: params.concat(["-image","-circuit","-iter",runs,filePath]),
         justMyCode: true
     };
 
