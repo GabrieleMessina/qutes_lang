@@ -32,7 +32,7 @@ class TestGrammar(QutesBaseTest):
                 code =  f"""
                         bool {var_name};
                         """
-                self.run_qutes_code(code)
+                self.parse_qutes_code(code)
 
     def test_var_declaration_with_unexpected_char_throws(self):
         params = [
@@ -60,7 +60,7 @@ class TestGrammar(QutesBaseTest):
                         bool {var_name};
                         """
                 with self.assertRaises(SyntaxError):
-                    self.run_qutes_code(code)
+                    self.parse_qutes_code(code)
 
     def test_classic_type_declaration_succeed(self):
         params = [
@@ -85,7 +85,7 @@ class TestGrammar(QutesBaseTest):
                 code =  f"""
                         {var_type} {var_name} = {declaration_value};
                         """
-                result = self.run_qutes_code(code)
+                result = self.parse_qutes_code(code)
                 actual_value_of_var = result.variables_handler.get_variable_symbol(var_name, self.TOKEN_AST_INDEX_FOR_TESTS).value
                 self.assertEquals(actual_value_of_var, expected_value_of_var, f"Expected value: {expected_value_of_var}, actual value: {actual_value_of_var}")
 
@@ -106,7 +106,7 @@ class TestGrammar(QutesBaseTest):
                         {var_type} {var_name} = {declaration_value};
                         """
                 with self.assertRaises(TypeError):
-                    self.run_qutes_code(code)
+                    self.parse_qutes_code(code)
 
 
     def test_quantum_type_declaration_succeed(self):
@@ -130,7 +130,7 @@ class TestGrammar(QutesBaseTest):
                 code =  f"""
                         {var_type} {var_name} = {declaration_value};
                         """
-                result = self.run_qutes_code(code)
+                result = self.parse_qutes_code(code)
 
                 actual_value_of_var = str(result.variables_handler.get_variable_symbol(var_name, self.TOKEN_AST_INDEX_FOR_TESTS).value)
                 self.assertEquals(actual_value_of_var, str(expected_value_of_var), f"Expected value: {expected_value_of_var}, actual value: {actual_value_of_var}")
@@ -153,7 +153,7 @@ class TestGrammar(QutesBaseTest):
                         {var_type} {var_name} = {declaration_value};
                         """
                 with self.assertRaises(TypeError):
-                    self.run_qutes_code(code)
+                    self.parse_qutes_code(code)
 
     def test_double_variable_declaration_throws(self):
         code =  f"""
@@ -161,7 +161,7 @@ class TestGrammar(QutesBaseTest):
                 string a = "";
                 """
         with self.assertRaises(SyntaxError):
-            self.run_qutes_code(code)
+            self.parse_qutes_code(code)
 
     def test_variable_shadowing_succeed(self):
         var_name = "a"
@@ -171,7 +171,7 @@ class TestGrammar(QutesBaseTest):
                 quint {var_name} = 5q;
                 {{ string {var_name} = {declaration_value_of_var}; }}
                 """
-        result = self.run_qutes_code(code)
+        result = self.parse_qutes_code(code)
         result.scope_handler.push_scope()
         actual_value_of_var = str(result.variables_handler.get_variable_symbol(var_name, self.TOKEN_AST_INDEX_FOR_TESTS).value)
         self.assertEquals(actual_value_of_var, str(expected_value_of_var), f"Expected value: {expected_value_of_var}, actual value: {actual_value_of_var}")

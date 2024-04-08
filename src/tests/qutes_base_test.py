@@ -19,7 +19,7 @@ class QutesTestResult:
 class QutesBaseTest(unittest.TestCase):
     TOKEN_AST_INDEX_FOR_TESTS = 100000
 
-    def run_qutes_code(self, code:str) -> QutesTestResult:
+    def parse_qutes_code(self, code:str) -> QutesTestResult:
         input_stream = InputStream(code)
         lexer = QutesLexer(input_stream)
         lexer.removeErrorListeners()
