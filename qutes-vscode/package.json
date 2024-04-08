@@ -5,7 +5,7 @@
     "author": "Gabriele Messina",
     "publisher": "GabrieleMessina",
     "license": "MIT",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "engines": {
         "vscode": "^1.52.0"
     },
@@ -43,17 +43,40 @@
         "commands": [
             {
                 "command": "qutes.runQutesFile",
-                "title": "Run Qutes File"
+                "title": "Run Qutes File",
+                "icon": "$(run)"
+            },
+            {
+                "command": "qutes.runQutesFile100",
+                "title": "Run Qutes File 100 times",
+                "icon": "$(run-all)"
             }
         ],
         "menus": {
-            "editor/title": [
+            "editor/title/run": [
               {
                 "command": "qutes.runQutesFile",
                 "group": "navigation",
                 "when": "resourceLangId == qutes"
+              },
+              {
+                "command": "qutes.runQutesFile100",
+                "group": "navigation",
+                "when": "resourceLangId == qutes"
               }
-            ]
+            ],
+            "editor/title": [
+                {
+                  "command": "qutes.runQutesFile",
+                  "group": "navigation",
+                  "when": "resourceLangId == qutes"
+                },
+                {
+                  "command": "qutes.runQutesFile100",
+                  "group": "navigation",
+                  "when": "resourceLangId == qutes"
+                }
+              ]
           }
     },
     "scripts": {},
