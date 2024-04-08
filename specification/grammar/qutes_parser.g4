@@ -70,7 +70,7 @@ test
 term
    : term op=(ADD | SUB) term #BinaryOperator
    | op=(PRINT | NOT | PAULIY | PAULIZ | HADAMARD | MEASURE | ADD | SUB) term #UnaryOperator
-   | op=MCZ termList #MultipleUnaryOperator
+   | op=(MCX | MCZ) termList #MultipleUnaryOperator
    | (boolean
    | integer
    | float

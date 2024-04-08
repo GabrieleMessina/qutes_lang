@@ -9,7 +9,7 @@
     },
     {
       "name": "keyword.operator.qutes",
-      "match": "(\\+|\\-|==|>|>=|<|<=|=)|\\b(not|pauliy|pauliz|grover|mcz|hadamard|measure|print|barrier)\\b"
+      "match": "(\\+|\\-|==|>|>=|<|<=|=)|\\b(not|pauliy|pauliz|grover|mcz|mcx|hadamard|measure|print|barrier)\\b"
     },
     {
       "name": "storage.type.qutes",

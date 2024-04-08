@@ -5,9 +5,9 @@ name: Qutes Build and Tests
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "development" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "development" ]
 
 permissions:
   contents: read
@@ -29,6 +29,6 @@ jobs:
     - name: Test with pytest
       run: |
         cd src
-        python -m pytest tests/
+        python -m pytest tests/ # Better CLI output than unittest
         # python -m unittest discover -s ./test -p 'test*.py'
         # python -m unittest tests.grammar_test

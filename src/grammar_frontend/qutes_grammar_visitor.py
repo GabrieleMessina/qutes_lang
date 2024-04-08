@@ -367,10 +367,12 @@ class QutesGrammarVisitor(qutesVisitor):
         return self.__visit("visitMultipleUnaryOperator", lambda : self.__visitMultipleUnaryOperator(ctx))
 
     def __visitMultipleUnaryOperator(self, ctx:qutesParser.MultipleUnaryOperatorContext):
+        terms:list[Symbol] = self.visit(ctx.termList())
+        registers = [register.quantum_register for register in terms]
         if(ctx.MCZ()):
-            terms:list[Symbol] = self.visit(ctx.termList())
-            registers = [register.quantum_register for register in terms]
             self.quantum_circuit_handler.push_MCZ_operation(registers)
+        if(ctx.MCX()):
+            self.quantum_circuit_handler.push_MCX_operation(registers)
 
     # Visit a parse tree produced by qutes_parser#termList.
     def visitTermList(self, ctx:qutesParser.TermListContext):
@@ -447,14 +449,13 @@ class QutesGrammarVisitor(qutesVisitor):
                 oracle_result = self.quantum_circuit_handler.push_grover_operation(*oracle_registers, quantum_function=quantum_function, register_involved_indexes=qubits_involved_in_grover, dataset_size=array_size, n_results=n_results, verbose=self.log_grover_verbose)
                 registers_to_measure.append(oracle_result)
                 circuit_runs = 3
-                results = self.quantum_circuit_handler.get_run_and_measure_results(registers_to_measure, repetition=circuit_runs)
+                self.quantum_circuit_handler.get_run_and_measure_results(registers_to_measure.copy(), repetition=circuit_runs)
 
-                positive_results = [result for result in results if result[0].split(" ")[0] == "1"]
-                if (len(positive_results) > 0):
-                    results_counts = sum([result[1] for result in positive_results])
-                    print(f"Solution found with probability {results_counts}/{circuit_runs}")
-                    if(len(positive_results[0][0].split(" ")) > 1):
-                        print(f"and rotation: {positive_results[0][0].split(' ')[1]} (for the first hit)")
+                positive_results = [(index, result) for index, result in enumerate(oracle_result.measured_classical_register.measured_values) if "1" in result]
+                any_positive_results = len(positive_results) > 0
+                if (any_positive_results):
+                    if(self.log_grover_verbose and rotation_register.measured_classical_register is not None):
+                        print(f"Solution found with rotation {rotation_register.measured_classical_register.measured_values[positive_results[0].index]} (for the first hit)")
                     return True
                 registers_to_measure.remove(oracle_result)
             return False

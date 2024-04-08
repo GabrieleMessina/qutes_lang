@@ -21,6 +21,7 @@ PAULIY : 'pauliy' ;
 PAULIZ : 'pauliz' ;
 GROVER : 'grover' ;
 MCZ : 'mcz' ;
+MCX : 'mcx' ;
 HADAMARD : 'hadamard' ;
 MEASURE : 'measure' ;
 PRINT : 'print' ;
@@ -127,7 +128,7 @@ QUSTRING_LITERAL
 
 
 SYMBOL_LITERAL
-   : [a-z0-9]+ //TODO: [A-Za-z_][A-Za-z0-9_]*
+   : [a-z_][a-z0-9_]*
    ;
 
 STRING_LITERAL
