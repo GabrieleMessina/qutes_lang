@@ -9,6 +9,7 @@
     "engines": {
         "vscode": "^1.52.0"
     },
+    "activationEvents": [],
     "homepage": "https://gabrielemessina.github.io/qutes_lang/",
     "repository": {
         "type": "git",
