@@ -5,7 +5,7 @@
     "author": "Gabriele Messina",
     "publisher": "GabrieleMessina",
     "license": "MIT",
-    "version": "1.1.1",
+    "version": "1.1.2",
     "engines": {
         "vscode": "^1.52.0"
     },
@@ -50,6 +50,14 @@
                 "command": "qutes.runQutesFile100",
                 "title": "Run Qutes File 100 times",
                 "icon": "$(run-all)"
+            },
+            {
+                "command": "qutes.runQutesFileVerbose",
+                "title": "Run Qutes File with Verbose output"
+            },
+            {
+                "command": "qutes.runQutesFileVerbose100",
+                "title": "Run Qutes File 100 times with Verbose output"
             }
         ],
         "menus": {
@@ -63,14 +71,19 @@
                 "command": "qutes.runQutesFile100",
                 "group": "navigation",
                 "when": "resourceLangId == qutes"
+              },
+              {
+                "command": "qutes.runQutesFileVerbose",
+                "group": "navigation",
+                "when": "resourceLangId == qutes"
+              },
+              {
+                "command": "qutes.runQutesFileVerbose100",
+                "group": "navigation",
+                "when": "resourceLangId == qutes"
               }
             ],
             "editor/title": [
-                {
-                  "command": "qutes.runQutesFile",
-                  "group": "navigation",
-                  "when": "resourceLangId == qutes"
-                },
                 {
                   "command": "qutes.runQutesFile100",
                   "group": "navigation",
