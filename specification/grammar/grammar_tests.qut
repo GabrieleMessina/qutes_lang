@@ -374,22 +374,14 @@
 
 //Grover III - SubArray Match
 {
-    //quint a = [[0,1]q, [0,1]q, [0,1]q, [0,1]q];
-    //search 4 in a;
-    
-    //qustring a = "0100";
-    //search "1" in a;
+    // qustring a = "0*00";
+    quint a = [0q, 0q, 0q, 0q, 0q, 0q, [0,1]q, [0,1]q];
+    // qustring b = "1110111";
 
-    //qustring a = "0*00";
-    //quint a = [0q, 0q, [0,1]q, [0,1]q, 0q, 0q, 0q, 0q];
-    //search "1" in a;
-    
-    qustring a = "1110111";
-    // qustring a = "0111110";
-    if("0" in a){
-        print "Trovato!";
+    if("01" in b){
+        print "Substring Match Found!";
     }
     else{
-        print "Non Trovato";
+        print "Substring Match Not Found";
     }
 }

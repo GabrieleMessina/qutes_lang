@@ -26,3 +26,50 @@ if(do_z){
 }
 
 measure bell2;
+
+
+print "Initial Message:";
+print a;
+print "Teleported Message:";
+print bell2;
+
+
+
+//TODO: There is some error when multiple functions are declared
+// qubit aliceMessage = 0q;
+
+// qubit bell1 = 0q;
+// qubit bell2 = 0q;
+
+// initBellPairs(bell1, bell2);
+
+// //Alice
+// aliceEncoding(bell1);
+
+// //Bob
+// bool do_z = aliceMessage;
+// bool do_x = bell1;
+// bobDecoding(do_z, do_x);
+
+
+
+// void initBellPairs(qubit a, qubit b){
+//    hadamard a;
+//    mcx a, b;
+// }
+
+// void aliceEncoding(qubit alice_bell){
+//    mcx aliceMessage, alice_bell;
+//    hadamard aliceMessage;
+// }
+
+// void bobDecoding(bool do_z, bool do_x){
+//    if(do_x){
+//       not bell2;
+//    }
+//    if(do_z){
+//       pauliz bell2;
+//    }
+
+//    measure bell2;
+// }

@@ -119,11 +119,14 @@
 
 //Grover
 {
-    qustring a = "1110111";
-    if("0" in a){
-        print "Trovato!";
+    // qustring a = "0*00";
+    // quint a = [0q, 0q, 0q, 0q, 0q, 0q, [0,1]q, [0,1]q];
+    qustring b = "1110111";
+
+    if("01" in b){
+        print "Substring Match Found!";
     }
     else{
-        print "Non Trovato";
+        print "Substring Match Not Found";
     }
 }

@@ -1,0 +1,212 @@
+int n = 8; //number of qubits
+
+//Alice create a random binary sequence
+string message_0 = "1";
+string message_1 = "0";
+string message_2 = "1";
+string message_3 = "0";
+string message_4 = "0";
+string message_5 = "1";
+string message_6 = "0";
+string message_7 = "1";
+
+//Alice create a random binary sequence of basis
+string alice_bases0 = "1";
+string alice_bases1 = "1";
+string alice_bases2 = "0";
+string alice_bases3 = "0";
+string alice_bases4 = "0";
+string alice_bases5 = "1";
+string alice_bases6 = "1";
+string alice_bases7 = "1";
+
+//Alice encodes the message with the basis
+//for each character in message, if the corresponding character in bases is 0, then encode the character in Z basis, otherwise in X basis
+qubit alice_0 = 1q;
+qubit alice_1 = 0q;
+qubit alice_2 = 1q;
+qubit alice_3 = 0q;
+qubit alice_4 = 0q;
+qubit alice_5 = 1q;
+qubit alice_6 = 0q;
+qubit alice_7 = 1q;
+
+//Bob create a random binary sequence of basis
+string bob_bases0 = "1";
+string bob_bases1 = "0";
+string bob_bases2 = "1";
+string bob_bases3 = "0";
+string bob_bases4 = "1";
+string bob_bases5 = "0";
+string bob_bases6 = "1";
+string bob_bases7 = "0";
+
+
+if (alice_bases0 == "0"){
+    //encode message_1 in Z basis
+    //do nothing.
+} else {
+    //encode message_0 in X basis
+    hadamard alice_0;
+}
+if (alice_bases1 == "0"){
+    //encode message_1 in Z basis
+    //do nothing.
+} else {
+    //encode message_1 in X basis
+    hadamard alice_1;
+}
+if (alice_bases2 == "0"){
+    //encode message_2 in Z basis
+    //do nothing.
+} else {
+    //encode message_2 in X basis
+    hadamard alice_2;
+}
+if (alice_bases3 == "0"){
+    //encode message_3 in Z basis
+    //do nothing.
+} else {
+    //encode message_3 in X basis
+    hadamard alice_3;
+}
+if (alice_bases4 == "0"){
+    //encode message_4 in Z basis
+    //do nothing.
+} else {
+    //encode message_4 in X basis
+    hadamard alice_4;
+}
+if (alice_bases5 == "0"){
+    //encode message_5 in Z basis
+    //do nothing.
+} else {
+    //encode message_5 in X basis
+    hadamard alice_5;
+}
+if (alice_bases6 == "0"){
+    //encode message_6 in Z basis
+    //do nothing.
+} else {
+    //encode message_6 in X basis
+    hadamard alice_6;
+}
+if (alice_bases7 == "0"){
+    //encode message_7 in Z basis
+    //do nothing.
+} else {
+    //encode message_7 in X basis
+    hadamard alice_7;
+}
+
+
+//Alice sends the encoded message to Bob
+
+
+
+
+
+if (bob_bases0 == "0"){
+    //encode message_1 in Z basis
+    //do nothing.
+} else {
+    //encode message_0 in X basis
+    hadamard alice_0;
+}
+
+if (bob_bases1 == "0"){
+    //encode message_1 in Z basis
+    //do nothing.
+} else {
+    //encode message_1 in X basis
+    hadamard alice_1;
+}
+if (bob_bases2 == "0"){
+    //encode message_2 in Z basis
+    //do nothing.
+} else {
+    //encode message_2 in X basis
+    hadamard alice_2;
+}
+if (bob_bases3 == "0"){
+    //encode message_3 in Z basis
+    //do nothing.
+} else {
+    //encode message_3 in X basis
+    hadamard alice_3;
+}
+if (bob_bases4 == "0"){
+    //encode message_4 in Z basis
+    //do nothing.
+} else {
+    //encode message_4 in X basis
+    hadamard alice_4;
+}
+if (bob_bases5 == "0"){
+    //encode message_5 in Z basis
+    //do nothing.
+} else {
+    //encode message_5 in X basis
+    hadamard alice_5;
+}
+if (bob_bases6 == "0"){
+    //encode message_6 in Z basis
+    //do nothing.
+} else {
+    //encode message_6 in X basis
+    hadamard alice_6;
+}
+if (bob_bases7 == "0"){
+    //encode message_7 in Z basis
+    //do nothing.
+} else {
+    //encode message_7 in X basis
+    hadamard alice_7;
+}
+
+
+
+
+
+if(bob_bases0 == alice_bases0){
+    print "Index 0 match so it can be used to create a key";
+    print alice_0;
+    print message_0;
+}
+if(bob_bases1 == alice_bases1){
+    print "Index 1 match so it can be used to create a key";
+    print alice_1;
+    print message_1;
+}
+if(bob_bases2 == alice_bases2){
+    print "Index 2 match so it can be used to create a key";
+    print alice_2;
+    print message_2;
+}
+if(bob_bases3 == alice_bases3){
+    print "Index 3 match so it can be used to create a key";
+    print alice_3;
+    print message_3;
+}
+if(bob_bases4 == alice_bases4){
+    print "Index 4 match so it can be used to create a key";
+    print alice_4;
+    print message_4;
+}
+if(bob_bases5 == alice_bases5){
+    print "Index 5 match so it can be used to create a key";
+    print alice_5;
+    print message_5;
+}
+if(bob_bases6 == alice_bases6){
+    print "Index 6 match so it can be used to create a key";
+    print alice_6;
+    print message_6;
+}
+if(bob_bases7 == alice_bases7){
+    print "Index 7 match so it can be used to create a key";
+    print alice_7;
+    print message_7;
+}
+
+print "If the above values matches, then no one is eyesdropping.";

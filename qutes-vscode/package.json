@@ -5,7 +5,7 @@
     "author": "Gabriele Messina",
     "publisher": "GabrieleMessina",
     "license": "MIT",
-    "version": "1.0.6",
+    "version": "1.1.0",
     "engines": {
         "vscode": "^1.52.0"
     },
@@ -17,6 +17,7 @@
     "categories": [
         "Programming Languages"
     ],
+    "main": "./extension.js",
     "contributes": {
         "languages": [
             {
@@ -37,9 +38,26 @@
                 "scopeName": "source.qutes",
                 "path": "./syntaxes/qutes.tmLanguage.json"
             }
-        ]
+        ],
+        "commands": [
+            {
+                "command": "qutes.runQutesFile",
+                "title": "Run Qutes File"
+            }
+        ],
+        "menus": {
+            "editor/title": [
+              {
+                "command": "qutes.runQutesFile",
+                "group": "navigation",
+                "when": "resourceLangId == qutes"
+              }
+            ]
+          }
     },
-    "devDependencies": {
+    "scripts": {},
+	"devDependencies": {
+		"@types/vscode": "^1.73.0",
         "@vscode/vsce": "^2.24.0"
-    }
+	}
 }
