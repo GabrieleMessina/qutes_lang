@@ -87,9 +87,8 @@ class TestGrammar(QutesBaseTest):
                         """
                 result = self.parse_qutes_code(code)
                 actual_value_of_var = result.variables_handler.get_variable_symbol(var_name, self.TOKEN_AST_INDEX_FOR_TESTS).value
-                self.assertEquals(actual_value_of_var, expected_value_of_var, f"Expected value: {expected_value_of_var}, actual value: {actual_value_of_var}")
+                self.assertEqual(actual_value_of_var, expected_value_of_var, f"Expected value: {expected_value_of_var}, actual value: {actual_value_of_var}")
 
-    
     def test_classic_type_declaration_throws(self):
         params = [
             ("bool", "10"),
@@ -133,9 +132,8 @@ class TestGrammar(QutesBaseTest):
                 result = self.parse_qutes_code(code)
 
                 actual_value_of_var = str(result.variables_handler.get_variable_symbol(var_name, self.TOKEN_AST_INDEX_FOR_TESTS).value)
-                self.assertEquals(actual_value_of_var, str(expected_value_of_var), f"Expected value: {expected_value_of_var}, actual value: {actual_value_of_var}")
+                self.assertEqual(actual_value_of_var, str(expected_value_of_var), f"Expected value: {expected_value_of_var}, actual value: {actual_value_of_var}")
 
-    
     def test_quantum_type_declaration_throws(self):
         params = [
             ("qubit", "10"),
@@ -156,7 +154,7 @@ class TestGrammar(QutesBaseTest):
                     self.parse_qutes_code(code)
 
     def test_double_variable_declaration_throws(self):
-        code =  f"""
+        code =  """
                 quint a = 5q;
                 string a = "";
                 """
@@ -174,4 +172,4 @@ class TestGrammar(QutesBaseTest):
         result = self.parse_qutes_code(code)
         result.scope_handler.push_scope()
         actual_value_of_var = str(result.variables_handler.get_variable_symbol(var_name, self.TOKEN_AST_INDEX_FOR_TESTS).value)
-        self.assertEquals(actual_value_of_var, str(expected_value_of_var), f"Expected value: {expected_value_of_var}, actual value: {actual_value_of_var}")
+        self.assertEqual(actual_value_of_var, str(expected_value_of_var), f"Expected value: {expected_value_of_var}, actual value: {actual_value_of_var}")

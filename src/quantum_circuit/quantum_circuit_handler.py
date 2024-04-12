@@ -2,12 +2,12 @@ import math
 from typing import Any, Callable, cast
 from quantum_circuit.classical_register import ClassicalRegister
 from quantum_circuit.quantum_circuit import QuantumCircuit
-from quantum_circuit.quantum_register import QuantumRegister
+from quantum_circuit.quantum_register import QuantumRegister, QiskitQubit
 from symbols.types import Qubit, Quint, Qustring, QutesDataType
 from qiskit import IBMQ, Aer, QiskitError, transpile
 from qiskit.primitives import Sampler
 from qiskit.circuit.quantumcircuit import QubitSpecifier, CircuitInstruction
-from qiskit.circuit.library import GroverOperator, MCMT, ZGate, QFT, XGate, YGate, HGate, CXGate, MCXGate
+from qiskit.circuit.library import GroverOperator, MCMT, ZGate, QFT, XGate, YGate, HGate, CXGate, MCXGate, PhaseGate
 from qiskit.circuit.gate import Gate
 
 def unwrap(l:list[QuantumRegister|ClassicalRegister]) -> list:
@@ -219,25 +219,21 @@ class QuantumCircuitHandler():
     def push_pauliz_operation(self, quantum_register : QuantumRegister) -> None:
         self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).z(quantum_register))
 
-    def push_MCZ_operation(self, quantum_registers : list[QuantumRegister]) -> None:
-        mcz_gate = MCMT(ZGate(), sum([q.size for q in quantum_registers]) - 1, 1)
+    def push_MCZ_operation(self, quantum_registers : list[QuantumRegister] | list[QiskitQubit]) -> None:
+        mcz_gate = MCMT(ZGate(), sum([1 if isinstance(q, QiskitQubit) else q.size for q in quantum_registers]) - 1, 1)
         self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).compose(mcz_gate, unwrap(quantum_registers), inplace=True))
 
-    def push_MCZ_operation(self, quantum_registers : list[Qubit]) -> None:
-        mcz_gate = MCMT(ZGate(), len(quantum_registers) - 1, 1)
-        self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).compose(mcz_gate, unwrap(quantum_registers), inplace=True))
-
-    def push_MCX_operation(self, quantum_registers : list[QuantumRegister]) -> None:
-        mcx_gate = MCMT(XGate(), sum([len(q) for q in quantum_registers]) - 1, 1)        
+    def push_MCX_operation(self, quantum_registers : list[QuantumRegister] | list[QiskitQubit]) -> None:
+        mcx_gate = MCMT(XGate(), sum([1 if isinstance(q, QiskitQubit) else q.size for q in quantum_registers]) - 1, 1)        
         self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).compose(mcx_gate, unwrap(quantum_registers), inplace=True))
 
-    def push_MCX_operation(self, quantum_registers : list[Qubit]) -> None:
-        mcx_gate = MCMT(XGate(), len(quantum_registers) - 1, 1)        
-        self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).compose(mcx_gate, unwrap(quantum_registers), inplace=True))
-
-    def push_MCY_operation(self, quantum_registers : list[QuantumRegister]) -> None:
-        mcy_gate = MCMT(YGate(), sum([q.size for q in quantum_registers]) - 1, 1)        
+    def push_MCY_operation(self, quantum_registers : list[QuantumRegister] | list[QiskitQubit]) -> None:
+        mcy_gate = MCMT(YGate(), sum([1 if isinstance(q, QiskitQubit) else q.size for q in quantum_registers]) - 1, 1)        
         self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).compose(mcy_gate, unwrap(quantum_registers), inplace=True))
+
+    def push_MCP_operation(self, theta, quantum_registers : list[QuantumRegister] | list[QiskitQubit]) -> None:
+        mcp_gate = MCMT(PhaseGate(theta), sum([1 if isinstance(q, QiskitQubit) else q.size for q in quantum_registers]) - 1, 1)        
+        self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).compose(mcp_gate, unwrap(quantum_registers), inplace=True))
 
     def push_hadamard_operation(self, quantum_register : QuantumRegister) -> None:
         self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).h(quantum_register))
@@ -312,7 +308,7 @@ class QuantumCircuitHandler():
     # It expects the register to put the result into to be the last one in the list
     def push_grover_operation(self, *oracle_registers, quantum_function:QuantumCircuit, register_involved_indexes, dataset_size, n_results = 1, verbose:bool = False) -> QuantumRegister:
         current_grover_count = next(self.grover_count)
-        grover_op = GroverOperator(quantum_function, reflection_qubits=register_involved_indexes, insert_barriers=True)
+        grover_op = GroverOperator(quantum_function, reflection_qubits=register_involved_indexes, insert_barriers=True, name=f"Grover{current_grover_count}")
 
         if(verbose):
             self.print_circuit(quantum_function)

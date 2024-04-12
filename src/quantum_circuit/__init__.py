@@ -4,3 +4,4 @@ from quantum_circuit.quantum_circuit import QuantumCircuit
 from quantum_circuit.quantum_circuit_handler import QuantumCircuitHandler
 from quantum_circuit.quantum_register import QuantumRegister
 from quantum_circuit.qutes_gates import QutesGates
+from quantum_circuit.quantum_register import QiskitQubit

@@ -1,0 +1,35 @@
+//init
+qubit x_1 = 0q;
+qubit x_2 = 1q;
+qubit x_3 = 1q;
+
+//QFT
+hadamard x_1;
+mcp x_1,x_2 by (3.14/2);
+mcp x_1,x_2 by (3.14/4);
+
+hadamard x_2;
+mcp x_2,x_3 by (3.14/2);
+
+hadamard x_3;
+
+swap x_3,x_1;
+
+
+//inverse
+
+hadamard x_1;
+mcp x_1,x_2 by (-3.14/2);
+mcp x_1,x_2 by (-3.14/4);
+
+hadamard x_2;
+mcp x_2,x_3 by (-3.14/2);
+
+hadamard x_3;
+swap x_3,x_1;
+
+//measure
+
+measure x_1;
+measure x_2;
+measure x_3;
