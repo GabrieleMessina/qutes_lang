@@ -13,7 +13,9 @@
 			"visitors": true
 		},
 		"cSpell.words": [
-			"Antlr"
+			"Antlr",
+			"Qiskit",
+			"qustring"
 		],
 		"pylint.importStrategy": "fromEnvironment",
 		"python.testing.cwd": "./src",

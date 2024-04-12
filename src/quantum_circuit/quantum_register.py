@@ -1,5 +1,7 @@
 from qiskit import QuantumRegister as qr
 from quantum_circuit.classical_register import ClassicalRegister
+from qiskit.circuit.quantumregister import Qubit as QiskitQubit
+
 
 class QuantumRegister(qr):
     def __init__(self, size, var_name, bits = None):
@@ -8,4 +10,3 @@ class QuantumRegister(qr):
 
     def __len__(self):
         return self.size
-    

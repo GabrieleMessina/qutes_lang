@@ -2,7 +2,7 @@ import math
 from typing import Any, Callable, cast
 from quantum_circuit.classical_register import ClassicalRegister
 from quantum_circuit.quantum_circuit import QuantumCircuit
-from quantum_circuit.quantum_register import QuantumRegister
+from quantum_circuit.quantum_register import QuantumRegister, QiskitQubit
 from symbols.types import Qubit, Quint, Qustring, QutesDataType
 from qiskit import IBMQ, Aer, QiskitError, transpile
 from qiskit.primitives import Sampler
@@ -219,20 +219,20 @@ class QuantumCircuitHandler():
     def push_pauliz_operation(self, quantum_register : QuantumRegister) -> None:
         self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).z(quantum_register))
 
-    def push_MCZ_operation(self, quantum_registers : list[QuantumRegister]) -> None:
-        mcz_gate = MCMT(ZGate(), sum([q.size for q in quantum_registers]) - 1, 1)
+    def push_MCZ_operation(self, quantum_registers : list[QuantumRegister] | list[QiskitQubit]) -> None:
+        mcz_gate = MCMT(ZGate(), sum([1 if isinstance(q, QiskitQubit) else q.size for q in quantum_registers]) - 1, 1)
         self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).compose(mcz_gate, unwrap(quantum_registers), inplace=True))
 
-    def push_MCX_operation(self, quantum_registers : list[QuantumRegister]) -> None:
-        mcx_gate = MCMT(XGate(), sum([len(q) for q in quantum_registers]) - 1, 1)        
+    def push_MCX_operation(self, quantum_registers : list[QuantumRegister] | list[QiskitQubit]) -> None:
+        mcx_gate = MCMT(XGate(), sum([1 if isinstance(q, QiskitQubit) else q.size for q in quantum_registers]) - 1, 1)        
         self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).compose(mcx_gate, unwrap(quantum_registers), inplace=True))
 
-    def push_MCY_operation(self, quantum_registers : list[QuantumRegister]) -> None:
-        mcy_gate = MCMT(YGate(), sum([q.size for q in quantum_registers]) - 1, 1)        
+    def push_MCY_operation(self, quantum_registers : list[QuantumRegister] | list[QiskitQubit]) -> None:
+        mcy_gate = MCMT(YGate(), sum([1 if isinstance(q, QiskitQubit) else q.size for q in quantum_registers]) - 1, 1)        
         self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).compose(mcy_gate, unwrap(quantum_registers), inplace=True))
 
-    def push_MCP_operation(self, theta, quantum_registers : list[QuantumRegister]) -> None:
-        mcp_gate = MCMT(PhaseGate(theta), sum([q.size for q in quantum_registers]) - 1, 1)        
+    def push_MCP_operation(self, theta, quantum_registers : list[QuantumRegister] | list[QiskitQubit]) -> None:
+        mcp_gate = MCMT(PhaseGate(theta), sum([1 if isinstance(q, QiskitQubit) else q.size for q in quantum_registers]) - 1, 1)        
         self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).compose(mcp_gate, unwrap(quantum_registers), inplace=True))
 
     def push_hadamard_operation(self, quantum_register : QuantumRegister) -> None:
