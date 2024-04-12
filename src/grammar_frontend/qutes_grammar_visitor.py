@@ -361,6 +361,9 @@ class QutesGrammarVisitor(qutesVisitor):
             result = first_term
         return result
 
+    # Visit a parse tree produced by qutes_parser#MultipleUnaryPhaseOperator.
+    def visitMultipleUnaryPhaseOperator(self, ctx:qutesParser.MultipleUnaryPhaseOperatorContext):
+        return self.__visit("visitMultipleUnaryPhaseOperator", lambda : self.__visitMultipleUnaryPhaseOperator(ctx))
 
     # Visit a parse tree produced by qutes_parser#MultipleUnaryOperator.
     def visitMultipleUnaryOperator(self, ctx:qutesParser.MultipleUnaryOperatorContext):
@@ -373,6 +376,17 @@ class QutesGrammarVisitor(qutesVisitor):
             self.quantum_circuit_handler.push_MCZ_operation(registers)
         if(ctx.MCX()):
             self.quantum_circuit_handler.push_MCX_operation(registers)
+        if(ctx.MCY()):
+            self.quantum_circuit_handler.push_MCY_operation(registers)
+        if(ctx.SWAP()):
+            self.quantum_circuit_handler.push_swap_operation(registers[0], registers[1])
+
+    def __visitMultipleUnaryPhaseOperator(self, ctx:qutesParser.MultipleUnaryPhaseOperatorContext):
+        terms:list[Symbol] = self.visit(ctx.termList())
+        registers = [register.quantum_register for register in terms]
+        if(ctx.MCP()):
+            theta = self.visit(ctx.expr())
+            self.quantum_circuit_handler.push_MCP_operation(theta, registers)
 
     # Visit a parse tree produced by qutes_parser#termList.
     def visitTermList(self, ctx:qutesParser.TermListContext):
@@ -455,7 +469,7 @@ class QutesGrammarVisitor(qutesVisitor):
                 any_positive_results = len(positive_results) > 0
                 if (any_positive_results):
                     if(self.log_grover_verbose and rotation_register.measured_classical_register is not None):
-                        print(f"Solution found with rotation {rotation_register.measured_classical_register.measured_values[positive_results[0].index]} (for the first hit)")
+                        print(f"Solution found with rotation {rotation_register.measured_classical_register.measured_values[positive_results[0][0]]} (for the first hit)")
                     return True
                 registers_to_measure.remove(oracle_result)
             return False
@@ -574,11 +588,15 @@ class QutesGrammarVisitor(qutesVisitor):
         return result
 
 
+    # Visit a parse tree produced by qutes_parser#BinaryPriorityOperator.
+    def visitBinaryPriorityOperator(self, ctx:qutesParser.BinaryPriorityOperatorContext):
+         return self.__visit("visitBinaryPriorityOperator", lambda : self.__visit_binary_operator(ctx))
+
     # Visit a parse tree produced by qutes_parser#BinaryOperator.
     def visitBinaryOperator(self, ctx:qutesParser.BinaryOperatorContext):
          return self.__visit("visitBinaryOperator", lambda : self.__visit_binary_operator(ctx))
 
-    def __visit_binary_operator(self, ctx:qutesParser.BinaryOperatorContext):
+    def __visit_binary_operator(self, ctx:qutesParser.BinaryOperatorContext|qutesParser.BinaryPriorityOperatorContext):
         result = None
         if(ctx.term(0) and ctx.term(1)):
             if(self.log_trace_enabled): print("visitTerm -> binary operation")
@@ -597,7 +615,7 @@ class QutesGrammarVisitor(qutesVisitor):
             first_term_print = f"{first_term if first_term_symbol == None else first_term_symbol}"
             second_term_print = f"{second_term if second_term_symbol == None else second_term_symbol}"
 
-            if(ctx.ADD()):
+            if(isinstance(ctx, qutesParser.BinaryOperatorContext) and ctx.ADD()):
                 if(self.log_code_structure): print(f"{first_term_print} + {second_term_print}", end=None)
                 if(self.log_trace_enabled): print("visitBinaryOperator -> ADD")
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)
@@ -611,13 +629,27 @@ class QutesGrammarVisitor(qutesVisitor):
                     result = self.qutes_gates.sum(first_term_symbol, second_term_symbol)
                 else:
                     result = first_term + second_term
-            if(ctx.SUB()):
+            if(isinstance(ctx, qutesParser.BinaryOperatorContext) and ctx.SUB()):
                 if(self.log_code_structure): print(f"{first_term_print} - {second_term_print}", end=None)
                 if(self.log_trace_enabled): print("visitBinaryOperator -> SUB")
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
                     #TODO: handle sub operation of quantum variables
                     pass
                 result = first_term - second_term
+            if(isinstance(ctx, qutesParser.BinaryPriorityOperatorContext) and ctx.MULTIPLY()):
+                if(self.log_code_structure): print(f"{first_term_print} - {second_term_print}", end=None)
+                if(self.log_trace_enabled): print("visitBinaryOperator -> SUB")
+                if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
+                    #TODO: handle multiply operation of quantum variables
+                    pass
+                result = first_term * second_term
+            if(isinstance(ctx, qutesParser.BinaryPriorityOperatorContext) and ctx.DIVIDE()):
+                if(self.log_code_structure): print(f"{first_term_print} - {second_term_print}", end=None)
+                if(self.log_trace_enabled): print("visitBinaryOperator -> SUB")
+                if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
+                    #TODO: handle divide operation of quantum variables
+                    pass
+                result = first_term / second_term
         return result
     
 

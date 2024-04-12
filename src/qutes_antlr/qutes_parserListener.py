@@ -1,4 +1,4 @@
-# Generated from /workspaces/qutes_lang/specification/grammar/qutes_parser.g4 by ANTLR 4.13.1
+# Generated from d:/Users/gabry/Universita/quantum_computing/qutes_lang/specification/grammar/qutes_parser.g4 by ANTLR 4.13.1
 from antlr4 import *
 if "." in __name__:
     from .qutes_parser import qutes_parser
@@ -206,12 +206,30 @@ class qutes_parserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by qutes_parser#BinaryPriorityOperator.
+    def enterBinaryPriorityOperator(self, ctx:qutes_parser.BinaryPriorityOperatorContext):
+        pass
+
+    # Exit a parse tree produced by qutes_parser#BinaryPriorityOperator.
+    def exitBinaryPriorityOperator(self, ctx:qutes_parser.BinaryPriorityOperatorContext):
+        pass
+
+
     # Enter a parse tree produced by qutes_parser#IdentityOperator.
     def enterIdentityOperator(self, ctx:qutes_parser.IdentityOperatorContext):
         pass
 
     # Exit a parse tree produced by qutes_parser#IdentityOperator.
     def exitIdentityOperator(self, ctx:qutes_parser.IdentityOperatorContext):
+        pass
+
+
+    # Enter a parse tree produced by qutes_parser#MultipleUnaryPhaseOperator.
+    def enterMultipleUnaryPhaseOperator(self, ctx:qutes_parser.MultipleUnaryPhaseOperatorContext):
+        pass
+
+    # Exit a parse tree produced by qutes_parser#MultipleUnaryPhaseOperator.
+    def exitMultipleUnaryPhaseOperator(self, ctx:qutes_parser.MultipleUnaryPhaseOperatorContext):
         pass
 
 

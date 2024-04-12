@@ -5,11 +5,11 @@
   "patterns": [
     {
       "name": "keyword.control.qutes",
-      "match": "\\b(if|else|while|do|return|in)\\b"
+      "match": "\\b(if|else|while|do|return|in|by)\\b"
     },
     {
       "name": "keyword.operator.qutes",
-      "match": "(\\+|\\-|==|>|>=|<|<=|=)|\\b(not|pauliy|pauliz|grover|mcz|mcx|hadamard|measure|print|barrier)\\b"
+      "match": "(\\*|\\/|\\+|\\-|==|>|>=|<|<=|=)|\\b(not|pauliy|pauliz|grover|mcz|mcx|mcp|swap|hadamard|measure|print|barrier)\\b"
     },
     {
       "name": "storage.type.qutes",

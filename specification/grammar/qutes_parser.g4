@@ -68,9 +68,11 @@ test
    ;
 
 term
-   : term op=(ADD | SUB) term #BinaryOperator
+   : term op=(MULTIPLY | DIVIDE) term #BinaryPriorityOperator
+   | term op=(ADD | SUB) term #BinaryOperator
    | op=(PRINT | NOT | PAULIY | PAULIZ | HADAMARD | MEASURE | ADD | SUB) term #UnaryOperator
-   | op=(MCX | MCZ) termList #MultipleUnaryOperator
+   | op=(MCX | MCZ | MCY | SWAP) termList #MultipleUnaryOperator
+   | op=MCP termList BY expr #MultipleUnaryPhaseOperator
    | (boolean
    | integer
    | float
