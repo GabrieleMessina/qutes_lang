@@ -16,7 +16,7 @@ statement
    | IF_STATEMENT expr statement ELSE_STATEMENT statement #IfElseStatement
    | WHILE_STATEMENT expr statement #WhileStatement
    | DO_STATEMENT statement WHILE_STATEMENT expr #DoWhileStatement
-   | block #BlockStatement
+   | CURLY_PARENTHESIS_OPEN statement* CURLY_PARENTHESIS_CLOSE #BlockStatement
    | variableType functionName ROUND_PARENTHESIS_OPEN functionDeclarationParams? ROUND_PARENTHESIS_CLOSE statement #FunctionStatement
    | variableDeclaration END_OF_STATEMENT #DeclarationStatement
    | qualifiedName ASSIGN expr END_OF_STATEMENT #AssignmentStatement
@@ -24,16 +24,11 @@ statement
    | expr END_OF_STATEMENT #ExpressionStatement
    | END_OF_STATEMENT #EmptyStatement
    ;
-
-block
-   : CURLY_PARENTHESIS_OPEN statement* CURLY_PARENTHESIS_CLOSE
-   ;
-
+   
 functionDeclarationParams
    : variableDeclaration (COMMA functionDeclarationParams)?
    ;
 
-//TODO: rename variableName to variableDeclarationName
 variableDeclaration
    : variableType variableName (ASSIGN expr)?
    ;

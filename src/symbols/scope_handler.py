@@ -42,6 +42,10 @@ class ScopeHandlerForSymbolsDiscovery(ScopeHandler):
     
 class ScopeHandlerForSymbolsUpdate(ScopeHandler):
     # Class that handles the compilation steps that come after the first(symbol discovery)
+    # - We need to travers the symbols_tree going orderly like in a breadth first search
+    # - Every time we need to create a new scope, we visit instead the next node in the tree
+    # - And every time we need to close a scope, we return to the parent of the current node
+    # - This way we know, at each moment, what symbols are defined.
     def __init__(self, symbols_tree:ScopeTreeNode):
         super().__init__()
         if not symbols_tree:

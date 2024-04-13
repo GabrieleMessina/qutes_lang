@@ -1,4 +1,4 @@
-# Generated from d:/Users/gabry/Universita/quantum_computing/qutes_lang/specification/grammar/qutes_parser.g4 by ANTLR 4.13.1
+# Generated from /workspaces/qutes_lang/specification/grammar/qutes_parser.g4 by ANTLR 4.13.1
 from antlr4 import *
 if "." in __name__:
     from .qutes_parser import qutes_parser
@@ -113,15 +113,6 @@ class qutes_parserListener(ParseTreeListener):
 
     # Exit a parse tree produced by qutes_parser#EmptyStatement.
     def exitEmptyStatement(self, ctx:qutes_parser.EmptyStatementContext):
-        pass
-
-
-    # Enter a parse tree produced by qutes_parser#block.
-    def enterBlock(self, ctx:qutes_parser.BlockContext):
-        pass
-
-    # Exit a parse tree produced by qutes_parser#block.
-    def exitBlock(self, ctx:qutes_parser.BlockContext):
         pass
 
 
