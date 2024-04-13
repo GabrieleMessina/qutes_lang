@@ -11,7 +11,7 @@ class QutesGrammarLiteralVisitor(QutesBaseVisitor):
         super().__init__(symbols_tree, quantum_circuit_handler, scope_handler, variables_handler, verbose)
     
     def visitType(self, ctx:qutes_parser.TypeContext):
-        return self.visitChildren(ctx)
+        return ctx.getText()
     
     def visitFunctionDeclarationParams(self, ctx:qutes_parser.FunctionDeclarationParamsContext):
         param = self.visit(ctx.variableDeclaration())

@@ -13,7 +13,7 @@ class QutesGrammarStatementVisitor(QutesBaseVisitor):
     
     def visitIfStatement(self, ctx:qutes_parser.IfStatementContext):
         self.scope_handler.push_scope()
-        condition = self.visitChildren(ctx.expr())
+        condition = self.visit(ctx.expr())
         if(condition != None):
             if(self.variables_handler.get_value(condition) == True):
                 self.visit(ctx.statement())
@@ -26,7 +26,7 @@ class QutesGrammarStatementVisitor(QutesBaseVisitor):
     
     def visitIfElseStatement(self, ctx:qutes_parser.IfElseStatementContext):
         self.scope_handler.push_scope()
-        condition = self.visitChildren(ctx.expr())
+        condition = self.visit(ctx.expr())
         if(condition != None):
             if(self.variables_handler.get_value(condition) == True):
                 self.visit(ctx.statement(0))
@@ -48,7 +48,7 @@ class QutesGrammarStatementVisitor(QutesBaseVisitor):
     
     def __visit_while_statement(self, ctx:qutes_parser.IfStatementContext):
         self.scope_handler.push_scope()
-        condition = self.visitChildren(ctx.expr())
+        condition = self.visit(ctx.expr())
         if(condition != None):
             if(isinstance(ctx.statement(), qutes_parser.BlockStatementContext)):
                 #the while statement needs to handle the scope so that the the block statement can work always on the same scope(its own scope)
@@ -58,7 +58,7 @@ class QutesGrammarStatementVisitor(QutesBaseVisitor):
             
             while(condition):
                 self.visit(ctx.statement())
-                condition = self.visitChildren(ctx.expr())
+                condition = self.visit(ctx.expr())
 
             self.scope_handler.end_loop() #reset scope handling
 
@@ -97,7 +97,7 @@ class QutesGrammarStatementVisitor(QutesBaseVisitor):
         return None
     
     def visitDeclarationStatement(self, ctx:qutes_parser.DeclarationStatementContext):
-        return self.visitChildren(ctx)
+        return self.visit(ctx.variableDeclaration())
         
     def visitVariableDeclaration(self, ctx:qutes_parser.VariableDeclarationContext):
         var_type =  self.visit(ctx.variableType()) # we already know the variable type thanks to the discovery listener.
@@ -135,22 +135,21 @@ class QutesGrammarStatementVisitor(QutesBaseVisitor):
         return var_symbol
 
     def visitReturnStatement(self, ctx:qutes_parser.ReturnStatementContext):
-        result = self.visitChildren(ctx.expr())
+        result = self.visit(ctx.expr())
         if(isinstance(result, Symbol)):
             result.is_return_value_of_function = True
         return result    
     
     def visitExpressionStatement(self, ctx:qutes_parser.ExpressionStatementContext):
-        return self.visitChildren(ctx)
+        return self.visit(ctx.expr())
     
     def visitFactStatement(self, ctx:qutes_parser.FactStatementContext):
         if(self.log_code_structure): print(f"{ctx.op.text}", end=None)
-
         if(ctx.MEASURE()):
             self.quantum_circuit_handler.push_measure_operation()
         if(ctx.BARRIER()):
             self.quantum_circuit_handler.push_barrier_operation()
-        return self.visitChildren(ctx)
+        return None
 
     def visitEmptyStatement(self, ctx:qutes_parser.EmptyStatementContext):
-        return self.visitChildren(ctx)
+        return None

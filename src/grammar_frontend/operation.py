@@ -48,8 +48,8 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
     
     def __visit_binary_operator(self, ctx:qutes_parser.SumOperatorContext | qutes_parser.MultiplicativeOperatorContext | qutes_parser.RelationalOperatorContext | qutes_parser.EqualityOperatorContext | qutes_parser.LogicAndOperatorContext | qutes_parser.LogicOrOperatorContext):
         result = None
-        first_term_symbol = self.visitChildren(ctx.expr(0))
-        second_term_symbol = self.visitChildren(ctx.expr(1))
+        first_term_symbol = self.visit(ctx.expr(0))
+        second_term_symbol = self.visit(ctx.expr(1))
         first_term = self.variables_handler.get_value(first_term_symbol)
         second_term = self.variables_handler.get_value(second_term_symbol)
 
@@ -88,8 +88,8 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
     
     def __visit_boolean_operation(self, ctx:qutes_parser.RelationalOperatorContext | qutes_parser.EqualityOperatorContext | qutes_parser.LogicAndOperatorContext | qutes_parser.LogicOrOperatorContext):
         result = None
-        first_term_symbol = self.visitChildren(ctx.expr(0))
-        second_term_symbol = self.visitChildren(ctx.expr(1))
+        first_term_symbol = self.visit(ctx.expr(0))
+        second_term_symbol = self.visit(ctx.expr(1))
         first_term = self.variables_handler.get_value(first_term_symbol)
         second_term = self.variables_handler.get_value(second_term_symbol)
 
@@ -147,7 +147,7 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
 
     def __visit_unary_operator(self, ctx:qutes_parser.UnaryOperatorContext | qutes_parser.PrefixOperatorContext | qutes_parser.PostfixOperatorContext):
         result = None
-        first_term_symbol = self.visitChildren(ctx.expr())
+        first_term_symbol = self.visit(ctx.expr())
         first_term = self.variables_handler.get_value(first_term_symbol)
 
         if(self.log_code_structure): print(f"{first_term_symbol} {ctx.op.text}", end=None)

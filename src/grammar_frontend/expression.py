@@ -14,13 +14,13 @@ class QutesGrammarExpressionVisitor(QutesBaseVisitor):
         return self.visitChildren(ctx)
     
     def visitParentesizeExpression(self, ctx:qutes_parser.ParentesizeExpressionContext):
-        return self.visitChildren(ctx)
+        return self.visit(ctx.expr())
 
     def visitLiteralExpression(self, ctx:qutes_parser.LiteralExpressionContext):
-        return self.visitChildren(ctx)
+        return self.visit(ctx.literal())
     
     def visitQualifiedNameExpression(self, ctx:qutes_parser.QualifiedNameExpressionContext):
-        return self.visitChildren(ctx)
+        return self.visit(ctx.qualifiedName())
 
     def visitFunctionCallExpression(self, ctx:qutes_parser.FunctionCallExpressionContext):
         function_name = self.visit(ctx.functionName())
