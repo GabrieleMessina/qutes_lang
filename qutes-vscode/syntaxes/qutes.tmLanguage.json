@@ -9,11 +9,11 @@
     },
     {
       "name": "keyword.operator.qutes",
-      "match": "(\\*|\\/|\\+|\\-|==|>|>=|<|<=|=)|\\b(not|pauliy|pauliz|grover|mcz|mcx|mcp|swap|hadamard|measure|print|barrier)\\b"
+      "match": "(\\*|/|%|\\+|\\-|==|!=|>|>=|<|<=|=)|\\b(and|or|not|pauliy|pauliz|grover|mcz|mcx|mcp|mcy|swap|hadamard|measure|print|barrier)\\b|(\\+\\+|\\-\\-|\\+=|\\-=|\\*=|/=|&=)"
     },
     {
       "name": "storage.type.qutes",
-      "match": "\\b(qustring|quint|qubit|int|string|bool|void)\\b"
+      "match": "\\b(qustring|quint|qubit|int|string|bool|void|float)\\b"
     },
     {
       "name": "punctuation.terminator.qutes",

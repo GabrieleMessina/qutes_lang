@@ -16,9 +16,12 @@ VOID_TYPE : 'void' ;
 RETURN : 'return' ;
 MULTIPLY : '*' ;
 DIVIDE : '/' ;
+MODULE : '%' ;
 ADD : '+' ;
 SUB : '-' ;
 NOT : 'not' ;
+AND : 'and' ;
+OR : 'or' ;
 BY : 'by' ;
 SWAP : 'swap' ;
 PAULIY : 'pauliy' ;
@@ -33,11 +36,19 @@ MEASURE : 'measure' ;
 PRINT : 'print' ;
 BARRIER : 'barrier' ;
 EQUAL : '==' ;
+NOT_EQUAL : '!=' ;
 GREATER : '>' ;
 GREATEREQUAL : '>=' ;
 LOWER : '<' ;
 LOWEREQUAL : '<=' ;
 ASSIGN : '=' ;
+AUTO_INCREMENT : '++' ;
+AUTO_DECREMENT : '--' ;
+AUTO_SUM : '+=' ;
+AUTO_SUB : '-=' ;
+AUTO_MULTIPLY : '*=' ;
+AUTO_DIVIDE : '/=' ;
+AUTO_MODULE : '%=' ;
 END_OF_STATEMENT : ';' ;
 VAR_STATEMENT : 'var' ;
 FOR_STATEMENT : 'for' ;
@@ -98,7 +109,7 @@ BOOL_LITERAL
    ;
 
 INT_LITERAL
-   : DIGIT+
+   : MATH_SIGN? DIGIT+
    ;
 
 FLOAT_LITERAL

@@ -41,6 +41,7 @@ class QutesGates():
         return gate_add
     
     def sum(self, var_a_symbol:'Symbol', var_b_symbol:'Symbol') -> 'Symbol':
+        #TODO: this should be a push_sum_operation in circuit handler?
         self.count+=1
         handler = self.ciruit_handler
 

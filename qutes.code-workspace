@@ -15,7 +15,9 @@
 		"cSpell.words": [
 			"Antlr",
 			"Qiskit",
-			"qustring"
+			"qustring",
+			"qubit",
+			"quint",
 		],
 		"pylint.importStrategy": "fromEnvironment",
 		"python.testing.cwd": "./src",

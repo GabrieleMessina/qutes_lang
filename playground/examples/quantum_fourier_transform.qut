@@ -3,13 +3,15 @@ qubit x_1 = 0q;
 qubit x_2 = 1q;
 qubit x_3 = 1q;
 
+float pi = 3.1415926535;
+
 //QFT
 hadamard x_1;
-mcp x_1,x_2 by (3.14/2);
-mcp x_1,x_2 by (3.14/4);
+mcp x_1,x_2 by (pi/2);
+mcp x_1,x_2 by (pi/4);
 
 hadamard x_2;
-mcp x_2,x_3 by (3.14/2);
+mcp x_2,x_3 by (pi/2);
 
 hadamard x_3;
 
@@ -19,11 +21,11 @@ swap x_3,x_1;
 //inverse
 
 hadamard x_1;
-mcp x_1,x_2 by (-3.14/2);
-mcp x_1,x_2 by (-3.14/4);
+mcp x_1,x_2 by (-pi/2);
+mcp x_1,x_2 by (-pi/4);
 
 hadamard x_2;
-mcp x_2,x_3 by (-3.14/2);
+mcp x_2,x_3 by (-pi/2);
 
 hadamard x_3;
 swap x_3,x_1;

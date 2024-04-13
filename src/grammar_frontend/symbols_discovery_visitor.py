@@ -97,7 +97,7 @@ class SymbolsDiscoveryVisitor(qutesVisitor):
         input_params_declaration.reverse()
         funtion_symbol.function_input_params_definition = input_params_declaration
 
-        self.visitChildren(ctx.statement())
+        self.visit(ctx.statement())
         self.scope_handler.pop_scope()
 
     # Visit a parse tree produced by qutes_parser#functionParams.
@@ -119,7 +119,7 @@ class SymbolsDiscoveryVisitor(qutesVisitor):
         # This listener should not follow the execution path to understand what was the initial value assigned to the variable.
         # So we assign None and then variables_handler will put in the default value for the type.
         if(ctx.expr()):
-            self.visitChildren(ctx.expr())
+            self.visit(ctx.expr())
         
 
         token_index = ctx.start.tokenIndex

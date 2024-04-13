@@ -1,4 +1,4 @@
-# Generated from d:/Users/gabry/Universita/quantum_computing/qutes_lang/specification/grammar/qutes_parser.g4 by ANTLR 4.13.1
+# Generated from /workspaces/qutes_lang/specification/grammar/qutes_parser.g4 by ANTLR 4.13.1
 from antlr4 import *
 if "." in __name__:
     from .qutes_parser import qutes_parser
@@ -64,13 +64,13 @@ class qutes_parserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by qutes_parser#EmptyStatement.
-    def visitEmptyStatement(self, ctx:qutes_parser.EmptyStatementContext):
+    # Visit a parse tree produced by qutes_parser#FactStatement.
+    def visitFactStatement(self, ctx:qutes_parser.FactStatementContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by qutes_parser#block.
-    def visitBlock(self, ctx:qutes_parser.BlockContext):
+    # Visit a parse tree produced by qutes_parser#EmptyStatement.
+    def visitEmptyStatement(self, ctx:qutes_parser.EmptyStatementContext):
         return self.visitChildren(ctx)
 
 
@@ -84,33 +84,43 @@ class qutes_parserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by qutes_parser#functionCallParams.
-    def visitFunctionCallParams(self, ctx:qutes_parser.FunctionCallParamsContext):
+    # Visit a parse tree produced by qutes_parser#QualifiedNameExpression.
+    def visitQualifiedNameExpression(self, ctx:qutes_parser.QualifiedNameExpressionContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by qutes_parser#expr.
-    def visitExpr(self, ctx:qutes_parser.ExprContext):
+    # Visit a parse tree produced by qutes_parser#RelationalOperator.
+    def visitRelationalOperator(self, ctx:qutes_parser.RelationalOperatorContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by qutes_parser#groverExpr.
-    def visitGroverExpr(self, ctx:qutes_parser.GroverExprContext):
+    # Visit a parse tree produced by qutes_parser#LogicAndOperator.
+    def visitLogicAndOperator(self, ctx:qutes_parser.LogicAndOperatorContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by qutes_parser#functionCall.
-    def visitFunctionCall(self, ctx:qutes_parser.FunctionCallContext):
+    # Visit a parse tree produced by qutes_parser#PrefixOperator.
+    def visitPrefixOperator(self, ctx:qutes_parser.PrefixOperatorContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by qutes_parser#parenExpr.
-    def visitParenExpr(self, ctx:qutes_parser.ParenExprContext):
+    # Visit a parse tree produced by qutes_parser#LiteralExpression.
+    def visitLiteralExpression(self, ctx:qutes_parser.LiteralExpressionContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by qutes_parser#test.
-    def visitTest(self, ctx:qutes_parser.TestContext):
+    # Visit a parse tree produced by qutes_parser#GroverOperator.
+    def visitGroverOperator(self, ctx:qutes_parser.GroverOperatorContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by qutes_parser#FunctionCallExpression.
+    def visitFunctionCallExpression(self, ctx:qutes_parser.FunctionCallExpressionContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by qutes_parser#EqualityOperator.
+    def visitEqualityOperator(self, ctx:qutes_parser.EqualityOperatorContext):
         return self.visitChildren(ctx)
 
 
@@ -119,13 +129,18 @@ class qutes_parserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by qutes_parser#BinaryPriorityOperator.
-    def visitBinaryPriorityOperator(self, ctx:qutes_parser.BinaryPriorityOperatorContext):
+    # Visit a parse tree produced by qutes_parser#SumOperator.
+    def visitSumOperator(self, ctx:qutes_parser.SumOperatorContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by qutes_parser#IdentityOperator.
-    def visitIdentityOperator(self, ctx:qutes_parser.IdentityOperatorContext):
+    # Visit a parse tree produced by qutes_parser#PostfixOperator.
+    def visitPostfixOperator(self, ctx:qutes_parser.PostfixOperatorContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by qutes_parser#ParentesizeExpression.
+    def visitParentesizeExpression(self, ctx:qutes_parser.ParentesizeExpressionContext):
         return self.visitChildren(ctx)
 
 
@@ -134,13 +149,23 @@ class qutes_parserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by qutes_parser#MultiplicativeOperator.
+    def visitMultiplicativeOperator(self, ctx:qutes_parser.MultiplicativeOperatorContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by qutes_parser#UnaryOperator.
     def visitUnaryOperator(self, ctx:qutes_parser.UnaryOperatorContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by qutes_parser#BinaryOperator.
-    def visitBinaryOperator(self, ctx:qutes_parser.BinaryOperatorContext):
+    # Visit a parse tree produced by qutes_parser#LogicOrOperator.
+    def visitLogicOrOperator(self, ctx:qutes_parser.LogicOrOperatorContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by qutes_parser#functionCallParams.
+    def visitFunctionCallParams(self, ctx:qutes_parser.FunctionCallParamsContext):
         return self.visitChildren(ctx)
 
 
@@ -149,13 +174,13 @@ class qutes_parserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by qutes_parser#type.
-    def visitType(self, ctx:qutes_parser.TypeContext):
+    # Visit a parse tree produced by qutes_parser#variableType.
+    def visitVariableType(self, ctx:qutes_parser.VariableTypeContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by qutes_parser#variableType.
-    def visitVariableType(self, ctx:qutes_parser.VariableTypeContext):
+    # Visit a parse tree produced by qutes_parser#type.
+    def visitType(self, ctx:qutes_parser.TypeContext):
         return self.visitChildren(ctx)
 
 
@@ -171,6 +196,11 @@ class qutes_parserVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by qutes_parser#functionName.
     def visitFunctionName(self, ctx:qutes_parser.FunctionNameContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by qutes_parser#literal.
+    def visitLiteral(self, ctx:qutes_parser.LiteralContext):
         return self.visitChildren(ctx)
 
 
