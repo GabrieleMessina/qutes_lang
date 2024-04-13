@@ -48,13 +48,14 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
     
     def __visit_binary_operator(self, ctx:qutes_parser.SumOperatorContext | qutes_parser.MultiplicativeOperatorContext | qutes_parser.RelationalOperatorContext | qutes_parser.EqualityOperatorContext | qutes_parser.LogicAndOperatorContext | qutes_parser.LogicOrOperatorContext):
         result = None
-        first_term_symbol = self.visit(ctx.expr(0))
-        second_term_symbol = self.visit(ctx.expr(1))
-        first_term = self.variables_handler.get_value(first_term_symbol)
-        second_term = self.variables_handler.get_value(second_term_symbol)
+        first_term_symbol:Symbol = self.visit(ctx.expr(0))
+        second_term_symbol:Symbol = self.visit(ctx.expr(1))
+        first_term_value = self.variables_handler.get_value(first_term_symbol)
+        second_term_value = self.variables_handler.get_value(second_term_symbol)
 
         if(self.log_code_structure): print(f"{first_term_symbol} {ctx.op.text} {second_term_symbol}", end=None)
         
+        #TODO: handle binary operation of quantum variables
         if(isinstance(ctx, qutes_parser.SumOperatorContext)):
             if(ctx.ADD()):
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)
@@ -67,31 +68,33 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
                     #Or when explicitly required by the user.
                     result = self.qutes_gates.sum(first_term_symbol, second_term_symbol)
                 else:
-                    result = first_term + second_term
+                    result = first_term_value + second_term_value
             if(ctx.SUB()):
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
-                    #TODO: handle sub operation of quantum variables
                     pass
-                result = first_term - second_term
+                result = first_term_value - second_term_value
         if(isinstance(ctx, qutes_parser.MultiplicativeOperatorContext)):
             if(ctx.MULTIPLY()):
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
-                    #TODO: handle multiply operation of quantum variables
                     pass
-                result = first_term * second_term
+                result = first_term_value * second_term_value
             if(ctx.DIVIDE()):
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
-                    #TODO: handle divide operation of quantum variables
                     pass
-                result = first_term / second_term
-        return result
+                result = first_term_value / second_term_value
+            if(ctx.MODULE()):
+                if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
+                    pass
+                result = first_term_value % second_term_value
+        
+        return self.variables_handler.create_anonymous_symbol(QutesDataType.type_of(result), result, ctx.start.tokenIndex)
     
     def __visit_boolean_operation(self, ctx:qutes_parser.RelationalOperatorContext | qutes_parser.EqualityOperatorContext | qutes_parser.LogicAndOperatorContext | qutes_parser.LogicOrOperatorContext):
         result = None
-        first_term_symbol = self.visit(ctx.expr(0))
-        second_term_symbol = self.visit(ctx.expr(1))
-        first_term = self.variables_handler.get_value(first_term_symbol)
-        second_term = self.variables_handler.get_value(second_term_symbol)
+        first_term_symbol:Symbol = self.visit(ctx.expr(0))
+        second_term_symbol:Symbol = self.visit(ctx.expr(1))
+        first_term_value = self.variables_handler.get_value(first_term_symbol)
+        second_term_value = self.variables_handler.get_value(second_term_symbol)
 
         if(self.log_code_structure): print(f"{first_term_symbol} {ctx.op.text} {second_term_symbol}", end=None)
 
@@ -102,25 +105,25 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
                     # At the moment this only works for comparing quantum variables to classical values.
                     result = self.quantum_circuit_handler.push_equals_operation(first_term_symbol.quantum_register, second_term_symbol.value)
                 else:
-                    result = first_term == second_term
+                    result = first_term_value == second_term_value
             if(ctx.NOT_EQUAL()):
-                result = first_term != second_term
+                result = first_term_value != second_term_value
         elif(isinstance(ctx, qutes_parser.RelationalOperatorContext)):
             if(ctx.GREATER()):
-                result = first_term > second_term
+                result = first_term_value > second_term_value
             elif(ctx.LOWER()):
-                result = first_term < second_term
+                result = first_term_value < second_term_value
             elif(ctx.GREATEREQUAL()):
-                result = first_term >= second_term
+                result = first_term_value >= second_term_value
             elif(ctx.LOWEREQUAL()):
-                result = first_term <= second_term
+                result = first_term_value <= second_term_value
         elif(isinstance(ctx, qutes_parser.LogicAndOperatorContext)):
             if(ctx.AND()):
-                result = first_term and second_term
+                result = first_term_value and second_term_value
         elif(isinstance(ctx, qutes_parser.LogicOrOperatorContext)):
             if(ctx.OR()):
-                result = first_term or second_term
-        return result
+                result = first_term_value or second_term_value
+        return self.variables_handler.create_anonymous_symbol(QutesDataType.bool, result, ctx.start.tokenIndex)
 
     def __visitMultipleUnaryOperator(self, ctx:qutes_parser.MultipleUnaryOperatorContext):
         terms:list[Symbol] = self.visit(ctx.termList())
@@ -139,16 +142,16 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
     def __visitMultipleUnaryPhaseOperator(self, ctx:qutes_parser.MultipleUnaryPhaseOperatorContext):
         terms:list[Symbol] = self.visit(ctx.termList())
         registers = [register.quantum_register for register in terms]
-        theta = self.visit(ctx.expr())
+        theta:Symbol = self.visit(ctx.expr())
         if(self.log_code_structure): print(f"{ctx.op.text} {registers} by {theta}", end=None)
         if(ctx.MCP()):
-            self.quantum_circuit_handler.push_MCP_operation(theta, registers)
+            self.quantum_circuit_handler.push_MCP_operation(theta.value, registers)
         return None
 
     def __visit_unary_operator(self, ctx:qutes_parser.UnaryOperatorContext | qutes_parser.PrefixOperatorContext | qutes_parser.PostfixOperatorContext):
         result = None
-        first_term_symbol = self.visit(ctx.expr())
-        first_term = self.variables_handler.get_value(first_term_symbol)
+        first_term_symbol:Symbol = self.visit(ctx.expr())
+        first_term_value = self.variables_handler.get_value(first_term_symbol)
 
         if(self.log_code_structure): print(f"{first_term_symbol} {ctx.op.text}", end=None)
 
@@ -174,7 +177,7 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
                         # self.variables_handler.update_variable_state(first_term_symbol.name, new_value) 
                     print(first_term_symbol)
                 else:
-                    print(first_term)
+                    print(first_term_value)
             if(ctx.PAULIY()):
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
                     result = self.quantum_circuit_handler.push_pauliy_operation(first_term_symbol.quantum_register)
@@ -186,34 +189,46 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
                     result = self.quantum_circuit_handler.push_hadamard_operation(first_term_symbol.quantum_register)
             if(ctx.MEASURE()):
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
-                    result = self.quantum_circuit_handler.push_measure_operation([first_term_symbol.quantum_register])
+                    #TODO: at the moment we return just the first measure value as result, but when array type got implemented, then we should return a list.
+                    result = self.quantum_circuit_handler.push_measure_operation([first_term_symbol.quantum_register])[0].measured_values
         if(isinstance(ctx, qutes_parser.PrefixOperatorContext)):
             if(ctx.ADD()):
-                pass
+                result = first_term_symbol
+                return result
             if(ctx.SUB()):
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
                     result = self.quantum_circuit_handler.push_pauliz_operation(first_term_symbol.quantum_register)
-                result = -first_term
+                first_term_symbol.value = -first_term_symbol.value 
+                result = first_term_symbol
+                return result
             if(ctx.AUTO_INCREMENT()):
                 #TODO: handle quantum
-                result = first_term + 1
+                first_term_symbol.value = first_term_symbol.value + 1 
+                result = first_term_symbol
+                return result
             if(ctx.AUTO_DECREMENT()):
                 #TODO: handle quantum
-                result = first_term - 1
+                first_term_symbol.value = first_term_symbol.value - 1 
+                result = first_term_symbol
+                return result
             if(ctx.NOT()):
                 if(self.log_trace_enabled): print("visitUnaryOperator -> NOT")
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
                     result = self.quantum_circuit_handler.push_not_operation(first_term_symbol.quantum_register)
                 else:
-                    result = not first_term
+                    result = not first_term_value
         if(isinstance(ctx, qutes_parser.PostfixOperatorContext)):
             #TODO: handle quantum
-            #TODO: handle postfix expected behaviour
             if(ctx.AUTO_INCREMENT()):
-                result = first_term + 1
+                result = self.variables_handler.create_anonymous_symbol(QutesDataType.type_of(first_term_symbol), first_term_value, ctx.start.tokenIndex)
+                first_term_symbol.value = first_term_symbol.value + 1 
+                return result
             if(ctx.AUTO_DECREMENT()):
-                result = first_term - 1
-        return result
+                result = self.variables_handler.create_anonymous_symbol(QutesDataType.type_of(first_term_symbol), first_term_value, ctx.start.tokenIndex)
+                first_term_symbol.value = first_term_symbol.value - 1 
+                return result
+
+        return self.variables_handler.create_anonymous_symbol(QutesDataType.type_of(result), result, ctx.start.tokenIndex)
 
     grover_count = iter(range(1, 1000))
     def visitGroverOperator(self, ctx:qutes_parser.GroverOperatorContext):
@@ -281,6 +296,6 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
                 if (any_positive_results):
                     if(self.log_grover_verbose and rotation_register.measured_classical_register is not None):
                         print(f"Solution found with rotation {rotation_register.measured_classical_register.measured_values[positive_results[0][0]]} (for the first hit)")
-                    return True
+                    return self.variables_handler.create_anonymous_symbol(QutesDataType.bool, True, ctx.start.tokenIndex)
                 registers_to_measure.remove(oracle_result)
-            return False
+            return self.variables_handler.create_anonymous_symbol(QutesDataType.bool, False, ctx.start.tokenIndex)

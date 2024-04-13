@@ -1,5 +1,6 @@
 from grammar_frontend.qutes_parser import QutesParser as qutes_parser
 from symbols.scope_tree_node import ScopeTreeNode
+from symbols.symbol import Symbol
 from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
 from symbols.variables_handler import VariablesHandler
 from symbols.types import Qubit, Quint, Qustring, QutesDataType
@@ -24,7 +25,7 @@ class QutesGrammarLiteralVisitor(QutesBaseVisitor):
         return params[::-1]
 
     def visitFunctionCallParams(self, ctx:qutes_parser.FunctionCallParamsContext):
-        param = self.visit(ctx.qualifiedName())
+        param = self.visit(ctx.literal()) if ctx.literal() else self.visit(ctx.qualifiedName())
         params = []
         if(ctx.functionCallParams()):
             params = self.visit(ctx.functionCallParams())
@@ -33,8 +34,8 @@ class QutesGrammarLiteralVisitor(QutesBaseVisitor):
         params.append(param)
         return params[::-1]
 
-    def visitTermList(self, ctx:qutes_parser.TermListContext):
-        term = self.visit(ctx.literal())
+    def visitTermList(self, ctx:qutes_parser.TermListContext) -> list[Symbol]:
+        term = self.visit(ctx.literal()) if ctx.literal() else self.visit(ctx.qualifiedName())
         terms = []
         if(ctx.termList()):
             terms = self.visit(ctx.termList())
@@ -50,13 +51,21 @@ class QutesGrammarLiteralVisitor(QutesBaseVisitor):
 
     def visitQualifiedName(self, ctx:qutes_parser.QualifiedNameContext):
         var_name = str(ctx.getText())
+        if(ctx.variableName()):
+            var_name = self.visit(ctx.variableName())
+        if(ctx.functionName()):
+            var_name = self.visit(ctx.functionName())
         token_index = ctx.start.tokenIndex
         symbol_to_resolve = self.variables_handler.get_variable_symbol(var_name, token_index)
         if(self.log_code_structure): print(symbol_to_resolve, end=None)
         return self.variables_handler.get_variable_symbol(var_name, token_index)
 
+    def visitVariableName(self, ctx:qutes_parser.VariableNameContext):
+        value = str(ctx.getText())
+        if(self.log_code_structure): print(value, end=None)
+        return value
+
     def visitFunctionName(self, ctx:qutes_parser.FunctionNameContext):
-        #TODO: this should be aligned to visitQualifiedName which returns a symbol
         value = str(ctx.getText())
         if(self.log_code_structure): print(value, end=None)
         return value
@@ -106,8 +115,3 @@ class QutesGrammarLiteralVisitor(QutesBaseVisitor):
         symbol = self.variables_handler.create_anonymous_symbol(QutesDataType.bool, value, ctx.start.tokenIndex)
         if(self.log_code_structure): print(value, end=None)
         return symbol
-    
-    def visitVariableName(self, ctx:qutes_parser.VariableNameContext):
-        value = str(ctx.getText())
-        if(self.log_code_structure): print(value, end=None)
-        return value
