@@ -9,7 +9,7 @@
     },
     {
       "name": "keyword.operator.qutes",
-      "match": "(\\*|/|%|\\+|\\-|==|!=|>|>=|<|<=|=)|\\b(and|or|not|pauliy|pauliz|grover|mcz|mcx|mcp|mcy|swap|hadamard|measure|print|barrier)\\b|(\\+\\+|\\-\\-|\\+=|\\-=|\\*=|/=|&=)"
+      "match": "(\\*|/(?!/)|%|\\+|\\-|==|!=|>|>=|<|<=|=)|\\b(and|or|not|pauliy|pauliz|grover|mcz|mcx|mcp|mcy|swap|hadamard|measure|print|barrier)\\b|(\\+\\+|\\-\\-|\\+=|\\-=|\\*=|/=|&=)"
     },
     {
       "name": "storage.type.qutes",
