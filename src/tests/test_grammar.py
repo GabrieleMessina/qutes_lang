@@ -1,11 +1,22 @@
 from symbols.types import Qubit, Quint, Qustring
 from .qutes_base_test import QutesBaseTest
+from grammar_frontend.qutes_grammar_visitor import QutesGrammarVisitor
+from qutes_antlr.qutes_parserVisitor import __name__ as qutes_parserVisitor_class_name
+import inspect
 
 def sanitizeForVariableDeclarationUsage(value:any) -> str:
     value = str(value)
     return value.replace("\"", "").replace(" ", "")
 
 class TestGrammar(QutesBaseTest):
+    def test_all_visitor_method_implemented(self):
+        visitor_methods = [method for method in inspect.getmembers(QutesGrammarVisitor, predicate=inspect.isfunction) if not method[0].startswith("_")]
+        for method in visitor_methods:
+            with self.subTest(method=method):
+                method_module = method[1].__module__
+                method_name = method[1].__name__
+                self.assertNotEqual(qutes_parserVisitor_class_name, method_module, f"Method {method_name} was never explicitly implemented.")
+
     def test_var_declaration_with_allowed_char_succeed(self):
         params = [
             ("a"),
