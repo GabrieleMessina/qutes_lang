@@ -11,11 +11,7 @@ class QutesGrammarStatementVisitor(QutesBaseVisitor):
     def __init__(self, symbols_tree:ScopeTreeNode, quantum_circuit_handler : QuantumCircuitHandler, scope_handler:ScopeHandlerForSymbolsUpdate, variables_handler:VariablesHandler, verbose:bool = False):
         super().__init__(symbols_tree, quantum_circuit_handler, scope_handler, variables_handler, verbose)
     
-    #Visit a parse tree produced by qutesParser#IfStatement.
     def visitIfStatement(self, ctx:qutes_parser.IfStatementContext):
-        return self.__visit_if_statement(ctx)
-    
-    def __visit_if_statement(self, ctx:qutes_parser.IfStatementContext):
         self.scope_handler.push_scope()
         condition = self.visitChildren(ctx.expr())
         if(condition != None):
@@ -27,12 +23,8 @@ class QutesGrammarStatementVisitor(QutesBaseVisitor):
                 self.scope_handler.pop_scope()
         self.scope_handler.pop_scope()
         return None
-
-    # Visit a parse tree produced by qutesParser#IfElseStatement.
-    def visitIfElseStatement(self, ctx:qutes_parser.IfElseStatementContext):
-        return self.__visit("visitIfElseStatement", lambda : self.__visit_if_else_statement(ctx))
     
-    def __visit_if_else_statement(self, ctx:qutes_parser.IfStatementContext):
+    def visitIfElseStatement(self, ctx:qutes_parser.IfElseStatementContext):
         self.scope_handler.push_scope()
         condition = self.visitChildren(ctx.expr())
         if(condition != None):
@@ -49,12 +41,10 @@ class QutesGrammarStatementVisitor(QutesBaseVisitor):
                     self.scope_handler.pop_scope()
                 self.visit(ctx.statement(1))
         self.scope_handler.pop_scope()
-        return None
+        return None        
 
-
-    # Visit a parse tree produced by qutesParser#WhileStatement.
     def visitWhileStatement(self, ctx:qutes_parser.WhileStatementContext):
-        return self.__visit("visitWhileStatement", lambda : self.__visit_while_statement(ctx))
+        return self.__visit_while_statement(ctx)
     
     def __visit_while_statement(self, ctx:qutes_parser.IfStatementContext):
         self.scope_handler.push_scope()
@@ -79,31 +69,24 @@ class QutesGrammarStatementVisitor(QutesBaseVisitor):
         return None
 
 
-    # Visit a parse tree produced by qutesParser#DoWhileStatement.
     def visitDoWhileStatement(self, ctx:qutes_parser.DoWhileStatementContext):
-        return self.__visit("visitDoWhileStatement", lambda : self.visitChildren(ctx))
+        #TODO: implement
+        return self.visitChildren(ctx)
 
-    # Visit a parse tree produced by qutesParser#BlockStatement.
     def visitBlockStatement(self, ctx:qutes_parser.BlockStatementContext):
         self.scope_handler.push_scope()
-        result = self.__visit("visitBlockStatement", lambda : self.__visitBlock(ctx))
-        self.scope_handler.pop_scope()
-        return result
-    
-    # Visit a parse tree produced by qutes_parser#block.
-    def __visitBlock(self, ctx:qutes_parser.BlockStatementContext):
         log_string = str()
         statement_count = 0
         for child in ctx.getChildren(lambda child : isinstance(child, qutes_parser.StatementContext)):
             statement_count += 1
-            new_value = self.__visit("visitBlockStatement", lambda i=child : self.visit(i))
+            new_value = self.visit(child)
             log_string = f'{log_string}\n\tStatement[{statement_count}]: {new_value}'
             if(self.log_code_structure): print(log_string, end=None)
             if(isinstance(new_value, Symbol) and new_value.is_return_value_of_function):
                 return new_value
+        self.scope_handler.pop_scope()
         return None
     
-    # Visit a parse tree produced by qutes_parser#FunctionStatement.
     def visitFunctionStatement(self, ctx:qutes_parser.FunctionStatementContext):
         self.scope_handler.push_scope()
         function_name = self.visit(ctx.functionName())
@@ -113,36 +96,19 @@ class QutesGrammarStatementVisitor(QutesBaseVisitor):
         self.scope_handler.pop_scope()
         return None
     
-     # Visit a parse tree produced by qutes_parser#functionParams.
-    def visitFunctionDeclarationParams(self, ctx:qutes_parser.FunctionDeclarationParamsContext):
-        param = self.visit(ctx.variableDeclaration())
-        params = []
-        if(ctx.functionDeclarationParams()):
-            params = self.__visit("functionDeclarationParams", lambda : self.visit(ctx.functionDeclarationParams()))
-            if(not isinstance(params, list)):
-                params = [params]
-        params.append(param)
-        return params[::-1]
-    
-     # Visit a parse tree produced by qutesParser#DeclarationStatement.
     def visitDeclarationStatement(self, ctx:qutes_parser.DeclarationStatementContext):
-        return self.__visit("visitDeclarationStatement", lambda :  self.visitChildren(ctx))
+        return self.visitChildren(ctx)
         
-    # Visit a parse tree produced by qutes_parser#variableDeclaration.
     def visitVariableDeclaration(self, ctx:qutes_parser.VariableDeclarationContext):
         var_type =  self.visit(ctx.variableType()) # we already know the variable type thanks to the discovery listener.
         var_name = self.visit(ctx.variableName())
         var_value = None
+        return self.__visit_assignment_statement(var_name, var_value, ctx)
 
-        return self.__visit("visitVariableDeclaration", lambda : self.__visit_assignment_statement(var_name, var_value, ctx))
-
-
-    # Visit a parse tree produced by qutesParser#AssignmentStatement.
     def visitAssignmentStatement(self, ctx:qutes_parser.AssignmentStatementContext):
         var_name = self.visit(ctx.qualifiedName())
         var_value = None
-        return self.__visit("visitAssignmentStatement", lambda : self.__visit_assignment_statement(var_name, var_value, ctx))
-
+        return self.__visit_assignment_statement(var_name, var_value, ctx)
 
     def __visit_assignment_statement(self, var_name : str | Symbol, var_value, ctx:(qutes_parser.AssignmentStatementContext | qutes_parser.VariableDeclarationContext)):
         if(ctx.expr()):
@@ -168,27 +134,23 @@ class QutesGrammarStatementVisitor(QutesBaseVisitor):
                 if(self.log_code_structure): print(f"{var_symbol.symbol_declaration_static_type.name} {str(var_name)}", end=None)        
         return var_symbol
 
-    # Visit a parse tree produced by qutes_parser#ReturnStatement.
     def visitReturnStatement(self, ctx:qutes_parser.ReturnStatementContext):
-        result = self.__visit("visitReturnStatement", lambda : self.visitChildren(ctx.expr()))
+        result = self.visitChildren(ctx.expr())
         if(isinstance(result, Symbol)):
             result.is_return_value_of_function = True
         return result    
     
-    # Visit a parse tree produced by qutesParser#ExpressionStatement.
     def visitExpressionStatement(self, ctx:qutes_parser.ExpressionStatementContext):
-        return self.__visit("visitExpressionStatement", lambda : self.visitChildren(ctx.expr()))
-
-    # Visit a parse tree produced by qutesParser#EmptyStatement.
-    def visitEmptyStatement(self, ctx:qutes_parser.EmptyStatementContext):
-        return self.__visit("visitEmptyStatement", lambda : self.visitChildren(ctx))
+        return self.visitChildren(ctx)
     
-    # Utility method for logging and scaffolding operation
-    def __visit(self, parent_caller_name, func, push_pop_scope:bool = False):
-        if(self.log_trace_enabled): print("start " + parent_caller_name)
-        if(push_pop_scope): self.scope_handler.push_scope()
-        result = func()
-        if(push_pop_scope): self.scope_handler.pop_scope()
-        if(self.log_trace_enabled): print("end " + parent_caller_name)
-        if(self.log_step_by_step_results_enabled): print(result)
-        return result
+    def visitFactStatement(self, ctx:qutes_parser.FactStatementContext):
+        if(self.log_code_structure): print(f"{ctx.op.text}", end=None)
+
+        if(ctx.MEASURE()):
+            self.quantum_circuit_handler.push_measure_operation()
+        if(ctx.BARRIER()):
+            self.quantum_circuit_handler.push_barrier_operation()
+        return self.visitChildren(ctx)
+
+    def visitEmptyStatement(self, ctx:qutes_parser.EmptyStatementContext):
+        return self.visitChildren(ctx)

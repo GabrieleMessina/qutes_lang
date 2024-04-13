@@ -10,101 +10,104 @@ class QutesGrammarLiteralVisitor(QutesBaseVisitor):
     def __init__(self, symbols_tree:ScopeTreeNode, quantum_circuit_handler : QuantumCircuitHandler, scope_handler:ScopeHandlerForSymbolsUpdate, variables_handler:VariablesHandler, verbose:bool = False):
         super().__init__(symbols_tree, quantum_circuit_handler, scope_handler, variables_handler, verbose)
     
-    # Visit a parse tree produced by qutes_parser#variableType.
+    def visitType(self, ctx:qutes_parser.TypeContext):
+        return self.visitChildren(ctx)
+    
+    def visitFunctionDeclarationParams(self, ctx:qutes_parser.FunctionDeclarationParamsContext):
+        param = self.visit(ctx.variableDeclaration())
+        params = []
+        if(ctx.functionDeclarationParams()):
+            params = self.visit(ctx.functionDeclarationParams())
+            if(not isinstance(params, list)):
+                params = [params]
+        params.append(param)
+        return params[::-1]
+
+    def visitFunctionCallParams(self, ctx:qutes_parser.FunctionCallParamsContext):
+        param = self.visit(ctx.qualifiedName())
+        params = []
+        if(ctx.functionCallParams()):
+            params = self.visit(ctx.functionCallParams())
+            if(not isinstance(params, list)):
+                params = [params]
+        params.append(param)
+        return params[::-1]
+
+    def visitTermList(self, ctx:qutes_parser.TermListContext):
+        term = self.visit(ctx.literal())
+        terms = []
+        if(ctx.termList()):
+            terms = self.visit(ctx.termList())
+            if(not isinstance(terms, list)):
+                terms = [terms]
+        terms.append(term)
+        return terms[::-1]
+
     def visitVariableType(self, ctx:qutes_parser.VariableTypeContext):
         value = str(ctx.getText())
         if(self.log_code_structure): print(value, end=None)
-        return self.__visit("visitVariableType", lambda : value)
+        return value
 
-
-    # Visit a parse tree produced by qutes_parser#qualifiedName.
     def visitQualifiedName(self, ctx:qutes_parser.QualifiedNameContext):
         var_name = str(ctx.getText())
         token_index = ctx.start.tokenIndex
         symbol_to_resolve = self.variables_handler.get_variable_symbol(var_name, token_index)
         if(self.log_code_structure): print(symbol_to_resolve, end=None)
-        return self.__visit("visitQualifiedName", lambda : self.variables_handler.get_variable_symbol(var_name, token_index))
+        return self.variables_handler.get_variable_symbol(var_name, token_index)
 
-
-    # Visit a parse tree produced by qutes_parser#functionName.
     def visitFunctionName(self, ctx:qutes_parser.FunctionNameContext):
         #TODO: this should be aligned to visitQualifiedName which returns a symbol
         value = str(ctx.getText())
         if(self.log_code_structure): print(value, end=None)
-        return self.__visit("visitFunctionName", lambda : value)
+        return value
 
+    def visitLiteral(self, ctx:qutes_parser.LiteralContext):
+        return self.visitChildren(ctx)
 
-    # Visit a parse tree produced by qutes_parser#id.
     def visitString(self, ctx:qutes_parser.StringContext):
         string_literal_enclosure = qutes_parser.literal_to_string(qutes_parser.STRING_ENCLOSURE)
         value = ctx.getText().removeprefix(string_literal_enclosure).removesuffix(string_literal_enclosure)
         symbol = self.variables_handler.create_anonymous_symbol(QutesDataType.string, value, ctx.start.tokenIndex)
         if(self.log_code_structure): print(value, end=None)
-        return self.__visit("visitString", lambda : symbol)
+        return symbol
 
-    
-    # Visit a parse tree produced by qutes_parser#qubit.
     def visitQubit(self, ctx:qutes_parser.QubitContext):
         value = Qubit.from_string(ctx.getText())
         symbol = self.variables_handler.create_anonymous_symbol(QutesDataType.qubit, value, ctx.start.tokenIndex)
         if(self.log_code_structure): print(value, end=None)
-        return self.__visit("visitQubit", lambda : symbol)
+        return symbol
     
-    
-    # Visit a parse tree produced by qutes_parser#quint.
     def visitQuint(self, ctx:qutes_parser.QuintContext):
         value = Quint.init_from_string(ctx.getText())
         symbol = self.variables_handler.create_anonymous_symbol(QutesDataType.quint, value, ctx.start.tokenIndex)
         if(self.log_code_structure): print(value, end=None)
-        return self.__visit("visitQuint", lambda : symbol)
+        return symbol
 
-    
-    # Visit a parse tree produced by qutes_parser#qustring.
     def visitQustring(self, ctx:qutes_parser.QustringContext):
         value = Qustring.init_from_string(ctx.getText())
         symbol = self.variables_handler.create_anonymous_symbol(QutesDataType.qustring, value, ctx.start.tokenIndex)
         if(self.log_code_structure): print(value, end=None)
-        return self.__visit("visitQustring", lambda : symbol)
+        return symbol
 
-    
-    # Visit a parse tree produced by qutes_parser#float.
     def visitFloat(self, ctx:qutes_parser.FloatContext):
         value = float(ctx.getText())
         symbol = self.variables_handler.create_anonymous_symbol(QutesDataType.float, value, ctx.start.tokenIndex)
         if(self.log_code_structure): print(value, end=None)
-        return self.__visit("visitFloat", lambda : symbol)
+        return symbol
 
-
-    # Visit a parse tree produced by qutes_parser#integer.
     def visitInteger(self, ctx:qutes_parser.IntegerContext):
         value = int(ctx.getText())
         symbol = self.variables_handler.create_anonymous_symbol(QutesDataType.int, value, ctx.start.tokenIndex)
         if(self.log_code_structure): print(value, end=None)
-        return self.__visit("visitInteger", lambda : symbol)
+        return symbol
 
-
-    # Visit a parse tree produced by qutes_parser#boolean.
     def visitBoolean(self, ctx:qutes_parser.BooleanContext):
         value = ctx.getText().lower() == "true" or ctx.getText() == "1"
         symbol = self.variables_handler.create_anonymous_symbol(QutesDataType.bool, value, ctx.start.tokenIndex)
         if(self.log_code_structure): print(value, end=None)
-        return self.__visit("visitBoolean", lambda : symbol)
+        return symbol
     
-    # Visit a parse tree produced by qutesParser#integer.
     def visitVariableName(self, ctx:qutes_parser.VariableNameContext):
         value = str(ctx.getText())
         if(self.log_code_structure): print(value, end=None)
-        return self.__visit("visitVariableName", lambda : value)
-    
-    def visitType(self, ctx:qutes_parser.TypeContext):
-        return self.visitChildren(ctx)
-    
-    # Utility method for logging and scaffolding operation
-    def __visit(self, parent_caller_name, func, push_pop_scope:bool = False):
-        if(self.log_trace_enabled): print("start " + parent_caller_name)
-        if(push_pop_scope): self.scope_handler.push_scope()
-        result = func()
-        if(push_pop_scope): self.scope_handler.pop_scope()
-        if(self.log_trace_enabled): print("end " + parent_caller_name)
-        if(self.log_step_by_step_results_enabled): print(result)
-        return result
+        return value

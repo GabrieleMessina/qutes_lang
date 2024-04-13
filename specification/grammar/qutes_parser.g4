@@ -22,9 +22,10 @@ statement
    | qualifiedName ASSIGN expr END_OF_STATEMENT #AssignmentStatement
    | RETURN expr END_OF_STATEMENT #ReturnStatement
    | expr END_OF_STATEMENT #ExpressionStatement
+   | (MEASURE | BARRIER) #FactStatement
    | END_OF_STATEMENT #EmptyStatement
    ;
-   
+
 functionDeclarationParams
    : variableDeclaration (COMMA functionDeclarationParams)?
    ;
@@ -33,55 +34,39 @@ variableDeclaration
    : variableType variableName (ASSIGN expr)?
    ;
 
-functionCallParams
-   : qualifiedName (COMMA functionCallParams)?
-   ;
-
 expr
-   : term
-   | functionCall
-   | test
-   | parenExpr
-   | groverExpr
-   ;
-
-groverExpr
-   : termList op=IN_STATEMENT qualifiedName
-   ;
-
-functionCall //Function name should be a qualifiedName here.
-   : functionName ROUND_PARENTHESIS_OPEN functionCallParams? ROUND_PARENTHESIS_CLOSE
-   ;
-
-parenExpr
-   : ROUND_PARENTHESIS_OPEN expr ROUND_PARENTHESIS_CLOSE
-   ;
-
-test
-   : term
-   | term op=(GREATER | LOWER | EQUAL | GREATEREQUAL | LOWEREQUAL) term
-   ;
-
-term
-   : term op=(MULTIPLY | DIVIDE) term #BinaryPriorityOperator
-   | term op=(ADD | SUB) term #BinaryOperator
-   | op=(PRINT | NOT | PAULIY | PAULIZ | HADAMARD | MEASURE | ADD | SUB) term #UnaryOperator
+   : ROUND_PARENTHESIS_OPEN expr ROUND_PARENTHESIS_CLOSE #ParentesizeExpression
+   | literal #LiteralExpression
+   | qualifiedName #QualifiedNameExpression
+   // Array access
+   | functionName ROUND_PARENTHESIS_OPEN functionCallParams? ROUND_PARENTHESIS_CLOSE #FunctionCallExpression
+   | expr op=(AUTO_INCREMENT | AUTO_DECREMENT) #PostfixOperator
+   | op=(NOT | ADD | SUB | AUTO_INCREMENT | AUTO_DECREMENT) expr #PrefixOperator
+   // cast operation
+   | expr op=(MULTIPLY | DIVIDE | MODULE) expr #MultiplicativeOperator
+   | expr op=(ADD | SUB) expr #SumOperator
+   | expr op=(GREATEREQUAL | LOWEREQUAL | GREATER | LOWER ) expr #RelationalOperator
+   | expr op=(EQUAL | NOT_EQUAL) expr #EqualityOperator
+   | expr op=AND expr #LogicAndOperator
+   | expr op=OR expr #LogicOrOperator
+   // | <assoc = right> expr op=(AUTO_SUM | AUTO_DECREMENT | AUTO_MODULE | AUTO_DIVIDE | AUTO_MODULE) expr #AutoAssignmentOperator
    | op=(MCX | MCZ | MCY | SWAP) termList #MultipleUnaryOperator
+   | op=(PRINT | PAULIY | PAULIZ | HADAMARD | MEASURE) expr #UnaryOperator
    | op=MCP termList BY expr #MultipleUnaryPhaseOperator
-   | (boolean
-   | integer
-   | float
-   | qubit
-   | quint
-   | qustring
-   | qualifiedName
-   | MEASURE
-   | BARRIER
-   | string) #IdentityOperator
+   | termList op=IN_STATEMENT qualifiedName #GroverOperator
+   ;
+
+functionCallParams
+   : (literal | qualifiedName) (COMMA functionCallParams)?
    ;
 
 termList
-   : term (COMMA termList)?
+   : (literal | qualifiedName) (COMMA termList)?
+   ;
+
+variableType
+   : type
+   | qualifiedName
    ;
 
 type
@@ -95,13 +80,10 @@ type
    | VOID_TYPE
    ;
 
-variableType
-   : type
-   | qualifiedName
-   ;
-
 qualifiedName 
    : SYMBOL_LITERAL (DOT SYMBOL_LITERAL)*
+   | variableName
+   | functionName
    ;
 
 variableName
@@ -110,6 +92,16 @@ variableName
 
 functionName
    : SYMBOL_LITERAL
+   ;
+
+literal
+   : boolean
+   | integer
+   | float
+   | qubit
+   | quint
+   | qustring
+   | string
    ;
 
 string

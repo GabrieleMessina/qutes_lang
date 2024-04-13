@@ -1,4 +1,6 @@
-qubit a = 0q;
-bool b = a;
+int a = 10;
+int b = -4;
 
-print b;
+int c = a + b;
+
+print c;
