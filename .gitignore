@@ -1,5 +1,6 @@
 # ======= CUSTOM SECTION =======
 temp/
+circuit_images/
 
 # ======= VISUAL STUDIO SECTION =======
 .vscode/*

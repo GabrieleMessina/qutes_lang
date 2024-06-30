@@ -120,12 +120,14 @@ class QuantumCircuitHandler():
     def print_circuit(self, circuit:QuantumCircuit, save_image:bool = False, print_circuit_to_console = True):
         if(save_image):
             import os 
-            directory = "temp"
-            file_name = "circuit.png"            
+            from datetime import datetime
+            directory = "circuit_images"
+            timestamp = datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
+            file_name = f"{timestamp}.png"
             file_path = os.path.join(directory, file_name)
             if not os.path.exists(directory):
                 os.mkdir(directory)
-            circuit.draw(output='mpl', filename=file_path)
+            circuit.draw(output='mpl', filename=file_path, style='iqp')
             print(f"Circuit image printed at: {file_path}")
         if(print_circuit_to_console):
             print(circuit.draw())
@@ -165,18 +167,21 @@ class QuantumCircuitHandler():
             table = []
             for run in cnt:
                 count = cnt[run]
-                values = run.split(" ")[::-1]
+                # reverse the bits to have the least significant as rightmost, 
+                # and the order of the measured variables from left to right where in the circuit were from top to bottom
+                values = [value[::-1] for value in run.split(" ")[::-1]] 
                 values.append(count)
+                values.append("Least Significant bit as rightmost")
                 table.append(values)
 
             if(print_counts):
                 from tabulate import tabulate
-                print(tabulate(table, headers=[f"{creg[0]}[{creg[1]}]" for creg in cnt.creg_sizes] + ["count"]))
+                print(tabulate(table, headers=[f"{creg[0]}" for creg in cnt.creg_sizes] + ["count"] + ["note"]))
 
-            measurement_for_runs = [res.split(" ")[::-1] for res in cnt.keys()]
+            measurement_for_runs = [res.split(" ")[::-1] for res in cnt.keys()] # reverse the order of the measured variables from left to right where in the circuit were from top to bottom
             counts_for_runs = [res[1] for res in cnt.items()]
             for index in range(len(cnt.creg_sizes)):
-                measurement_for_variable = [a[index] for a in measurement_for_runs]
+                measurement_for_variable = [a[index][::-1] for a in measurement_for_runs] # reverse the bits to have the least significant as rightmost
                 Classical_registers = [reg for reg in self._classic_registers if reg.name == cnt.creg_sizes[index][0]]
                 Classical_registers[0].measured_values = measurement_for_variable
                 Classical_registers[0].measured_counts = counts_for_runs
@@ -281,15 +286,13 @@ class QuantumCircuitHandler():
         self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).measure(unwrap(quantum_registers), unwrap(classical_registers)))
         return classical_registers
     
-    def push_ESM_operation(self, input:QuantumRegister, rotation_register:QuantumRegister, to_match, phase_kickback_ancilla = None) -> None:
+    def push_ESM_operation(self, input:QuantumRegister, rotation_register:QuantumRegister, to_match, block_size, phase_kickback_ancilla = None) -> None:
         array_len = len(input)
         to_match_len = len(to_match.qubit_state)
-        block_size = Qustring.default_char_size
-        logn = max(int(math.log2(array_len/block_size)),1)
 
         # rotate input array
         from quantum_circuit.qutes_gates import QutesGates
-        for i in range(logn):
+        for i in range(len(rotation_register)):
             self.push_compose_circuit_operation(QutesGates.crot(array_len, 2**i, block_size), [rotation_register[i], *input])
 
         # compare x and y[:m]
@@ -301,11 +304,11 @@ class QuantumCircuitHandler():
 
         self.push_equals_operation(input[:to_match_len], to_match)
 
-        for i in range(logn)[::-1]:
+        for i in range(len(rotation_register))[::-1]:
             self.push_compose_circuit_operation(QutesGates.crot(array_len,2**i,Qustring.default_char_size).inverse(), [rotation_register[i], *input])
         
-    grover_count = iter(range(1, 1000))
     # It expects the register to put the result into to be the last one in the list
+    grover_count = iter(range(1, 1000))
     def push_grover_operation(self, *oracle_registers, quantum_function:QuantumCircuit, register_involved_indexes, dataset_size, n_results = 1, verbose:bool = False) -> QuantumRegister:
         current_grover_count = next(self.grover_count)
         grover_op = GroverOperator(quantum_function, reflection_qubits=register_involved_indexes, insert_barriers=True, name=f"Grover{current_grover_count}")
