@@ -15,7 +15,7 @@ function runQutes(runs, params = []){
         request: "launch",
         program: "src/qutes.py",
         console: "integratedTerminal",
-        args: params.concat(["-image","-circuit","-iter",runs,filePath]),
+        args: params.concat(["-image","-iter",runs,filePath]),
         justMyCode: true
     };
 
@@ -36,11 +36,11 @@ function activate(context) {
     });
 
     let runQutesFileVerboseCommand = vscode.commands.registerCommand('qutes.runQutesFileVerbose', function () {
-        runQutes("1", ["--verbose"]);
+        runQutes("1", ["--verbose", "-circuit"]);
     });
 
     let runQutesFile100VerboseCommand = vscode.commands.registerCommand('qutes.runQutesFileVerbose100', function () {
-        runQutes("100", ["--verbose"]);
+        runQutes("100", ["--verbose", "-circuit"]);
     });
 
     context.subscriptions.push(runQutesFileCommand);
