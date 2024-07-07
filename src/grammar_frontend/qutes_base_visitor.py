@@ -24,6 +24,7 @@ class QutesBaseVisitor(qutesVisitor):
         self.log_trace_enabled = verbose
         self.log_step_by_step_results_enabled = verbose
         self.log_grover_verbose = verbose
+        self.log_grover_esm_rotation = True
 
         if(self.log_code_structure or self.log_trace_enabled or self.log_step_by_step_results_enabled):
             print()
