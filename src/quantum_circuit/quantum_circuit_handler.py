@@ -1,4 +1,5 @@
 import math
+import utils
 from typing import Any, Callable, cast
 from quantum_circuit.classical_register import ClassicalRegister
 from quantum_circuit.quantum_circuit import QuantumCircuit
@@ -117,13 +118,13 @@ class QuantumCircuitHandler():
             operation(circuit)
         return circuit
 
-    def print_circuit(self, circuit:QuantumCircuit, save_image:bool = False, print_circuit_to_console = True):
+    def print_circuit(self, circuit:QuantumCircuit, save_image:bool = False, print_circuit_to_console = True, image_file_prefix = ""):
         if(save_image):
             import os 
             from datetime import datetime
             directory = "circuit_images"
             timestamp = datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
-            file_name = f"{timestamp}.png"
+            file_name = f"{image_file_prefix}-{timestamp}.png"
             file_path = os.path.join(directory, file_name)
             if not os.path.exists(directory):
                 os.mkdir(directory)
@@ -165,18 +166,27 @@ class QuantumCircuitHandler():
 
         if(cnt != None):
             table = []
-            for run in cnt:
+            for index, run in enumerate(cnt):
                 count = cnt[run]
                 # reverse the bits to have the least significant as rightmost, 
                 # and the order of the measured variables from left to right where in the circuit were from top to bottom
-                values = [value[::-1] for value in run.split(" ")[::-1]] 
+                # values = [f"{value[::-1]}₂ ←→ {int(value[::-1], 2):>4}⏨" for value in run.split(" ")[::-1]]
+                values = [f"{value[::-1]}₂ | {int(value[::-1], 2)}⏨" for value in run.split(" ")[::-1]]
                 values.append(count)
-                values.append("Least Significant bit as rightmost")
+                values.append("Least Significant bit as rightmost") if(index == 0) else values.append("")
                 table.append(values)
 
             if(print_counts):
                 from tabulate import tabulate
-                print(tabulate(table, headers=[f"{creg[0]}" for creg in cnt.creg_sizes] + ["count"] + ["note"]))
+                print("⚠️  ~ Following results only show the last execution of the circuit, in case of measurements in the middle of the circuit, like the ones needed for casts and Grover search, those results are not shown.")
+                headers = [f"{creg[0]}" for creg in cnt.creg_sizes]
+                headers.append("Counts")
+                headers.append("Notes")
+                maxcolwidths = [40] * len(headers)
+                maxcolwidths[-1] = 40 
+                colalign = ["right"] * len(headers)
+                colalign[-1] = "left" 
+                print(tabulate(table, headers=headers, stralign="right", tablefmt="fancy_grid", maxcolwidths=maxcolwidths, colalign=colalign))
 
             measurement_for_runs = [res.split(" ")[::-1] for res in cnt.keys()] # reverse the order of the measured variables from left to right where in the circuit were from top to bottom
             counts_for_runs = [res[1] for res in cnt.items()]
@@ -314,8 +324,8 @@ class QuantumCircuitHandler():
         grover_op = GroverOperator(quantum_function, reflection_qubits=register_involved_indexes, insert_barriers=True, name=f"Grover{current_grover_count}")
 
         if(verbose):
-            self.print_circuit(quantum_function)
-            self.print_circuit(grover_op.decompose())
+            self.print_circuit(quantum_function, save_image=True, image_file_prefix="quantum function")
+            self.print_circuit(grover_op.decompose(), save_image=True, image_file_prefix="grover")
         
         n_iteration = math.floor(
             (math.pi / 4) * math.sqrt(dataset_size / n_results)
