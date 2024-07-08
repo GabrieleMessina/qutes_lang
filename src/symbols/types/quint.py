@@ -99,7 +99,7 @@ class Quint():
         return self
 
     def to_classical_type(self) -> int:
-        bin_number = str.join("", [str(int(qubit.alpha.real)) for qubit in self.qubit_state])
+        bin_number = str.join("", [str(int(qubit.beta.real)) for qubit in self.qubit_state])
         return int(bin_number, 2)
     
     def __to_printable__(self) -> str:
