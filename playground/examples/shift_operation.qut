@@ -1,0 +1,11 @@
+//Generic Rotation Algorithm (|b| = any)
+qustring b = "110111"; //111011 -> 111110
+print b;
+b << 1;
+print b;
+
+//Pavone-Viola Rotation Algorithm (|c| = 2^p)
+qustring c = "11011111"; //111011 -> 111110
+print c;
+c << 1;
+print c;

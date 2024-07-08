@@ -269,6 +269,15 @@ class qutes_parserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by qutes_parser#ShiftOperator.
+    def enterShiftOperator(self, ctx:qutes_parser.ShiftOperatorContext):
+        pass
+
+    # Exit a parse tree produced by qutes_parser#ShiftOperator.
+    def exitShiftOperator(self, ctx:qutes_parser.ShiftOperatorContext):
+        pass
+
+
     # Enter a parse tree produced by qutes_parser#UnaryOperator.
     def enterUnaryOperator(self, ctx:qutes_parser.UnaryOperatorContext):
         pass

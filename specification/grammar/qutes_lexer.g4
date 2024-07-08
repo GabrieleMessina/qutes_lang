@@ -41,6 +41,8 @@ GREATER : '>' ;
 GREATEREQUAL : '>=' ;
 LOWER : '<' ;
 LOWEREQUAL : '<=' ;
+LSHIFT : '<<' ;
+RSHIFT : '>>' ;
 ASSIGN : '=' ;
 AUTO_INCREMENT : '++' ;
 AUTO_DECREMENT : '--' ;

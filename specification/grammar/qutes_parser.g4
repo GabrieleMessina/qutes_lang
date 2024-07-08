@@ -34,7 +34,7 @@ variableDeclaration
    : variableType variableName (ASSIGN expr)?
    ;
 
-expr
+expr // Order: https://en.wikipedia.org/wiki/Order_of_operations#Programming_languages
    : ROUND_PARENTHESIS_OPEN expr ROUND_PARENTHESIS_CLOSE #ParentesizeExpression
    | literal #LiteralExpression
    | qualifiedName #QualifiedNameExpression
@@ -45,6 +45,7 @@ expr
    // cast operation
    | expr op=(MULTIPLY | DIVIDE | MODULE) expr #MultiplicativeOperator
    | expr op=(ADD | SUB) expr #SumOperator
+   | expr op=(LSHIFT | RSHIFT) expr #ShiftOperator
    | expr op=(GREATEREQUAL | LOWEREQUAL | GREATER | LOWER ) expr #RelationalOperator
    | expr op=(EQUAL | NOT_EQUAL) expr #EqualityOperator
    | expr op=AND expr #LogicAndOperator

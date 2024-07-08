@@ -154,6 +154,11 @@ class qutes_parserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by qutes_parser#ShiftOperator.
+    def visitShiftOperator(self, ctx:qutes_parser.ShiftOperatorContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by qutes_parser#UnaryOperator.
     def visitUnaryOperator(self, ctx:qutes_parser.UnaryOperatorContext):
         return self.visitChildren(ctx)
