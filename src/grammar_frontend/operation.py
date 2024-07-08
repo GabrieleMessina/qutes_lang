@@ -328,7 +328,7 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
                 circuit_runs = 3
                 self.quantum_circuit_handler.get_run_and_measure_results(registers_to_measure.copy(), repetition=circuit_runs)
 
-                positive_results = [(index, result) for index, result in enumerate(oracle_result.measured_classical_register.measured_values) if "1" in result]
+                positive_results = [(index, result) for index, result in enumerate(oracle_result.measured_classical_register.measured_values) if "1" in result] if oracle_result.measured_classical_register != None else []
                 any_positive_results = len(positive_results) > 0
                 if (any_positive_results):
                     if(self.log_grover_esm_rotation and rotation_register.measured_classical_register is not None):
