@@ -37,7 +37,7 @@ class TestOperation(QutesBaseTest):
             with self.subTest(init_string=init_string, n_shift=n_shift, expected_value_of_var=expected_value_of_var):
                 code =  f"""
                         qustring {var_name} = {init_string};
-                        {var_name} >> {n_shift};
+                        {var_name} << {n_shift};
                         string {var_result_name} = {var_name};
                         """
                 self.assert_operation_test(code, var_result_name, expected_value_of_var)
@@ -71,7 +71,7 @@ class TestOperation(QutesBaseTest):
             with self.subTest(init_string=init_string, n_shift=n_shift, expected_value_of_var=expected_value_of_var):
                 code =  f"""
                         qustring {var_name} = {init_string};
-                        {var_name} << {n_shift};
+                        {var_name} >> {n_shift};
                         string {var_result_name} = {var_name};
                         """
                 self.assert_operation_test(code, var_result_name, expected_value_of_var)
