@@ -315,7 +315,7 @@ class QuantumCircuitHandler():
         self.push_equals_operation(input[:to_match_len], to_match)
 
         for i in range(len(rotation_register))[::-1]:
-            self.push_compose_circuit_operation(QutesGates.crot(array_len,2**i,Qustring.default_char_size).inverse(), [rotation_register[i], *input])
+            self.push_compose_circuit_operation(QutesGates.crot(array_len, 2**i, block_size).inverse(), [rotation_register[i], *input])
         
     # It expects the register to put the result into to be the last one in the list
     grover_count = iter(range(1, 1000))

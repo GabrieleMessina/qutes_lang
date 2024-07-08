@@ -25,7 +25,10 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
         return self.__visit_binary_operator(ctx)
 
     def visitSumOperator(self, ctx:qutes_parser.SumOperatorContext):
-         return self.__visit_binary_operator(ctx)
+        return self.__visit_binary_operator(ctx)
+
+    def visitShiftOperator(self, ctx:qutes_parser.ShiftOperatorContext):
+        return self.__visit_binary_operator(ctx)
     
     def visitRelationalOperator(self, ctx:qutes_parser.RelationalOperatorContext):
         return self.__visit_boolean_operation(ctx)
@@ -75,6 +78,27 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
                     pass
                 result = first_term_value - second_term_value
+        if(isinstance(ctx, qutes_parser.ShiftOperatorContext)):
+            if(ctx.LSHIFT()):
+                if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
+                    if(second_term_symbol and not QutesDataType.is_quantum_type(second_term_symbol.symbol_declaration_static_type)):
+                        from quantum_circuit.qutes_gates import QutesGates
+                        self.quantum_circuit_handler.push_compose_circuit_operation(QutesGates.left_rot(len(first_term_symbol.quantum_register), second_term_value, 1), [first_term_symbol.quantum_register]) #TODO: handle block size
+                        result = first_term_symbol
+                    else:
+                        raise NotImplementedError("Left shift operator doesn't support second term to be a quantum variable.")
+                else:
+                    result = first_term_value << second_term_value
+            if(ctx.RSHIFT()):
+                if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
+                    if(second_term_symbol and not QutesDataType.is_quantum_type(second_term_symbol.symbol_declaration_static_type)):
+                        from quantum_circuit.qutes_gates import QutesGates
+                        self.quantum_circuit_handler.push_compose_circuit_operation(QutesGates.right_rot(len(first_term_symbol.quantum_register), second_term_value, 1), [first_term_symbol.quantum_register]) #TODO: handle block size
+                        result = first_term_symbol
+                    else:
+                        raise NotImplementedError("Right shift operator doesn't support second term to be a quantum variable.")
+                else:
+                    result = first_term_value >> second_term_value
         if(isinstance(ctx, qutes_parser.MultiplicativeOperatorContext)):
             if(ctx.MULTIPLY()):
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
@@ -278,7 +302,7 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
                     if(n_element_to_rotate.is_integer() and utils.is_power_of_two(int(n_element_to_rotate))):
                         logn = max(int(math.log2(n_element_to_rotate)),1)
                     else:
-                        logn = max(int(math.log2(n_element_to_rotate)+1),1) #TODO: non working with pavone-viola cycling rotation gate
+                        logn = max(int(math.log2(n_element_to_rotate))+1,1)
 
                     if(term_to_quantum.size == 1):
                         if(phase_kickback_ancilla == None):
@@ -309,7 +333,7 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
                 if (any_positive_results):
                     if(self.log_grover_esm_rotation and rotation_register.measured_classical_register is not None):
                         for result in positive_results:
-                            print(f"Solution found with rotation {int(rotation_register.measured_classical_register.measured_values[result[0]], 2)}")
+                            print(f"Solution found with {int(rotation_register.measured_classical_register.measured_values[result[0]], 2)} left rotations")
                             # print(f"Solution found with rotation {int(rotation_register.measured_classical_register.measured_values[result[0]], 2) % (n_element_to_rotate)}")
                     return self.variables_handler.create_anonymous_symbol(QutesDataType.bool, True, ctx.start.tokenIndex)
                 registers_to_measure.remove(oracle_result)
