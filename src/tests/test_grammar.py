@@ -80,6 +80,7 @@ class TestGrammar(QutesBaseTest):
             ("bool", "1q", True), #TODO: handle, the quantum var should be declared even when anonymous, so we can measure and assign the value to bool.
             ("bool", "0q", False),
             ("int", "10", 10),
+            ("int", "9", 9),
             ("int", "false+false", 0),
             ("int", "true+true", 2),
             ("int", "10q", 10),

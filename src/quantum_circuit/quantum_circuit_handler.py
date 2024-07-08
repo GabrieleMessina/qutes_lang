@@ -171,7 +171,7 @@ class QuantumCircuitHandler():
                 # reverse the bits to have the least significant as rightmost, 
                 # and the order of the measured variables from left to right where in the circuit were from top to bottom
                 # values = [f"{value[::-1]}₂ ←→ {int(value[::-1], 2):>4}⏨" for value in run.split(" ")[::-1]]
-                values = [f"{value[::-1]}₂ | {int(value[::-1], 2)}⏨" for value in run.split(" ")[::-1]]
+                values = [f"{value}₂ | {int(value, 2)}⏨" for value in run.split(" ")[::-1]]
                 values.append(count)
                 values.append("Least Significant bit as rightmost") if(index == 0) else values.append("")
                 table.append(values)
@@ -191,7 +191,7 @@ class QuantumCircuitHandler():
             measurement_for_runs = [res.split(" ")[::-1] for res in cnt.keys()] # reverse the order of the measured variables from left to right where in the circuit were from top to bottom
             counts_for_runs = [res[1] for res in cnt.items()]
             for index in range(len(cnt.creg_sizes)):
-                measurement_for_variable = [a[index][::-1] for a in measurement_for_runs] # reverse the bits to have the least significant as rightmost
+                measurement_for_variable = [a[index] for a in measurement_for_runs] # reverse the bits to have the least significant as rightmost
                 Classical_registers = [reg for reg in self._classic_registers if reg.name == cnt.creg_sizes[index][0]]
                 Classical_registers[0].measured_values = measurement_for_variable
                 Classical_registers[0].measured_counts = counts_for_runs
