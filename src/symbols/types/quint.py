@@ -1,18 +1,21 @@
 from grammar_frontend.qutes_parser import QutesParser
-from utils.phase import Phase
+from symbols.types import Qubit, QuantumType
 import utils 
-from symbols.types import Qubit
-from symbols.types import QuantumType
 
-class Quint(QuantumType):
-    default_value = [Qubit(complex(1),complex(0))]
-    default_superposition_value = [Qubit(complex(0.5),complex(0.5))]
-    default_size_in_qubit = 1
-
+class Quint(QuantumType['Quint']):
     def __init__(self, qubits:list[Qubit] = [Qubit(complex(1),complex(0))]):
         super().__init__()
         self.qubit_state:list[Qubit] = qubits
         self.size:int = len(self.qubit_state)
+
+    def get_default_value():
+        return [Qubit(complex(1),complex(0))] * Qubit.get_default_size_in_qubit()
+    
+    def get_default_superposition_value():
+        return [Qubit(complex(0.5),complex(0.5))] * Qubit.get_default_size_in_qubit()
+    
+    def get_default_size_in_qubit():
+        return 1
 
     def init_from_string(literal : str) -> 'Quint':
         qubits = []

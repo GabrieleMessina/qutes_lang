@@ -9,8 +9,16 @@ class SymbolClass(Enum):
     VariableSymbol = auto()
 
 class Symbol():    
-    def __init__(self, name:str, symbol_class:SymbolClass, symbol_declaration_static_type:QutesDataType, casted_static_type:QutesDataType, value:any, parent_scope:ScopeTreeNode, ast_token_index:int, quantum_register : QuantumRegister | None = None, params = []):
-        super().__init__()
+    def __init__(self, 
+                 name:str, 
+                 symbol_class:SymbolClass, 
+                 symbol_declaration_static_type:QutesDataType, 
+                 casted_static_type:QutesDataType, 
+                 value:any, 
+                 parent_scope:ScopeTreeNode, 
+                 ast_token_index:int, 
+                 quantum_register : QuantumRegister | None = None, 
+                 params = []):
         self.name:str = name
         self.symbol_class:SymbolClass = symbol_class
         self.symbol_declaration_static_type:QutesDataType = symbol_declaration_static_type
@@ -36,14 +44,24 @@ class Symbol():
                     return False
             return True
         return False
-        
+    
+    def is_classical(self) -> bool:
+        return not QutesDataType.is_quantum_type(self.symbol_declaration_static_type)
+    
+    def is_quantum(self) -> bool:
+        return QutesDataType.is_quantum_type(self.symbol_declaration_static_type)
+
+    def is_array(self) -> bool:
+        return QutesDataType.is_array_type(self.symbol_declaration_static_type)
+    
+    def get_array_unit_type(self) -> bool:
+        pass #TODO: handle
 
     def __to_printable__(self) -> str:
         if self.symbol_class is SymbolClass.FunctionSymbol:
             return f"{self.parent_scope.scope_type_detail}.{self.name}({self.function_input_params_definition}) -> {self.symbol_declaration_static_type.name}/{self.ast_token_index}"
         else:
             return f"{self.parent_scope.scope_type_detail}.{self.name}={self.value}({self.symbol_declaration_static_type.name}/{self.casted_static_type.name}/{self.ast_token_index})"
-
 
     def __str__(self) -> str:
         return self.__to_printable__()

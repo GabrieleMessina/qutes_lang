@@ -286,6 +286,7 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
 
             for term in termList:
                 if(not QutesDataType.is_array_type(target_symbol.casted_static_type)):
+                    #TODO: Write tests for this case.
                     self.quantum_circuit_handler.push_equals_operation(array_register, term.value)
                     if(len(array_register) == 1):
                         if(phase_kickback_ancilla == None):

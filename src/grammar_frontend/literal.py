@@ -24,16 +24,6 @@ class QutesGrammarLiteralVisitor(QutesBaseVisitor):
         params.append(param)
         return params[::-1]
 
-    def visitFunctionCallParams(self, ctx:qutes_parser.FunctionCallParamsContext):
-        param = self.visit(ctx.literal()) if ctx.literal() else self.visit(ctx.qualifiedName())
-        params = []
-        if(ctx.functionCallParams()):
-            params = self.visit(ctx.functionCallParams())
-            if(not isinstance(params, list)):
-                params = [params]
-        params.append(param)
-        return params[::-1]
-
     def visitTermList(self, ctx:qutes_parser.TermListContext) -> list[Symbol]:
         term = self.visit(ctx.literal()) if ctx.literal() else self.visit(ctx.qualifiedName())
         terms = []
@@ -43,6 +33,9 @@ class QutesGrammarLiteralVisitor(QutesBaseVisitor):
                 terms = [terms]
         terms.append(term)
         return terms[::-1]
+    
+    def visitArray(self, ctx:qutes_parser.ArrayContext) -> list[Symbol]:
+        return self.visit(ctx.termList())    
 
     def visitVariableType(self, ctx:qutes_parser.VariableTypeContext):
         value = str(ctx.getText())

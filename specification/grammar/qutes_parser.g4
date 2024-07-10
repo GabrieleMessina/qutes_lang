@@ -38,36 +38,43 @@ expr // Order: https://en.wikipedia.org/wiki/Order_of_operations#Programming_lan
    : ROUND_PARENTHESIS_OPEN expr ROUND_PARENTHESIS_CLOSE #ParentesizeExpression
    | literal #LiteralExpression
    | qualifiedName #QualifiedNameExpression
-   // Array access
-   | functionName ROUND_PARENTHESIS_OPEN functionCallParams? ROUND_PARENTHESIS_CLOSE #FunctionCallExpression
+   | array #ArrayExpression
+   // Function call, scope, array/member access
+   | functionName ROUND_PARENTHESIS_OPEN termList? ROUND_PARENTHESIS_CLOSE #FunctionCallExpression
+   | expr SQUARE_PARENTHESIS_OPEN expr SQUARE_PARENTHESIS_CLOSE #ArrayAccessExpression
+   // Unary operators, sizeof and type casts
    | expr op=(AUTO_INCREMENT | AUTO_DECREMENT) #PostfixOperator
    | op=(NOT | ADD | SUB | AUTO_INCREMENT | AUTO_DECREMENT) expr #PrefixOperator
-   // cast operation
+   // Multiplication, division, modulo
    | expr op=(MULTIPLY | DIVIDE | MODULE) expr #MultiplicativeOperator
+   // Addition and subtraction
    | expr op=(ADD | SUB) expr #SumOperator
+   // Bitwise shift left and right
    | expr op=(LSHIFT | RSHIFT) expr #ShiftOperator
+   // Comparisons less-greater, then, equallity, inequality
    | expr op=(GREATEREQUAL | LOWEREQUAL | GREATER | LOWER ) expr #RelationalOperator
    | expr op=(EQUAL | NOT_EQUAL) expr #EqualityOperator
+   // Logical AND then OR
    | expr op=AND expr #LogicAndOperator
    | expr op=OR expr #LogicOrOperator
-   // | <assoc = right> expr op=(AUTO_SUM | AUTO_DECREMENT | AUTO_MODULE | AUTO_DIVIDE | AUTO_MODULE) expr #AutoAssignmentOperator
+   // Assignment and auto assignment operators | <assoc = right> expr op=(AUTO_SUM | AUTO_DECREMENT | AUTO_MODULE | AUTO_DIVIDE | AUTO_MODULE) expr #AutoAssignmentOperator
    | op=(MCX | MCZ | MCY | SWAP) termList #MultipleUnaryOperator
    | op=(PRINT | PAULIY | PAULIZ | HADAMARD | MEASURE) expr #UnaryOperator
    | op=MCP termList BY expr #MultipleUnaryPhaseOperator
    | termList op=IN_STATEMENT qualifiedName #GroverOperator
    ;
 
-functionCallParams
-   : (literal | qualifiedName) (COMMA functionCallParams)?
-   ;
-
 termList
    : (literal | qualifiedName) (COMMA termList)?
    ;
 
+array
+   : SQUARE_PARENTHESIS_OPEN termList SQUARE_PARENTHESIS_CLOSE
+   ;
+
 variableType
-   : type
-   | qualifiedName
+   : type (SQUARE_PARENTHESIS_OPEN SQUARE_PARENTHESIS_CLOSE)?
+   | qualifiedName (SQUARE_PARENTHESIS_OPEN SQUARE_PARENTHESIS_CLOSE)?
    ;
 
 type

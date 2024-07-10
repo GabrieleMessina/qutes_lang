@@ -1,24 +1,30 @@
 from grammar_frontend.qutes_parser import QutesParser
-import utils, math
 from symbols.types import Qubit, Quint
 from symbols.types import QuantumType
+import utils, math
 
-class Qustring(QuantumType):
+class Qustring(QuantumType['Qustring']):
     # note: chr and ord, parse int and char in ASCII for char of size 7 bits
     # allowed_chars = ['a', 'b', 'c', 'd', superposition_char, not_valid_char]
     # allowed_chars = ['0', '1', superposition_char, not_valid_char]
     superposition_char = '*'
     not_valid_char = 'X'
     allowed_chars = ['0', '1']
-    default_size_in_qubit = math.ceil(math.log2(len(allowed_chars)))
-    default_value = [Qubit(complex(1),complex(0))] * default_size_in_qubit
-    default_superposition_value = [Qubit(complex(0.5),complex(0.5))] * default_size_in_qubit
 
     def __init__(self, qubits:list[Qubit] = [Qubit(complex(1),complex(0))]):
         super().__init__()
         self.qubit_state:list[Qubit] = qubits
         self.size:int = len(self.qubit_state)
         self.number_of_chars:int = int(self.size / Qustring.default_size_in_qubit)
+
+    def get_default_value():
+        return [Qubit(complex(1),complex(0))] * Qubit.get_default_size_in_qubit()
+    
+    def get_default_superposition_value():
+        return [Qubit(complex(0.5),complex(0.5))] * Qubit.get_default_size_in_qubit()
+    
+    def get_default_size_in_qubit():
+        return math.ceil(math.log2(len(Qubit.allowed_chars)))
 
     def get_char_from_int(int_value:int):
         if(int_value > len(Qustring.allowed_chars)):

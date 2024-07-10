@@ -1,8 +1,9 @@
 from grammar_frontend.qutes_parser import QutesParser
+from symbols.types import QuantumType
 from utils.phase import Phase
 import cmath
 
-class Qubit():
+class Qubit(QuantumType['Qubit']):
     def __init__(self, alpha : complex = complex(1), beta : complex = complex(0)):
         self.size:int = 1
         self.alpha = complex(alpha)
@@ -10,6 +11,15 @@ class Qubit():
         self.phase = Phase.Positive if (alpha * beta).real >= 0 else Phase.Negative 
         self.is_superposition = cmath.isclose(abs(alpha), abs(beta))
         self.qubit_state:list[Qubit] = [self]
+
+    def get_default_value():
+        return Qubit(complex(1),complex(0))
+    
+    def get_default_superposition_value():
+        return Qubit(complex(0.5),complex(0.5))
+    
+    def get_default_size_in_qubit():
+        return 1
 
     def from_string(literal : str) -> 'Qubit':
         try:
@@ -70,9 +80,3 @@ class Qubit():
             return f"|{spin_str}>"
         else:
             return f"[(\u03B1:{self.alpha})|0> {spin_str} (\u03B2:{self.beta})|1>]"
-
-    def __str__(self) -> str:
-        return self.__to_printable__()
-
-    def __repr__(self) -> str:
-        return self.__to_printable__()

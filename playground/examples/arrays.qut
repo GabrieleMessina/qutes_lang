@@ -1,0 +1,3 @@
+qubit b = 1q;
+qubit c = 0q;
+qubit[] a = [b, c, |+>];

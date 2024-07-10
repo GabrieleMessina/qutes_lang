@@ -10,7 +10,7 @@ else:
 
 def serializedATN():
     return [
-        4,1,77,235,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,
+        4,1,77,245,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,
         6,2,7,7,7,2,8,7,8,2,9,7,9,2,10,7,10,2,11,7,11,2,12,7,12,2,13,7,13,
         2,14,7,14,2,15,7,15,2,16,7,16,2,17,7,17,2,18,7,18,2,19,7,19,1,0,
         5,0,42,8,0,10,0,12,0,45,9,0,1,0,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
@@ -18,83 +18,87 @@ def serializedATN():
         1,10,1,12,1,73,9,1,1,1,1,1,1,1,1,1,1,1,3,1,80,8,1,1,1,1,1,1,1,1,
         1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
         1,3,1,102,8,1,1,2,1,2,1,2,3,2,107,8,2,1,3,1,3,1,3,1,3,3,3,113,8,
-        3,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,3,4,125,8,4,1,4,1,4,1,
-        4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,3,4,144,
-        8,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,
-        1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,5,4,169,8,4,10,4,12,4,172,9,4,1,
-        5,1,5,3,5,176,8,5,1,5,1,5,3,5,180,8,5,1,6,1,6,3,6,184,8,6,1,6,1,
-        6,3,6,188,8,6,1,7,1,7,3,7,192,8,7,1,8,1,8,1,9,1,9,1,9,5,9,199,8,
-        9,10,9,12,9,202,9,9,1,9,1,9,3,9,206,8,9,1,10,1,10,1,11,1,11,1,12,
-        1,12,1,12,1,12,1,12,1,12,1,12,3,12,219,8,12,1,13,1,13,1,14,1,14,
-        1,15,1,15,1,16,1,16,1,17,1,17,1,18,1,18,1,19,1,19,1,19,0,1,8,20,
-        0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,0,12,2,0,
-        28,28,30,30,2,0,13,15,40,41,2,0,19,19,23,25,2,0,20,21,27,29,1,0,
-        10,12,1,0,13,14,1,0,37,38,1,0,33,36,1,0,31,32,1,0,40,41,1,0,1,8,
-        2,0,67,67,69,70,261,0,43,1,0,0,0,2,101,1,0,0,0,4,103,1,0,0,0,6,108,
-        1,0,0,0,8,143,1,0,0,0,10,175,1,0,0,0,12,183,1,0,0,0,14,191,1,0,0,
-        0,16,193,1,0,0,0,18,205,1,0,0,0,20,207,1,0,0,0,22,209,1,0,0,0,24,
-        218,1,0,0,0,26,220,1,0,0,0,28,222,1,0,0,0,30,224,1,0,0,0,32,226,
-        1,0,0,0,34,228,1,0,0,0,36,230,1,0,0,0,38,232,1,0,0,0,40,42,3,2,1,
-        0,41,40,1,0,0,0,42,45,1,0,0,0,43,41,1,0,0,0,43,44,1,0,0,0,44,46,
-        1,0,0,0,45,43,1,0,0,0,46,47,5,0,0,1,47,1,1,0,0,0,48,49,5,53,0,0,
-        49,50,3,8,4,0,50,51,3,2,1,0,51,102,1,0,0,0,52,53,5,53,0,0,53,54,
-        3,8,4,0,54,55,3,2,1,0,55,56,5,54,0,0,56,57,3,2,1,0,57,102,1,0,0,
-        0,58,59,5,55,0,0,59,60,3,8,4,0,60,61,3,2,1,0,61,102,1,0,0,0,62,63,
-        5,56,0,0,63,64,3,2,1,0,64,65,5,55,0,0,65,66,3,8,4,0,66,102,1,0,0,
-        0,67,71,5,57,0,0,68,70,3,2,1,0,69,68,1,0,0,0,70,73,1,0,0,0,71,69,
-        1,0,0,0,71,72,1,0,0,0,72,74,1,0,0,0,73,71,1,0,0,0,74,102,5,58,0,
-        0,75,76,3,14,7,0,76,77,3,22,11,0,77,79,5,59,0,0,78,80,3,4,2,0,79,
-        78,1,0,0,0,79,80,1,0,0,0,80,81,1,0,0,0,81,82,5,60,0,0,82,83,3,2,
-        1,0,83,102,1,0,0,0,84,85,3,6,3,0,85,86,5,47,0,0,86,102,1,0,0,0,87,
-        88,3,18,9,0,88,89,5,39,0,0,89,90,3,8,4,0,90,91,5,47,0,0,91,102,1,
-        0,0,0,92,93,5,9,0,0,93,94,3,8,4,0,94,95,5,47,0,0,95,102,1,0,0,0,
-        96,97,3,8,4,0,97,98,5,47,0,0,98,102,1,0,0,0,99,102,7,0,0,0,100,102,
-        5,47,0,0,101,48,1,0,0,0,101,52,1,0,0,0,101,58,1,0,0,0,101,62,1,0,
-        0,0,101,67,1,0,0,0,101,75,1,0,0,0,101,84,1,0,0,0,101,87,1,0,0,0,
-        101,92,1,0,0,0,101,96,1,0,0,0,101,99,1,0,0,0,101,100,1,0,0,0,102,
-        3,1,0,0,0,103,106,3,6,3,0,104,105,5,65,0,0,105,107,3,4,2,0,106,104,
-        1,0,0,0,106,107,1,0,0,0,107,5,1,0,0,0,108,109,3,14,7,0,109,112,3,
-        20,10,0,110,111,5,39,0,0,111,113,3,8,4,0,112,110,1,0,0,0,112,113,
-        1,0,0,0,113,7,1,0,0,0,114,115,6,4,-1,0,115,116,5,59,0,0,116,117,
-        3,8,4,0,117,118,5,60,0,0,118,144,1,0,0,0,119,144,3,24,12,0,120,144,
-        3,18,9,0,121,122,3,22,11,0,122,124,5,59,0,0,123,125,3,10,5,0,124,
-        123,1,0,0,0,124,125,1,0,0,0,125,126,1,0,0,0,126,127,5,60,0,0,127,
-        144,1,0,0,0,128,129,7,1,0,0,129,144,3,8,4,12,130,131,7,2,0,0,131,
-        144,3,12,6,0,132,133,7,3,0,0,133,144,3,8,4,3,134,135,5,26,0,0,135,
-        136,3,12,6,0,136,137,5,18,0,0,137,138,3,8,4,2,138,144,1,0,0,0,139,
-        140,3,12,6,0,140,141,5,51,0,0,141,142,3,18,9,0,142,144,1,0,0,0,143,
-        114,1,0,0,0,143,119,1,0,0,0,143,120,1,0,0,0,143,121,1,0,0,0,143,
-        128,1,0,0,0,143,130,1,0,0,0,143,132,1,0,0,0,143,134,1,0,0,0,143,
-        139,1,0,0,0,144,170,1,0,0,0,145,146,10,11,0,0,146,147,7,4,0,0,147,
-        169,3,8,4,12,148,149,10,10,0,0,149,150,7,5,0,0,150,169,3,8,4,11,
-        151,152,10,9,0,0,152,153,7,6,0,0,153,169,3,8,4,10,154,155,10,8,0,
-        0,155,156,7,7,0,0,156,169,3,8,4,9,157,158,10,7,0,0,158,159,7,8,0,
-        0,159,169,3,8,4,8,160,161,10,6,0,0,161,162,5,16,0,0,162,169,3,8,
-        4,7,163,164,10,5,0,0,164,165,5,17,0,0,165,169,3,8,4,6,166,167,10,
-        13,0,0,167,169,7,9,0,0,168,145,1,0,0,0,168,148,1,0,0,0,168,151,1,
-        0,0,0,168,154,1,0,0,0,168,157,1,0,0,0,168,160,1,0,0,0,168,163,1,
-        0,0,0,168,166,1,0,0,0,169,172,1,0,0,0,170,168,1,0,0,0,170,171,1,
-        0,0,0,171,9,1,0,0,0,172,170,1,0,0,0,173,176,3,24,12,0,174,176,3,
-        18,9,0,175,173,1,0,0,0,175,174,1,0,0,0,176,179,1,0,0,0,177,178,5,
-        65,0,0,178,180,3,10,5,0,179,177,1,0,0,0,179,180,1,0,0,0,180,11,1,
-        0,0,0,181,184,3,24,12,0,182,184,3,18,9,0,183,181,1,0,0,0,183,182,
-        1,0,0,0,184,187,1,0,0,0,185,186,5,65,0,0,186,188,3,12,6,0,187,185,
-        1,0,0,0,187,188,1,0,0,0,188,13,1,0,0,0,189,192,3,16,8,0,190,192,
-        3,18,9,0,191,189,1,0,0,0,191,190,1,0,0,0,192,15,1,0,0,0,193,194,
-        7,10,0,0,194,17,1,0,0,0,195,200,5,74,0,0,196,197,5,63,0,0,197,199,
-        5,74,0,0,198,196,1,0,0,0,199,202,1,0,0,0,200,198,1,0,0,0,200,201,
-        1,0,0,0,201,206,1,0,0,0,202,200,1,0,0,0,203,206,3,20,10,0,204,206,
-        3,22,11,0,205,195,1,0,0,0,205,203,1,0,0,0,205,204,1,0,0,0,206,19,
-        1,0,0,0,207,208,5,74,0,0,208,21,1,0,0,0,209,210,5,74,0,0,210,23,
-        1,0,0,0,211,219,3,38,19,0,212,219,3,36,18,0,213,219,3,34,17,0,214,
-        219,3,28,14,0,215,219,3,30,15,0,216,219,3,32,16,0,217,219,3,26,13,
-        0,218,211,1,0,0,0,218,212,1,0,0,0,218,213,1,0,0,0,218,214,1,0,0,
-        0,218,215,1,0,0,0,218,216,1,0,0,0,218,217,1,0,0,0,219,25,1,0,0,0,
-        220,221,5,75,0,0,221,27,1,0,0,0,222,223,5,71,0,0,223,29,1,0,0,0,
-        224,225,5,72,0,0,225,31,1,0,0,0,226,227,5,73,0,0,227,33,1,0,0,0,
-        228,229,5,68,0,0,229,35,1,0,0,0,230,231,7,11,0,0,231,37,1,0,0,0,
-        232,233,5,66,0,0,233,39,1,0,0,0,18,43,71,79,101,106,112,124,143,
-        168,170,175,179,183,187,191,200,205,218
+        3,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,3,4,126,8,4,1,4,1,
+        4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,3,
+        4,145,8,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,
+        4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,5,4,175,
+        8,4,10,4,12,4,178,9,4,1,5,1,5,3,5,182,8,5,1,5,1,5,3,5,186,8,5,1,
+        6,1,6,1,6,1,6,1,7,1,7,1,7,3,7,195,8,7,1,7,1,7,1,7,3,7,200,8,7,3,
+        7,202,8,7,1,8,1,8,1,9,1,9,1,9,5,9,209,8,9,10,9,12,9,212,9,9,1,9,
+        1,9,3,9,216,8,9,1,10,1,10,1,11,1,11,1,12,1,12,1,12,1,12,1,12,1,12,
+        1,12,3,12,229,8,12,1,13,1,13,1,14,1,14,1,15,1,15,1,16,1,16,1,17,
+        1,17,1,18,1,18,1,19,1,19,1,19,0,1,8,20,0,2,4,6,8,10,12,14,16,18,
+        20,22,24,26,28,30,32,34,36,38,0,12,2,0,28,28,30,30,2,0,13,15,40,
+        41,2,0,19,19,23,25,2,0,20,21,27,29,1,0,10,12,1,0,13,14,1,0,37,38,
+        1,0,33,36,1,0,31,32,1,0,40,41,1,0,1,8,2,0,67,67,69,70,273,0,43,1,
+        0,0,0,2,101,1,0,0,0,4,103,1,0,0,0,6,108,1,0,0,0,8,144,1,0,0,0,10,
+        181,1,0,0,0,12,187,1,0,0,0,14,201,1,0,0,0,16,203,1,0,0,0,18,215,
+        1,0,0,0,20,217,1,0,0,0,22,219,1,0,0,0,24,228,1,0,0,0,26,230,1,0,
+        0,0,28,232,1,0,0,0,30,234,1,0,0,0,32,236,1,0,0,0,34,238,1,0,0,0,
+        36,240,1,0,0,0,38,242,1,0,0,0,40,42,3,2,1,0,41,40,1,0,0,0,42,45,
+        1,0,0,0,43,41,1,0,0,0,43,44,1,0,0,0,44,46,1,0,0,0,45,43,1,0,0,0,
+        46,47,5,0,0,1,47,1,1,0,0,0,48,49,5,53,0,0,49,50,3,8,4,0,50,51,3,
+        2,1,0,51,102,1,0,0,0,52,53,5,53,0,0,53,54,3,8,4,0,54,55,3,2,1,0,
+        55,56,5,54,0,0,56,57,3,2,1,0,57,102,1,0,0,0,58,59,5,55,0,0,59,60,
+        3,8,4,0,60,61,3,2,1,0,61,102,1,0,0,0,62,63,5,56,0,0,63,64,3,2,1,
+        0,64,65,5,55,0,0,65,66,3,8,4,0,66,102,1,0,0,0,67,71,5,57,0,0,68,
+        70,3,2,1,0,69,68,1,0,0,0,70,73,1,0,0,0,71,69,1,0,0,0,71,72,1,0,0,
+        0,72,74,1,0,0,0,73,71,1,0,0,0,74,102,5,58,0,0,75,76,3,14,7,0,76,
+        77,3,22,11,0,77,79,5,59,0,0,78,80,3,4,2,0,79,78,1,0,0,0,79,80,1,
+        0,0,0,80,81,1,0,0,0,81,82,5,60,0,0,82,83,3,2,1,0,83,102,1,0,0,0,
+        84,85,3,6,3,0,85,86,5,47,0,0,86,102,1,0,0,0,87,88,3,18,9,0,88,89,
+        5,39,0,0,89,90,3,8,4,0,90,91,5,47,0,0,91,102,1,0,0,0,92,93,5,9,0,
+        0,93,94,3,8,4,0,94,95,5,47,0,0,95,102,1,0,0,0,96,97,3,8,4,0,97,98,
+        5,47,0,0,98,102,1,0,0,0,99,102,7,0,0,0,100,102,5,47,0,0,101,48,1,
+        0,0,0,101,52,1,0,0,0,101,58,1,0,0,0,101,62,1,0,0,0,101,67,1,0,0,
+        0,101,75,1,0,0,0,101,84,1,0,0,0,101,87,1,0,0,0,101,92,1,0,0,0,101,
+        96,1,0,0,0,101,99,1,0,0,0,101,100,1,0,0,0,102,3,1,0,0,0,103,106,
+        3,6,3,0,104,105,5,65,0,0,105,107,3,4,2,0,106,104,1,0,0,0,106,107,
+        1,0,0,0,107,5,1,0,0,0,108,109,3,14,7,0,109,112,3,20,10,0,110,111,
+        5,39,0,0,111,113,3,8,4,0,112,110,1,0,0,0,112,113,1,0,0,0,113,7,1,
+        0,0,0,114,115,6,4,-1,0,115,116,5,59,0,0,116,117,3,8,4,0,117,118,
+        5,60,0,0,118,145,1,0,0,0,119,145,3,24,12,0,120,145,3,18,9,0,121,
+        145,3,12,6,0,122,123,3,22,11,0,123,125,5,59,0,0,124,126,3,10,5,0,
+        125,124,1,0,0,0,125,126,1,0,0,0,126,127,1,0,0,0,127,128,5,60,0,0,
+        128,145,1,0,0,0,129,130,7,1,0,0,130,145,3,8,4,12,131,132,7,2,0,0,
+        132,145,3,10,5,0,133,134,7,3,0,0,134,145,3,8,4,3,135,136,5,26,0,
+        0,136,137,3,10,5,0,137,138,5,18,0,0,138,139,3,8,4,2,139,145,1,0,
+        0,0,140,141,3,10,5,0,141,142,5,51,0,0,142,143,3,18,9,0,143,145,1,
+        0,0,0,144,114,1,0,0,0,144,119,1,0,0,0,144,120,1,0,0,0,144,121,1,
+        0,0,0,144,122,1,0,0,0,144,129,1,0,0,0,144,131,1,0,0,0,144,133,1,
+        0,0,0,144,135,1,0,0,0,144,140,1,0,0,0,145,176,1,0,0,0,146,147,10,
+        11,0,0,147,148,7,4,0,0,148,175,3,8,4,12,149,150,10,10,0,0,150,151,
+        7,5,0,0,151,175,3,8,4,11,152,153,10,9,0,0,153,154,7,6,0,0,154,175,
+        3,8,4,10,155,156,10,8,0,0,156,157,7,7,0,0,157,175,3,8,4,9,158,159,
+        10,7,0,0,159,160,7,8,0,0,160,175,3,8,4,8,161,162,10,6,0,0,162,163,
+        5,16,0,0,163,175,3,8,4,7,164,165,10,5,0,0,165,166,5,17,0,0,166,175,
+        3,8,4,6,167,168,10,14,0,0,168,169,5,61,0,0,169,170,3,8,4,0,170,171,
+        5,62,0,0,171,175,1,0,0,0,172,173,10,13,0,0,173,175,7,9,0,0,174,146,
+        1,0,0,0,174,149,1,0,0,0,174,152,1,0,0,0,174,155,1,0,0,0,174,158,
+        1,0,0,0,174,161,1,0,0,0,174,164,1,0,0,0,174,167,1,0,0,0,174,172,
+        1,0,0,0,175,178,1,0,0,0,176,174,1,0,0,0,176,177,1,0,0,0,177,9,1,
+        0,0,0,178,176,1,0,0,0,179,182,3,24,12,0,180,182,3,18,9,0,181,179,
+        1,0,0,0,181,180,1,0,0,0,182,185,1,0,0,0,183,184,5,65,0,0,184,186,
+        3,10,5,0,185,183,1,0,0,0,185,186,1,0,0,0,186,11,1,0,0,0,187,188,
+        5,61,0,0,188,189,3,10,5,0,189,190,5,62,0,0,190,13,1,0,0,0,191,194,
+        3,16,8,0,192,193,5,61,0,0,193,195,5,62,0,0,194,192,1,0,0,0,194,195,
+        1,0,0,0,195,202,1,0,0,0,196,199,3,18,9,0,197,198,5,61,0,0,198,200,
+        5,62,0,0,199,197,1,0,0,0,199,200,1,0,0,0,200,202,1,0,0,0,201,191,
+        1,0,0,0,201,196,1,0,0,0,202,15,1,0,0,0,203,204,7,10,0,0,204,17,1,
+        0,0,0,205,210,5,74,0,0,206,207,5,63,0,0,207,209,5,74,0,0,208,206,
+        1,0,0,0,209,212,1,0,0,0,210,208,1,0,0,0,210,211,1,0,0,0,211,216,
+        1,0,0,0,212,210,1,0,0,0,213,216,3,20,10,0,214,216,3,22,11,0,215,
+        205,1,0,0,0,215,213,1,0,0,0,215,214,1,0,0,0,216,19,1,0,0,0,217,218,
+        5,74,0,0,218,21,1,0,0,0,219,220,5,74,0,0,220,23,1,0,0,0,221,229,
+        3,38,19,0,222,229,3,36,18,0,223,229,3,34,17,0,224,229,3,28,14,0,
+        225,229,3,30,15,0,226,229,3,32,16,0,227,229,3,26,13,0,228,221,1,
+        0,0,0,228,222,1,0,0,0,228,223,1,0,0,0,228,224,1,0,0,0,228,225,1,
+        0,0,0,228,226,1,0,0,0,228,227,1,0,0,0,229,25,1,0,0,0,230,231,5,75,
+        0,0,231,27,1,0,0,0,232,233,5,71,0,0,233,29,1,0,0,0,234,235,5,72,
+        0,0,235,31,1,0,0,0,236,237,5,73,0,0,237,33,1,0,0,0,238,239,5,68,
+        0,0,239,35,1,0,0,0,240,241,7,11,0,0,241,37,1,0,0,0,242,243,5,66,
+        0,0,243,39,1,0,0,0,18,43,71,79,101,106,112,125,144,174,176,181,185,
+        194,199,201,210,215,228
     ]
 
 class qutes_parser ( Parser ):
@@ -145,8 +149,8 @@ class qutes_parser ( Parser ):
     RULE_functionDeclarationParams = 2
     RULE_variableDeclaration = 3
     RULE_expr = 4
-    RULE_functionCallParams = 5
-    RULE_termList = 6
+    RULE_termList = 5
+    RULE_array = 6
     RULE_variableType = 7
     RULE_type = 8
     RULE_qualifiedName = 9
@@ -162,10 +166,10 @@ class qutes_parser ( Parser ):
     RULE_boolean = 19
 
     ruleNames =  [ "program", "statement", "functionDeclarationParams", 
-                   "variableDeclaration", "expr", "functionCallParams", 
-                   "termList", "variableType", "type", "qualifiedName", 
-                   "variableName", "functionName", "literal", "string", 
-                   "qubit", "quint", "qustring", "float", "integer", "boolean" ]
+                   "variableDeclaration", "expr", "termList", "array", "variableType", 
+                   "type", "qualifiedName", "variableName", "functionName", 
+                   "literal", "string", "qubit", "quint", "qustring", "float", 
+                   "integer", "boolean" ]
 
     EOF = Token.EOF
     INT_TYPE=1
@@ -302,7 +306,7 @@ class qutes_parser ( Parser ):
             self.state = 43
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while (((_la) & ~0x3f) == 0 and ((1 << _la) & 837813568856974334) != 0) or ((((_la - 66)) & ~0x3f) == 0 and ((1 << (_la - 66)) & 1023) != 0):
+            while (((_la) & ~0x3f) == 0 and ((1 << _la) & 3143656578070668286) != 0) or ((((_la - 66)) & ~0x3f) == 0 and ((1 << (_la - 66)) & 1023) != 0):
                 self.state = 40
                 self.statement()
                 self.state = 45
@@ -767,7 +771,7 @@ class qutes_parser ( Parser ):
                 self.state = 71
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
-                while (((_la) & ~0x3f) == 0 and ((1 << _la) & 837813568856974334) != 0) or ((((_la - 66)) & ~0x3f) == 0 and ((1 << (_la - 66)) & 1023) != 0):
+                while (((_la) & ~0x3f) == 0 and ((1 << _la) & 3143656578070668286) != 0) or ((((_la - 66)) & ~0x3f) == 0 and ((1 << (_la - 66)) & 1023) != 0):
                     self.state = 68
                     self.statement()
                     self.state = 73
@@ -1224,8 +1228,8 @@ class qutes_parser ( Parser ):
             return self.getToken(qutes_parser.ROUND_PARENTHESIS_OPEN, 0)
         def ROUND_PARENTHESIS_CLOSE(self):
             return self.getToken(qutes_parser.ROUND_PARENTHESIS_CLOSE, 0)
-        def functionCallParams(self):
-            return self.getTypedRuleContext(qutes_parser.FunctionCallParamsContext,0)
+        def termList(self):
+            return self.getTypedRuleContext(qutes_parser.TermListContext,0)
 
 
         def enterRule(self, listener:ParseTreeListener):
@@ -1402,6 +1406,31 @@ class qutes_parser ( Parser ):
                 return visitor.visitChildren(self)
 
 
+    class ArrayExpressionContext(ExprContext):
+
+        def __init__(self, parser, ctx:ParserRuleContext): # actually a qutes_parser.ExprContext
+            super().__init__(parser)
+            self.copyFrom(ctx)
+
+        def array(self):
+            return self.getTypedRuleContext(qutes_parser.ArrayContext,0)
+
+
+        def enterRule(self, listener:ParseTreeListener):
+            if hasattr( listener, "enterArrayExpression" ):
+                listener.enterArrayExpression(self)
+
+        def exitRule(self, listener:ParseTreeListener):
+            if hasattr( listener, "exitArrayExpression" ):
+                listener.exitArrayExpression(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitArrayExpression" ):
+                return visitor.visitArrayExpression(self)
+            else:
+                return visitor.visitChildren(self)
+
+
     class MultipleUnaryPhaseOperatorContext(ExprContext):
 
         def __init__(self, parser, ctx:ParserRuleContext): # actually a qutes_parser.ExprContext
@@ -1539,6 +1568,38 @@ class qutes_parser ( Parser ):
                 return visitor.visitChildren(self)
 
 
+    class ArrayAccessExpressionContext(ExprContext):
+
+        def __init__(self, parser, ctx:ParserRuleContext): # actually a qutes_parser.ExprContext
+            super().__init__(parser)
+            self.copyFrom(ctx)
+
+        def expr(self, i:int=None):
+            if i is None:
+                return self.getTypedRuleContexts(qutes_parser.ExprContext)
+            else:
+                return self.getTypedRuleContext(qutes_parser.ExprContext,i)
+
+        def SQUARE_PARENTHESIS_OPEN(self):
+            return self.getToken(qutes_parser.SQUARE_PARENTHESIS_OPEN, 0)
+        def SQUARE_PARENTHESIS_CLOSE(self):
+            return self.getToken(qutes_parser.SQUARE_PARENTHESIS_CLOSE, 0)
+
+        def enterRule(self, listener:ParseTreeListener):
+            if hasattr( listener, "enterArrayAccessExpression" ):
+                listener.enterArrayAccessExpression(self)
+
+        def exitRule(self, listener:ParseTreeListener):
+            if hasattr( listener, "exitArrayAccessExpression" ):
+                listener.exitArrayAccessExpression(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitArrayAccessExpression" ):
+                return visitor.visitArrayAccessExpression(self)
+            else:
+                return visitor.visitChildren(self)
+
+
     class LogicOrOperatorContext(ExprContext):
 
         def __init__(self, parser, ctx:ParserRuleContext): # actually a qutes_parser.ExprContext
@@ -1581,7 +1642,7 @@ class qutes_parser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 143
+            self.state = 144
             self._errHandler.sync(self)
             la_ = self._interp.adaptivePredict(self._input,7,self._ctx)
             if la_ == 1:
@@ -1614,30 +1675,38 @@ class qutes_parser ( Parser ):
                 pass
 
             elif la_ == 4:
-                localctx = qutes_parser.FunctionCallExpressionContext(self, localctx)
+                localctx = qutes_parser.ArrayExpressionContext(self, localctx)
                 self._ctx = localctx
                 _prevctx = localctx
                 self.state = 121
-                self.functionName()
-                self.state = 122
-                self.match(qutes_parser.ROUND_PARENTHESIS_OPEN)
-                self.state = 124
-                self._errHandler.sync(self)
-                _la = self._input.LA(1)
-                if ((((_la - 66)) & ~0x3f) == 0 and ((1 << (_la - 66)) & 1023) != 0):
-                    self.state = 123
-                    self.functionCallParams()
-
-
-                self.state = 126
-                self.match(qutes_parser.ROUND_PARENTHESIS_CLOSE)
+                self.array()
                 pass
 
             elif la_ == 5:
+                localctx = qutes_parser.FunctionCallExpressionContext(self, localctx)
+                self._ctx = localctx
+                _prevctx = localctx
+                self.state = 122
+                self.functionName()
+                self.state = 123
+                self.match(qutes_parser.ROUND_PARENTHESIS_OPEN)
+                self.state = 125
+                self._errHandler.sync(self)
+                _la = self._input.LA(1)
+                if ((((_la - 66)) & ~0x3f) == 0 and ((1 << (_la - 66)) & 1023) != 0):
+                    self.state = 124
+                    self.termList()
+
+
+                self.state = 127
+                self.match(qutes_parser.ROUND_PARENTHESIS_CLOSE)
+                pass
+
+            elif la_ == 6:
                 localctx = qutes_parser.PrefixOperatorContext(self, localctx)
                 self._ctx = localctx
                 _prevctx = localctx
-                self.state = 128
+                self.state = 129
                 localctx.op = self._input.LT(1)
                 _la = self._input.LA(1)
                 if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 3298534940672) != 0)):
@@ -1645,15 +1714,15 @@ class qutes_parser ( Parser ):
                 else:
                     self._errHandler.reportMatch(self)
                     self.consume()
-                self.state = 129
+                self.state = 130
                 self.expr(12)
                 pass
 
-            elif la_ == 6:
+            elif la_ == 7:
                 localctx = qutes_parser.MultipleUnaryOperatorContext(self, localctx)
                 self._ctx = localctx
                 _prevctx = localctx
-                self.state = 130
+                self.state = 131
                 localctx.op = self._input.LT(1)
                 _la = self._input.LA(1)
                 if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 59244544) != 0)):
@@ -1661,15 +1730,15 @@ class qutes_parser ( Parser ):
                 else:
                     self._errHandler.reportMatch(self)
                     self.consume()
-                self.state = 131
+                self.state = 132
                 self.termList()
                 pass
 
-            elif la_ == 7:
+            elif la_ == 8:
                 localctx = qutes_parser.UnaryOperatorContext(self, localctx)
                 self._ctx = localctx
                 _prevctx = localctx
-                self.state = 132
+                self.state = 133
                 localctx.op = self._input.LT(1)
                 _la = self._input.LA(1)
                 if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 942669824) != 0)):
@@ -1677,39 +1746,39 @@ class qutes_parser ( Parser ):
                 else:
                     self._errHandler.reportMatch(self)
                     self.consume()
-                self.state = 133
+                self.state = 134
                 self.expr(3)
                 pass
 
-            elif la_ == 8:
+            elif la_ == 9:
                 localctx = qutes_parser.MultipleUnaryPhaseOperatorContext(self, localctx)
                 self._ctx = localctx
                 _prevctx = localctx
-                self.state = 134
-                localctx.op = self.match(qutes_parser.MCP)
                 self.state = 135
-                self.termList()
+                localctx.op = self.match(qutes_parser.MCP)
                 self.state = 136
-                self.match(qutes_parser.BY)
+                self.termList()
                 self.state = 137
+                self.match(qutes_parser.BY)
+                self.state = 138
                 self.expr(2)
                 pass
 
-            elif la_ == 9:
+            elif la_ == 10:
                 localctx = qutes_parser.GroverOperatorContext(self, localctx)
                 self._ctx = localctx
                 _prevctx = localctx
-                self.state = 139
-                self.termList()
                 self.state = 140
-                localctx.op = self.match(qutes_parser.IN_STATEMENT)
+                self.termList()
                 self.state = 141
+                localctx.op = self.match(qutes_parser.IN_STATEMENT)
+                self.state = 142
                 self.qualifiedName()
                 pass
 
 
             self._ctx.stop = self._input.LT(-1)
-            self.state = 170
+            self.state = 176
             self._errHandler.sync(self)
             _alt = self._interp.adaptivePredict(self._input,9,self._ctx)
             while _alt!=2 and _alt!=ATN.INVALID_ALT_NUMBER:
@@ -1717,17 +1786,17 @@ class qutes_parser ( Parser ):
                     if self._parseListeners is not None:
                         self.triggerExitRuleEvent()
                     _prevctx = localctx
-                    self.state = 168
+                    self.state = 174
                     self._errHandler.sync(self)
                     la_ = self._interp.adaptivePredict(self._input,8,self._ctx)
                     if la_ == 1:
                         localctx = qutes_parser.MultiplicativeOperatorContext(self, qutes_parser.ExprContext(self, _parentctx, _parentState))
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_expr)
-                        self.state = 145
+                        self.state = 146
                         if not self.precpred(self._ctx, 11):
                             from antlr4.error.Errors import FailedPredicateException
                             raise FailedPredicateException(self, "self.precpred(self._ctx, 11)")
-                        self.state = 146
+                        self.state = 147
                         localctx.op = self._input.LT(1)
                         _la = self._input.LA(1)
                         if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 7168) != 0)):
@@ -1735,18 +1804,18 @@ class qutes_parser ( Parser ):
                         else:
                             self._errHandler.reportMatch(self)
                             self.consume()
-                        self.state = 147
+                        self.state = 148
                         self.expr(12)
                         pass
 
                     elif la_ == 2:
                         localctx = qutes_parser.SumOperatorContext(self, qutes_parser.ExprContext(self, _parentctx, _parentState))
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_expr)
-                        self.state = 148
+                        self.state = 149
                         if not self.precpred(self._ctx, 10):
                             from antlr4.error.Errors import FailedPredicateException
                             raise FailedPredicateException(self, "self.precpred(self._ctx, 10)")
-                        self.state = 149
+                        self.state = 150
                         localctx.op = self._input.LT(1)
                         _la = self._input.LA(1)
                         if not(_la==13 or _la==14):
@@ -1754,18 +1823,18 @@ class qutes_parser ( Parser ):
                         else:
                             self._errHandler.reportMatch(self)
                             self.consume()
-                        self.state = 150
+                        self.state = 151
                         self.expr(11)
                         pass
 
                     elif la_ == 3:
                         localctx = qutes_parser.ShiftOperatorContext(self, qutes_parser.ExprContext(self, _parentctx, _parentState))
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_expr)
-                        self.state = 151
+                        self.state = 152
                         if not self.precpred(self._ctx, 9):
                             from antlr4.error.Errors import FailedPredicateException
                             raise FailedPredicateException(self, "self.precpred(self._ctx, 9)")
-                        self.state = 152
+                        self.state = 153
                         localctx.op = self._input.LT(1)
                         _la = self._input.LA(1)
                         if not(_la==37 or _la==38):
@@ -1773,18 +1842,18 @@ class qutes_parser ( Parser ):
                         else:
                             self._errHandler.reportMatch(self)
                             self.consume()
-                        self.state = 153
+                        self.state = 154
                         self.expr(10)
                         pass
 
                     elif la_ == 4:
                         localctx = qutes_parser.RelationalOperatorContext(self, qutes_parser.ExprContext(self, _parentctx, _parentState))
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_expr)
-                        self.state = 154
+                        self.state = 155
                         if not self.precpred(self._ctx, 8):
                             from antlr4.error.Errors import FailedPredicateException
                             raise FailedPredicateException(self, "self.precpred(self._ctx, 8)")
-                        self.state = 155
+                        self.state = 156
                         localctx.op = self._input.LT(1)
                         _la = self._input.LA(1)
                         if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 128849018880) != 0)):
@@ -1792,18 +1861,18 @@ class qutes_parser ( Parser ):
                         else:
                             self._errHandler.reportMatch(self)
                             self.consume()
-                        self.state = 156
+                        self.state = 157
                         self.expr(9)
                         pass
 
                     elif la_ == 5:
                         localctx = qutes_parser.EqualityOperatorContext(self, qutes_parser.ExprContext(self, _parentctx, _parentState))
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_expr)
-                        self.state = 157
+                        self.state = 158
                         if not self.precpred(self._ctx, 7):
                             from antlr4.error.Errors import FailedPredicateException
                             raise FailedPredicateException(self, "self.precpred(self._ctx, 7)")
-                        self.state = 158
+                        self.state = 159
                         localctx.op = self._input.LT(1)
                         _la = self._input.LA(1)
                         if not(_la==31 or _la==32):
@@ -1811,44 +1880,59 @@ class qutes_parser ( Parser ):
                         else:
                             self._errHandler.reportMatch(self)
                             self.consume()
-                        self.state = 159
+                        self.state = 160
                         self.expr(8)
                         pass
 
                     elif la_ == 6:
                         localctx = qutes_parser.LogicAndOperatorContext(self, qutes_parser.ExprContext(self, _parentctx, _parentState))
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_expr)
-                        self.state = 160
+                        self.state = 161
                         if not self.precpred(self._ctx, 6):
                             from antlr4.error.Errors import FailedPredicateException
                             raise FailedPredicateException(self, "self.precpred(self._ctx, 6)")
-                        self.state = 161
-                        localctx.op = self.match(qutes_parser.AND)
                         self.state = 162
+                        localctx.op = self.match(qutes_parser.AND)
+                        self.state = 163
                         self.expr(7)
                         pass
 
                     elif la_ == 7:
                         localctx = qutes_parser.LogicOrOperatorContext(self, qutes_parser.ExprContext(self, _parentctx, _parentState))
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_expr)
-                        self.state = 163
+                        self.state = 164
                         if not self.precpred(self._ctx, 5):
                             from antlr4.error.Errors import FailedPredicateException
                             raise FailedPredicateException(self, "self.precpred(self._ctx, 5)")
-                        self.state = 164
-                        localctx.op = self.match(qutes_parser.OR)
                         self.state = 165
+                        localctx.op = self.match(qutes_parser.OR)
+                        self.state = 166
                         self.expr(6)
                         pass
 
                     elif la_ == 8:
+                        localctx = qutes_parser.ArrayAccessExpressionContext(self, qutes_parser.ExprContext(self, _parentctx, _parentState))
+                        self.pushNewRecursionContext(localctx, _startState, self.RULE_expr)
+                        self.state = 167
+                        if not self.precpred(self._ctx, 14):
+                            from antlr4.error.Errors import FailedPredicateException
+                            raise FailedPredicateException(self, "self.precpred(self._ctx, 14)")
+                        self.state = 168
+                        self.match(qutes_parser.SQUARE_PARENTHESIS_OPEN)
+                        self.state = 169
+                        self.expr(0)
+                        self.state = 170
+                        self.match(qutes_parser.SQUARE_PARENTHESIS_CLOSE)
+                        pass
+
+                    elif la_ == 9:
                         localctx = qutes_parser.PostfixOperatorContext(self, qutes_parser.ExprContext(self, _parentctx, _parentState))
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_expr)
-                        self.state = 166
+                        self.state = 172
                         if not self.precpred(self._ctx, 13):
                             from antlr4.error.Errors import FailedPredicateException
                             raise FailedPredicateException(self, "self.precpred(self._ctx, 13)")
-                        self.state = 167
+                        self.state = 173
                         localctx.op = self._input.LT(1)
                         _la = self._input.LA(1)
                         if not(_la==40 or _la==41):
@@ -1859,7 +1943,7 @@ class qutes_parser ( Parser ):
                         pass
 
              
-                self.state = 172
+                self.state = 178
                 self._errHandler.sync(self)
                 _alt = self._interp.adaptivePredict(self._input,9,self._ctx)
 
@@ -1869,88 +1953,6 @@ class qutes_parser ( Parser ):
             self._errHandler.recover(self, re)
         finally:
             self.unrollRecursionContexts(_parentctx)
-        return localctx
-
-
-    class FunctionCallParamsContext(ParserRuleContext):
-        __slots__ = 'parser'
-
-        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
-            super().__init__(parent, invokingState)
-            self.parser = parser
-
-        def literal(self):
-            return self.getTypedRuleContext(qutes_parser.LiteralContext,0)
-
-
-        def qualifiedName(self):
-            return self.getTypedRuleContext(qutes_parser.QualifiedNameContext,0)
-
-
-        def COMMA(self):
-            return self.getToken(qutes_parser.COMMA, 0)
-
-        def functionCallParams(self):
-            return self.getTypedRuleContext(qutes_parser.FunctionCallParamsContext,0)
-
-
-        def getRuleIndex(self):
-            return qutes_parser.RULE_functionCallParams
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterFunctionCallParams" ):
-                listener.enterFunctionCallParams(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitFunctionCallParams" ):
-                listener.exitFunctionCallParams(self)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitFunctionCallParams" ):
-                return visitor.visitFunctionCallParams(self)
-            else:
-                return visitor.visitChildren(self)
-
-
-
-
-    def functionCallParams(self):
-
-        localctx = qutes_parser.FunctionCallParamsContext(self, self._ctx, self.state)
-        self.enterRule(localctx, 10, self.RULE_functionCallParams)
-        self._la = 0 # Token type
-        try:
-            self.enterOuterAlt(localctx, 1)
-            self.state = 175
-            self._errHandler.sync(self)
-            token = self._input.LA(1)
-            if token in [66, 67, 68, 69, 70, 71, 72, 73, 75]:
-                self.state = 173
-                self.literal()
-                pass
-            elif token in [74]:
-                self.state = 174
-                self.qualifiedName()
-                pass
-            else:
-                raise NoViableAltException(self)
-
-            self.state = 179
-            self._errHandler.sync(self)
-            _la = self._input.LA(1)
-            if _la==65:
-                self.state = 177
-                self.match(qutes_parser.COMMA)
-                self.state = 178
-                self.functionCallParams()
-
-
-        except RecognitionException as re:
-            localctx.exception = re
-            self._errHandler.reportError(self, re)
-            self._errHandler.recover(self, re)
-        finally:
-            self.exitRule()
         return localctx
 
 
@@ -1999,33 +2001,91 @@ class qutes_parser ( Parser ):
     def termList(self):
 
         localctx = qutes_parser.TermListContext(self, self._ctx, self.state)
-        self.enterRule(localctx, 12, self.RULE_termList)
+        self.enterRule(localctx, 10, self.RULE_termList)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 183
+            self.state = 181
             self._errHandler.sync(self)
             token = self._input.LA(1)
             if token in [66, 67, 68, 69, 70, 71, 72, 73, 75]:
-                self.state = 181
+                self.state = 179
                 self.literal()
                 pass
             elif token in [74]:
-                self.state = 182
+                self.state = 180
                 self.qualifiedName()
                 pass
             else:
                 raise NoViableAltException(self)
 
-            self.state = 187
+            self.state = 185
             self._errHandler.sync(self)
-            la_ = self._interp.adaptivePredict(self._input,13,self._ctx)
+            la_ = self._interp.adaptivePredict(self._input,11,self._ctx)
             if la_ == 1:
-                self.state = 185
+                self.state = 183
                 self.match(qutes_parser.COMMA)
-                self.state = 186
+                self.state = 184
                 self.termList()
 
 
+        except RecognitionException as re:
+            localctx.exception = re
+            self._errHandler.reportError(self, re)
+            self._errHandler.recover(self, re)
+        finally:
+            self.exitRule()
+        return localctx
+
+
+    class ArrayContext(ParserRuleContext):
+        __slots__ = 'parser'
+
+        def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
+            super().__init__(parent, invokingState)
+            self.parser = parser
+
+        def SQUARE_PARENTHESIS_OPEN(self):
+            return self.getToken(qutes_parser.SQUARE_PARENTHESIS_OPEN, 0)
+
+        def termList(self):
+            return self.getTypedRuleContext(qutes_parser.TermListContext,0)
+
+
+        def SQUARE_PARENTHESIS_CLOSE(self):
+            return self.getToken(qutes_parser.SQUARE_PARENTHESIS_CLOSE, 0)
+
+        def getRuleIndex(self):
+            return qutes_parser.RULE_array
+
+        def enterRule(self, listener:ParseTreeListener):
+            if hasattr( listener, "enterArray" ):
+                listener.enterArray(self)
+
+        def exitRule(self, listener:ParseTreeListener):
+            if hasattr( listener, "exitArray" ):
+                listener.exitArray(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitArray" ):
+                return visitor.visitArray(self)
+            else:
+                return visitor.visitChildren(self)
+
+
+
+
+    def array(self):
+
+        localctx = qutes_parser.ArrayContext(self, self._ctx, self.state)
+        self.enterRule(localctx, 12, self.RULE_array)
+        try:
+            self.enterOuterAlt(localctx, 1)
+            self.state = 187
+            self.match(qutes_parser.SQUARE_PARENTHESIS_OPEN)
+            self.state = 188
+            self.termList()
+            self.state = 189
+            self.match(qutes_parser.SQUARE_PARENTHESIS_CLOSE)
         except RecognitionException as re:
             localctx.exception = re
             self._errHandler.reportError(self, re)
@@ -2045,6 +2105,12 @@ class qutes_parser ( Parser ):
         def type_(self):
             return self.getTypedRuleContext(qutes_parser.TypeContext,0)
 
+
+        def SQUARE_PARENTHESIS_OPEN(self):
+            return self.getToken(qutes_parser.SQUARE_PARENTHESIS_OPEN, 0)
+
+        def SQUARE_PARENTHESIS_CLOSE(self):
+            return self.getToken(qutes_parser.SQUARE_PARENTHESIS_CLOSE, 0)
 
         def qualifiedName(self):
             return self.getTypedRuleContext(qutes_parser.QualifiedNameContext,0)
@@ -2074,19 +2140,40 @@ class qutes_parser ( Parser ):
 
         localctx = qutes_parser.VariableTypeContext(self, self._ctx, self.state)
         self.enterRule(localctx, 14, self.RULE_variableType)
+        self._la = 0 # Token type
         try:
-            self.state = 191
+            self.state = 201
             self._errHandler.sync(self)
             token = self._input.LA(1)
             if token in [1, 2, 3, 4, 5, 6, 7, 8]:
                 self.enterOuterAlt(localctx, 1)
-                self.state = 189
+                self.state = 191
                 self.type_()
+                self.state = 194
+                self._errHandler.sync(self)
+                _la = self._input.LA(1)
+                if _la==61:
+                    self.state = 192
+                    self.match(qutes_parser.SQUARE_PARENTHESIS_OPEN)
+                    self.state = 193
+                    self.match(qutes_parser.SQUARE_PARENTHESIS_CLOSE)
+
+
                 pass
             elif token in [74]:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 190
+                self.state = 196
                 self.qualifiedName()
+                self.state = 199
+                self._errHandler.sync(self)
+                _la = self._input.LA(1)
+                if _la==61:
+                    self.state = 197
+                    self.match(qutes_parser.SQUARE_PARENTHESIS_OPEN)
+                    self.state = 198
+                    self.match(qutes_parser.SQUARE_PARENTHESIS_CLOSE)
+
+
                 pass
             else:
                 raise NoViableAltException(self)
@@ -2158,7 +2245,7 @@ class qutes_parser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 193
+            self.state = 203
             _la = self._input.LA(1)
             if not((((_la) & ~0x3f) == 0 and ((1 << _la) & 510) != 0)):
                 self._errHandler.recoverInline(self)
@@ -2226,23 +2313,23 @@ class qutes_parser ( Parser ):
         localctx = qutes_parser.QualifiedNameContext(self, self._ctx, self.state)
         self.enterRule(localctx, 18, self.RULE_qualifiedName)
         try:
-            self.state = 205
+            self.state = 215
             self._errHandler.sync(self)
             la_ = self._interp.adaptivePredict(self._input,16,self._ctx)
             if la_ == 1:
                 self.enterOuterAlt(localctx, 1)
-                self.state = 195
+                self.state = 205
                 self.match(qutes_parser.SYMBOL_LITERAL)
-                self.state = 200
+                self.state = 210
                 self._errHandler.sync(self)
                 _alt = self._interp.adaptivePredict(self._input,15,self._ctx)
                 while _alt!=2 and _alt!=ATN.INVALID_ALT_NUMBER:
                     if _alt==1:
-                        self.state = 196
+                        self.state = 206
                         self.match(qutes_parser.DOT)
-                        self.state = 197
+                        self.state = 207
                         self.match(qutes_parser.SYMBOL_LITERAL) 
-                    self.state = 202
+                    self.state = 212
                     self._errHandler.sync(self)
                     _alt = self._interp.adaptivePredict(self._input,15,self._ctx)
 
@@ -2250,13 +2337,13 @@ class qutes_parser ( Parser ):
 
             elif la_ == 2:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 203
+                self.state = 213
                 self.variableName()
                 pass
 
             elif la_ == 3:
                 self.enterOuterAlt(localctx, 3)
-                self.state = 204
+                self.state = 214
                 self.functionName()
                 pass
 
@@ -2306,7 +2393,7 @@ class qutes_parser ( Parser ):
         self.enterRule(localctx, 20, self.RULE_variableName)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 207
+            self.state = 217
             self.match(qutes_parser.SYMBOL_LITERAL)
         except RecognitionException as re:
             localctx.exception = re
@@ -2353,7 +2440,7 @@ class qutes_parser ( Parser ):
         self.enterRule(localctx, 22, self.RULE_functionName)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 209
+            self.state = 219
             self.match(qutes_parser.SYMBOL_LITERAL)
         except RecognitionException as re:
             localctx.exception = re
@@ -2424,42 +2511,42 @@ class qutes_parser ( Parser ):
         localctx = qutes_parser.LiteralContext(self, self._ctx, self.state)
         self.enterRule(localctx, 24, self.RULE_literal)
         try:
-            self.state = 218
+            self.state = 228
             self._errHandler.sync(self)
             token = self._input.LA(1)
             if token in [66]:
                 self.enterOuterAlt(localctx, 1)
-                self.state = 211
+                self.state = 221
                 self.boolean()
                 pass
             elif token in [67, 69, 70]:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 212
+                self.state = 222
                 self.integer()
                 pass
             elif token in [68]:
                 self.enterOuterAlt(localctx, 3)
-                self.state = 213
+                self.state = 223
                 self.float_()
                 pass
             elif token in [71]:
                 self.enterOuterAlt(localctx, 4)
-                self.state = 214
+                self.state = 224
                 self.qubit()
                 pass
             elif token in [72]:
                 self.enterOuterAlt(localctx, 5)
-                self.state = 215
+                self.state = 225
                 self.quint()
                 pass
             elif token in [73]:
                 self.enterOuterAlt(localctx, 6)
-                self.state = 216
+                self.state = 226
                 self.qustring()
                 pass
             elif token in [75]:
                 self.enterOuterAlt(localctx, 7)
-                self.state = 217
+                self.state = 227
                 self.string()
                 pass
             else:
@@ -2510,7 +2597,7 @@ class qutes_parser ( Parser ):
         self.enterRule(localctx, 26, self.RULE_string)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 220
+            self.state = 230
             self.match(qutes_parser.STRING_LITERAL)
         except RecognitionException as re:
             localctx.exception = re
@@ -2557,7 +2644,7 @@ class qutes_parser ( Parser ):
         self.enterRule(localctx, 28, self.RULE_qubit)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 222
+            self.state = 232
             self.match(qutes_parser.QUBIT_LITERAL)
         except RecognitionException as re:
             localctx.exception = re
@@ -2604,7 +2691,7 @@ class qutes_parser ( Parser ):
         self.enterRule(localctx, 30, self.RULE_quint)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 224
+            self.state = 234
             self.match(qutes_parser.QUINT_LITERAL)
         except RecognitionException as re:
             localctx.exception = re
@@ -2651,7 +2738,7 @@ class qutes_parser ( Parser ):
         self.enterRule(localctx, 32, self.RULE_qustring)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 226
+            self.state = 236
             self.match(qutes_parser.QUSTRING_LITERAL)
         except RecognitionException as re:
             localctx.exception = re
@@ -2698,7 +2785,7 @@ class qutes_parser ( Parser ):
         self.enterRule(localctx, 34, self.RULE_float)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 228
+            self.state = 238
             self.match(qutes_parser.FLOAT_LITERAL)
         except RecognitionException as re:
             localctx.exception = re
@@ -2752,7 +2839,7 @@ class qutes_parser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 230
+            self.state = 240
             _la = self._input.LA(1)
             if not(((((_la - 67)) & ~0x3f) == 0 and ((1 << (_la - 67)) & 13) != 0)):
                 self._errHandler.recoverInline(self)
@@ -2804,7 +2891,7 @@ class qutes_parser ( Parser ):
         self.enterRule(localctx, 38, self.RULE_boolean)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 232
+            self.state = 242
             self.match(qutes_parser.BOOL_LITERAL)
         except RecognitionException as re:
             localctx.exception = re
@@ -2856,6 +2943,10 @@ class qutes_parser ( Parser ):
          
 
             if predIndex == 7:
+                return self.precpred(self._ctx, 14)
+         
+
+            if predIndex == 8:
                 return self.precpred(self._ctx, 13)
          
 

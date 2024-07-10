@@ -97,6 +97,16 @@ class VariablesHandler():
         new_symbol = Symbol(variable_name, SymbolClass.VariableSymbol, qutes_type, final_type, value, self.scope_handler.current_symbols_scope, ast_token_index)
         new_symbol.is_anonymous = True
         return new_symbol
+
+    def create_anonymous_symbol_from_quantum_register(self, qutes_type : QutesDataType, quantum_register, ast_token_index:int) -> Symbol:
+        variable_name = None
+        symbol_value = None
+        definition_type = qutes_type
+        final_type = definition_type
+            
+        new_symbol = Symbol(variable_name, SymbolClass.VariableSymbol, qutes_type, final_type, symbol_value, self.scope_handler.current_symbols_scope, ast_token_index, quantum_register)
+        new_symbol.is_anonymous = True
+        return new_symbol
         
     
     def declare_function(self, anonymous_symbol : Symbol, function_name : str, input_params_definition:list[Symbol] = list(), value = None) -> Symbol:

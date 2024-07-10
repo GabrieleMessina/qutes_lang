@@ -144,6 +144,11 @@ class qutes_parserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by qutes_parser#ArrayExpression.
+    def visitArrayExpression(self, ctx:qutes_parser.ArrayExpressionContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by qutes_parser#MultipleUnaryPhaseOperator.
     def visitMultipleUnaryPhaseOperator(self, ctx:qutes_parser.MultipleUnaryPhaseOperatorContext):
         return self.visitChildren(ctx)
@@ -164,18 +169,23 @@ class qutes_parserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by qutes_parser#ArrayAccessExpression.
+    def visitArrayAccessExpression(self, ctx:qutes_parser.ArrayAccessExpressionContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by qutes_parser#LogicOrOperator.
     def visitLogicOrOperator(self, ctx:qutes_parser.LogicOrOperatorContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by qutes_parser#functionCallParams.
-    def visitFunctionCallParams(self, ctx:qutes_parser.FunctionCallParamsContext):
+    # Visit a parse tree produced by qutes_parser#termList.
+    def visitTermList(self, ctx:qutes_parser.TermListContext):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by qutes_parser#termList.
-    def visitTermList(self, ctx:qutes_parser.TermListContext):
+    # Visit a parse tree produced by qutes_parser#array.
+    def visitArray(self, ctx:qutes_parser.ArrayContext):
         return self.visitChildren(ctx)
 
 
