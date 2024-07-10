@@ -1,17 +1,24 @@
 from grammar_frontend.qutes_parser import QutesParser
 import utils, math
 from symbols.types import Qubit, Quint
+from symbols.types import QuantumType
 
-class Qustring():
+class Qustring(QuantumType):
     # note: chr and ord, parse int and char in ASCII for char of size 7 bits
-    default_value = [Qubit(complex(1),complex(0))]
-    superposition_char = '*'
-    not_valid_char = 'X'
     # allowed_chars = ['a', 'b', 'c', 'd', superposition_char, not_valid_char]
     # allowed_chars = ['0', '1', superposition_char, not_valid_char]
+    superposition_char = '*'
+    not_valid_char = 'X'
     allowed_chars = ['0', '1']
-    default_char_size = math.ceil(math.log2(len(allowed_chars)))
-    default_block_size = default_char_size
+    default_size_in_qubit = math.ceil(math.log2(len(allowed_chars)))
+    default_value = [Qubit(complex(1),complex(0))] * default_size_in_qubit
+    default_superposition_value = [Qubit(complex(0.5),complex(0.5))] * default_size_in_qubit
+
+    def __init__(self, qubits:list[Qubit] = [Qubit(complex(1),complex(0))]):
+        super().__init__()
+        self.qubit_state:list[Qubit] = qubits
+        self.size:int = len(self.qubit_state)
+        self.number_of_chars:int = int(self.size / Qustring.default_size_in_qubit)
 
     def get_char_from_int(int_value:int):
         if(int_value > len(Qustring.allowed_chars)):
@@ -22,8 +29,7 @@ class Qustring():
         try:
             return Qustring.allowed_chars.index(char_value)
         except:
-            return len(Qustring.allowed_chars)-1
-        
+            return len(Qustring.allowed_chars)-1    
 
     def init_from_string(literal : str) -> 'Qustring':
         qubits = []
@@ -34,26 +40,18 @@ class Qustring():
 
         for char in literal:
             if(char == Qustring.superposition_char):
-                qubyte:Quint = Quint.init_from_integer(Qustring.get_int_from_char(char), Qustring.default_char_size, True)
+                qubyte:Quint = Quint.init_from_integer(Qustring.get_int_from_char(char), Qustring.default_size_in_qubit, True)
             else:
-                qubyte:Quint = Quint.init_from_integer(Qustring.get_int_from_char(char), Qustring.default_char_size)
+                qubyte:Quint = Quint.init_from_integer(Qustring.get_int_from_char(char), Qustring.default_size_in_qubit)
             qubits.extend(qubyte.qubit_state)
         return Qustring(qubits)
 
-    def init_from_size(number_of_bits : int) -> 'Qustring':
-        return Qustring(Qustring.default_value*number_of_bits)
-    
     def fromValue(var_value : any) -> 'Qustring':
         if(isinstance(var_value, Qubit)):
             return Qustring([var_value])
         if(isinstance(var_value, str)):
             return Qustring.init_from_string(var_value)
         raise TypeError(f"Cannot convert {type(var_value)} to quint.")
-    
-    def __init__(self, qubits:list[Qubit] = [Qubit(complex(1),complex(0))]):
-        self.qubit_state:list[Qubit] = qubits
-        self.size:int = len(self.qubit_state)
-        self.number_of_chars:int = int(self.size / Qustring.default_char_size)
         
     def get_quantum_state(self) -> list[complex] :
         #TODO: this doesn't make any sense, outside of the initialization phase we should not rely on the quantum state.
@@ -77,9 +75,3 @@ class Qustring():
             str += f"{qubit}, "
         str += ']'
         return str
-
-    def __str__(self) -> str:
-        return self.__to_printable__()
-
-    def __repr__(self) -> str:
-        return self.__to_printable__()

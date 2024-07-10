@@ -190,10 +190,10 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
                         if(first_term_symbol.symbol_declaration_static_type == QutesDataType.qustring):
                             index = 0
                             string_value = ""
-                            while index < first_term_symbol.value.number_of_chars * Qustring.default_char_size:
-                                bin_char = bytes_str[index:Qustring.default_char_size + index]
+                            while index < first_term_symbol.value.number_of_chars * Qustring.default_size_in_qubit:
+                                bin_char = bytes_str[index:Qustring.default_size_in_qubit + index]
                                 string_value = string_value + Qustring.get_char_from_int(int(bin_char, 2))
-                                index = index + Qustring.default_char_size
+                                index = index + Qustring.default_size_in_qubit
                             print(string_value)
                         else:
                             new_value = int(bytes_str, 2)
@@ -267,7 +267,7 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
             array_register = target_symbol.quantum_register
             block_size = 1
             try:
-                block_size = target_symbol.value.default_block_size
+                block_size = target_symbol.value.default_size_in_qubit
             except:
                 pass
             array_size = int(len(target_symbol.quantum_register)/block_size)

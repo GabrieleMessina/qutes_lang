@@ -3,7 +3,14 @@ from utils.phase import Phase
 import cmath
 
 class Qubit():
-    default_block_size = 1
+    def __init__(self, alpha : complex = complex(1), beta : complex = complex(0)):
+        self.size:int = 1
+        self.alpha = complex(alpha)
+        self.beta = complex(beta)
+        self.phase = Phase.Positive if (alpha * beta).real >= 0 else Phase.Negative 
+        self.is_superposition = cmath.isclose(abs(alpha), abs(beta))
+        self.qubit_state:list[Qubit] = [self]
+
     def from_string(literal : str) -> 'Qubit':
         try:
             literal = literal.removesuffix(QutesParser.literal_to_string(QutesParser.QUBIT_LITERAL_POSTFIX))
@@ -46,14 +53,6 @@ class Qubit():
             else:
                 return Qubit(complex(1), complex(0))
         raise TypeError(f"Cannot convert {type(var_value)} to qubit.")
-    
-    def __init__(self, alpha : complex = complex(1), beta : complex = complex(0)):
-        self.size:int = 1
-        self.alpha = complex(alpha)
-        self.beta = complex(beta)
-        self.phase = Phase.Positive if (alpha * beta).real >= 0 else Phase.Negative 
-        self.is_superposition = cmath.isclose(abs(alpha), abs(beta))
-        self.qubit_state:list[Qubit] = [self]
 
     def get_quantum_state(self) -> list[complex]:
         return [self.alpha, self.beta]

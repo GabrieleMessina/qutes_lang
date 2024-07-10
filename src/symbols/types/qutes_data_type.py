@@ -38,7 +38,7 @@ class QutesDataType(Enum):
     def get_array_word_bit(type:'QutesDataType'):
          match type:
             case QutesDataType.qustring:
-                return Qustring.default_char_size
+                return Qustring.default_size_in_qubit
             case _:
                 return 1
 

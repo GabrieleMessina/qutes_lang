@@ -2,11 +2,17 @@ from grammar_frontend.qutes_parser import QutesParser
 from utils.phase import Phase
 import utils 
 from symbols.types import Qubit
+from symbols.types import QuantumType
 
-class Quint():
+class Quint(QuantumType):
     default_value = [Qubit(complex(1),complex(0))]
     default_superposition_value = [Qubit(complex(0.5),complex(0.5))]
-    default_block_size = 1
+    default_size_in_qubit = 1
+
+    def __init__(self, qubits:list[Qubit] = [Qubit(complex(1),complex(0))]):
+        super().__init__()
+        self.qubit_state:list[Qubit] = qubits
+        self.size:int = len(self.qubit_state)
 
     def init_from_string(literal : str) -> 'Quint':
         qubits = []
@@ -74,11 +80,6 @@ class Quint():
             raise TypeError(f"Cannot convert {type(var_value)} to quint.")
         except:
             raise TypeError(f"Cannot convert {type(var_value)} to quint.")
-
-    
-    def __init__(self, qubits:list[Qubit] = [Qubit(complex(1),complex(0))]):
-        self.qubit_state:list[Qubit] = qubits
-        self.size:int = len(self.qubit_state)
         
     def get_quantum_state(self) -> list[complex] :
         #TODO: this doesn't make any sense, outside of the initialization phase we should not rely on the quantum state.
@@ -108,9 +109,3 @@ class Quint():
             str += f"{qubit}, "
         str += ']'
         return str
-
-    def __str__(self) -> str:
-        return self.__to_printable__()
-
-    def __repr__(self) -> str:
-        return self.__to_printable__()

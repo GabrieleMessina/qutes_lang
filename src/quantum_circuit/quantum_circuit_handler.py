@@ -52,14 +52,13 @@ class QuantumCircuitHandler():
         self._registers_states[new_register] = quantum_variable.get_quantum_state()
         return new_register
     
+    # TODO: this should be a correlation operation, or a measure and then update.
+    # We cannot rely on quantum_variable.get_quantum_state()
     def replace_quantum_register(self,  variable_name : str, quantum_variable : any) -> QuantumRegister:
         register_to_update = self._varname_to_register[variable_name]
         if(register_to_update is None):
             raise SystemError("Error trying to update an undeclared quantum register")
 
-        #TODO: can we handle qubit like quint and qustring?
-        # if(isinstance(quantum_variable, Qubit)):
-        #     pass
         if(isinstance(quantum_variable, Qubit) or isinstance(quantum_variable, Quint) or isinstance(quantum_variable, Qustring)):
             #TODO-CRITICAL: this update actually change the reference, so all the old references around the code are still there. For now i hack this returning the new value and changing the name from update to replace.
             #Delete old quantum register and reference
