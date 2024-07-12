@@ -35,13 +35,13 @@ class QuantumCircuitHandler():
         self._classic_registers.append(new_register)
         return new_register
 
-    def delete_classical_register(self,  variable_name : str) -> None:
+    def delete_variable(self,  variable_name : str) -> None:
         register = self._varname_to_register[variable_name]
-        self._classic_registers.remove(register)
+        if(self._varname_to_register.values().count(register) == 0):
+            self._classic_registers.remove(register)
 
     def declare_quantum_register(self, variable_name : str, quantum_variable : any) -> QuantumRegister:
         new_register = None
-
         new_register = QuantumRegister(quantum_variable.size, variable_name)
 
         if(new_register is None):
@@ -67,8 +67,8 @@ class QuantumCircuitHandler():
             #Add new quantum register
             register_to_update = self._varname_to_register[variable_name] = QuantumRegister(quantum_variable.size, variable_name)
             self._quantum_registers.append(register_to_update)
+            self._registers_states[register_to_update] = quantum_variable.get_quantum_state()
 
-        self._registers_states[register_to_update] = quantum_variable.get_quantum_state()
         return register_to_update
 
     def assign_quantum_register_to_variable(self,  variable_name : str, quantum_register : QuantumRegister) -> QuantumRegister:

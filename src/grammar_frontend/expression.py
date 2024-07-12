@@ -73,16 +73,5 @@ class QutesGrammarExpressionVisitor(QutesBaseVisitor):
 
         array_value = self.variables_handler.get_value(array_symbol)
         index_value = self.variables_handler.get_value(index_symbol)
-        array_unit_type_size = array_symbol.get_array_unit_type()
         
-        if array_symbol.is_classical_type():
-            result = array_value[index_value]
-            return self.variables_handler.create_anonymous_symbol(QutesDataType.type_of(result), result, ctx.start.tokenIndex)
-        else:
-            array_unit_type_size = QutesDataType.get_size_in_qubit(array_unit_type_size)
-            result = array_symbol.quantum_register[index_value*array_unit_type_size:array_unit_type_size]
-            #TODO: non posso passare un array di qubit per creare il simbolo anonimo, dovrei sfruttare il circuit handler
-            # Oppure devo aggiornare il metodo create_anonymous_symbol per gestire quantum register
-            # In questo caso dovrebbe gestirli come se fossero reference type.
-            return self.variables_handler.create_anonymous_symbol_from_quantum_register(array_unit_type_size, result, ctx.start.tokenIndex)
-
+        return array_value[index_value]

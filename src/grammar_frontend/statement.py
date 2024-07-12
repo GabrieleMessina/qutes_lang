@@ -90,8 +90,10 @@ class QutesGrammarStatementVisitor(QutesBaseVisitor):
     def visitFunctionStatement(self, ctx:qutes_parser.FunctionStatementContext):
         self.scope_handler.push_scope()
         function_name = self.visit(ctx.functionName())
+        function_params = []
         if(ctx.functionDeclarationParams()):
             function_params = self.visit(ctx.functionDeclarationParams())
+        function_params.reverse()
         #do not call a visit on the statement here, or on all the context, the statement is being saved by the discovery and should be traversed only on function execution
         self.scope_handler.pop_scope()
         return None

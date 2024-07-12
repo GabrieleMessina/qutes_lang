@@ -87,7 +87,7 @@ class SymbolsDiscoveryVisitor(qutesVisitor):
         function_body = ctx.statement()
 
         token_index = ctx.start.tokenIndex
-        funtion_symbol = self.variables_handler.create_anonymous_symbol(qutes_type, QutesDataType.get_default_value(qutes_type), token_index)
+        funtion_symbol = self.variables_handler.declare_anonymous_variable(qutes_type, QutesDataType.get_default_value(qutes_type), token_index)
         funtion_symbol = self.variables_handler.declare_function(funtion_symbol, function_name, [], function_body)
         self.scope_handler.push_inner_scope(ScopeClass.FunctionScope, f"Function{self.function_scope_count}", funtion_symbol)
 

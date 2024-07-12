@@ -113,7 +113,7 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
                     pass
                 result = first_term_value % second_term_value
         
-        return self.variables_handler.create_anonymous_symbol(QutesDataType.type_of(result), result, ctx.start.tokenIndex)
+        return self.variables_handler.declare_anonymous_variable(QutesDataType.type_of(result), result, ctx.start.tokenIndex)
     
     def __visit_boolean_operation(self, ctx:qutes_parser.RelationalOperatorContext | qutes_parser.EqualityOperatorContext | qutes_parser.LogicAndOperatorContext | qutes_parser.LogicOrOperatorContext):
         result = None
@@ -149,10 +149,11 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
         elif(isinstance(ctx, qutes_parser.LogicOrOperatorContext)):
             if(ctx.OR()):
                 result = first_term_value or second_term_value
-        return self.variables_handler.create_anonymous_symbol(QutesDataType.bool, result, ctx.start.tokenIndex)
+        return self.variables_handler.declare_anonymous_variable(QutesDataType.bool, result, ctx.start.tokenIndex)
 
     def __visitMultipleUnaryOperator(self, ctx:qutes_parser.MultipleUnaryOperatorContext):
         terms:list[Symbol] = self.visit(ctx.termList())
+        terms.reverse()
         registers = [register.quantum_register for register in terms]
         if(self.log_code_structure): print(f"{ctx.op.text} {registers}", end=None)
         if(ctx.MCZ()):
@@ -167,6 +168,7 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
 
     def __visitMultipleUnaryPhaseOperator(self, ctx:qutes_parser.MultipleUnaryPhaseOperatorContext):
         terms:list[Symbol] = self.visit(ctx.termList())
+        terms.reverse()
         registers = [register.quantum_register for register in terms]
         theta:Symbol = self.visit(ctx.expr())
         if(self.log_code_structure): print(f"{ctx.op.text} {registers} by {theta}", end=None)
@@ -246,15 +248,15 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
         if(isinstance(ctx, qutes_parser.PostfixOperatorContext)):
             #TODO: handle quantum
             if(ctx.AUTO_INCREMENT()):
-                result = self.variables_handler.create_anonymous_symbol(QutesDataType.type_of(first_term_symbol), first_term_value, ctx.start.tokenIndex)
+                result = self.variables_handler.declare_anonymous_variable(QutesDataType.type_of(first_term_symbol), first_term_value, ctx.start.tokenIndex)
                 first_term_symbol.value = first_term_symbol.value + 1 
                 return result
             if(ctx.AUTO_DECREMENT()):
-                result = self.variables_handler.create_anonymous_symbol(QutesDataType.type_of(first_term_symbol), first_term_value, ctx.start.tokenIndex)
+                result = self.variables_handler.declare_anonymous_variable(QutesDataType.type_of(first_term_symbol), first_term_value, ctx.start.tokenIndex)
                 first_term_symbol.value = first_term_symbol.value - 1 
                 return result
 
-        return self.variables_handler.create_anonymous_symbol(QutesDataType.type_of(result), result, ctx.start.tokenIndex)
+        return self.variables_handler.declare_anonymous_variable(QutesDataType.type_of(result), result, ctx.start.tokenIndex)
 
     grover_count = iter(range(1, 1000))
     def visitGroverOperator(self, ctx:qutes_parser.GroverOperatorContext):
@@ -274,7 +276,8 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
             n_element_to_rotate = array_size/block_size
 
             self.quantum_circuit_handler.start_quantum_function()
-            termList:list[Symbol] = self.visit(ctx.termList())            
+            termList:list[Symbol] = self.visit(ctx.termList())    
+            termList.reverse()        
 
             grover_result = self.quantum_circuit_handler.declare_quantum_register("grover_phase_ancilla", Qubit())
             oracle_registers = [array_register]
@@ -336,6 +339,6 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
                         for result in positive_results:
                             print(f"Solution found with {int(rotation_register.measured_classical_register.measured_values[result[0]], 2)} left rotations")
                             # print(f"Solution found with rotation {int(rotation_register.measured_classical_register.measured_values[result[0]], 2) % (n_element_to_rotate)}")
-                    return self.variables_handler.create_anonymous_symbol(QutesDataType.bool, True, ctx.start.tokenIndex)
+                    return self.variables_handler.declare_anonymous_variable(QutesDataType.bool, True, ctx.start.tokenIndex)
                 registers_to_measure.remove(oracle_result)
-            return self.variables_handler.create_anonymous_symbol(QutesDataType.bool, False, ctx.start.tokenIndex)
+            return self.variables_handler.declare_anonymous_variable(QutesDataType.bool, False, ctx.start.tokenIndex)
