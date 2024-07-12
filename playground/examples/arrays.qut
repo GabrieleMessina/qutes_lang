@@ -3,6 +3,12 @@ qubit c = 0q;
 qubit[] a = [b, c, |+>];
 qubit d = a[2];
 
+int i = 0;
+while(i<3){
+    print a[i];
+    i = i + 1;
+}
+
 print d;
 print a;
 print c;

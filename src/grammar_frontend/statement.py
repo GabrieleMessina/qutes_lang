@@ -56,7 +56,7 @@ class QutesGrammarStatementVisitor(QutesBaseVisitor):
 
             self.scope_handler.start_loop() #avoid block statement to change the scope
             
-            while(condition):
+            while(self.variables_handler.get_value(condition)):
                 self.visit(ctx.statement())
                 condition = self.visit(ctx.expr())
 
