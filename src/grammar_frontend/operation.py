@@ -196,10 +196,8 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
                                 bin_char = bytes_str[index:Qustring.default_size_in_qubit + index]
                                 string_value = string_value + Qustring.get_char_from_int(int(bin_char, 2))
                                 index = index + Qustring.default_size_in_qubit
-                            print(string_value)
                         else:
                             new_value = int(bytes_str, 2)
-                            print(new_value)
                         #TODO: handle the conversion from a string of binadry digits to the current quantum variable type
                         #TODO: adding the next line cause a crash in the circuit 
                         # self.variables_handler.update_variable_state(first_term_symbol.name, new_value) 

@@ -78,5 +78,6 @@ class Qubit(QuantumType['Qubit']):
         spin_str = '+' if self.phase == Phase.Positive else '-'
         if(self.is_superposition):
             return f"|{spin_str}>"
-        else:
-            return f"[(\u03B1:{self.alpha})|0> {spin_str} (\u03B2:{self.beta})|1>]"
+        if(self.alpha.real == 1.0 or self.beta.real == 1.0):
+            return f"|{int(self.beta.real)}>"
+        return f"[(\u03B1:{self.alpha})|0> {spin_str} (\u03B2:{self.beta})|1>]"

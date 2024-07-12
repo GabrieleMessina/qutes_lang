@@ -9,6 +9,7 @@ class SymbolClass(Enum):
     VariableSymbol = auto()
 
 class Symbol():    
+    verbose_print = False
     def __init__(self, 
                  name:str, 
                  symbol_class:SymbolClass, 
@@ -58,10 +59,16 @@ class Symbol():
         pass #TODO: handle
 
     def __to_printable__(self) -> str:
-        if self.symbol_class is SymbolClass.FunctionSymbol:
-            return f"{self.parent_scope.scope_type_detail}.{self.name}({self.function_input_params_definition}) -> {self.symbol_declaration_static_type.name}/{self.ast_token_index}"
+        if(Symbol.verbose_print):
+            if self.symbol_class is SymbolClass.FunctionSymbol:
+                return f"{self.parent_scope.scope_type_detail}.{self.name}({self.function_input_params_definition}) -> {self.symbol_declaration_static_type.name}"
+            else:
+                return f"{self.symbol_declaration_static_type.name} {self.parent_scope.scope_type_detail}.{self.name} = {self.value}"
         else:
-            return f"{self.parent_scope.scope_type_detail}.{self.name}={self.value}({self.symbol_declaration_static_type.name}/{self.casted_static_type.name}/{self.ast_token_index})"
+            if self.symbol_class is SymbolClass.FunctionSymbol:
+                return f"{self.parent_scope.scope_type_detail}.{self.name}({self.function_input_params_definition}) -> {self.symbol_declaration_static_type.name}"
+            else:
+                return f"{self.value}"
 
     def __str__(self) -> str:
         return self.__to_printable__()
