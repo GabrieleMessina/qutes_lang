@@ -37,7 +37,7 @@ class QuantumCircuitHandler():
 
     def delete_variable(self,  variable_name : str) -> None:
         register = self._varname_to_register[variable_name]
-        if(self._varname_to_register.values().count(register) == 0):
+        if(register not in self._varname_to_register.values()):
             self._classic_registers.remove(register)
 
     def declare_quantum_register(self, variable_name : str, quantum_variable : any) -> QuantumRegister:
