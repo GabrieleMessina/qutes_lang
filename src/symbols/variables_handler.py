@@ -11,15 +11,19 @@ class VariablesHandler():
         self.quantum_cirtcuit_handler = quantum_cirtcuit_handler
         self.type_casting_handler = TypeCastingHandler(quantum_cirtcuit_handler)
 
-    def update_variable_state(self, variable_name : str, new_state) -> Symbol:       
-        value_to_assign = self.get_value(new_state)
+    def update_variable_state(self, variable_name : str, new_state) -> Symbol: 
         eligible_symbols_to_update = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.name == variable_name]
         if len(eligible_symbols_to_update) > 0:
             # In case multiple scopes declare a varialble with the same name we take the last one, that is the one from the nearest scope.
             symbol_index_in_scope = self.scope_handler.current_symbols_scope.symbols.index(eligible_symbols_to_update[-1]) 
             symbol_to_update = self.scope_handler.current_symbols_scope.symbols[symbol_index_in_scope]
 
-        	# check if the type of the varible match the type of the value we are trying to assign. 
+            # If new_state is a literal, we create an anonymous symbol to handle only this case from now on.
+            if(not isinstance(new_state, Symbol)):
+                new_state:Symbol = self.declare_anonymous_variable(QutesDataType.type_of(new_state), new_state, symbol_to_update.ast_token_index)
+            value_to_assign = self.get_value(new_state)
+
+        	# check if the type of the variable match the type of the value we are trying to assign. 
             value_to_assign_qutes_type = QutesDataType.type_of(value_to_assign)
             definition_qutes_type = symbol_to_update.symbol_declaration_static_type
             promoted_type = value_to_assign_qutes_type.promote_type(definition_qutes_type)
@@ -44,14 +48,14 @@ class VariablesHandler():
 
             #Handle quantum circuit update
             if(QutesDataType.is_quantum_type(symbol_to_update.symbol_declaration_static_type)):
-                if(isinstance(new_state, Symbol)):
-                    if(new_state.is_anonymous):
-                        symbol_to_update.quantum_register = self.quantum_cirtcuit_handler.replace_quantum_register(variable_name, new_state.value)
+                if(new_state.is_anonymous):
+                    symbol_to_update.quantum_register = self.quantum_cirtcuit_handler.replace_quantum_register(variable_name, value_to_assign)
+                    if(new_state.is_quantum()):
                         self.quantum_cirtcuit_handler.delete_variable(new_state.name)
                     else:
-                        symbol_to_update.quantum_register = self.quantum_cirtcuit_handler.assign_quantum_register_to_variable(variable_name, new_state.quantum_register)
+                        pass #being classic it was not added to circuit handler and there is no need to delete it.
                 else:
-                    symbol_to_update.quantum_register = self.quantum_cirtcuit_handler.replace_quantum_register(variable_name, symbol_to_update.value)
+                    symbol_to_update.quantum_register = self.quantum_cirtcuit_handler.assign_quantum_register_to_variable(variable_name, new_state.quantum_register)
             return symbol_to_update
         else:
             raise SyntaxError(f"No variable declared with name '{variable_name}'.")
