@@ -83,7 +83,7 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
                     if(second_term_symbol and not QutesDataType.is_quantum_type(second_term_symbol.symbol_declaration_static_type)):
                         from quantum_circuit.qutes_gates import QutesGates
-                        self.quantum_circuit_handler.push_compose_circuit_operation(QutesGates.left_rot(len(first_term_symbol.quantum_register), second_term_value, 1), [first_term_symbol.quantum_register]) #TODO: handle block size
+                        self.quantum_circuit_handler.push_compose_circuit_operation(QutesGates.left_rot(len(first_term_symbol.quantum_register), second_term_value, first_term_symbol.value.get_default_size_in_qubit()), [first_term_symbol.quantum_register])
                         result = first_term_symbol
                     else:
                         raise NotImplementedError("Left shift operator doesn't support second term to be a quantum variable.")
@@ -93,7 +93,7 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
                     if(second_term_symbol and not QutesDataType.is_quantum_type(second_term_symbol.symbol_declaration_static_type)):
                         from quantum_circuit.qutes_gates import QutesGates
-                        self.quantum_circuit_handler.push_compose_circuit_operation(QutesGates.right_rot(len(first_term_symbol.quantum_register), second_term_value, 1), [first_term_symbol.quantum_register]) #TODO: handle block size
+                        self.quantum_circuit_handler.push_compose_circuit_operation(QutesGates.right_rot(len(first_term_symbol.quantum_register), second_term_value, first_term_symbol.value.get_default_size_in_qubit()), [first_term_symbol.quantum_register])
                         result = first_term_symbol
                     else:
                         raise NotImplementedError("Right shift operator doesn't support second term to be a quantum variable.")
@@ -192,10 +192,10 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
                         if(first_term_symbol.symbol_declaration_static_type == QutesDataType.qustring):
                             index = 0
                             string_value = ""
-                            while index < first_term_symbol.value.number_of_chars * Qustring.default_size_in_qubit:
-                                bin_char = bytes_str[index:Qustring.default_size_in_qubit + index]
+                            while index < first_term_symbol.value.number_of_chars * Qustring.get_default_size_in_qubit():
+                                bin_char = bytes_str[index:Qustring.get_default_size_in_qubit() + index]
                                 string_value = string_value + Qustring.get_char_from_int(int(bin_char, 2))
-                                index = index + Qustring.default_size_in_qubit
+                                index = index + Qustring.get_default_size_in_qubit()
                         else:
                             new_value = int(bytes_str, 2)
                         #TODO: handle the conversion from a string of binadry digits to the current quantum variable type
@@ -267,7 +267,7 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
             array_register = target_symbol.quantum_register
             block_size = 1
             try:
-                block_size = target_symbol.value.default_size_in_qubit
+                block_size = target_symbol.value.get_default_size_in_qubit()
             except:
                 pass
             array_size = int(len(target_symbol.quantum_register)/block_size)
