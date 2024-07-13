@@ -183,7 +183,7 @@ class QutesDataType(Enum):
             case _:
                 return None
             
-    def get_size_in_qubit(var_type : 'QutesDataType'):
+    def get_unit_size_in_qubit(var_type : 'QutesDataType'):
         match var_type:
             case QutesDataType.bool:
                 return 1

@@ -5,11 +5,11 @@ import utils, math
 
 class Qustring(QuantumType['Qustring']):
     # note: chr and ord, parse int and char in ASCII for char of size 7 bits
-    # allowed_chars = ['a', 'b', 'c', 'd', superposition_char, not_valid_char]
-    # allowed_chars = ['0', '1', superposition_char, not_valid_char]
-    superposition_char = '*'
-    not_valid_char = 'X'
-    allowed_chars = ['0', '1']
+    # allowed_chars = ['a', 'b', 'c', 'd', superposition_char, __not_valid_char]
+    # allowed_chars = ['0', '1', superposition_char, __not_valid_char]
+    __superposition_char = '*'
+    __not_valid_char = 'X'
+    __allowed_chars = ['0', '1']
 
     def __init__(self, qubits:list[Qubit] = [Qubit(complex(1),complex(0))]):
         super().__init__()
@@ -24,18 +24,18 @@ class Qustring(QuantumType['Qustring']):
         return [Qubit(complex(0.5),complex(0.5))] * Qubit.get_default_size_in_qubit()
     
     def get_default_size_in_qubit():
-        return math.ceil(math.log2(len(Qustring.allowed_chars)))
+        return math.ceil(math.log2(len(Qustring.__allowed_chars)))
 
     def get_char_from_int(int_value:int):
-        if(int_value > len(Qustring.allowed_chars)):
-            return Qustring.allowed_chars[-1]
-        return Qustring.allowed_chars[int_value]
+        if(int_value > len(Qustring.__allowed_chars)):
+            return Qustring.__allowed_chars[-1]
+        return Qustring.__allowed_chars[int_value]
 
     def get_int_from_char(char_value:str):
         try:
-            return Qustring.allowed_chars.index(char_value)
+            return Qustring.__allowed_chars.index(char_value)
         except:
-            return len(Qustring.allowed_chars)-1    
+            return len(Qustring.__allowed_chars)-1    
 
     def init_from_string(literal : str) -> 'Qustring':
         qubits = []
@@ -45,7 +45,7 @@ class Qustring(QuantumType['Qustring']):
         literal = literal.removeprefix('"')
 
         for char in literal:
-            if(char == Qustring.superposition_char):
+            if(char == Qustring.__superposition_char):
                 qubyte:Quint = Quint.init_from_integer(Qustring.get_int_from_char(char), Qustring.get_default_size_in_qubit(), True)
             else:
                 qubyte:Quint = Quint.init_from_integer(Qustring.get_int_from_char(char), Qustring.get_default_size_in_qubit())
