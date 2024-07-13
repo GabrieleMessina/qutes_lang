@@ -1,5 +1,6 @@
 from uuid import uuid4
-from symbols.types.qutes_data_type import QutesDataType, TypeCastingHandler
+from symbols.types.type_casting_handler import TypeCastingHandler
+from symbols.types.qutes_data_type import QutesDataType
 from symbols.scope_handler import ScopeHandler
 from symbols.symbol import Symbol, SymbolClass
 from quantum_circuit import QuantumCircuitHandler
