@@ -29,8 +29,8 @@ class QutesGrammarExpressionVisitor(QutesBaseVisitor):
     def visitFunctionCallExpression(self, ctx:qutes_parser.FunctionCallExpressionContext):
         function_name = self.visit(ctx.functionName())
         function_params:list[Symbol] = []
-        if(ctx.functionCallParams()):
-            function_params = self.visit(ctx.functionCallParams())
+        if(ctx.termList()):
+            function_params = self.visit(ctx.termList())
         result:Symbol = self.__visitFunctionCall(function_name, function_params, ctx.start.tokenIndex)
         #TODO: staff commented for make return value work for quantum variable, do some tests to assure the behaviour is correct
         # function_symbol = self.variables_handler.get_function_symbol(function_name, ctx.start.tokenIndex, function_params)
