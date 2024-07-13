@@ -40,7 +40,7 @@ class QuantumCircuitHandler():
         if(register not in self._varname_to_register.values()):
             self._classic_registers.remove(register)
 
-    def declare_quantum_register(self, variable_name : str, quantum_variable : any) -> QuantumRegister:
+    def declare_quantum_register(self, variable_name : str, quantum_variable : Qubit|Quint|Qustring) -> QuantumRegister:
         new_register = None
         new_register = QuantumRegister(quantum_variable.size, variable_name)
 
@@ -54,12 +54,12 @@ class QuantumCircuitHandler():
     
     # TODO: this should be a correlation operation, or a measure and then update.
     # We cannot rely on quantum_variable.get_quantum_state()
-    def replace_quantum_register(self,  variable_name : str, quantum_variable : any) -> QuantumRegister:
+    def replace_quantum_register(self,  variable_name : str, quantum_variable : Qubit|Quint|Qustring) -> QuantumRegister:
         register_to_update = self._varname_to_register[variable_name]
         if(register_to_update is None):
             raise SystemError("Error trying to update an undeclared quantum register")
 
-        if(isinstance(quantum_variable, Qubit) or isinstance(quantum_variable, Quint) or isinstance(quantum_variable, Qustring)):
+        if(QutesDataType.is_quantum_type(QutesDataType.type_of(quantum_variable))):
             #TODO-CRITICAL: this update actually change the reference, so all the old references around the code are still there. For now i hack this returning the new value and changing the name from update to replace.
             #Delete old quantum register and reference
             del self._registers_states[register_to_update]
@@ -68,6 +68,8 @@ class QuantumCircuitHandler():
             register_to_update = self._varname_to_register[variable_name] = QuantumRegister(quantum_variable.size, variable_name)
             self._quantum_registers.append(register_to_update)
             self._registers_states[register_to_update] = quantum_variable.get_quantum_state()
+        else:
+            raise SystemError("Error trying to update a quantum register with an unsupported type")
 
         return register_to_update
 

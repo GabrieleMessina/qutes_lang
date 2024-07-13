@@ -62,13 +62,13 @@ class Quint(QuantumType['Quint']):
         if(initial_size != -1 and (len(temp_state) % initial_size != 0)):
             to_add = initial_size - len(temp_state) % initial_size
             if(init_in_superposition):
-                temp_state.extend(Quint.default_superposition_value * to_add)
+                temp_state.extend(Quint.get_default_superposition_value() * to_add)
             else:
-                temp_state.extend(Quint.default_value * to_add)
+                temp_state.extend(Quint.get_default_value() * to_add)
         return Quint(temp_state)
 
     def init_from_size(number_of_bits : int) -> 'Quint':
-        return Quint(Quint.default_value*number_of_bits)
+        return Quint(Quint.get_default_value()*number_of_bits)
     
     def fromValue(var_value : any) -> 'Quint':
         try:
@@ -98,7 +98,7 @@ class Quint(QuantumType['Quint']):
     
     def update_size_with_padding(self, new_size : int) -> 'Quint':
         #TODO: qubit state is not reliable, we should add the qubit needed to expend the quint directly into the circuit.
-        self.qubit_state = (Quint.default_value*(new_size - self.size) + self.qubit_state) if self.size <= new_size else self.qubit_state[:new_size-1]
+        self.qubit_state = (Quint.get_default_value*(new_size - self.size) + self.qubit_state) if self.size <= new_size else self.qubit_state[:new_size-1]
         self.size = len(self.qubit_state)
         return self
 

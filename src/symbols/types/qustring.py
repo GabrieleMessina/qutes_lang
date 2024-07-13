@@ -15,7 +15,7 @@ class Qustring(QuantumType['Qustring']):
         super().__init__()
         self.qubit_state:list[Qubit] = qubits
         self.size:int = len(self.qubit_state)
-        self.number_of_chars:int = int(self.size / Qustring.default_size_in_qubit)
+        self.number_of_chars:int = int(self.size / Qustring.get_default_size_in_qubit())
 
     def get_default_value():
         return [Qubit(complex(1),complex(0))] * Qubit.get_default_size_in_qubit()
@@ -24,7 +24,7 @@ class Qustring(QuantumType['Qustring']):
         return [Qubit(complex(0.5),complex(0.5))] * Qubit.get_default_size_in_qubit()
     
     def get_default_size_in_qubit():
-        return math.ceil(math.log2(len(Qubit.allowed_chars)))
+        return math.ceil(math.log2(len(Qustring.allowed_chars)))
 
     def get_char_from_int(int_value:int):
         if(int_value > len(Qustring.allowed_chars)):
@@ -46,9 +46,9 @@ class Qustring(QuantumType['Qustring']):
 
         for char in literal:
             if(char == Qustring.superposition_char):
-                qubyte:Quint = Quint.init_from_integer(Qustring.get_int_from_char(char), Qustring.default_size_in_qubit, True)
+                qubyte:Quint = Quint.init_from_integer(Qustring.get_int_from_char(char), Qustring.get_default_size_in_qubit(), True)
             else:
-                qubyte:Quint = Quint.init_from_integer(Qustring.get_int_from_char(char), Qustring.default_size_in_qubit)
+                qubyte:Quint = Quint.init_from_integer(Qustring.get_int_from_char(char), Qustring.get_default_size_in_qubit())
             qubits.extend(qubyte.qubit_state)
         return Qustring(qubits)
 

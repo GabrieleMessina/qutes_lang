@@ -190,13 +190,13 @@ class QutesDataType(Enum):
             case QutesDataType.qubit:
                 return 1
             case QutesDataType.int:
-                return Quint.default_size_in_qubit
+                return Quint.get_default_size_in_qubit()
             case QutesDataType.quint:
-                return Quint.default_size_in_qubit
+                return Quint.get_default_size_in_qubit()
             case QutesDataType.string:
-                return Qustring.default_size_in_qubit
+                return Qustring.get_default_size_in_qubit()
             case QutesDataType.qustring:
-                return Qustring.default_size_in_qubit
+                return Qustring.get_default_size_in_qubit()
             case QutesDataType.void:
                 return 0
             case QutesDataType.float:
