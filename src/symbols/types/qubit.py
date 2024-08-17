@@ -1,16 +1,18 @@
 from grammar_frontend.qutes_parser import QutesParser
 from symbols.types import QuantumType
 from utils.phase import Phase
+from quantum_circuit.state_preparation import StatePreparation
 import cmath
 
 class Qubit(QuantumType['Qubit']):
     def __init__(self, alpha : complex = complex(1), beta : complex = complex(0)):
+        super().__init__(Qubit)
         self.size:int = 1
         self.alpha = complex(alpha)
         self.beta = complex(beta)
         self.phase = Phase.Positive if (alpha * beta).real >= 0 else Phase.Negative 
         self.is_superposition = cmath.isclose(abs(alpha), abs(beta))
-        self.qubit_state:list[Qubit] = [self]
+        self.qubit_state = StatePreparation([self.alpha, self.beta])
 
     def get_default_value():
         return Qubit(complex(1),complex(0))
@@ -63,9 +65,6 @@ class Qubit(QuantumType['Qubit']):
             else:
                 return Qubit(complex(1), complex(0))
         raise TypeError(f"Cannot convert {type(var_value)} to qubit.")
-
-    def get_quantum_state(self) -> list[complex]:
-        return [self.alpha, self.beta]
 
     def update_size_with_padding(self, new_size : int) -> 'Quint':
         from symbols.types import Quint

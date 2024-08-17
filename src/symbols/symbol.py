@@ -24,7 +24,7 @@ class Symbol():
         self.symbol_class:SymbolClass = symbol_class
         self.symbol_declaration_static_type:QutesDataType = symbol_declaration_static_type
         self.casted_static_type:QutesDataType = casted_static_type #Promoted or Down Casted
-        self.value = value #value is not reliable on quantum types
+        self.value = value #value is not reliable on quantum types, in case of arrays it contains an array of symbols.
         self.parent_scope:ScopeTreeNode = parent_scope
         self.inner_scope:ScopeTreeNode = None
         self.ast_token_index:int = ast_token_index

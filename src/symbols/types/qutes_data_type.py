@@ -68,14 +68,12 @@ class QutesDataType(Enum):
                 return QutesDataType.bool_array 
             return QutesDataType.promote_unit_to_array_type(QutesDataType.type_of(var_value[0]))
         if isinstance(var_value, QuantumArrayType):
-            return QutesDataType.qubit_array
-        # TODO: Subscripted generics cannot be used with class and instance checks
-        # if isinstance(var_value, QuantumArrayType[Qubit]):
-        #     return QutesDataType.qubit_array
-        # if isinstance(var_value, QuantumArrayType[Quint]):
-        #     return QutesDataType.quint_array
-        # if isinstance(var_value, QuantumArrayType[Qustring]):
-        #     return QutesDataType.qustring_array
+            if var_value.unit_type == Qubit:
+                return QutesDataType.qubit_array
+            if var_value.unit_type == Quint:
+                return QutesDataType.quint_array
+            if var_value.unit_type == Qustring:
+                return QutesDataType.qustring_array
         if isinstance(var_value, Symbol):
             return var_value.symbol_declaration_static_type
         return QutesDataType.undefined
@@ -173,11 +171,11 @@ class QutesDataType(Enum):
             case QutesDataType.string_array:
                 return []
             case QutesDataType.qubit_array:
-                return QuantumArrayType[Qubit]()
+                return QuantumArrayType(Qubit)
             case QutesDataType.quint_array:
-                return QuantumArrayType[Quint]()
+                return QuantumArrayType(Quint)
             case QutesDataType.qustring_array:
-                return QuantumArrayType[Qustring]()
+                return QuantumArrayType(Qustring)
             case QutesDataType.void:
                 return None
             case _:

@@ -312,7 +312,7 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
                             phase_kickback_ancilla = self.quantum_circuit_handler.declare_quantum_register(f"phase_kickback_ancilla_{current_grover_count}", Qubit(0,1))
                             oracle_registers.append(phase_kickback_ancilla)
                     if(rotation_register == None):
-                        rotation_register = self.quantum_circuit_handler.declare_quantum_register(f"rotation(grover:{current_grover_count})", Quint.init_from_integer(0,logn,True))
+                        rotation_register = self.quantum_circuit_handler.declare_quantum_register(f"rotation(grover:{current_grover_count})", Quint.init_from_size(logn,True))
                         oracle_registers.append(rotation_register)
                         if(self.log_grover_esm_rotation):
                             registers_to_measure.append(rotation_register)
