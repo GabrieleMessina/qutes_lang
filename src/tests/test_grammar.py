@@ -151,7 +151,7 @@ class TestGrammar(QutesBaseTest):
             ("qubit", "\"test\""),
             ("quint", "\"test\""),
             ("qustring", "10q"),
-            ("qustring", "[[0,1]q, 1q]"),
+            ("qustring", "[[0,1]q, 1q]q"),
             ("qustring", "false"),
         ]
         for var_type, declaration_value in params:
