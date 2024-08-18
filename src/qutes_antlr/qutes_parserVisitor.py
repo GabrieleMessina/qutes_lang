@@ -29,6 +29,11 @@ class qutes_parserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by qutes_parser#ForeachStatement.
+    def visitForeachStatement(self, ctx:qutes_parser.ForeachStatementContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by qutes_parser#DoWhileStatement.
     def visitDoWhileStatement(self, ctx:qutes_parser.DoWhileStatementContext):
         return self.visitChildren(ctx)

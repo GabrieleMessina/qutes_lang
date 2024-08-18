@@ -44,6 +44,15 @@ class qutes_parserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by qutes_parser#ForeachStatement.
+    def enterForeachStatement(self, ctx:qutes_parser.ForeachStatementContext):
+        pass
+
+    # Exit a parse tree produced by qutes_parser#ForeachStatement.
+    def exitForeachStatement(self, ctx:qutes_parser.ForeachStatementContext):
+        pass
+
+
     # Enter a parse tree produced by qutes_parser#DoWhileStatement.
     def enterDoWhileStatement(self, ctx:qutes_parser.DoWhileStatementContext):
         pass

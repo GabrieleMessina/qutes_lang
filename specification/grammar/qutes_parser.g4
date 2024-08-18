@@ -15,6 +15,7 @@ statement
    : IF_STATEMENT expr statement #IfStatement
    | IF_STATEMENT expr statement ELSE_STATEMENT statement #IfElseStatement
    | WHILE_STATEMENT expr statement #WhileStatement
+   | FOREACH_STATEMENT variableDeclaration (COMMA variableDeclaration)? IN_STATEMENT qualifiedName statement #ForeachStatement
    | DO_STATEMENT statement WHILE_STATEMENT expr #DoWhileStatement
    | CURLY_PARENTHESIS_OPEN statement* CURLY_PARENTHESIS_CLOSE #BlockStatement
    | variableType functionName ROUND_PARENTHESIS_OPEN functionDeclarationParams? ROUND_PARENTHESIS_CLOSE statement #FunctionStatement
@@ -22,7 +23,7 @@ statement
    | qualifiedName ASSIGN expr END_OF_STATEMENT #AssignmentStatement
    | RETURN expr END_OF_STATEMENT #ReturnStatement
    | expr END_OF_STATEMENT #ExpressionStatement
-   | (MEASURE | BARRIER) #FactStatement
+   | (MEASURE | BARRIER | PRINT_LN) #FactStatement
    | END_OF_STATEMENT #EmptyStatement
    ;
 
@@ -59,7 +60,7 @@ expr // Order: https://en.wikipedia.org/wiki/Order_of_operations#Programming_lan
    | expr op=OR expr #LogicOrOperator
    // Assignment and auto assignment operators | <assoc = right> expr op=(AUTO_SUM | AUTO_DECREMENT | AUTO_MODULE | AUTO_DIVIDE | AUTO_MODULE) expr #AutoAssignmentOperator
    | op=(MCX | MCZ | MCY | SWAP) termList #MultipleUnaryOperator
-   | op=(PRINT | PAULIY | PAULIZ | HADAMARD | MEASURE) expr #UnaryOperator
+   | op=(PRINT | PRINT_LN | PAULIY | PAULIZ | HADAMARD | MEASURE) expr #UnaryOperator
    | op=MCP termList BY expr #MultipleUnaryPhaseOperator
    | termList op=IN_STATEMENT qualifiedName #GroverOperator
    ;
