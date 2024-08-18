@@ -184,27 +184,15 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
         if(self.log_code_structure): print(f"{first_term_symbol} {ctx.op.text}", end=None)
 
         if(isinstance(ctx, qutes_parser.UnaryOperatorContext)):
-            if(ctx.PRINT()):
+            if(ctx.PRINT() or ctx.PRINT_LN()):
                 if(first_term_symbol):
                     if(QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
-                        #TODO: we don't use any of this computed values, why?
                         classical_register = self.quantum_circuit_handler.run_and_measure([first_term_symbol.quantum_register])
-                        bytes_str = [reg.measured_values[0] for reg in classical_register if first_term_symbol.quantum_register.name in reg.name][0]
-                        if(first_term_symbol.symbol_declaration_static_type == QutesDataType.qustring):
-                            index = 0
-                            string_value = ""
-                            while index < first_term_symbol.value.number_of_chars * first_term_symbol.symbol_declaration_static_type.get_unit_size_in_qubit():
-                                bin_char = bytes_str[index:first_term_symbol.symbol_declaration_static_type.get_unit_size_in_qubit() + index]
-                                string_value = string_value + Qustring.get_char_from_int(int(bin_char, 2))
-                                index = index + first_term_symbol.symbol_declaration_static_type.get_unit_size_in_qubit()
-                        else:
-                            new_value = int(bytes_str, 2)
-                        #TODO: handle the conversion from a string of binadry digits to the current quantum variable type
                         #TODO: adding the next line cause a crash in the circuit 
                         # self.variables_handler.update_variable_state(first_term_symbol.name, new_value) 
-                    print(first_term_symbol)
+                    print(first_term_symbol, end=("" if ctx.PRINT() else "\n"))
                 else:
-                    print(first_term_value)
+                    print(first_term_value, end=("" if ctx.PRINT() else "\n"))
             if(ctx.PAULIY()):
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
                     result = self.quantum_circuit_handler.push_pauliy_operation(first_term_symbol.quantum_register)
