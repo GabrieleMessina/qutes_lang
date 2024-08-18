@@ -65,8 +65,9 @@ class QutesDataType(Enum):
             return QutesDataType.qustring
         if isinstance(var_value, list):
             if(len(var_value) == 0):
-                return QutesDataType.bool_array 
-            return QutesDataType.promote_unit_to_array_type(QutesDataType.type_of(var_value[0]))
+                return QutesDataType.bool_array
+            bigger_type = QutesDataType.types_are_compatible([QutesDataType.type_of(item) for item in var_value])
+            return QutesDataType.promote_unit_to_array_type(bigger_type)
         if isinstance(var_value, QuantumArrayType):
             if var_value.unit_type == Qubit:
                 return QutesDataType.qubit_array
@@ -77,6 +78,16 @@ class QutesDataType(Enum):
         if isinstance(var_value, Symbol):
             return var_value.symbol_declaration_static_type
         return QutesDataType.undefined
+    
+    def types_are_compatible(types: list['QutesDataType']) -> 'QutesDataType':
+        if len(types) == 0:
+            return QutesDataType.bool
+        if len(types) == 1:
+            return types[0]
+        if all(type == types[0] for type in types):
+            return types[0]
+        # TODO: if not all types are the same, check if they can be promoted to a common type
+        raise TypeError(f"Types {types} are not compatible.")
 
     def from_string_type(var_definition_type : str) -> 'QutesDataType':
         to_match = var_definition_type.lower()
