@@ -1,6 +1,6 @@
 //Alice create a random binary sequence
-qubit[] original_message = [0q, 0q, 0q, 0q, 0q, 0q, 0q, 0q];
-qubit[] message = [0q, 0q, 0q, 0q, 0q, 0q, 0q, 0q];
+string[] original_message = ["1", "0", "1", "0", "0", "1", "0", "1"];
+qubit[] message = [1q, 0q, 1q, 0q, 0q, 1q, 0q, 1q];
 
 //Alice create a random binary sequence of basis
 string[] alice_bases = ["1","1","0","0","0","1","1","1"];
@@ -18,6 +18,8 @@ foreach string base, int index in alice_bases{
 }
 
 // -----> Alice sends the encoded message to Bob
+// --X--> But Eve intercepts the message and tries to decode it
+measure;
 // <----- Bob receives the encoded message from Alice
 
 
@@ -50,4 +52,4 @@ foreach string base, int index in bob_bases{
 
 measure;
 
-print "If the above values matches, then no one is eyesdropping.";
+print "If the measured values matches the printed ones, then no one is eyesdropping.";
