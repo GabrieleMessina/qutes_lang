@@ -50,7 +50,7 @@ class VariablesHandler():
             #Handle quantum circuit update
             if(QutesDataType.is_quantum_type(symbol_to_update.symbol_declaration_static_type)):
                 if(new_state.is_anonymous):
-                    symbol_to_update.quantum_register = self.quantum_cirtcuit_handler.replace_quantum_register(variable_name, value_to_assign)
+                    symbol_to_update.quantum_register = self.quantum_cirtcuit_handler.create_and_assign_quantum_register(variable_name, value_to_assign)
                     if(new_state.is_quantum()):
                         self.quantum_cirtcuit_handler.delete_variable(new_state.name)
                     else:
@@ -90,6 +90,8 @@ class VariablesHandler():
             value = QutesDataType.get_default_value(qutes_type)
 
         #TODO: in case of arrays, we need to check whether the elements are of the same type, and if any type cast is needed.
+        #      also we need to create a quantum register for the array if it is a quantum type.
+        #      and modify type handler to return true for quantum check even for array types.
         variable_name = None
         value_qutes_type = QutesDataType.type_of(value)
         definition_type = qutes_type

@@ -53,22 +53,21 @@ class QuantumCircuitHandler():
         self._registers_states[new_register] = quantum_variable.qubit_state
         return new_register
     
-    # TODO: this should be a correlation operation, or a measure and then update.
-    # We cannot rely on quantum_variable.qubit_state
-    def replace_quantum_register(self,  variable_name : str, quantum_variable : Qubit|Quint|Qustring) -> QuantumRegister:
+    # TODO: this should be a correlation operation, or a measure and then update,
+    #       because we cannot rely on quantum_variable.qubit_state
+    def create_and_assign_quantum_register(self,  variable_name : str, quantum_variable : Qubit|Quint|Qustring) -> QuantumRegister:
         register_to_update = self._varname_to_register[variable_name]
         if(register_to_update is None):
             raise SystemError("Error trying to update an undeclared quantum register")
 
         if(QutesDataType.is_quantum_type(QutesDataType.type_of(quantum_variable))):
             #TODO-CRITICAL: this update actually change the reference, so all the old references around the code are still there. For now i hack this returning the new value and changing the name from update to replace.
-            #Delete old quantum register and reference
-            del self._registers_states[register_to_update]
-            self._quantum_registers.remove(register_to_update)
             #Add new quantum register
-            register_to_update = self._varname_to_register[variable_name] = QuantumRegister(quantum_variable.size, variable_name)
-            self._quantum_registers.append(register_to_update)
+            register_to_update = self.assign_quantum_register_to_variable(variable_name, QuantumRegister(quantum_variable.size, variable_name))
+            if register_to_update not in self._quantum_registers:
+                self._quantum_registers.append(register_to_update)
             self._registers_states[register_to_update] = quantum_variable.qubit_state
+            self.__cleanup_orphan_registers()
         else:
             raise SystemError("Error trying to update a quantum register with an unsupported type")
 
@@ -80,17 +79,22 @@ class QuantumCircuitHandler():
             raise SystemError("Error trying to update an undeclared quantum register")
         
         #TODO-CRITICAL(pasted from above, i don't know if this applies here too): this update actually change the reference, so all the old references around the code are still there. For now i hack this returning the new value and changing the name from update to replace.
-        
-        #TODO: check if we need to change the register size
-        #TODO: i don't know why we don't save the new quantum_register to the internal data structures.
         if(register_to_update != quantum_register):
-            #Delete old quantum register reference from the variable
-            del self._registers_states[register_to_update]
-            self._quantum_registers.remove(register_to_update)
-            #Assign already created register reference to the variable
             self._varname_to_register[variable_name] = quantum_register
+            self.__cleanup_orphan_registers()
         return quantum_register
     
+    def remove_quantum_register(self, quantum_register : QuantumRegister) -> None:
+        if self._registers_states.get(quantum_register) is not None:
+            del self._registers_states[quantum_register]
+        if quantum_register in self._quantum_registers:
+            self._quantum_registers.remove(quantum_register)
+
+    def __cleanup_orphan_registers(self):
+        to_delete = [qreg for qreg in self._quantum_registers if not any([qreg == reg for reg in self._varname_to_register.values()])]
+        for qreg in to_delete:
+            self.remove_quantum_register(qreg)
+
     def start_quantum_function(self):
         self._operation_stacks.append([])
         self._current_operation_stack = self._operation_stacks[-1]

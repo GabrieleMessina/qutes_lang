@@ -21,6 +21,7 @@ class QutesBaseVisitor(qutesVisitor):
 
         # Debug flags
         Symbol.verbose_print = verbose
+        ScopeHandlerForSymbolsUpdate.print_trace = False
         self.allow_program_print = True
         self.log_code_structure = False
         self.log_trace_enabled = False

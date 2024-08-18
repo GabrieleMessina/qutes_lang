@@ -44,7 +44,7 @@ def main(argv):
 
     quantum_circuit_handler = QuantumCircuitHandler()
 
-    grammar_listener = SymbolsDiscoveryVisitor(quantum_circuit_handler)
+    grammar_listener = SymbolsDiscoveryVisitor(quantum_circuit_handler, args.log_verbose)
     grammar_listener.visit(tree)
 
     symbols_tree = grammar_listener.scope_handler.symbols_tree
