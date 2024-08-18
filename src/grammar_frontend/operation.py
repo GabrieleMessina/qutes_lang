@@ -204,7 +204,10 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
                     result = self.quantum_circuit_handler.push_hadamard_operation(first_term_symbol.quantum_register)
             if(ctx.MEASURE()):
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
-                    #TODO: at the moment we return just the first measure value as result, but when array type got implemented, then we should return a list.
+                    #TODO:  at the moment we return just the first measure value as result, but when array type got implemented, then we should return a list.
+                    #       but also, the result will have the right value only after the circuit is run.
+                    #       we should measure immediately? or avoid to return anything?
+                    #       we already measure immediately on assignment.
                     result = self.quantum_circuit_handler.push_measure_operation([first_term_symbol.quantum_register])[0].measured_values
         if(isinstance(ctx, qutes_parser.PrefixOperatorContext)):
             if(ctx.ADD()):
