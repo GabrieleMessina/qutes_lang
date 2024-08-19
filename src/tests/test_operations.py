@@ -1,8 +1,6 @@
 from .qutes_base_test import QutesBaseTest
 
 class TestOperation(QutesBaseTest):
-    TOKEN_AST_INDEX_FOR_TESTS = 100000
-
     def assert_operation_test(self, code, var_name, expected_value_of_var):
         result = self.parse_qutes_code(code)
         actual_value_of_var = str(result.variables_handler.get_variable_symbol(var_name, self.TOKEN_AST_INDEX_FOR_TESTS).value)

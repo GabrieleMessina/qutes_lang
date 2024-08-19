@@ -1,9 +1,28 @@
 from grammar_frontend.qutes_parser import QutesParser
+from symbols.types import QuantumType
 from utils.phase import Phase
+from quantum_circuit.state_preparation import StatePreparation
 import cmath
 
-class Qubit():
-    default_block_size = 1
+class Qubit(QuantumType['Qubit']):
+    def __init__(self, alpha : complex = complex(1), beta : complex = complex(0)):
+        super().__init__(Qubit)
+        self.size:int = 1
+        self.alpha = complex(alpha)
+        self.beta = complex(beta)
+        self.phase = Phase.Positive if (alpha * beta).real >= 0 else Phase.Negative 
+        self.is_superposition = cmath.isclose(abs(alpha), abs(beta))
+        self.qubit_state = StatePreparation([self.alpha, self.beta])
+
+    def get_default_value():
+        return Qubit(complex(1),complex(0))
+    
+    def get_default_superposition_value():
+        return Qubit(complex(0.5),complex(0.5))
+    
+    def get_default_size_in_qubit():
+        return 1
+
     def from_string(literal : str) -> 'Qubit':
         try:
             literal = literal.removesuffix(QutesParser.literal_to_string(QutesParser.QUBIT_LITERAL_POSTFIX))
@@ -46,17 +65,6 @@ class Qubit():
             else:
                 return Qubit(complex(1), complex(0))
         raise TypeError(f"Cannot convert {type(var_value)} to qubit.")
-    
-    def __init__(self, alpha : complex = complex(1), beta : complex = complex(0)):
-        self.size:int = 1
-        self.alpha = complex(alpha)
-        self.beta = complex(beta)
-        self.phase = Phase.Positive if (alpha * beta).real >= 0 else Phase.Negative 
-        self.is_superposition = cmath.isclose(abs(alpha), abs(beta))
-        self.qubit_state:list[Qubit] = [self]
-
-    def get_quantum_state(self) -> list[complex]:
-        return [self.alpha, self.beta]
 
     def update_size_with_padding(self, new_size : int) -> 'Quint':
         from symbols.types import Quint
@@ -69,11 +77,6 @@ class Qubit():
         spin_str = '+' if self.phase == Phase.Positive else '-'
         if(self.is_superposition):
             return f"|{spin_str}>"
-        else:
-            return f"[(\u03B1:{self.alpha})|0> {spin_str} (\u03B2:{self.beta})|1>]"
-
-    def __str__(self) -> str:
-        return self.__to_printable__()
-
-    def __repr__(self) -> str:
-        return self.__to_printable__()
+        if(self.alpha.real == 1.0 or self.beta.real == 1.0):
+            return f"|{int(self.beta.real)}>"
+        return f"[(\u03B1:{self.alpha})|0> {spin_str} (\u03B2:{self.beta})|1>]"

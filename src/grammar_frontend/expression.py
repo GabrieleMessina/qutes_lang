@@ -5,6 +5,7 @@ from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
 from symbols.variables_handler import VariablesHandler
 from quantum_circuit import QuantumCircuitHandler
 from grammar_frontend.qutes_base_visitor import QutesBaseVisitor
+from symbols.types import QutesDataType
 
 class QutesGrammarExpressionVisitor(QutesBaseVisitor):
     def __init__(self, symbols_tree:ScopeTreeNode, quantum_circuit_handler : QuantumCircuitHandler, scope_handler:ScopeHandlerForSymbolsUpdate, variables_handler:VariablesHandler, verbose:bool = False):
@@ -21,12 +22,15 @@ class QutesGrammarExpressionVisitor(QutesBaseVisitor):
     
     def visitQualifiedNameExpression(self, ctx:qutes_parser.QualifiedNameExpressionContext):
         return self.visit(ctx.qualifiedName())
+    
+    def visitArrayExpression(self, ctx:qutes_parser.ArrayExpressionContext):
+        return self.visit(ctx.array())
 
     def visitFunctionCallExpression(self, ctx:qutes_parser.FunctionCallExpressionContext):
         function_name = self.visit(ctx.functionName())
         function_params:list[Symbol] = []
-        if(ctx.functionCallParams()):
-            function_params = self.visit(ctx.functionCallParams())
+        if(ctx.termList()):
+            function_params = self.visit(ctx.termList())
         result:Symbol = self.__visitFunctionCall(function_name, function_params, ctx.start.tokenIndex)
         #TODO: staff commented for make return value work for quantum variable, do some tests to assure the behaviour is correct
         # function_symbol = self.variables_handler.get_function_symbol(function_name, ctx.start.tokenIndex, function_params)
@@ -62,3 +66,15 @@ class QutesGrammarExpressionVisitor(QutesBaseVisitor):
 
         self.scope_handler.end_function()
         return result
+    
+    def visitArrayAccessExpression(self, ctx:qutes_parser.ArrayAccessExpressionContext):
+        array_symbol:Symbol = self.visit(ctx.expr(0))
+        index_symbol:Symbol = self.visit(ctx.expr(1))
+
+        array_value = self.variables_handler.get_value(array_symbol)
+        index_value = self.variables_handler.get_value(index_symbol)
+        
+        value = array_value[index_value] 
+        if not isinstance(value, Symbol):
+            value = self.variables_handler.declare_anonymous_variable(QutesDataType.get_unit_type_from_array_type(array_symbol.casted_static_type), value, array_symbol.ast_token_index)
+        return value

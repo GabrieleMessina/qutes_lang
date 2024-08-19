@@ -83,7 +83,7 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
                     if(second_term_symbol and not QutesDataType.is_quantum_type(second_term_symbol.symbol_declaration_static_type)):
                         from quantum_circuit.qutes_gates import QutesGates
-                        self.quantum_circuit_handler.push_compose_circuit_operation(QutesGates.left_rot(len(first_term_symbol.quantum_register), second_term_value, 1), [first_term_symbol.quantum_register]) #TODO: handle block size
+                        self.quantum_circuit_handler.push_compose_circuit_operation(QutesGates.left_rot(len(first_term_symbol.quantum_register), second_term_value, first_term_symbol.casted_static_type.get_unit_size_in_qubit()), [first_term_symbol.quantum_register])
                         result = first_term_symbol
                     else:
                         raise NotImplementedError("Left shift operator doesn't support second term to be a quantum variable.")
@@ -93,7 +93,7 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
                     if(second_term_symbol and not QutesDataType.is_quantum_type(second_term_symbol.symbol_declaration_static_type)):
                         from quantum_circuit.qutes_gates import QutesGates
-                        self.quantum_circuit_handler.push_compose_circuit_operation(QutesGates.right_rot(len(first_term_symbol.quantum_register), second_term_value, 1), [first_term_symbol.quantum_register]) #TODO: handle block size
+                        self.quantum_circuit_handler.push_compose_circuit_operation(QutesGates.right_rot(len(first_term_symbol.quantum_register), second_term_value, first_term_symbol.casted_static_type.get_unit_size_in_qubit()), [first_term_symbol.quantum_register])
                         result = first_term_symbol
                     else:
                         raise NotImplementedError("Right shift operator doesn't support second term to be a quantum variable.")
@@ -113,7 +113,7 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
                     pass
                 result = first_term_value % second_term_value
         
-        return self.variables_handler.create_anonymous_symbol(QutesDataType.type_of(result), result, ctx.start.tokenIndex)
+        return self.variables_handler.declare_anonymous_variable(QutesDataType.type_of(result), result, ctx.start.tokenIndex)
     
     def __visit_boolean_operation(self, ctx:qutes_parser.RelationalOperatorContext | qutes_parser.EqualityOperatorContext | qutes_parser.LogicAndOperatorContext | qutes_parser.LogicOrOperatorContext):
         result = None
@@ -149,10 +149,11 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
         elif(isinstance(ctx, qutes_parser.LogicOrOperatorContext)):
             if(ctx.OR()):
                 result = first_term_value or second_term_value
-        return self.variables_handler.create_anonymous_symbol(QutesDataType.bool, result, ctx.start.tokenIndex)
+        return self.variables_handler.declare_anonymous_variable(QutesDataType.bool, result, ctx.start.tokenIndex)
 
     def __visitMultipleUnaryOperator(self, ctx:qutes_parser.MultipleUnaryOperatorContext):
         terms:list[Symbol] = self.visit(ctx.termList())
+        terms.reverse()
         registers = [register.quantum_register for register in terms]
         if(self.log_code_structure): print(f"{ctx.op.text} {registers}", end=None)
         if(ctx.MCZ()):
@@ -167,6 +168,7 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
 
     def __visitMultipleUnaryPhaseOperator(self, ctx:qutes_parser.MultipleUnaryPhaseOperatorContext):
         terms:list[Symbol] = self.visit(ctx.termList())
+        terms.reverse()
         registers = [register.quantum_register for register in terms]
         theta:Symbol = self.visit(ctx.expr())
         if(self.log_code_structure): print(f"{ctx.op.text} {registers} by {theta}", end=None)
@@ -182,28 +184,15 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
         if(self.log_code_structure): print(f"{first_term_symbol} {ctx.op.text}", end=None)
 
         if(isinstance(ctx, qutes_parser.UnaryOperatorContext)):
-            if(ctx.PRINT()):
+            if(ctx.PRINT() or ctx.PRINT_LN()):
                 if(first_term_symbol):
                     if(QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
                         classical_register = self.quantum_circuit_handler.run_and_measure([first_term_symbol.quantum_register])
-                        bytes_str = [reg.measured_values[0] for reg in classical_register if first_term_symbol.quantum_register.name in reg.name][0]
-                        if(first_term_symbol.symbol_declaration_static_type == QutesDataType.qustring):
-                            index = 0
-                            string_value = ""
-                            while index < first_term_symbol.value.number_of_chars * Qustring.default_char_size:
-                                bin_char = bytes_str[index:Qustring.default_char_size + index]
-                                string_value = string_value + Qustring.get_char_from_int(int(bin_char, 2))
-                                index = index + Qustring.default_char_size
-                            print(string_value)
-                        else:
-                            new_value = int(bytes_str, 2)
-                            print(new_value)
-                        #TODO: handle the conversion from a string of binadry digits to the current quantum variable type
                         #TODO: adding the next line cause a crash in the circuit 
                         # self.variables_handler.update_variable_state(first_term_symbol.name, new_value) 
-                    print(first_term_symbol)
+                    print(first_term_symbol, end=("" if ctx.PRINT() else "\n"))
                 else:
-                    print(first_term_value)
+                    print(first_term_value, end=("" if ctx.PRINT() else "\n"))
             if(ctx.PAULIY()):
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
                     result = self.quantum_circuit_handler.push_pauliy_operation(first_term_symbol.quantum_register)
@@ -215,7 +204,10 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
                     result = self.quantum_circuit_handler.push_hadamard_operation(first_term_symbol.quantum_register)
             if(ctx.MEASURE()):
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
-                    #TODO: at the moment we return just the first measure value as result, but when array type got implemented, then we should return a list.
+                    #TODO:  at the moment we return just the first measure value as result, but when array type got implemented, then we should return a list.
+                    #       but also, the result will have the right value only after the circuit is run.
+                    #       we should measure immediately? or avoid to return anything?
+                    #       we already measure immediately on assignment.
                     result = self.quantum_circuit_handler.push_measure_operation([first_term_symbol.quantum_register])[0].measured_values
         if(isinstance(ctx, qutes_parser.PrefixOperatorContext)):
             if(ctx.ADD()):
@@ -246,15 +238,15 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
         if(isinstance(ctx, qutes_parser.PostfixOperatorContext)):
             #TODO: handle quantum
             if(ctx.AUTO_INCREMENT()):
-                result = self.variables_handler.create_anonymous_symbol(QutesDataType.type_of(first_term_symbol), first_term_value, ctx.start.tokenIndex)
+                result = self.variables_handler.declare_anonymous_variable(QutesDataType.type_of(first_term_symbol), first_term_value, ctx.start.tokenIndex)
                 first_term_symbol.value = first_term_symbol.value + 1 
                 return result
             if(ctx.AUTO_DECREMENT()):
-                result = self.variables_handler.create_anonymous_symbol(QutesDataType.type_of(first_term_symbol), first_term_value, ctx.start.tokenIndex)
+                result = self.variables_handler.declare_anonymous_variable(QutesDataType.type_of(first_term_symbol), first_term_value, ctx.start.tokenIndex)
                 first_term_symbol.value = first_term_symbol.value - 1 
                 return result
 
-        return self.variables_handler.create_anonymous_symbol(QutesDataType.type_of(result), result, ctx.start.tokenIndex)
+        return self.variables_handler.declare_anonymous_variable(QutesDataType.type_of(result), result, ctx.start.tokenIndex)
 
     grover_count = iter(range(1, 1000))
     def visitGroverOperator(self, ctx:qutes_parser.GroverOperatorContext):
@@ -267,14 +259,15 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
             array_register = target_symbol.quantum_register
             block_size = 1
             try:
-                block_size = target_symbol.value.default_block_size
+                block_size = target_symbol.symbol_declaration_static_type.get_unit_size_in_qubit()
             except:
                 pass
             array_size = int(len(target_symbol.quantum_register)/block_size)
             n_element_to_rotate = array_size/block_size
 
             self.quantum_circuit_handler.start_quantum_function()
-            termList:list[Symbol] = self.visit(ctx.termList())            
+            termList:list[Symbol] = self.visit(ctx.termList())    
+            termList.reverse()        
 
             grover_result = self.quantum_circuit_handler.declare_quantum_register("grover_phase_ancilla", Qubit())
             oracle_registers = [array_register]
@@ -286,6 +279,7 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
 
             for term in termList:
                 if(not QutesDataType.is_array_type(target_symbol.casted_static_type)):
+                    #TODO: Write tests for this case.
                     self.quantum_circuit_handler.push_equals_operation(array_register, term.value)
                     if(len(array_register) == 1):
                         if(phase_kickback_ancilla == None):
@@ -309,7 +303,7 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
                             phase_kickback_ancilla = self.quantum_circuit_handler.declare_quantum_register(f"phase_kickback_ancilla_{current_grover_count}", Qubit(0,1))
                             oracle_registers.append(phase_kickback_ancilla)
                     if(rotation_register == None):
-                        rotation_register = self.quantum_circuit_handler.declare_quantum_register(f"rotation(grover:{current_grover_count})", Quint.init_from_integer(0,logn,True))
+                        rotation_register = self.quantum_circuit_handler.declare_quantum_register(f"rotation(grover:{current_grover_count})", Quint.init_from_size(logn,True))
                         oracle_registers.append(rotation_register)
                         if(self.log_grover_esm_rotation):
                             registers_to_measure.append(rotation_register)
@@ -335,6 +329,6 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
                         for result in positive_results:
                             print(f"Solution found with {int(rotation_register.measured_classical_register.measured_values[result[0]], 2)} left rotations")
                             # print(f"Solution found with rotation {int(rotation_register.measured_classical_register.measured_values[result[0]], 2) % (n_element_to_rotate)}")
-                    return self.variables_handler.create_anonymous_symbol(QutesDataType.bool, True, ctx.start.tokenIndex)
+                    return self.variables_handler.declare_anonymous_variable(QutesDataType.bool, True, ctx.start.tokenIndex)
                 registers_to_measure.remove(oracle_result)
-            return self.variables_handler.create_anonymous_symbol(QutesDataType.bool, False, ctx.start.tokenIndex)
+            return self.variables_handler.declare_anonymous_variable(QutesDataType.bool, False, ctx.start.tokenIndex)

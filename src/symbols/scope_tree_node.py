@@ -23,3 +23,12 @@ class ScopeTreeNode(NodeMixin): #TODO: rename to ASTNode?
         self.parent = parent
         if children:
             self.children = children
+    
+    def __to_printable__(self) -> str:
+        return f"{self.scope_class}/{self.scope_type_detail}: {self.symbols}"
+
+    def __str__(self) -> str:
+        return self.__to_printable__()
+
+    def __repr__(self) -> str:
+        return self.__to_printable__()

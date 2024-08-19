@@ -2,6 +2,7 @@ from symbols.types import Qubit, Quint, Qustring
 from .qutes_base_test import QutesBaseTest
 from grammar_frontend.qutes_grammar_visitor import QutesGrammarVisitor
 from qutes_antlr.qutes_parserVisitor import __name__ as qutes_parserVisitor_class_name
+from quantum_circuit.state_preparation import StatePreparation
 import inspect
 
 def sanitizeForVariableDeclarationUsage(value:any) -> str:
@@ -77,7 +78,7 @@ class TestGrammar(QutesBaseTest):
             ("bool", "0", False),
             ("bool", "TRUE", True),
             ("bool", "1", True),
-            ("bool", "1q", True), #TODO: handle, the quantum var should be declared even when anonymous, so we can measure and assign the value to bool.
+            ("bool", "1q", True),
             ("bool", "0q", False),
             ("int", "10", 10),
             ("int", "9", 9),
@@ -127,7 +128,7 @@ class TestGrammar(QutesBaseTest):
             ("qubit", "|->", Qubit(0.5, -0.5)),
             ("quint", "10q", Quint.fromValue(10)),
             ("quint", "false", Quint.fromValue(0)),
-            ("quint", "[[0,1]q, 1q]", Quint([Qubit(0.5, 0.5), Qubit(0, 1)])),
+            ("quint", "[[0,1]q, 1q]q", Quint(StatePreparation([complex(0), complex(1), complex(0), complex(1)]))),
             ("qustring", "\"test\"", Qustring.fromValue("test")),
             ("qustring", "\"t*st\"", Qustring.fromValue("t*st")),
             ("qustring", "1q", Qustring.fromValue(Qubit(0,1))),
@@ -141,8 +142,8 @@ class TestGrammar(QutesBaseTest):
                         """
                 result = self.parse_qutes_code(code)
 
-                actual_value_of_var = str(result.variables_handler.get_variable_symbol(var_name, self.TOKEN_AST_INDEX_FOR_TESTS).value)
-                self.assertEqual(actual_value_of_var, str(expected_value_of_var), f"Expected value: {expected_value_of_var}, actual value: {actual_value_of_var}")
+                actual_value_of_var = result.variables_handler.get_variable_symbol(var_name, self.TOKEN_AST_INDEX_FOR_TESTS).value.qubit_state
+                self.assertEqual(actual_value_of_var, expected_value_of_var.qubit_state, f"Expected value: {expected_value_of_var}, actual value: {actual_value_of_var}")
 
     def test_quantum_type_declaration_throws(self):
         params = [
@@ -151,7 +152,7 @@ class TestGrammar(QutesBaseTest):
             ("qubit", "\"test\""),
             ("quint", "\"test\""),
             ("qustring", "10q"),
-            ("qustring", "[[0,1]q, 1q]"),
+            ("qustring", "[[0,1]q, 1q]q"),
             ("qustring", "false"),
         ]
         for var_type, declaration_value in params:
@@ -180,6 +181,5 @@ class TestGrammar(QutesBaseTest):
                 {{ string {var_name} = {declaration_value_of_var}; }}
                 """
         result = self.parse_qutes_code(code)
-        result.scope_handler.push_scope()
-        actual_value_of_var = str(result.variables_handler.get_variable_symbol(var_name, self.TOKEN_AST_INDEX_FOR_TESTS).value)
-        self.assertEqual(actual_value_of_var, str(expected_value_of_var), f"Expected value: {expected_value_of_var}, actual value: {actual_value_of_var}")
+        actual_value_of_var = [symbol.value for symbol in result.scope_handler.symbols_tree.children[0].symbols if symbol.name == var_name][-1]
+        self.assertEqual(str(actual_value_of_var), str(expected_value_of_var), f"Expected value: {expected_value_of_var}, actual value: {actual_value_of_var}")

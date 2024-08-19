@@ -1,6 +1,6 @@
 """A compiler for Qutes Lang source file"""
 
-import sys
+import sys, os
 import argparse
 from antlr4 import FileStream, CommonTokenStream
 from anytree import RenderTree
@@ -26,6 +26,7 @@ def main(argv):
     parser.add_argument('file_path', metavar='file_path', help='The file path of the Qutes source code.')
     args = parser.parse_args()
 
+    user_qutes_program_name = os.path.basename(args.file_path)
     input_stream = FileStream(args.file_path)
     lexer = QutesLexer(input_stream)
     lexer.removeErrorListeners()
@@ -43,7 +44,7 @@ def main(argv):
 
     quantum_circuit_handler = QuantumCircuitHandler()
 
-    grammar_listener = SymbolsDiscoveryVisitor(quantum_circuit_handler)
+    grammar_listener = SymbolsDiscoveryVisitor(quantum_circuit_handler, args.log_verbose)
     grammar_listener.visit(tree)
 
     symbols_tree = grammar_listener.scope_handler.symbols_tree
@@ -73,7 +74,7 @@ def main(argv):
     print()
     print("----Quantum Circuit----")
     circuit = quantum_circuit_handler.create_circuit()
-    quantum_circuit_handler.print_circuit(circuit, args.save_circuit_as_image, args.log_quantum_circuit)
+    quantum_circuit_handler.print_circuit(circuit, args.save_circuit_as_image, args.log_quantum_circuit, user_qutes_program_name)
     quantum_circuit_handler.run_circuit(circuit, args.number_of_iterations, print_count=True)
 
     print()

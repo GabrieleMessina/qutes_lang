@@ -1,6 +1,6 @@
 //basic boolean 
 /*{
-    //a = 10; //TODO: this should not be possible if 'a' not declared before usage.
+    //a = 10; //'a' declared before usage.
     bool a = true;
     bool b = FALSE;
     bool c = 1;
@@ -11,8 +11,6 @@
 /*{
     int a=2+3;
     int i=1;
-    int x=0xa1;//TODO:handle
-    int h=0b01;//TODO:handle
     a;
     i=i+i;
     //2+"a"; //this gives an error and that it's as intended, it's how the lower level language handle this kind of operation between two types.
@@ -60,7 +58,7 @@
     int i=0;
     qubit qu = 0q;
     quint num = 1q;
-    //quint num = 10q; //TODO: fix circuit register size
+    //quint num = 10q;
     //print num;
     while (i<3){
         i=i+1;
@@ -70,7 +68,7 @@
     // print num;
     int number = num;
     bool test = qu;
-    //if(num > 0){ // TODO: implement operator on quntum types
+    //if(num > 0){
     print number;
     if(number > 0){
         print "positive";
@@ -91,7 +89,7 @@
     qubit ad = 0q;
    
     bool bo = true;
-    // qubit qbo = bo; //TODO: handle
+    // qubit qbo = bo;
 
     // qubit ae = 1q;
     // qubit bd = -0q;
@@ -106,7 +104,7 @@
     pauliz f;
     hadamard g;
     f + g;
-    // qubit hx = f + g; //TODO: handle assignment after expression
+    qubit hx = f + g;
 }*/
 
 //quints tests
@@ -126,13 +124,13 @@
     //quint c = 10q;
     //quint d = 4q;
     //quint re = c + d;
-    //c + d + ax; //TODO: handle multiple quantum variable sum
+    //c + d + ax;
 
     //quint aa = [0q, 0q, 1q]; //quint representing the number 1
     //quint bb = [[0, 1]q, 0q, 1q]; //quint with a superposition state where the most significant bit can be 0(50%) or 1(50%)
     //quint cc = [0.7,0.3q, 0q, 1q]; //quint with a superposition state where the most significant bit can be 0(70%) or 1(30%)
     //quint dd = [1, 3]q; //quint with a superposition state that can be both 1(50%) or 3(50%)
-    //quint d = -12q; //TODO: handle negative numbers (two's complement?)
+    //quint d = -12q;
 }*/
 
 //measures tests
@@ -149,7 +147,7 @@
     //measure re;
 }*/
 
-//Circuit scope tests //TODO: handle quantum circuit and variable scopes  
+//Circuit scope tests
 /*{
     //This two blocks can be two different circuits.
     // {
@@ -190,10 +188,9 @@
     //     qubit b = [1]q;
     //     quint x = a + b;
     //     print x;
-    //     int classical = x; //TODO: this triggers two measures
+    //     int classical = x;
     //     print classical;
         
-    //     //TODO: this prints too many times because a measure gate it's permanently added to the circuit
     //     // measure x;
     //     // print x;
     // }
@@ -208,23 +205,19 @@
     // {
     //     qubit a = [true]q;
     //     qubit b = [true]q;
-    //     int classical = a + 1; //TODO: handle operation between different types
+    //     int classical = a + 1;
     // }
 
     // {
     //     int a = 12;
     //     qubit b = [true]q;
-    //     //TODO: 'a' should be casted to quint.
-    //             //We can measure 'b' and then sum classically to 'a' but that would not be a smart choice because 'c' cannot take advantage from the quantum state of 'b' 
     //     quint c = a + b;
     // }
 
     // {
     //     quint a = 12;
-    //     //TODO: this should be handle as an aliasing of 'b' -> 'a' 
-    //             //or should be handle as a correlation between 'a' and 'b' with cnot(s)?
     //     quint b = a; 
-    //     qubit c = a; //TODO: downcast? 
+    //     qubit c = a;
     // }
 }*/
 
@@ -257,7 +250,7 @@
 
 //Functions tests II
 /*{
-    // bool A (int c = 10, bool aa){ //TODO: right now everything should has a default value, so we can handle params with no default value after those with default values, but we should think about it because this could be problematic.
+    // bool A (int c = 10, bool aa){
     //     bool a = true;
     //     print a;
     //     print c;
@@ -276,7 +269,8 @@
             B(aa);
         }
     }
-    //print A(); //TODO: invali, A() is expression while print works on term.
+    //print A();
+    //print A;
 }*/
 
 //Functions tests III with quantum types
@@ -340,23 +334,7 @@
 
 //Grover II
 /*{
-    //TODO: in the current implementation the parser counts for each bit the times it's equal to 1,
-    //      but this means we could have a 5 from measuring 'a' below.
-    //      there is a way of initialize the qubits so that they cannot reach unwanted values?
     //quint a = [1,4,6]q;
-
-    //TODO: we need to implement arrays, because we cannot assume to execute a query on a quint/qubit in superposition.
-    //      in the case of string (but the same is true for quint) "abaa" is actually an array of quchar,
-    //      we need to search for a char in this array, 
-    //      while currently we are just checking that the qustring is equal to the pattern we provide to the search operartion.
-    //
-    //      seeing that a qustring is already some sort of array, we can use the current implementation of the search,
-    //      we just need to execute the search in parallel upon all chars in qustring.
-    //      The same approch could be used for quint.
-    //
-    //      In the future, we could handle the substring matching procedure, 
-    //      so that we can choose to search for a single element in the sequence or
-    //      or a sequence in the sequence.
 
     //quint a = [[0,1]q, [0,1]q, [0,1]q, [0,1]q];
     //search 4 in a;
@@ -366,7 +344,6 @@
     qustring a = "ab";
     search "a" in a;
 
-    //TODO: even number of solutions cause a fail, we need to add ancillas to avoid this.
     // qustring a = "abb";
     // search "b" in a;
 }*/
