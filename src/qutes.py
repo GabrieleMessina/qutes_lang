@@ -27,7 +27,7 @@ def main(argv):
     args = parser.parse_args()
 
     user_qutes_program_name = os.path.basename(args.file_path)
-    input_stream = FileStream(args.file_path)
+    input_stream = FileStream(args.file_path, encoding='utf-8')
     lexer = QutesLexer(input_stream)
     lexer.removeErrorListeners()
     lexer.addErrorListener(QutesErrorListener())
