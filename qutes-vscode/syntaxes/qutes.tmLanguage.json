@@ -5,12 +5,12 @@
   "patterns": [
     {
       "name": "keyword.control.qutes",
-      "match": "\\b(if|else|while|do|return|in|by)\\b"
+      "match": "\\b(for|foreach|if|else|while|do|return|in|by)\\b"
     },
     {
       "name": "keyword.operator.qutes",
-      "match": "(\\*|/(?!/)|%|\\+|\\-|==|!=|>|>=|<|<=|=)|\\b(and|or|not|pauliy|pauliz|grover|mcz|mcx|mcp|mcy|swap|hadamard|measure|print|barrier)\\b|(\\+\\+|\\-\\-|\\+=|\\-=|\\*=|/=|&=)"
-    },
+      "match": "((?<!/)\\*(?!/)|(?<![\/\\*])/(?![\/\\*])|%|\\+|\\-|==|!=|>|>=|<|<=|=)|\\b(and|or|not|pauliy|pauliz|grover|mcz|mcx|mcp|mcy|swap|hadamard|measure|print|println|barrier)\\b|(\\+\\+|\\-\\-|\\+=|\\-=|\\*=|/=|&=)"
+    }
     {
       "name": "storage.type.qutes",
       "match": "\\b(qustring|quint|qubit|int|string|bool|void|float)\\b"
