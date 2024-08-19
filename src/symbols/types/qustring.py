@@ -64,6 +64,8 @@ class Qustring(QuantumType['Qustring']):
             return Qustring(var_value.qubit_state)
         if(isinstance(var_value, str)):
             return Qustring.init_from_string(var_value)
+        if(isinstance(var_value, list)):
+            return Quint.init_from_string("".join([str(int(i)) for i in var_value]))
         raise TypeError(f"Cannot convert {type(var_value)} to quint.")
     
     def to_classical_type(self) -> int:

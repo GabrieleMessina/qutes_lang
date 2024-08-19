@@ -55,9 +55,6 @@ class Symbol():
     def is_array(self) -> bool:
         return QutesDataType.is_array_type(self.symbol_declaration_static_type)
     
-    def get_array_unit_type(self) -> bool:
-        pass #TODO: handle
-
     def __to_printable__(self) -> str:
         if(Symbol.verbose_print):
             if self.symbol_class is SymbolClass.FunctionSymbol:

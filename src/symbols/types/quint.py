@@ -78,9 +78,11 @@ class Quint(QuantumType['Quint']):
                 return Quint.init_from_integer(var_value)
             if(isinstance(var_value, bool)):
                 return Quint.init_from_integer(var_value)
+            if(isinstance(var_value, list)):
+                return Quint.init_from_integer(int("".join([str(int(i)) for i in var_value]), 2))
             raise TypeError(f"Cannot convert {type(var_value)} to quint.")
-        except:
-            raise TypeError(f"Cannot convert {type(var_value)} to quint.")
+        except Exception as e:
+            raise TypeError(f"Cannot convert {type(var_value)} to quint: {e}.")
             
     def update_size_with_padding(self, new_size : int) -> 'Quint':
         #TODO: qubit state is not reliable, we should add the qubit needed to expand the quint directly into the circuit.

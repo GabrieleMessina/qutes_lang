@@ -156,6 +156,25 @@ class QutesDataType(Enum):
                 return QutesDataType.qustring_array
             case _:
                 return QutesDataType.undefined
+            
+    def get_unit_type_from_array_type(array_type : 'QutesDataType') -> 'QutesDataType':
+        match array_type:
+            case QutesDataType.bool_array:
+                return QutesDataType.bool
+            case QutesDataType.int_array:
+                return QutesDataType.int
+            case QutesDataType.float_array:
+                return QutesDataType.float
+            case QutesDataType.string_array:
+                return QutesDataType.string
+            case QutesDataType.qubit_array:
+                return QutesDataType.qubit
+            case QutesDataType.quint_array:
+                return QutesDataType.quint
+            case QutesDataType.qustring_array:
+                return QutesDataType.qustring
+            case _:
+                return QutesDataType.undefined
 
     def get_default_value(var_type : 'QutesDataType'):
         match var_type:
