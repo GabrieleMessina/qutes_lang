@@ -10,7 +10,7 @@
     {
       "name": "keyword.operator.qutes",
       "match": "((?<!/)\\*(?!/)|(?<![\/\\*])/(?![\/\\*])|%|\\+|\\-|==|!=|>|>=|<|<=|=)|\\b(and|or|not|pauliy|pauliz|grover|mcz|mcx|mcp|mcy|swap|hadamard|measure|print|println|barrier)\\b|(\\+\\+|\\-\\-|\\+=|\\-=|\\*=|/=|&=)"
-    }
+    },
     {
       "name": "storage.type.qutes",
       "match": "\\b(qustring|quint|qubit|int|string|bool|void|float)\\b"
