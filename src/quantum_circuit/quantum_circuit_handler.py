@@ -6,6 +6,7 @@ from quantum_circuit.quantum_circuit import QuantumCircuit
 from quantum_circuit.quantum_register import QuantumRegister, QiskitQubit
 from symbols.types import Qubit, Quint, Qustring, QutesDataType
 from qiskit import IBMQ, Aer, QiskitError, transpile
+from quantum_circuit.state_preparation import StatePreparation
 from qiskit.primitives import Sampler
 from qiskit.circuit.quantumcircuit import QubitSpecifier, CircuitInstruction
 from qiskit.circuit.library import GroverOperator, MCMT, ZGate, QFT, XGate, YGate, HGate, CXGate, MCXGate, PhaseGate
@@ -23,7 +24,7 @@ def unwrap(l:list[QuantumRegister|ClassicalRegister]) -> list:
 class QuantumCircuitHandler():
     def __init__(self):
         self._quantum_registers : list[QuantumRegister] = []
-        self._registers_states : dict[QuantumRegister | ClassicalRegister, list[complex] | str | None] = {}
+        self._registers_states : dict[QuantumRegister | ClassicalRegister, StatePreparation] = {}
         self._classic_registers : list[ClassicalRegister] = []
         self._operation_stacks :  list[list[Callable[[QuantumCircuit], None]]] = [[]]
         self._current_operation_stack :  list[Callable[[QuantumCircuit], None]] = self._operation_stacks[-1]
@@ -35,13 +36,13 @@ class QuantumCircuitHandler():
         self._classic_registers.append(new_register)
         return new_register
 
-    def delete_classical_register(self,  variable_name : str) -> None:
+    def delete_variable(self,  variable_name : str) -> None:
         register = self._varname_to_register[variable_name]
-        self._classic_registers.remove(register)
+        if(register not in self._varname_to_register.values()):
+            self._classic_registers.remove(register)
 
-    def declare_quantum_register(self, variable_name : str, quantum_variable : any) -> QuantumRegister:
+    def declare_quantum_register(self, variable_name : str, quantum_variable : Qubit|Quint|Qustring) -> QuantumRegister:
         new_register = None
-
         new_register = QuantumRegister(quantum_variable.size, variable_name)
 
         if(new_register is None):
@@ -49,26 +50,27 @@ class QuantumCircuitHandler():
 
         self._varname_to_register[variable_name] = new_register
         self._quantum_registers.append(new_register)
-        self._registers_states[new_register] = quantum_variable.get_quantum_state()
+        self._registers_states[new_register] = quantum_variable.qubit_state
         return new_register
     
-    # TODO: this should be a correlation operation, or a measure and then update.
-    # We cannot rely on quantum_variable.get_quantum_state()
-    def replace_quantum_register(self,  variable_name : str, quantum_variable : any) -> QuantumRegister:
+    # TODO: this should be a correlation operation, or a measure and then update,
+    #       because we cannot rely on quantum_variable.qubit_state
+    def create_and_assign_quantum_register(self,  variable_name : str, quantum_variable : Qubit|Quint|Qustring) -> QuantumRegister:
         register_to_update = self._varname_to_register[variable_name]
         if(register_to_update is None):
             raise SystemError("Error trying to update an undeclared quantum register")
 
-        if(isinstance(quantum_variable, Qubit) or isinstance(quantum_variable, Quint) or isinstance(quantum_variable, Qustring)):
+        if(QutesDataType.is_quantum_type(QutesDataType.type_of(quantum_variable))):
             #TODO-CRITICAL: this update actually change the reference, so all the old references around the code are still there. For now i hack this returning the new value and changing the name from update to replace.
-            #Delete old quantum register and reference
-            del self._registers_states[register_to_update]
-            self._quantum_registers.remove(register_to_update)
             #Add new quantum register
-            register_to_update = self._varname_to_register[variable_name] = QuantumRegister(quantum_variable.size, variable_name)
-            self._quantum_registers.append(register_to_update)
+            register_to_update = self.assign_quantum_register_to_variable(variable_name, QuantumRegister(quantum_variable.size, variable_name))
+            if register_to_update not in self._quantum_registers:
+                self._quantum_registers.append(register_to_update)
+            self._registers_states[register_to_update] = quantum_variable.qubit_state
+            self.__cleanup_orphan_registers()
+        else:
+            raise SystemError("Error trying to update a quantum register with an unsupported type")
 
-        self._registers_states[register_to_update] = quantum_variable.get_quantum_state()
         return register_to_update
 
     def assign_quantum_register_to_variable(self,  variable_name : str, quantum_register : QuantumRegister) -> QuantumRegister:
@@ -77,17 +79,22 @@ class QuantumCircuitHandler():
             raise SystemError("Error trying to update an undeclared quantum register")
         
         #TODO-CRITICAL(pasted from above, i don't know if this applies here too): this update actually change the reference, so all the old references around the code are still there. For now i hack this returning the new value and changing the name from update to replace.
-        
-        #TODO: check if we need to change the register size
-        #TODO: i don't know why we don't save the new quantum_register to the internal data structures.
         if(register_to_update != quantum_register):
-            #Delete old quantum register reference from the variable
-            del self._registers_states[register_to_update]
-            self._quantum_registers.remove(register_to_update)
-            #Assign already created register reference to the variable
             self._varname_to_register[variable_name] = quantum_register
+            self.__cleanup_orphan_registers()
         return quantum_register
     
+    def remove_quantum_register(self, quantum_register : QuantumRegister) -> None:
+        if self._registers_states.get(quantum_register) is not None:
+            del self._registers_states[quantum_register]
+        if quantum_register in self._quantum_registers:
+            self._quantum_registers.remove(quantum_register)
+
+    def __cleanup_orphan_registers(self):
+        to_delete = [qreg for qreg in self._quantum_registers if not any([qreg == reg for reg in self._varname_to_register.values()])]
+        for qreg in to_delete:
+            self.remove_quantum_register(qreg)
+
     def start_quantum_function(self):
         self._operation_stacks.append([])
         self._current_operation_stack = self._operation_stacks[-1]
@@ -108,11 +115,11 @@ class QuantumCircuitHandler():
             circuit = QuantumCircuit(*regs)
 
         for register in self._quantum_registers:
-            # circuit.initialize('01', register, True)
-            # circuit.initialize([0, 1/np.sqrt(2), -1.j/np.sqrt(2), 0], register, True)
-            # TODO: the following should be pushed as an operation because we don't want this to execute while creating gates.
             if(do_initialization):
-                circuit.prepare_state(self._registers_states[register], register, "|0⟩-|1⟩/√2 ",normalize=True)
+                if(isinstance(self._registers_states[register], Gate)):
+                    circuit.compose(self._registers_states[register], register, inplace=True)
+                else:
+                    raise SystemError("Error trying to initialize a quantum register with an unsupported type")
         for operation in self._current_operation_stack:
             operation(circuit)
         return circuit
@@ -217,9 +224,9 @@ class QuantumCircuitHandler():
         (_, classical_registers) = self.get_run_and_measure_results(quantum_registers, classical_registers, repetition, max_results, print_count)
         return classical_registers
     
-    def get_run_and_measure_result_for_quantum_var(self, quantum_register : QuantumRegister, classical_register : ClassicalRegister = None, repetition = 1, max_results = 1, print_count:bool = False) -> tuple[str, ClassicalRegister]:        
+    def get_run_and_measure_result_for_quantum_var(self, quantum_register : QuantumRegister, classical_register : ClassicalRegister = None, repetition = 1, max_results = 1, print_count:bool = False) -> list[str]:        
         (_, classical_register) = self.get_run_and_measure_results([quantum_register], [classical_register] if classical_register != None else None, repetition, max_results, print_count)
-        return (classical_register[0].measured_values[0], classical_register[0])
+        return classical_register[0].measured_values[0]
 
     def push_not_operation(self, quantum_register : QuantumRegister) -> None:
         self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).x(quantum_register))
@@ -260,12 +267,10 @@ class QuantumCircuitHandler():
 
     def push_equals_operation(self, quantum_register_a : QuantumRegister, classical_value : Any) -> None:
         quantum_value : Qubit | Quint | Qustring = QutesDataType.promote_classical_to_quantum_value(classical_value)
-        for index in range(len(quantum_register_a)):
-            if(len(quantum_value.qubit_state) > index):
-                qubit = quantum_value.qubit_state[-1-index]
-                if(qubit.alpha == 1 and qubit.beta == 0):
-                    self.push_not_operation(quantum_register_a[index])
-            else:
+        #find the only element in the statevector with prob == 1, and take its binary representation
+        state_to_match = utils.binary(quantum_value.qubit_state.params.index(complex(1)), len(quantum_register_a))
+        for index, state in enumerate(state_to_match):
+            if(state == "0"):
                 self.push_not_operation(quantum_register_a[index])
 
     def push_reset_operation(self, quantum_register : QuantumRegister) -> None:
@@ -295,9 +300,9 @@ class QuantumCircuitHandler():
         self._current_operation_stack.append(lambda circuit : cast(QuantumCircuit, circuit).measure(unwrap(quantum_registers), unwrap(classical_registers)))
         return classical_registers
     
-    def push_ESM_operation(self, input:QuantumRegister, rotation_register:QuantumRegister, to_match, block_size, phase_kickback_ancilla = None) -> None:
+    def push_ESM_operation(self, input:QuantumRegister, rotation_register:QuantumRegister, to_match:Qustring|Quint|Qubit, block_size, phase_kickback_ancilla = None) -> None:
         array_len = len(input)
-        to_match_len = len(to_match.qubit_state)
+        to_match_len = to_match.size
 
         # rotate input array
         from quantum_circuit.qutes_gates import QutesGates

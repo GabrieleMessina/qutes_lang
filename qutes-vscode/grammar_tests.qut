@@ -104,7 +104,7 @@
     bool A (int c = 10){
         bool a = false;
         return a;
-        print a; //TODO: gray out unreachable code
+        print a;
     }
 
     bool z = A();

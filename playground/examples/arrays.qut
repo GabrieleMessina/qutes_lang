@@ -1,0 +1,47 @@
+// string[] bob_bases = ["1","0","1","0","1","0","1","0"];
+// foreach string base in bob_bases{
+//     if(bob_bases[0] == base){
+//         print base;
+//     }
+//     else{
+//         print base;
+//     }
+// }
+// foreach string base, int index in bob_bases{
+//     print "start";
+//     print index;
+//     print base;
+//     print bob_bases[index];
+//     print "end";
+// }
+
+qubit b = 1q;
+qubit c = 0q;
+qubit[] a = [b, c, |+>];
+qubit d = a[2];
+
+foreach qubit q in a{
+    print q;
+}
+
+int[] ba = [2, 3];
+foreach int q in ba{
+    print q;
+}
+
+// print d;
+// print a;
+// print c;
+
+//=========================================================
+
+// int[] foo = [6, 2, 3];
+// print foo;
+// print foo[1];
+
+// int count=0;
+// foreach int i in foo{
+//     print i;
+//     count = count + i;
+// }
+// print count;

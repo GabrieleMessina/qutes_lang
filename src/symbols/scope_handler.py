@@ -1,8 +1,9 @@
 from symbols.scope_tree_node import ScopeTreeNode, ScopeClass
 from symbols.symbol import Symbol
-from anytree import PreOrderIter
+from anytree import PreOrderIter, RenderTree
 
 class ScopeHandler():
+    print_trace = False
     def __init__(self):
         self.symbols_tree:ScopeTreeNode = None
         self.current_symbols_scope:ScopeTreeNode = self.symbols_tree
@@ -11,7 +12,6 @@ class ScopeHandlerForSymbolsDiscovery(ScopeHandler):
     # Class that handles the scope for symbol discovery, first step of compilation
     def __init__(self):
         super().__init__()
-
 
     def push_scope(self, scope:ScopeClass, scope_detail:str, symbols:list[Symbol] = []) -> ScopeTreeNode:
         _symbols:list[Symbol] = symbols.copy()
@@ -28,6 +28,10 @@ class ScopeHandlerForSymbolsDiscovery(ScopeHandler):
             self.symbols_tree = new_scope
 
         self.current_symbols_scope = new_scope
+
+        if(ScopeHandler.print_trace and self.current_symbols_scope != None):
+            print (f"push_scope: \n{RenderTree(self.current_symbols_scope)}")
+
         return self.current_symbols_scope
     
     def push_inner_scope(self, scope:ScopeClass, scope_detail:str, symbol_owner:Symbol, symbols:list[Symbol] = []) -> ScopeTreeNode:
@@ -37,6 +41,10 @@ class ScopeHandlerForSymbolsDiscovery(ScopeHandler):
     
     def pop_scope(self) -> ScopeTreeNode:
         self.current_symbols_scope = self.current_symbols_scope.parent
+
+        if(ScopeHandler.print_trace and self.current_symbols_scope != None):
+            print (f"pop_scope: \n{RenderTree(self.current_symbols_scope)}")
+        
         return self.current_symbols_scope
 
     
@@ -54,13 +62,23 @@ class ScopeHandlerForSymbolsUpdate(ScopeHandler):
         self.current_symbols_scope:ScopeTreeNode = self.symbols_tree
         self.tree_preorder_iterator = PreOrderIter(self.symbols_tree)
         self.is_inside_loop = False
+        self.loop_inner_scope = None
         self.is_inside_function = False
 
     def start_loop(self) -> None:
         self.is_inside_loop = True
+        self.loop_inner_scope = self.current_symbols_scope
+
+    def handle_loop_cycle(self) -> None:
+        temp_iterator = PreOrderIter(self.symbols_tree)
+        temp_node = None
+        while temp_node != self.current_symbols_scope:
+            temp_node = next(temp_iterator)
+        self.tree_preorder_iterator = temp_iterator
 
     def end_loop(self) -> None:
         self.is_inside_loop = False
+        self.loop_inner_scope = None
 
     def start_function(self) -> None:
         self.is_inside_function = True
@@ -69,18 +87,23 @@ class ScopeHandlerForSymbolsUpdate(ScopeHandler):
         self.is_inside_function = False
 
     #Start visiting scope
-    def push_scope(self) -> ScopeTreeNode:
-        if(self.is_inside_loop == False and self.is_inside_function == False):
+    def push_scope(self, tree_iterator = None) -> ScopeTreeNode:
+        if tree_iterator != None:
+            self.tree_preorder_iterator = tree_iterator
+        if(self.is_inside_function == False):
             nextNode = next(self.tree_preorder_iterator)
+            if(ScopeHandler.print_trace and nextNode != None):
+                print (f"push_scope: \n{RenderTree(nextNode)}")
             if(nextNode != None):
                 self.current_symbols_scope = nextNode
         return self.current_symbols_scope
     
     #End visiting scope, return to parent and never(almost, see loops) visit this scope again
     def pop_scope(self) -> ScopeTreeNode:
-        if(self.is_inside_loop == False and self.is_inside_function == False):
+        if(self.is_inside_function == False):
             parentNode = self.current_symbols_scope.parent
             if(parentNode != None):
-                self.tree_preorder_iterator = PreOrderIter(parentNode)
-                self.current_symbols_scope = next(self.tree_preorder_iterator)
+                self.current_symbols_scope = parentNode
+            if(ScopeHandler.print_trace and self.current_symbols_scope != None):
+                print (f"pop_scope: \n{RenderTree(self.current_symbols_scope)}")
         return self.current_symbols_scope

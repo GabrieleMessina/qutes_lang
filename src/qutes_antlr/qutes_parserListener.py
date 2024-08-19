@@ -44,6 +44,15 @@ class qutes_parserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by qutes_parser#ForeachStatement.
+    def enterForeachStatement(self, ctx:qutes_parser.ForeachStatementContext):
+        pass
+
+    # Exit a parse tree produced by qutes_parser#ForeachStatement.
+    def exitForeachStatement(self, ctx:qutes_parser.ForeachStatementContext):
+        pass
+
+
     # Enter a parse tree produced by qutes_parser#DoWhileStatement.
     def enterDoWhileStatement(self, ctx:qutes_parser.DoWhileStatementContext):
         pass
@@ -251,6 +260,15 @@ class qutes_parserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by qutes_parser#ArrayExpression.
+    def enterArrayExpression(self, ctx:qutes_parser.ArrayExpressionContext):
+        pass
+
+    # Exit a parse tree produced by qutes_parser#ArrayExpression.
+    def exitArrayExpression(self, ctx:qutes_parser.ArrayExpressionContext):
+        pass
+
+
     # Enter a parse tree produced by qutes_parser#MultipleUnaryPhaseOperator.
     def enterMultipleUnaryPhaseOperator(self, ctx:qutes_parser.MultipleUnaryPhaseOperatorContext):
         pass
@@ -287,6 +305,15 @@ class qutes_parserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by qutes_parser#ArrayAccessExpression.
+    def enterArrayAccessExpression(self, ctx:qutes_parser.ArrayAccessExpressionContext):
+        pass
+
+    # Exit a parse tree produced by qutes_parser#ArrayAccessExpression.
+    def exitArrayAccessExpression(self, ctx:qutes_parser.ArrayAccessExpressionContext):
+        pass
+
+
     # Enter a parse tree produced by qutes_parser#LogicOrOperator.
     def enterLogicOrOperator(self, ctx:qutes_parser.LogicOrOperatorContext):
         pass
@@ -296,21 +323,21 @@ class qutes_parserListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by qutes_parser#functionCallParams.
-    def enterFunctionCallParams(self, ctx:qutes_parser.FunctionCallParamsContext):
-        pass
-
-    # Exit a parse tree produced by qutes_parser#functionCallParams.
-    def exitFunctionCallParams(self, ctx:qutes_parser.FunctionCallParamsContext):
-        pass
-
-
     # Enter a parse tree produced by qutes_parser#termList.
     def enterTermList(self, ctx:qutes_parser.TermListContext):
         pass
 
     # Exit a parse tree produced by qutes_parser#termList.
     def exitTermList(self, ctx:qutes_parser.TermListContext):
+        pass
+
+
+    # Enter a parse tree produced by qutes_parser#array.
+    def enterArray(self, ctx:qutes_parser.ArrayContext):
+        pass
+
+    # Exit a parse tree produced by qutes_parser#array.
+    def exitArray(self, ctx:qutes_parser.ArrayContext):
         pass
 
 

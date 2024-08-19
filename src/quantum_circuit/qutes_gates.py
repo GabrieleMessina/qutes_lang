@@ -52,9 +52,9 @@ class QutesGates():
         number_bits_number = max(var_a.size, var_b.size)
 
         if(var_a.size != number_bits_number):
-            var_a = self.ciruit_handler.replace_quantum_register(var_a_name, var_a.value.update_size_with_padding(number_bits_number))
+            var_a = self.ciruit_handler.create_and_assign_quantum_register(var_a_name, var_a.value.update_size_with_padding(number_bits_number))
         if(var_b.size != number_bits_number):
-            var_b = self.ciruit_handler.replace_quantum_register(var_b_name, var_b.value.update_size_with_padding(number_bits_number))
+            var_b = self.ciruit_handler.create_and_assign_quantum_register(var_b_name, var_b.value.update_size_with_padding(number_bits_number))
 
         carry = handler.declare_quantum_register(f"carry{self.count}", Qubit())
         ancilla = handler.declare_quantum_register(f"ancilla{self.count}", Quint.init_from_size(5))

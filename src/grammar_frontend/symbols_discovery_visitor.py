@@ -11,14 +11,17 @@ from quantum_circuit import QuantumCircuitHandler
 class SymbolsDiscoveryVisitor(qutesVisitor):
     """An antlr visitor for the qutes grammar that discovers symbols like variable, function names etc."""
 
-    def __init__(self, quantum_cirtcuit_handler : QuantumCircuitHandler):
+    def __init__(self, quantum_cirtcuit_handler : QuantumCircuitHandler, verbose:bool = False):
         self.quantum_cirtcuit_handler = quantum_cirtcuit_handler
+        self.verbose = verbose
         self.scope_handler = ScopeHandlerForSymbolsDiscovery()
         self.scope_count = 0
         self.if_else_scope_count = 0
         self.loop_scope_count = 0
         self.function_scope_count = 0
         self.variables_handler = VariablesHandler(self.scope_handler, self.quantum_cirtcuit_handler)
+        
+        ScopeHandlerForSymbolsDiscovery.print_trace = False
 
     def visitProgram(self, ctx:qutesParser.ProgramContext):
         self.scope_handler.push_scope(ScopeClass.GlobalScope, "GlobalScope")
@@ -41,6 +44,13 @@ class SymbolsDiscoveryVisitor(qutesVisitor):
         self.scope_handler.pop_scope()
 
 
+    # visit a parse tree produced by qutesParser#ForeachStatement.
+    def visitForeachStatement(self, ctx:qutesParser.ForeachStatementContext):
+        self.loop_scope_count += 1
+        self.scope_handler.push_scope(ScopeClass.LoopScope, f"Foreach{self.loop_scope_count}")
+        self.visitChildren(ctx)
+        self.scope_handler.pop_scope()
+
     # visit a parse tree produced by qutesParser#WhileStatement.
     def visitWhileStatement(self, ctx:qutesParser.WhileStatementContext):
         self.loop_scope_count += 1
@@ -62,7 +72,7 @@ class SymbolsDiscoveryVisitor(qutesVisitor):
         if(self.scope_handler.current_symbols_scope.scope_class == ScopeClass.IfElseScope):
             self.scope_handler.push_scope(ScopeClass.BranchScope, f"BranchBlock{self.if_else_scope_count}")
         elif(self.scope_handler.current_symbols_scope.scope_class == ScopeClass.LoopScope):
-            self.scope_handler.push_scope(ScopeClass.BranchScope, f"BranchBlock{self.loop_scope_count}")
+            self.scope_handler.push_scope(ScopeClass.BranchScope, f"LoopBlock{self.loop_scope_count}")
         elif(self.scope_handler.current_symbols_scope.scope_class == ScopeClass.FunctionScope):
             #self.scope_handler.push_scope(ScopeClass.FunctionBlockScope, f"FunctionBlock{self.function_scope_count}")
             pass
@@ -87,7 +97,7 @@ class SymbolsDiscoveryVisitor(qutesVisitor):
         function_body = ctx.statement()
 
         token_index = ctx.start.tokenIndex
-        funtion_symbol = self.variables_handler.create_anonymous_symbol(qutes_type, QutesDataType.get_default_value(qutes_type), token_index)
+        funtion_symbol = self.variables_handler.declare_anonymous_variable(qutes_type, QutesDataType.get_default_value(qutes_type), token_index)
         funtion_symbol = self.variables_handler.declare_function(funtion_symbol, function_name, [], function_body)
         self.scope_handler.push_inner_scope(ScopeClass.FunctionScope, f"Function{self.function_scope_count}", funtion_symbol)
 

@@ -41,7 +41,31 @@ class QutesGrammarStatementVisitor(QutesBaseVisitor):
                     self.scope_handler.pop_scope()
                 self.visit(ctx.statement(1))
         self.scope_handler.pop_scope()
-        return None        
+        return None   
+
+    def visitForeachStatement(self, ctx:qutes_parser.ForeachStatementContext):
+        self.scope_handler.push_scope()
+        auxiliary:Symbol = self.visit(ctx.variableDeclaration(0))
+        index:Symbol|None = None
+        if(ctx.variableDeclaration(1)):
+            index = self.visit(ctx.variableDeclaration(1))
+            if(index.symbol_declaration_static_type != QutesDataType.int):
+                raise TypeError(f"Index variable '{index.name}' must be of type 'int'.")
+        array = self.visit(ctx.qualifiedName()).value
+        if(array != None):
+            self.scope_handler.start_loop() #avoid block statement to change the scope
+            
+            for i, next_value in enumerate(array):
+                self.scope_handler.handle_loop_cycle()
+                self.variables_handler.update_variable_state(auxiliary.name, next_value)
+                if(index != None):
+                    self.variables_handler.update_variable_state(index.name, i)
+                self.visit(ctx.statement())
+
+            self.scope_handler.end_loop() #reset scope handling
+
+        self.scope_handler.pop_scope()
+        return None
 
     def visitWhileStatement(self, ctx:qutes_parser.WhileStatementContext):
         return self.__visit_while_statement(ctx)
@@ -50,21 +74,15 @@ class QutesGrammarStatementVisitor(QutesBaseVisitor):
         self.scope_handler.push_scope()
         condition = self.visit(ctx.expr())
         if(condition != None):
-            if(isinstance(ctx.statement(), qutes_parser.BlockStatementContext)):
-                #the while statement needs to handle the scope so that the the block statement can work always on the same scope(its own scope)
-                self.scope_handler.push_scope()
-
             self.scope_handler.start_loop() #avoid block statement to change the scope
             
-            while(condition):
+            while(self.variables_handler.get_value(condition)):
+                self.scope_handler.handle_loop_cycle()
                 self.visit(ctx.statement())
                 condition = self.visit(ctx.expr())
 
             self.scope_handler.end_loop() #reset scope handling
 
-            if(isinstance(ctx.statement(), qutes_parser.BlockStatementContext)):
-                #the while statement needs to handle the scope so that the the block statement can work always on the same scope(its own scope)
-                self.scope_handler.pop_scope()
         self.scope_handler.pop_scope()
         return None
 
@@ -90,8 +108,10 @@ class QutesGrammarStatementVisitor(QutesBaseVisitor):
     def visitFunctionStatement(self, ctx:qutes_parser.FunctionStatementContext):
         self.scope_handler.push_scope()
         function_name = self.visit(ctx.functionName())
+        function_params = []
         if(ctx.functionDeclarationParams()):
             function_params = self.visit(ctx.functionDeclarationParams())
+        function_params.reverse()
         #do not call a visit on the statement here, or on all the context, the statement is being saved by the discovery and should be traversed only on function execution
         self.scope_handler.pop_scope()
         return None
@@ -149,6 +169,8 @@ class QutesGrammarStatementVisitor(QutesBaseVisitor):
             self.quantum_circuit_handler.push_measure_operation()
         if(ctx.BARRIER()):
             self.quantum_circuit_handler.push_barrier_operation()
+        if(ctx.PRINT_LN()):
+            print()
         return None
 
     def visitEmptyStatement(self, ctx:qutes_parser.EmptyStatementContext):
