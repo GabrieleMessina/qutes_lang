@@ -1,4 +1,3 @@
-#TODO: try refactor import directly from symbols.types
 from symbols.types.qubit import Qubit
 from symbols.types.quint import Quint
 from symbols.types.qustring import Qustring

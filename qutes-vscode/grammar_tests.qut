@@ -13,8 +13,6 @@
     int a=2+3;
     int i=1;
     int i=6546511654564684561;
-    //int x=0xa1;//TODO:handle
-    //int h=0b01;//TODO:handle
 }
 
 //strings and basic operations

@@ -9,7 +9,6 @@ class TypeCastingHandler():
         self.quantum_cirtcuit_handler = quantum_cirtcuit_handler
 
     type_promotable_to : dict[Enum, list[QutesDataType]] = {
-        #TODO: handle nested casting, like (quint a = true) bool->qubit->quint
         #..to this types <- this types can be converted to..
         QutesDataType.bool: [QutesDataType.bool],
         QutesDataType.int: [QutesDataType.int, QutesDataType.bool, QutesDataType.bool_array],
