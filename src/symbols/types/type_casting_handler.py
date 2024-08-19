@@ -59,6 +59,8 @@ class TypeCastingHandler():
                     return int(''.join([str(int(value)) for value in var_value]), 2)
                 return float(var_value)
             case QutesDataType.string:
+                if isinstance(var_value, list):
+                    return str(''.join([str(int(value)) for value in var_value]))
                 return str(var_value)
             case QutesDataType.qubit:
                 return Qubit.fromValue(var_value)
@@ -112,10 +114,16 @@ class TypeCastingHandler():
             case QutesDataType.bool:
                 return bool(int(from_type_value))
             case QutesDataType.int:
-               return int(from_type_value)
+                if isinstance(from_type_value, list):
+                    return int(''.join([str(int(value)) for value in from_type_value]), 2)
+                return int(from_type_value)
             case QutesDataType.float:
+                if isinstance(from_type_value, list):
+                    return int(''.join([str(int(value)) for value in from_type_value]), 2)
                 return float(from_type_value)
             case QutesDataType.string:
+                if isinstance(from_type_value, list):
+                    return str(''.join([str(int(value)) for value in from_type_value]))
                 return str(from_type_value)
             case QutesDataType.qubit:
                 return Qubit.fromValue(var_value)
