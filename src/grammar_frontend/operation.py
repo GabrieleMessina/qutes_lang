@@ -1,7 +1,7 @@
 import numpy as np
 from grammar_frontend.qutes_parser import QutesParser as qutes_parser
 from symbols.scope_tree_node import ScopeTreeNode
-from symbols.symbol import Symbol
+from symbols.symbol import Symbol, SymbolClass
 from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
 from symbols.variables_handler import VariablesHandler
 from symbols.types import Qustring, QutesDataType
@@ -247,6 +247,122 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
                 return result
 
         return self.variables_handler.declare_anonymous_variable(QutesDataType.type_of(result), result, ctx.start.tokenIndex)
+
+    def __visitFunctionCall(self, function_name, function_params:list[Symbol], tokenIndex):
+        self.scope_handler.start_function() #To avoid block statement to push its scope
+
+        function_symbol = self.variables_handler.get_function_symbol(function_name, tokenIndex, function_params)  
+
+        scope_to_restore_on_exit = self.scope_handler.current_symbols_scope
+        self.scope_handler.current_symbols_scope = function_symbol.inner_scope
+        
+        default_params_to_restore_on_exit = function_symbol.function_input_params_definition.copy()
+
+        symbol_params_to_push = []
+        # regs = []
+        for index in range(len(function_params)):
+            symbol_to_push = default_params_to_restore_on_exit[index]
+            symbol_to_push.value = function_params[index].value
+            symbol_to_push.quantum_register = function_params[index].quantum_register
+            symbol_params_to_push.append(symbol_to_push)
+            # regs.append(symbol_to_push.quantum_register)
+        [symbol for symbol in function_symbol.inner_scope.symbols if symbol.symbol_class == SymbolClass.FunctionSymbol][:len(function_params)] = symbol_params_to_push
+
+        #TODO: staff commented for make return value work for quantum variable, do some tests to assure the behaviour is correct
+        # self.quantum_circuit_handler.start_quantum_function()
+        function_return_result = self.visitChildren(function_symbol.value)
+        # gate = self.quantum_circuit_handler.end_quantum_function(*regs, gate_name=function_symbol.name, create_gate=True)
+        # function_symbol.quantum_function = gate
+
+        self.scope_handler.current_symbols_scope = scope_to_restore_on_exit
+        [symbol for symbol in function_symbol.inner_scope.symbols if symbol.symbol_class == SymbolClass.FunctionSymbol][:len(function_params)] = default_params_to_restore_on_exit
+
+        self.scope_handler.end_function()
+        return function_symbol
+
+    free_grover_count = iter(range(1, 1000))
+
+    grover_count = iter(range(1, 1000))
+    def visitFreeGroverOperator(self, ctx:qutes_parser.FreeGroverOperatorContext):
+        current_grover_count = next(self.free_grover_count)
+        function_name = self.visit(ctx.functionName())
+        function_params:list[Symbol] = []
+        if(ctx.termList()):
+            function_params = self.visit(ctx.termList())
+        if(ctx.GROVER()):
+            array_register = []
+            for symbol in function_params:
+                    array_register.append(symbol.quantum_register)
+            block_size = 1
+            try:
+                block_size = [symbol.quantum_register.symbol_declaration_static_type.get_unit_size_in_qubit() for symbol in function_params][0] #TODO: this is based on the function first argument type but there is no check on type coherency in following params.
+            except:
+                pass
+            array_size = int(len(array_register)/block_size)
+            n_element_to_rotate = array_size/block_size
+
+            self.quantum_circuit_handler.start_quantum_function()
+            termList:list[Symbol] = self.visit(ctx.termList())    
+            termList.reverse()        
+
+            grover_result = self.quantum_circuit_handler.declare_quantum_register("grover_phase_ancilla", Qubit())
+            oracle_registers = array_register
+            registers_to_measure = []
+            if(self.log_grover_verbose):
+                registers_to_measure.extend(array_register)
+
+            oracle_function_symbol:Symbol = self.__visitFunctionCall(function_name, function_params, ctx.start.tokenIndex)
+            # self.quantum_circuit_handler.push_compose_circuit_operation(oracle_function_symbol.quantum_function, array_register)
+                   
+            oracle_registers.append(grover_result)
+            quantum_function = self.quantum_circuit_handler.end_quantum_function(*oracle_registers, gate_name=f"grover_oracle_{current_grover_count}", create_gate=False)
+            
+            qubits_involved_in_grover = [*range(quantum_function.num_qubits)]
+
+            for n_results in np.arange(1.1, 1.1**math.log(n_element_to_rotate/2 + 1, 1.1)):
+                oracle_result = self.quantum_circuit_handler.push_grover_operation(*oracle_registers, quantum_function=quantum_function, register_involved_indexes=qubits_involved_in_grover, dataset_size=array_size, n_results=int(n_results), verbose=self.log_grover_verbose)
+                registers_to_measure.append(oracle_result)
+                circuit_runs = 3
+                self.quantum_circuit_handler.get_run_and_measure_results(registers_to_measure.copy(), repetition=circuit_runs)
+
+                positive_results = [(index, result) for index, result in enumerate(oracle_result.measured_classical_register.measured_values) if "1" in result] if oracle_result.measured_classical_register != None else []
+                any_positive_results = len(positive_results) > 0
+                if (any_positive_results):
+                    return self.variables_handler.declare_anonymous_variable(QutesDataType.bool, True, ctx.start.tokenIndex)
+                registers_to_measure.remove(oracle_result)
+            return self.variables_handler.declare_anonymous_variable(QutesDataType.bool, False, ctx.start.tokenIndex)
+
+    def visitFreeGroverOperator1(self, ctx:qutes_parser.FreeGroverOperatorContext):
+        current_grover_count = next(self.free_grover_count)
+        function_name = self.visit(ctx.functionName())
+        function_params:list[Symbol] = []
+        phase_kickback_ancilla = None
+        if(ctx.termList()):
+            function_params = self.visit(ctx.termList())
+        oracle_function_symbol:Symbol = self.__visitFunctionCall(function_name, function_params, ctx.start.tokenIndex)
+        registers_to_measure = []
+        oracle_registers = [oracle_function_symbol.quantum_register]
+        if ctx.GROVER(): 
+            array_size = oracle_function_symbol.quantum_function.num_qubits
+
+            if(phase_kickback_ancilla == None):
+                phase_kickback_ancilla = self.quantum_circuit_handler.declare_quantum_register(f"phase_kickback_ancilla_{current_grover_count}", Qubit(0,1))
+                oracle_registers.append(phase_kickback_ancilla)
+            self.quantum_circuit_handler.push_MCZ_operation([*oracle_registers, phase_kickback_ancilla])
+
+            for n_results in np.arange(1.1, 1.1**math.log(array_size/2 + 1, 1.1)):
+                oracle_result = self.quantum_circuit_handler.push_grover_operation(*oracle_registers, quantum_function=oracle_function_symbol.quantum_function, register_involved_indexes=[*range(array_size)], dataset_size=array_size, n_results=int(n_results), verbose=self.log_grover_verbose) 
+                registers_to_measure.append(oracle_result)
+                circuit_runs = 3
+                self.quantum_circuit_handler.get_run_and_measure_results(registers_to_measure.copy(), repetition=circuit_runs)
+
+                positive_results = [(index, result) for index, result in enumerate(oracle_result.measured_classical_register.measured_values) if "1" in result] if oracle_result.measured_classical_register != None else []
+                any_positive_results = len(positive_results) > 0
+                if (any_positive_results):
+                    return self.variables_handler.declare_anonymous_variable(QutesDataType.bool, True, ctx.start.tokenIndex)
+                registers_to_measure.remove(oracle_result)
+        return self.variables_handler.declare_anonymous_variable(QutesDataType.bool, False, ctx.start.tokenIndex)
+
 
     grover_count = iter(range(1, 1000))
     def visitGroverOperator(self, ctx:qutes_parser.GroverOperatorContext):

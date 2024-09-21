@@ -109,6 +109,11 @@ class qutes_parserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by qutes_parser#FreeGroverOperator.
+    def visitFreeGroverOperator(self, ctx:qutes_parser.FreeGroverOperatorContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by qutes_parser#LiteralExpression.
     def visitLiteralExpression(self, ctx:qutes_parser.LiteralExpressionContext):
         return self.visitChildren(ctx)

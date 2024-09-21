@@ -188,6 +188,15 @@ class qutes_parserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by qutes_parser#FreeGroverOperator.
+    def enterFreeGroverOperator(self, ctx:qutes_parser.FreeGroverOperatorContext):
+        pass
+
+    # Exit a parse tree produced by qutes_parser#FreeGroverOperator.
+    def exitFreeGroverOperator(self, ctx:qutes_parser.FreeGroverOperatorContext):
+        pass
+
+
     # Enter a parse tree produced by qutes_parser#LiteralExpression.
     def enterLiteralExpression(self, ctx:qutes_parser.LiteralExpressionContext):
         pass

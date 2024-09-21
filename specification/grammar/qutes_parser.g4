@@ -63,6 +63,7 @@ expr // Order: https://en.wikipedia.org/wiki/Order_of_operations#Programming_lan
    | op=(PRINT | PRINT_LN | PAULIY | PAULIZ | HADAMARD | MEASURE) expr #UnaryOperator
    | op=MCP termList BY expr #MultipleUnaryPhaseOperator
    | termList op=IN_STATEMENT qualifiedName #GroverOperator
+   | op=GROVER functionName ROUND_PARENTHESIS_OPEN termList? ROUND_PARENTHESIS_CLOSE #FreeGroverOperator
    ;
 
 termList

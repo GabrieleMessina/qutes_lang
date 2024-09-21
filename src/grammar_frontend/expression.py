@@ -57,7 +57,7 @@ class QutesGrammarExpressionVisitor(QutesBaseVisitor):
 
         #TODO: staff commented for make return value work for quantum variable, do some tests to assure the behaviour is correct
         # self.quantum_cirtcuit_handler.start_quantum_function()
-        result = self.visitChildren(function_symbol.value)
+        result = self.visitChildren(function_symbol.value) #Execute the function
         # gate = self.quantum_cirtcuit_handler.end_quantum_function(function_symbol.name)
         # function_symbol.quantum_function = gate
 
@@ -65,7 +65,7 @@ class QutesGrammarExpressionVisitor(QutesBaseVisitor):
         [symbol for symbol in function_symbol.inner_scope.symbols if symbol.symbol_class == SymbolClass.FunctionSymbol][:len(function_params)] = default_params_to_restore_on_exit
 
         self.scope_handler.end_function()
-        return result
+        return result #The function return value
     
     def visitArrayAccessExpression(self, ctx:qutes_parser.ArrayAccessExpressionContext):
         array_symbol:Symbol = self.visit(ctx.expr(0))
