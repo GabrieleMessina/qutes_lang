@@ -4,8 +4,9 @@ from quantum_circuit.state_preparation import StatePreparation
 T = TypeVar("T")
 
 class QuantumType(Generic[T]):
-    def __init__(self, t_type: Type[T]):
+    def __init__(self, t_type: Type[T], size: int):
         self.t_type = t_type
+        self.size = size
         self.qubit_state = StatePreparation("")
 
     def get_default_value():

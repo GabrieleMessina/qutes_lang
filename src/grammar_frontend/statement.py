@@ -3,7 +3,7 @@ from symbols.scope_tree_node import ScopeTreeNode
 from symbols.symbol import Symbol
 from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
 from symbols.variables_handler import VariablesHandler
-from symbols.types import QutesDataType
+from symbols.types import QutesDataType, QuantumArrayType
 from quantum_circuit import QuantumCircuitHandler
 from grammar_frontend.qutes_base_visitor import QutesBaseVisitor
 
@@ -139,6 +139,9 @@ class QutesGrammarStatementVisitor(QutesBaseVisitor):
             var_name = var_symbol.name
         else: 
             var_symbol = self.variables_handler.get_variable_symbol(var_name, ctx.start.tokenIndex)
+
+        if(isinstance(var_value, list)):
+            var_value = QuantumArrayType(QutesDataType.get_unit_class_from_array_type(QutesDataType.type_of(var_value)), [symbol.value for symbol in var_value])
 
         if(var_value == None):
             var_value =  QutesDataType.get_default_value(var_symbol.symbol_declaration_static_type)

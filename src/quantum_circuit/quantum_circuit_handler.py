@@ -4,7 +4,7 @@ from typing import Any, Callable, cast
 from quantum_circuit.classical_register import ClassicalRegister
 from quantum_circuit.quantum_circuit import QuantumCircuit
 from quantum_circuit.quantum_register import QuantumRegister, QiskitQubit
-from symbols.types import Qubit, Quint, Qustring, QutesDataType
+from symbols.types import Qubit, Quint, Qustring, QutesDataType, QuantumArrayType
 from qiskit import IBMQ, Aer, QiskitError, transpile
 from quantum_circuit.state_preparation import StatePreparation
 from qiskit.primitives import Sampler
@@ -41,7 +41,7 @@ class QuantumCircuitHandler():
         if(register not in self._varname_to_register.values()):
             self._classic_registers.remove(register)
 
-    def declare_quantum_register(self, variable_name : str, quantum_variable : Qubit|Quint|Qustring) -> QuantumRegister:
+    def declare_quantum_register(self, variable_name : str, quantum_variable : Qubit|Quint|Qustring|QuantumArrayType) -> QuantumRegister:
         new_register = None
         new_register = QuantumRegister(quantum_variable.size, variable_name)
 
@@ -55,7 +55,7 @@ class QuantumCircuitHandler():
     
     # TODO: this should be a correlation operation, or a measure and then update,
     #       because we cannot rely on quantum_variable.qubit_state
-    def create_and_assign_quantum_register(self,  variable_name : str, quantum_variable : Qubit|Quint|Qustring) -> QuantumRegister:
+    def create_and_assign_quantum_register(self,  variable_name : str, quantum_variable : Qubit|Quint|Qustring|QuantumArrayType) -> QuantumRegister:
         register_to_update = self._varname_to_register[variable_name]
         if(register_to_update is None):
             raise SystemError("Error trying to update an undeclared quantum register")

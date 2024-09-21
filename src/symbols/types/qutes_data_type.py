@@ -28,20 +28,20 @@ class QutesDataType(Enum):
         return QutesDataType.is_quantum_type(QutesDataType.from_string_type(type))
 
     def is_quantum_type(type:'QutesDataType'):
-        return type in [QutesDataType.qubit, QutesDataType.quint, QutesDataType.qustring]
+        return type in [QutesDataType.qubit, QutesDataType.quint, QutesDataType.qustring, QutesDataType.qubit_array, QutesDataType.quint_array, QutesDataType.qustring_array]
     
     def is_classical_type(type:str):
         return QutesDataType.is_classical_type(QutesDataType.from_string_type(type))
 
     def is_classical_type(type:'QutesDataType'):
-        return type not in [QutesDataType.qubit, QutesDataType.quint, QutesDataType.qustring]
+        return type not in [QutesDataType.qubit, QutesDataType.quint, QutesDataType.qustring, QutesDataType.qubit_array, QutesDataType.quint_array, QutesDataType.qustring_array]
     
     def is_array_type(type:str):
         return QutesDataType.is_array_type(QutesDataType.from_string_type(type))
     
     def is_array_type(type:'QutesDataType'):
         return type in [
-            QutesDataType.qustring, QutesDataType.quint, QutesDataType.string, # Can be access by [] operator but not really array types  
+            QutesDataType.qustring, QutesDataType.string, # Can be access by [] operator but not really array types  
             QutesDataType.bool_array, QutesDataType.int_array, QutesDataType.float_array, QutesDataType.string_array, QutesDataType.qubit_array, QutesDataType.quint_array, QutesDataType.qustring_array]
 
     def type_of(var_value : any) -> 'QutesDataType':
@@ -175,6 +175,25 @@ class QutesDataType(Enum):
             case _:
                 return QutesDataType.undefined
 
+    def get_unit_class_from_array_type(array_type : 'QutesDataType') -> any:
+        match array_type:
+            case QutesDataType.bool_array:
+                return bool
+            case QutesDataType.int_array:
+                return int
+            case QutesDataType.float_array:
+                return float
+            case QutesDataType.string_array:
+                return str
+            case QutesDataType.qubit_array:
+                return Qubit
+            case QutesDataType.quint_array:
+                return Quint
+            case QutesDataType.qustring_array:
+                return Qustring
+            case _:
+                return object
+
     def get_default_value(var_type : 'QutesDataType'):
         match var_type:
             case QutesDataType.bool:
@@ -200,11 +219,11 @@ class QutesDataType(Enum):
             case QutesDataType.string_array:
                 return []
             case QutesDataType.qubit_array:
-                return QuantumArrayType(Qubit)
+                return QuantumArrayType(Qubit, [Qubit()])
             case QutesDataType.quint_array:
-                return QuantumArrayType(Quint)
+                return QuantumArrayType(Quint, [Quint()])
             case QutesDataType.qustring_array:
-                return QuantumArrayType(Qustring)
+                return QuantumArrayType(Qustring, [Qustring()])
             case QutesDataType.void:
                 return None
             case _:

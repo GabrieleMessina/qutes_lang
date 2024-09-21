@@ -6,7 +6,7 @@ import cmath
 
 class Qubit(QuantumType['Qubit']):
     def __init__(self, alpha : complex = complex(1), beta : complex = complex(0)):
-        super().__init__(Qubit)
+        super().__init__(Qubit, 1)
         self.size:int = 1
         self.alpha = complex(alpha)
         self.beta = complex(beta)

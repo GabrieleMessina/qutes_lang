@@ -6,9 +6,9 @@ import utils
 
 class Quint(QuantumType['Quint']):
     def __init__(self, qubits:StatePreparation = StatePreparation("0")):
-        super().__init__(Quint)
+        super().__init__(Quint, len(qubits))
         self.qubit_state:StatePreparation = qubits
-        self.size:int = len(self.qubit_state)
+        self.size:int = len(qubits)
 
     def get_default_value():
         return "0"

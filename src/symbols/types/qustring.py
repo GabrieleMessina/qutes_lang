@@ -13,9 +13,9 @@ class Qustring(QuantumType['Qustring']):
     __allowed_chars = ['0', '1']
 
     def __init__(self, qubits:StatePreparation = StatePreparation("0")):
-        super().__init__(Qustring)
+        super().__init__(Qustring, len(qubits))
         self.qubit_state:StatePreparation = qubits
-        self.size:int = len(self.qubit_state)
+        self.size:int = len(qubits)
         self.number_of_chars:int = int(self.size / Qustring.get_default_size_in_qubit())
 
     def get_default_value():

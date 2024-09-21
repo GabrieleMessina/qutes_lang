@@ -24,14 +24,14 @@ class Symbol():
         self.symbol_class:SymbolClass = symbol_class
         self.symbol_declaration_static_type:QutesDataType = symbol_declaration_static_type
         self.casted_static_type:QutesDataType = casted_static_type #Promoted or Down Casted
-        self.value = value #value is not reliable on quantum types, in case of arrays it contains an array of symbols.
+        self.value = value #value is not reliable on quantum types, in case of arrays it contains an array of symbols. In case of functions it contains the ANTLR Function Body Context
         self.parent_scope:ScopeTreeNode = parent_scope
         self.inner_scope:ScopeTreeNode = None
         self.ast_token_index:int = ast_token_index
         self.is_return_value_of_function:bool = False
         self.is_anonymous:bool = False
         self.function_input_params_definition:list[Symbol] = params
-        self.quantum_register:QuantumRegister | None = quantum_register #quantum_register is not used for classical variables
+        self.quantum_register:QuantumRegister | None = quantum_register #quantum_register is not used for classical variables,in case of array is None, in case of functions it contains the quantum register of the return value
         self.quantum_function:QuantumCircuit | None = None #quantum_function is not used for classical variables
 
     def function_matches_signature(self, function_name:str, function_params:list['Symbol']) -> bool:
