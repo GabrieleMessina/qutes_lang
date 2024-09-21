@@ -5,8 +5,8 @@ from symbols.types.qutes_data_type import QutesDataType
 from enum import Enum
 
 class TypeCastingHandler():
-    def __init__(self, quantum_cirtcuit_handler : 'QuantumCircuitHandler'):
-        self.quantum_cirtcuit_handler = quantum_cirtcuit_handler
+    def __init__(self, quantum_circuit_handler : 'QuantumCircuitHandler'):
+        self.quantum_circuit_handler = quantum_circuit_handler
 
     type_promotable_to : dict[Enum, list[QutesDataType]] = {
         #..to this types <- this types can be converted to..
@@ -97,7 +97,7 @@ class TypeCastingHandler():
 
         # if the value is a quantum type, we need to get the value from the quantum circuit measuring it.
         if QutesDataType.is_quantum_type(from_type):
-            from_type_value = [bool(value == '1') for value in self.quantum_cirtcuit_handler.get_run_and_measure_result_for_quantum_var(symbol_or_literal.quantum_register)]
+            from_type_value = [bool(value == '1') for value in self.quantum_circuit_handler.get_run_and_measure_result_for_quantum_var(symbol_or_literal.quantum_register)]
             if len(from_type_value) > 1:
                 from_type_value = self.__cast_value_to_type(from_type_value, QutesDataType.bool_array, to_type)
             else:

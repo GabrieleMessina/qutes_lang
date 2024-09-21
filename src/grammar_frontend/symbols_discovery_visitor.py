@@ -11,15 +11,15 @@ from quantum_circuit import QuantumCircuitHandler
 class SymbolsDiscoveryVisitor(qutesVisitor):
     """An antlr visitor for the qutes grammar that discovers symbols like variable, function names etc."""
 
-    def __init__(self, quantum_cirtcuit_handler : QuantumCircuitHandler, verbose:bool = False):
-        self.quantum_cirtcuit_handler = quantum_cirtcuit_handler
+    def __init__(self, quantum_circuit_handler : QuantumCircuitHandler, verbose:bool = False):
+        self.quantum_circuit_handler = quantum_circuit_handler
         self.verbose = verbose
         self.scope_handler = ScopeHandlerForSymbolsDiscovery()
         self.scope_count = 0
         self.if_else_scope_count = 0
         self.loop_scope_count = 0
         self.function_scope_count = 0
-        self.variables_handler = VariablesHandler(self.scope_handler, self.quantum_cirtcuit_handler)
+        self.variables_handler = VariablesHandler(self.scope_handler, self.quantum_circuit_handler)
         
         ScopeHandlerForSymbolsDiscovery.print_trace = False
 
