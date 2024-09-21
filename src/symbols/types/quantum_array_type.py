@@ -1,21 +1,15 @@
 from typing import TypeVar
 from symbols.types import QuantumType
 from symbols.types.qubit import Qubit
-from quantum_circuit.state_preparation import StatePreparation
 
 T = TypeVar("T")
 
 class QuantumArrayType(QuantumType[T]):
-    def __init__(self, unit_type: QuantumType[T], array:list[QuantumType]): #array is a list of Symbol
-        super().__init__(unit_type, sum([a.size for a in array]))
+    def __init__(self, unit_type: QuantumType[T], array:list['Symbol']):
+        super().__init__(unit_type, sum([a.value.size for a in array]))
         self.unit_type = unit_type
         self.array = array
-        self.size = sum([a.size for a in array])
-        state_preparation = str()
-        array_elements_state_preparation = [a.qubit_state._params_arg for a in array]
-        for element in array_elements_state_preparation:
-            state_preparation = state_preparation + element
-        self.qubit_state = StatePreparation(state_preparation)
+        self.size = sum([a.value.size for a in array])
 
     def get_default_value():
         return QuantumArrayType(Qubit, [Qubit.get_default_value()])

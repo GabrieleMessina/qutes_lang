@@ -71,7 +71,7 @@ class QutesGrammarExpressionVisitor(QutesBaseVisitor):
         array_symbol:Symbol = self.visit(ctx.expr(0))
         index_symbol:Symbol = self.visit(ctx.expr(1))
 
-        array_value = self.variables_handler.get_value(array_symbol)
+        array_value = self.variables_handler.get_value(array_symbol).array
         index_value = self.variables_handler.get_value(index_symbol)
         
         value = array_value[index_value] 

@@ -141,7 +141,7 @@ class QutesGrammarStatementVisitor(QutesBaseVisitor):
             var_symbol = self.variables_handler.get_variable_symbol(var_name, ctx.start.tokenIndex)
 
         if(isinstance(var_value, list)):
-            var_value = QuantumArrayType(QutesDataType.get_unit_class_from_array_type(QutesDataType.type_of(var_value)), [symbol.value for symbol in var_value])
+            var_value = QuantumArrayType(QutesDataType.get_unit_class_from_array_type(QutesDataType.type_of(var_value)), [symbol for symbol in var_value])
 
         if(var_value == None):
             var_value =  QutesDataType.get_default_value(var_symbol.symbol_declaration_static_type)

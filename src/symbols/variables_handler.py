@@ -1,6 +1,6 @@
 from uuid import uuid4
 from symbols.types.type_casting_handler import TypeCastingHandler
-from symbols.types.qutes_data_type import QutesDataType
+from symbols.types.qutes_data_type import QutesDataType, QuantumArrayType
 from symbols.scope_handler import ScopeHandler
 from symbols.symbol import Symbol, SymbolClass
 from quantum_circuit import QuantumCircuitHandler
@@ -15,7 +15,7 @@ class VariablesHandler():
     def update_variable_state(self, variable_name : str, new_state) -> Symbol: 
         eligible_symbols_to_update = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.name == variable_name]
         if len(eligible_symbols_to_update) > 0:
-            # In case multiple scopes declare a varialble with the same name we take the last one, that is the one from the nearest scope.
+            # In case multiple scopes declare a variable with the same name we take the last one, that is the one from the nearest scope.
             symbol_index_in_scope = self.scope_handler.current_symbols_scope.symbols.index(eligible_symbols_to_update[-1]) 
             symbol_to_update = self.scope_handler.current_symbols_scope.symbols[symbol_index_in_scope]
 
@@ -52,7 +52,7 @@ class VariablesHandler():
                 if(new_state.is_anonymous):
                     symbol_to_update.quantum_register = self.quantum_cirtcuit_handler.create_and_assign_quantum_register(variable_name, value_to_assign)
                     if(new_state.is_quantum()):
-                        self.quantum_cirtcuit_handler.delete_variable(new_state.name)
+                        self.quantum_cirtcuit_handler.remove_quantum_register(new_state.quantum_register)
                     else:
                         pass #being classic it was not added to circuit handler and there is no need to delete it.
                 else:

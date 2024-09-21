@@ -36,11 +36,6 @@ class QuantumCircuitHandler():
         self._classic_registers.append(new_register)
         return new_register
 
-    def delete_variable(self,  variable_name : str) -> None:
-        register = self._varname_to_register[variable_name]
-        if(register not in self._varname_to_register.values()):
-            self._classic_registers.remove(register)
-
     def declare_quantum_register(self, variable_name : str, quantum_variable : Qubit|Quint|Qustring|QuantumArrayType) -> QuantumRegister:
         new_register = None
         new_register = QuantumRegister(quantum_variable.size, variable_name)
@@ -50,7 +45,8 @@ class QuantumCircuitHandler():
 
         self._varname_to_register[variable_name] = new_register
         self._quantum_registers.append(new_register)
-        self._registers_states[new_register] = quantum_variable.qubit_state
+        if not isinstance(quantum_variable, QuantumArrayType):
+            self._registers_states[new_register] = quantum_variable.qubit_state
         return new_register
     
     # TODO: this should be a correlation operation, or a measure and then update,
@@ -60,13 +56,23 @@ class QuantumCircuitHandler():
         if(register_to_update is None):
             raise SystemError("Error trying to update an undeclared quantum register")
 
+        quantum_register = QuantumRegister(quantum_variable.size, variable_name)
+
         if(QutesDataType.is_quantum_type(QutesDataType.type_of(quantum_variable))):
-            #TODO-CRITICAL: this update actually change the reference, so all the old references around the code are still there. For now i hack this returning the new value and changing the name from update to replace.
+            if(isinstance(quantum_variable, QuantumArrayType)):
+                bits = []
+                quantum_registers:list[QuantumRegister] = [symbol.quantum_register for symbol in quantum_variable.array]
+                for index, reg in enumerate(quantum_registers):
+                    reg._name = f"{variable_name}_{index}"
+                    bits.extend(reg)
+                quantum_register = QuantumRegister(None, variable_name, bits=bits)
             #Add new quantum register
-            register_to_update = self.assign_quantum_register_to_variable(variable_name, QuantumRegister(quantum_variable.size, variable_name))
+            #this update actually change the reference, so all the old references around the code are still there. For now i hack this returning the new value.
+            register_to_update = self.assign_quantum_register_to_variable(variable_name, quantum_register)
             if register_to_update not in self._quantum_registers:
                 self._quantum_registers.append(register_to_update)
-            self._registers_states[register_to_update] = quantum_variable.qubit_state
+            if not isinstance(quantum_variable, QuantumArrayType):
+                self._registers_states[register_to_update] = quantum_variable.qubit_state
             self.__cleanup_orphan_registers()
         else:
             raise SystemError("Error trying to update a quantum register with an unsupported type")
@@ -78,7 +84,6 @@ class QuantumCircuitHandler():
         if(register_to_update is None):
             raise SystemError("Error trying to update an undeclared quantum register")
         
-        #TODO-CRITICAL(pasted from above, i don't know if this applies here too): this update actually change the reference, so all the old references around the code are still there. For now i hack this returning the new value and changing the name from update to replace.
         if(register_to_update != quantum_register):
             self._varname_to_register[variable_name] = quantum_register
             self.__cleanup_orphan_registers()
@@ -116,10 +121,11 @@ class QuantumCircuitHandler():
 
         for register in self._quantum_registers:
             if(do_initialization):
-                if(isinstance(self._registers_states[register], Gate)):
-                    circuit.compose(self._registers_states[register], register, inplace=True)
-                else:
-                    raise SystemError("Error trying to initialize a quantum register with an unsupported type")
+                if register in self._registers_states:
+                    if(isinstance(self._registers_states[register], Gate)):
+                        circuit.compose(self._registers_states[register], register, inplace=True)
+                    else:
+                        raise SystemError("Error trying to initialize a quantum register with an unsupported type")
         for operation in self._current_operation_stack:
             operation(circuit)
         return circuit

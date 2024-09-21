@@ -219,11 +219,11 @@ class QutesDataType(Enum):
             case QutesDataType.string_array:
                 return []
             case QutesDataType.qubit_array:
-                return QuantumArrayType(Qubit, [Qubit()])
+                return QuantumArrayType(Qubit, [])
             case QutesDataType.quint_array:
-                return QuantumArrayType(Quint, [Quint()])
+                return QuantumArrayType(Quint, [])
             case QutesDataType.qustring_array:
-                return QuantumArrayType(Qustring, [Qustring()])
+                return QuantumArrayType(Qustring, [])
             case QutesDataType.void:
                 return None
             case _:
