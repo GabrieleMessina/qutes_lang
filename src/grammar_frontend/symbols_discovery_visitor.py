@@ -6,6 +6,7 @@ from symbols.scope_tree_node import ScopeClass
 from symbols.scope_handler import ScopeHandlerForSymbolsDiscovery
 from symbols.variables_handler import VariablesHandler
 from symbols.types import QutesDataType
+from symbols import Symbol
 from quantum_circuit import QuantumCircuitHandler
 
 class SymbolsDiscoveryVisitor(qutesVisitor):
@@ -48,7 +49,20 @@ class SymbolsDiscoveryVisitor(qutesVisitor):
     def visitForeachStatement(self, ctx:qutesParser.ForeachStatementContext):
         self.loop_scope_count += 1
         self.scope_handler.push_scope(ScopeClass.LoopScope, f"Foreach{self.loop_scope_count}")
-        self.visitChildren(ctx)
+        
+        token_index = ctx.start.tokenIndex
+        
+        array_symbol:Symbol = self.variables_handler.get_variable_symbol(ctx.qualifiedName().getText(), token_index) 
+        auxiliary_var_name = ctx.variableName(0).getText()
+        auxiliary_qutes_type = QutesDataType.get_unit_type_from_array_type(array_symbol.symbol_declaration_static_type)
+
+        self.variables_handler.declare_variable(auxiliary_qutes_type, auxiliary_var_name, token_index)
+        
+        if ctx.variableName(1):
+            index_var_name = ctx.variableName(1).getText()
+            self.variables_handler.declare_variable(QutesDataType.int, index_var_name, token_index)
+
+        self.visit(ctx.statement())
         self.scope_handler.pop_scope()
 
     # visit a parse tree produced by qutesParser#WhileStatement.
@@ -104,7 +118,6 @@ class SymbolsDiscoveryVisitor(qutesVisitor):
         input_params_declaration = []
         if(ctx.functionDeclarationParams()):
             input_params_declaration = self.visit(ctx.functionDeclarationParams())
-        input_params_declaration.reverse()
         funtion_symbol.function_input_params_definition = input_params_declaration
 
         self.visit(ctx.statement())

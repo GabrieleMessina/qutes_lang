@@ -24,7 +24,13 @@ class Symbol():
         self.symbol_class:SymbolClass = symbol_class
         self.symbol_declaration_static_type:QutesDataType = symbol_declaration_static_type
         self.casted_static_type:QutesDataType = casted_static_type #Promoted or Down Casted
-        self.value = value #value is not reliable on quantum types, in case of arrays it contains an array of symbols. In case of functions it contains the ANTLR Function Body Context
+
+        # In case of classical variables it contains the classical variable instance. 
+        # In case of quantum variables it contains the QuantumType instance. 
+        # In case of arrays it contains an ArrayType instance which contains the array of symbols.
+        # In case of functions it contains the ANTLR Function Body Context.
+        self.value = value 
+        
         self.parent_scope:ScopeTreeNode = parent_scope
         self.inner_scope:ScopeTreeNode = None
         self.ast_token_index:int = ast_token_index

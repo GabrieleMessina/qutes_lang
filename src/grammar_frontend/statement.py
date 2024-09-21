@@ -3,7 +3,7 @@ from symbols.scope_tree_node import ScopeTreeNode
 from symbols.symbol import Symbol
 from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
 from symbols.variables_handler import VariablesHandler
-from symbols.types import QutesDataType, QuantumArrayType
+from symbols.types import QutesDataType, QuantumArrayType, ClassicalArrayType
 from quantum_circuit import QuantumCircuitHandler
 from grammar_frontend.qutes_base_visitor import QutesBaseVisitor
 
@@ -45,19 +45,20 @@ class QutesGrammarStatementVisitor(QutesBaseVisitor):
 
     def visitForeachStatement(self, ctx:qutes_parser.ForeachStatementContext):
         self.scope_handler.push_scope()
-        auxiliary:Symbol = self.visit(ctx.variableDeclaration(0))
+        var_name = self.visit(ctx.variableName(0))
+        auxiliary = self.variables_handler.get_variable_symbol(var_name, ctx.start.tokenIndex)
         index:Symbol|None = None
-        if(ctx.variableDeclaration(1)):
-            index = self.visit(ctx.variableDeclaration(1))
+        if(ctx.variableName(1)):
+            index = self.variables_handler.get_variable_symbol(self.visit(ctx.variableName(1)), ctx.start.tokenIndex)
             if(index.symbol_declaration_static_type != QutesDataType.int):
                 raise TypeError(f"Index variable '{index.name}' must be of type 'int'.")
-        array = self.visit(ctx.qualifiedName()).value
+        array = self.visit(ctx.qualifiedName()).value.array
         if(array != None):
             self.scope_handler.start_loop() #avoid block statement to change the scope
             
             for i, next_value in enumerate(array):
                 self.scope_handler.handle_loop_cycle()
-                self.variables_handler.update_variable_state(auxiliary.name, next_value)
+                self.variables_handler.update_variable_state(auxiliary.name, next_value, False)
                 if(index != None):
                     self.variables_handler.update_variable_state(index.name, i)
                 self.visit(ctx.statement())
@@ -141,7 +142,10 @@ class QutesGrammarStatementVisitor(QutesBaseVisitor):
             var_symbol = self.variables_handler.get_variable_symbol(var_name, ctx.start.tokenIndex)
 
         if(isinstance(var_value, list)):
-            var_value = QuantumArrayType(QutesDataType.get_unit_class_from_array_type(QutesDataType.type_of(var_value)), [symbol for symbol in var_value])
+            if QutesDataType.type_of(var_value).is_quantum_type():
+                var_value = QuantumArrayType(QutesDataType.get_unit_class_from_array_type(QutesDataType.type_of(var_value)), [symbol for symbol in var_value])
+            else:
+                var_value = ClassicalArrayType(QutesDataType.get_unit_class_from_array_type(QutesDataType.type_of(var_value)), [symbol for symbol in var_value])
 
         if(var_value == None):
             var_value =  QutesDataType.get_default_value(var_symbol.symbol_declaration_static_type)

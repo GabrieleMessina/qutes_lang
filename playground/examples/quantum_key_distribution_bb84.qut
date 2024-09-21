@@ -7,7 +7,7 @@ string[] alice_bases = ["1","1","0","0","0","1","1","1"];
 
 //Alice encodes the message with the basis
 //for each character in message, if the corresponding character in bases is 0, then encode the character in Z basis, otherwise in X basis
-foreach string base, int index in alice_bases{
+foreach base, index in alice_bases{
     if(base == "0"){
         //encode message in Z basis
         //do nothing
@@ -24,7 +24,7 @@ foreach string base, int index in alice_bases{
 //Bob create a random binary sequence of basis
 string[] bob_bases = ["1","0","1","0","1","0","1","0"];
 
-foreach string base, int index in bob_bases{
+foreach base, index in bob_bases{
     if(base == "0"){
         //encode message in Z basis
         //do nothing
@@ -38,7 +38,7 @@ foreach string base, int index in bob_bases{
 // <----> Alice and Bob reveal their bases to each other
 
 //Alice and Bob compare their bases and discard the bits where their bases do not match
-foreach string base, int index in bob_bases{
+foreach base, index in bob_bases{
     if(alice_bases[index] == base){
         print "Index match so it can be used to create a key, index: ";
         print index;

@@ -1,6 +1,7 @@
 # Aliasing for easy importing through the code
 from symbols.types.quantum_type import QuantumType
 from symbols.types.quantum_array_type import QuantumArrayType 
+from symbols.types.classical_array_type import ClassicalArrayType 
 from symbols.types.qubit import Qubit
 from symbols.types.quint import Quint 
 from symbols.types.qustring import Qustring 

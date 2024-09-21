@@ -1,5 +1,5 @@
 // string[] bob_bases = ["1","0","1","0","1","0","1","0"];
-// foreach string base in bob_bases{
+// foreach base in bob_bases{
 //     if(bob_bases[0] == base){
 //         print base;
 //     }
@@ -7,7 +7,7 @@
 //         print base;
 //     }
 // }
-// foreach string base, int index in bob_bases{
+// foreach base, index in bob_bases{
 //     print "start";
 //     print index;
 //     print base;
@@ -20,12 +20,12 @@ qubit c = 0q;
 qubit[] a = [b, c, |+>];
 qubit d = a[2];
 
-foreach qubit q in a{
+foreach q in a{
     print q;
 }
 
 int[] ba = [2, 3];
-foreach int q in ba{
+foreach q in ba{
     print q;
 }
 
@@ -40,7 +40,7 @@ foreach int q in ba{
 // print foo[1];
 
 // int count=0;
-// foreach int i in foo{
+// foreach i in foo{
 //     print i;
 //     count = count + i;
 // }

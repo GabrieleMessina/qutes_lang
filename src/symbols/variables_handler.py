@@ -12,7 +12,7 @@ class VariablesHandler():
         self.quantum_circuit_handler = quantum_circuit_handler
         self.type_casting_handler = TypeCastingHandler(quantum_circuit_handler)
 
-    def update_variable_state(self, variable_name : str, new_state) -> Symbol: 
+    def update_variable_state(self, variable_name : str, new_state, delete_new_state_register = True) -> Symbol: 
         eligible_symbols_to_update = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.name == variable_name]
         if len(eligible_symbols_to_update) > 0:
             # In case multiple scopes declare a variable with the same name we take the last one, that is the one from the nearest scope.
@@ -49,7 +49,7 @@ class VariablesHandler():
 
             #Handle quantum circuit update
             if(QutesDataType.is_quantum_type(symbol_to_update.symbol_declaration_static_type)):
-                if(new_state.is_anonymous):
+                if(new_state.is_anonymous and new_state.quantum_register is None):
                     symbol_to_update.quantum_register = self.quantum_circuit_handler.create_and_assign_quantum_register(variable_name, value_to_assign)
                     if(new_state.is_quantum()):
                         self.quantum_circuit_handler.remove_quantum_register(new_state.quantum_register)
@@ -57,6 +57,8 @@ class VariablesHandler():
                         pass #being classic it was not added to circuit handler and there is no need to delete it.
                 else:
                     symbol_to_update.quantum_register = self.quantum_circuit_handler.assign_quantum_register_to_variable(variable_name, new_state.quantum_register)
+                    if(new_state.is_quantum() and delete_new_state_register):
+                        self.quantum_circuit_handler.remove_quantum_register(new_state.quantum_register)
             return symbol_to_update
         else:
             raise SyntaxError(f"No variable declared with name '{variable_name}'.")

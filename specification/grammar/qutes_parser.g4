@@ -15,7 +15,7 @@ statement
    : IF_STATEMENT expr statement #IfStatement
    | IF_STATEMENT expr statement ELSE_STATEMENT statement #IfElseStatement
    | WHILE_STATEMENT expr statement #WhileStatement
-   | FOREACH_STATEMENT variableDeclaration (COMMA variableDeclaration)? IN_STATEMENT qualifiedName statement #ForeachStatement
+   | FOREACH_STATEMENT variableName (COMMA variableName)? IN_STATEMENT qualifiedName statement #ForeachStatement
    | DO_STATEMENT statement WHILE_STATEMENT expr #DoWhileStatement
    | CURLY_PARENTHESIS_OPEN statement* CURLY_PARENTHESIS_CLOSE #BlockStatement
    | variableType functionName ROUND_PARENTHESIS_OPEN functionDeclarationParams? ROUND_PARENTHESIS_CLOSE statement #FunctionStatement

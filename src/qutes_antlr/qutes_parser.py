@@ -42,9 +42,9 @@ def serializedATN():
         8,4,0,50,51,3,2,1,0,51,112,1,0,0,0,52,53,5,55,0,0,53,54,3,8,4,0,
         54,55,3,2,1,0,55,56,5,56,0,0,56,57,3,2,1,0,57,112,1,0,0,0,58,59,
         5,57,0,0,59,60,3,8,4,0,60,61,3,2,1,0,61,112,1,0,0,0,62,63,5,51,0,
-        0,63,66,3,6,3,0,64,65,5,67,0,0,65,67,3,6,3,0,66,64,1,0,0,0,66,67,
-        1,0,0,0,67,68,1,0,0,0,68,69,5,53,0,0,69,70,3,18,9,0,70,71,3,2,1,
-        0,71,112,1,0,0,0,72,73,5,58,0,0,73,74,3,2,1,0,74,75,5,57,0,0,75,
+        0,63,66,3,20,10,0,64,65,5,67,0,0,65,67,3,20,10,0,66,64,1,0,0,0,66,
+        67,1,0,0,0,67,68,1,0,0,0,68,69,5,53,0,0,69,70,3,18,9,0,70,71,3,2,
+        1,0,71,112,1,0,0,0,72,73,5,58,0,0,73,74,3,2,1,0,74,75,5,57,0,0,75,
         76,3,8,4,0,76,112,1,0,0,0,77,81,5,59,0,0,78,80,3,2,1,0,79,78,1,0,
         0,0,80,83,1,0,0,0,81,79,1,0,0,0,81,82,1,0,0,0,82,84,1,0,0,0,83,81,
         1,0,0,0,84,112,5,60,0,0,85,86,3,14,7,0,86,87,3,22,11,0,87,89,5,61,
@@ -663,11 +663,11 @@ class qutes_parser ( Parser ):
 
         def FOREACH_STATEMENT(self):
             return self.getToken(qutes_parser.FOREACH_STATEMENT, 0)
-        def variableDeclaration(self, i:int=None):
+        def variableName(self, i:int=None):
             if i is None:
-                return self.getTypedRuleContexts(qutes_parser.VariableDeclarationContext)
+                return self.getTypedRuleContexts(qutes_parser.VariableNameContext)
             else:
-                return self.getTypedRuleContext(qutes_parser.VariableDeclarationContext,i)
+                return self.getTypedRuleContext(qutes_parser.VariableNameContext,i)
 
         def IN_STATEMENT(self):
             return self.getToken(qutes_parser.IN_STATEMENT, 0)
@@ -807,7 +807,7 @@ class qutes_parser ( Parser ):
                 self.state = 62
                 self.match(qutes_parser.FOREACH_STATEMENT)
                 self.state = 63
-                self.variableDeclaration()
+                self.variableName()
                 self.state = 66
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
@@ -815,7 +815,7 @@ class qutes_parser ( Parser ):
                     self.state = 64
                     self.match(qutes_parser.COMMA)
                     self.state = 65
-                    self.variableDeclaration()
+                    self.variableName()
 
 
                 self.state = 68
