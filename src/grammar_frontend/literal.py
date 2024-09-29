@@ -3,7 +3,7 @@ from symbols.scope_tree_node import ScopeTreeNode
 from symbols.symbol import Symbol
 from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
 from symbols.variables_handler import VariablesHandler
-from symbols.types import Qubit, Quint, Qustring, QutesDataType
+from symbols.types import Qubit, Quint, Qustring, QutesDataType, QuantumArrayType
 from quantum_circuit import QuantumCircuitHandler
 from grammar_frontend.qutes_base_visitor import QutesBaseVisitor
 
@@ -15,29 +15,33 @@ class QutesGrammarLiteralVisitor(QutesBaseVisitor):
         return ctx.getText()
     
     def visitFunctionDeclarationParams(self, ctx:qutes_parser.FunctionDeclarationParamsContext):
-        param = self.visit(ctx.variableDeclaration())
-        params = []
+        head = [self.visit(ctx.variableDeclaration())]
+        tail = []
         if(ctx.functionDeclarationParams()):
-            params = self.visit(ctx.functionDeclarationParams())
-            if(not isinstance(params, list)):
-                params = [params]
-        params.append(param)
-        return params
+            tail = self.visit(ctx.functionDeclarationParams()) #recursion
+            if(not isinstance(tail, list)):
+                tail = [tail]
+            head.extend(tail)
+        return head
 
     def visitTermList(self, ctx:qutes_parser.TermListContext) -> list[Symbol]:
-        term = self.visit(ctx.literal()) if ctx.literal() else self.visit(ctx.qualifiedName())
-        terms = []
+        head = [self.visit(ctx.literal()) if ctx.literal() else self.visit(ctx.qualifiedName())]
+        tail = []
         if(ctx.termList()):
-            terms = self.visit(ctx.termList())
-            if(not isinstance(terms, list)):
-                terms = [terms]
-        terms.append(term)
-        return terms
+            tail = self.visit(ctx.termList()) #recursion
+            if(not isinstance(tail, list)):
+                tail = [tail]
+            head.extend(tail)
+        return head
     
     def visitArray(self, ctx:qutes_parser.ArrayContext) -> list[Symbol]:
-        terms = self.visit(ctx.termList())
-        terms.reverse()
-        return terms
+        terms:list[Symbol] = self.visit(ctx.termList())
+        for term in terms:
+            self.variables_handler.delete_variable(term)
+        array_type = QutesDataType.promote_unit_to_array_type(terms[0].symbol_declaration_static_type) #TODO: check if all elements are of the same type
+        unit_type = QutesDataType.get_unit_class_from_array_type(array_type)
+        array_symbol = self.variables_handler.declare_anonymous_variable(array_type, QuantumArrayType(unit_type, terms), ctx.start.tokenIndex)
+        return array_symbol
 
     def visitVariableType(self, ctx:qutes_parser.VariableTypeContext):
         value = str(ctx.getText())

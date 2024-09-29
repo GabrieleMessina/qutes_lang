@@ -1,6 +1,6 @@
 from enum import Enum, auto
 from quantum_circuit import QuantumRegister, QuantumCircuit
-from symbols.scope_tree_node import ScopeTreeNode
+from symbols.scope_tree_node import ScopeTreeNode, ScopeStackNode
 from symbols.types import QutesDataType
 
 class SymbolClass(Enum):
@@ -32,7 +32,7 @@ class Symbol():
         self.value = value 
         
         self.parent_scope:ScopeTreeNode = parent_scope
-        self.inner_scope:ScopeTreeNode = None
+        self.inner_scope:ScopeStackNode = None
         self.ast_token_index:int = ast_token_index
         self.is_return_value_of_function:bool = False
         self.is_anonymous:bool = False

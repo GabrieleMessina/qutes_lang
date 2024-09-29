@@ -1,4 +1,3 @@
-from uuid import uuid4
 from symbols.types.type_casting_handler import TypeCastingHandler
 from symbols.types.qutes_data_type import QutesDataType, QuantumArrayType
 from symbols.scope_handler import ScopeHandler
@@ -12,7 +11,7 @@ class VariablesHandler():
         self.quantum_circuit_handler = quantum_circuit_handler
         self.type_casting_handler = TypeCastingHandler(quantum_circuit_handler)
 
-    def update_variable_state(self, variable_name : str, new_state, delete_new_state_register = True) -> Symbol: 
+    def update_variable_state(self, variable_name : str, new_state) -> Symbol:
         eligible_symbols_to_update = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.name == variable_name]
         if len(eligible_symbols_to_update) > 0:
             # In case multiple scopes declare a variable with the same name we take the last one, that is the one from the nearest scope.
@@ -21,7 +20,9 @@ class VariablesHandler():
 
             # If new_state is a literal, we create an anonymous symbol to handle only this case from now on.
             if(not isinstance(new_state, Symbol)):
+                delete_new_state_register = True
                 new_state:Symbol = self.declare_anonymous_variable(QutesDataType.type_of(new_state), new_state, symbol_to_update.ast_token_index)
+            delete_new_state_register = new_state.is_anonymous 
             value_to_assign = self.get_value(new_state)
 
         	# check if the type of the variable match the type of the value we are trying to assign. 
@@ -49,16 +50,12 @@ class VariablesHandler():
 
             #Handle quantum circuit update
             if(QutesDataType.is_quantum_type(symbol_to_update.symbol_declaration_static_type)):
-                if(new_state.is_anonymous and new_state.quantum_register is None):
+                if(new_state.quantum_register == None):
                     symbol_to_update.quantum_register = self.quantum_circuit_handler.create_and_assign_quantum_register(variable_name, value_to_assign)
-                    if(new_state.is_quantum()):
-                        self.quantum_circuit_handler.remove_quantum_register(new_state.quantum_register)
-                    else:
-                        pass #being classic it was not added to circuit handler and there is no need to delete it.
                 else:
                     symbol_to_update.quantum_register = self.quantum_circuit_handler.assign_quantum_register_to_variable(variable_name, new_state.quantum_register)
-                    if(new_state.is_quantum() and delete_new_state_register):
-                        self.quantum_circuit_handler.remove_quantum_register(new_state.quantum_register)
+                    if(delete_new_state_register):
+                        self.delete_variable(new_state)
             return symbol_to_update
         else:
             raise SyntaxError(f"No variable declared with name '{variable_name}'.")
@@ -83,11 +80,15 @@ class VariablesHandler():
         else:
             raise SyntaxError(f"Symbol with name '{variable_name}' already declared.")
 
-
-    anon_counter = iter(range(1000))
     def declare_anonymous_variable(self, declaration_type : QutesDataType, value, ast_token_index:int) -> Symbol:
-        return self.declare_variable(declaration_type, f"anon_{next(VariablesHandler.anon_counter)}", ast_token_index, value, True)
-        # return self.declare_variable(declaration_type, f"anon_{uuid4().hex[:6]}", ast_token_index, value, True)
+        return self.declare_variable(declaration_type, f"{QuantumCircuitHandler.anon_variable_name_prefix}_{next(QuantumCircuitHandler.anon_counter)}", ast_token_index, value, True)
+
+    def delete_variable(self, symbol:Symbol) -> None:
+        if symbol in self.scope_handler.current_symbols_scope.symbols:
+            self.scope_handler.current_symbols_scope.symbols.remove(symbol)
+        # TODO: check when is needed to delete registers.
+        # if symbol.quantum_register != None:
+        #     self.quantum_circuit_handler.remove_quantum_register(symbol.quantum_register)
 
     def create_symbol(self, qutes_type : QutesDataType, value, ast_token_index:int) -> Symbol:
         if(value is None):
@@ -143,7 +144,7 @@ class VariablesHandler():
         else:
             raise SyntaxError(f"No variable declared with name '{var_name}'.")
         
-    def get_function_symbol(self, function_name:str, ast_token_index:int, function_params:list[Symbol]) -> Symbol:
+    def get_function_symbol(self, function_name:str, function_params:list[Symbol], ast_token_index:int) -> Symbol:
         eligible_symbols = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.function_matches_signature(function_name, function_params)]
         if len(eligible_symbols) > 0:
             return eligible_symbols[-1]

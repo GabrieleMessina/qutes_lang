@@ -70,7 +70,7 @@ class QutesGrammarStatementVisitor(QutesBaseVisitor):
         if(array != None):
             for i, next_value in enumerate(array):
                 self.scope_handler.restart_visiting_cycle_scope()
-                self.variables_handler.update_variable_state(auxiliary.name, next_value, False)
+                self.variables_handler.update_variable_state(auxiliary.name, next_value)
                 if(index != None):
                     self.variables_handler.update_variable_state(index.name, i)
                 self.visit(ctx.statement())
@@ -119,6 +119,8 @@ class QutesGrammarStatementVisitor(QutesBaseVisitor):
         function_params = []
         if(ctx.functionDeclarationParams()):
             function_params = self.visit(ctx.functionDeclarationParams())
+        function_symbol:Symbol = self.variables_handler.get_function_symbol(function_name, function_params, ctx.start.tokenIndex)
+        function_symbol.inner_scope = self.scope_handler.create_function_inner_scope()
         #do not call a visit on the statement here, or on all the context, the statement is being saved by the discovery and should be traversed only on function execution
         self.scope_handler.pop_scope()
         return None

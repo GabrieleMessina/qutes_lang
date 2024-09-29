@@ -1,5 +1,5 @@
 """A Node for the Scope Tree data structure"""
-from anytree import NodeMixin
+from anytree import NodeMixin, PreOrderIter
 from enum import Enum, auto
 
 class ScopeClass(Enum):
@@ -28,6 +28,20 @@ class ScopeTreeNode(NodeMixin):
             return f"{self.scope_class}/{self.scope_type_detail}: {[a for a in self.symbols if a not in self.parent.symbols]}"
         else:
             return f"{self.scope_class}/{self.scope_type_detail}: {self.symbols}"
+
+    def __str__(self) -> str:
+        return self.__to_printable__()
+
+    def __repr__(self) -> str:
+        return self.__to_printable__()
+    
+class ScopeStackNode():        
+    def __init__(self, scope_node:ScopeTreeNode, scope_iterator:PreOrderIter):
+        self.scope_node = scope_node
+        self.scope_iterator = scope_iterator
+    
+    def __to_printable__(self) -> str:
+        return f"stack:{self.scope_node}"
 
     def __str__(self) -> str:
         return self.__to_printable__()

@@ -1,4 +1,4 @@
-from symbols.scope_tree_node import ScopeTreeNode, ScopeClass
+from symbols.scope_tree_node import ScopeTreeNode, ScopeClass, ScopeStackNode
 from symbols.symbol import Symbol
 from anytree import PreOrderIter, RenderTree
 
@@ -36,11 +36,6 @@ class ScopeHandlerForSymbolsDiscovery(ScopeHandler):
 
         return self.current_symbols_scope
     
-    def push_inner_scope(self, scope:ScopeClass, scope_detail:str, symbol_owner:Symbol, symbols:list[Symbol] = []) -> ScopeTreeNode:
-        inner_scope = self.push_scope(scope, scope_detail, symbols)
-        symbol_owner.inner_scope = inner_scope
-        return inner_scope
-    
     def pop_scope(self) -> ScopeTreeNode:
         self.current_symbols_scope = self.current_symbols_scope.parent
 
@@ -63,7 +58,7 @@ class ScopeHandlerForSymbolsUpdate(ScopeHandler):
             raise ValueError("A symbols tree must be provided to the scope handler for this step.")
         self.symbols_tree_root:ScopeTreeNode = symbols_tree
         self.current_symbols_scope:ScopeTreeNode = self.symbols_tree_root
-        self.tree_preorder_iterator = PreOrderIter(self.symbols_tree_root)
+        self.scopes_stack:list[ScopeStackNode] = [ScopeStackNode(self.current_symbols_scope, PreOrderIter(self.symbols_tree_root))]
 
     def restart_visiting_cycle_scope(self) -> None:
         """ This method must be called every time a loop cycle is executed
@@ -74,13 +69,30 @@ class ScopeHandlerForSymbolsUpdate(ScopeHandler):
         temp_node = None
         while temp_node != self.current_symbols_scope:
             temp_node = next(temp_iterator)
-        self.tree_preorder_iterator = temp_iterator
+        self.scopes_stack[-1].scope_iterator = temp_iterator
+
+    def create_function_inner_scope(self) -> ScopeStackNode:
+        if(ScopeHandlerForSymbolsUpdate.print_trace and self.current_symbols_scope != None):
+            print (f"create_function_inner_scope")
+        return ScopeStackNode(self.current_symbols_scope, PreOrderIter(self.current_symbols_scope))
+
+    def push_function_inner_scope(self, function_inner_scope:ScopeStackNode) -> None:
+        self.scopes_stack.append(function_inner_scope)
+        self.push_scope()
+        if(ScopeHandlerForSymbolsUpdate.print_trace and self.current_symbols_scope != None):
+            print (f"push_function_inner_scope")
+
+    def pop_function_inner_scope(self, function_inner_scope:ScopeStackNode) -> None:
+        self.pop_scope()
+        self.scopes_stack.remove(function_inner_scope)
+        if(ScopeHandlerForSymbolsUpdate.print_trace and self.current_symbols_scope != None):
+            print (f"pop_function_inner_scope")
 
     #Start visiting scope
     def push_scope(self) -> ScopeTreeNode:
-        nextNode = next(self.tree_preorder_iterator)
+        nextNode = next(self.scopes_stack[-1].scope_iterator)
         if(ScopeHandlerForSymbolsUpdate.print_trace and nextNode != None):
-            print (f"push_scope: \n{RenderTree(nextNode)}")
+            print (f"⬇push\n{RenderTree(nextNode)}")
         if(nextNode != None):
             self.current_symbols_scope = nextNode
         return self.current_symbols_scope
@@ -91,5 +103,5 @@ class ScopeHandlerForSymbolsUpdate(ScopeHandler):
         if(parentNode != None):
             self.current_symbols_scope = parentNode
         if(ScopeHandlerForSymbolsUpdate.print_trace and self.current_symbols_scope != None):
-            print (f"pop_scope: \n{RenderTree(self.current_symbols_scope)}")
+            print (f"⬆pop\n{RenderTree(self.current_symbols_scope)}")
         return self.current_symbols_scope

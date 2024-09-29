@@ -83,18 +83,10 @@ class SymbolsDiscoveryVisitor(qutesVisitor):
 
     # visit a parse tree produced by qutesParser#BlockStatement.
     def visitBlockStatement(self, ctx:qutesParser.BlockStatementContext):
-        if(self.scope_handler.current_symbols_scope.scope_class == ScopeClass.FunctionScope):
-            pass
-        else:
-            self.scope_count += 1
-            self.scope_handler.push_scope(ScopeClass.BlockScope, f"Block{self.scope_count}")
-
+        self.scope_count += 1
+        self.scope_handler.push_scope(ScopeClass.BlockScope, f"Block{self.scope_count}")
         self.visitChildren(ctx)
-
-        if(self.scope_handler.current_symbols_scope.scope_class == ScopeClass.FunctionScope):
-            pass
-        else:
-            self.scope_handler.pop_scope()
+        self.scope_handler.pop_scope()
 
 
     # visit a parse tree produced by qutes_parser#FunctionStatement.
@@ -106,28 +98,28 @@ class SymbolsDiscoveryVisitor(qutesVisitor):
         function_body = ctx.statement()
 
         token_index = ctx.start.tokenIndex
-        funtion_symbol = self.variables_handler.declare_anonymous_variable(qutes_type, QutesDataType.get_default_value(qutes_type), token_index)
-        funtion_symbol = self.variables_handler.declare_function(funtion_symbol, function_name, [], function_body)
-        self.scope_handler.push_inner_scope(ScopeClass.FunctionScope, f"Function{self.function_scope_count}", funtion_symbol)
+        function_symbol = self.variables_handler.declare_anonymous_variable(qutes_type, QutesDataType.get_default_value(qutes_type), token_index)
+        function_symbol = self.variables_handler.declare_function(function_symbol, function_name, [], function_body)
+        self.scope_handler.push_scope(ScopeClass.FunctionScope, f"Function{self.function_scope_count}")
 
         input_params_declaration = []
         if(ctx.functionDeclarationParams()):
             input_params_declaration = self.visit(ctx.functionDeclarationParams())
-        funtion_symbol.function_input_params_definition = input_params_declaration
+        function_symbol.function_input_params_definition = input_params_declaration
 
         self.visit(ctx.statement())
         self.scope_handler.pop_scope()
 
     # Visit a parse tree produced by qutes_parser#functionParams.
     def visitFunctionDeclarationParams(self, ctx:qutesParser.FunctionDeclarationParamsContext):
-        param = self.visit(ctx.variableDeclaration())
-        params = []
+        head = [self.visit(ctx.variableDeclaration())]
+        tail = []
         if(ctx.functionDeclarationParams()):
-            params = self.visit(ctx.functionDeclarationParams())
-            if(not isinstance(params, list)):
-                params = [params]
-        params.append(param)
-        return params
+            tail = self.visit(ctx.functionDeclarationParams()) #recursion
+            if(not isinstance(tail, list)):
+                tail = [tail]
+            head.extend(tail)
+        return head
 
     # visit a parse tree produced by qutes_parser#variableDeclaration.
     def visitVariableDeclaration(self, ctx:qutesParser.VariableDeclarationContext):

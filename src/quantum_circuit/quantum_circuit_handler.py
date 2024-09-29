@@ -22,6 +22,8 @@ def unwrap(l:list[QuantumRegister|ClassicalRegister]) -> list:
     return unwrapped
 
 class QuantumCircuitHandler():
+    anon_counter = iter(range(1000))
+    anon_variable_name_prefix = "anon"
     def __init__(self):
         self._quantum_registers : list[QuantumRegister] = []
         self._registers_states : dict[QuantumRegister | ClassicalRegister, StatePreparation] = {}

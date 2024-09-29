@@ -38,11 +38,9 @@ class QutesGrammarExpressionVisitor(QutesBaseVisitor):
         return result
 
     def __visitFunctionCall(self, function_name, function_params, tokenIndex):
-        function_symbol = self.variables_handler.get_function_symbol(function_name, tokenIndex, function_params)  
+        function_symbol = self.variables_handler.get_function_symbol(function_name, function_params, tokenIndex)  
 
-        scope_to_restore_on_exit = self.scope_handler.current_symbols_scope
-        self.scope_handler.current_symbols_scope = function_symbol.inner_scope
-        
+        self.scope_handler.push_function_inner_scope(function_symbol.inner_scope)
         default_params_to_restore_on_exit = function_symbol.function_input_params_definition.copy()
 
         symbol_params_to_push = []
@@ -51,16 +49,16 @@ class QutesGrammarExpressionVisitor(QutesBaseVisitor):
             symbol_to_push.value = function_params[index].value
             symbol_to_push.quantum_register = function_params[index].quantum_register
             symbol_params_to_push.append(symbol_to_push)
-        [symbol for symbol in function_symbol.inner_scope.symbols if symbol.symbol_class == SymbolClass.FunctionSymbol][:len(function_params)] = symbol_params_to_push
+        [symbol for symbol in function_symbol.inner_scope.scope_node.symbols if symbol.symbol_class == SymbolClass.FunctionSymbol][:len(function_params)] = symbol_params_to_push
 
         #TODO: staff commented for make return value work for quantum variable, do some tests to assure the behaviour is correct
         # self.quantum_circuit_handler.start_quantum_function()
-        result = self.visitChildren(function_symbol.value) #Execute the function
+        result = self.visit(function_symbol.value) #Execute the function statement
         # gate = self.quantum_circuit_handler.end_quantum_function(function_symbol.name)
         # function_symbol.quantum_function = gate
 
-        self.scope_handler.current_symbols_scope = scope_to_restore_on_exit
-        [symbol for symbol in function_symbol.inner_scope.symbols if symbol.symbol_class == SymbolClass.FunctionSymbol][:len(function_params)] = default_params_to_restore_on_exit
+        [symbol for symbol in function_symbol.inner_scope.scope_node.symbols if symbol.symbol_class == SymbolClass.FunctionSymbol][:len(function_params)] = default_params_to_restore_on_exit
+        self.scope_handler.pop_function_inner_scope(function_symbol.inner_scope)
 
         return result #The function return value
     

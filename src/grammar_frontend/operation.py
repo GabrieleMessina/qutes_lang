@@ -161,7 +161,6 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
 
     def __visitMultipleUnaryOperator(self, ctx:qutes_parser.MultipleUnaryOperatorContext):
         terms:list[Symbol] = self.visit(ctx.termList())
-        terms.reverse()
         registers = [register.quantum_register for register in terms]
         if(self.log_code_structure): print(f"{ctx.op.text} {registers}", end=None)
         if(ctx.MCZ()):
@@ -176,7 +175,6 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
 
     def __visitMultipleUnaryPhaseOperator(self, ctx:qutes_parser.MultipleUnaryPhaseOperatorContext):
         terms:list[Symbol] = self.visit(ctx.termList())
-        terms.reverse()
         registers = [register.quantum_register for register in terms]
         theta:Symbol = self.visit(ctx.expr())
         if(self.log_code_structure): print(f"{ctx.op.text} {registers} by {theta}", end=None)
@@ -257,11 +255,9 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
         return self.variables_handler.declare_anonymous_variable(QutesDataType.type_of(result), result, ctx.start.tokenIndex)
 
     def __visitFunctionCall(self, function_name, function_params:list[Symbol], tokenIndex):
-        function_symbol = self.variables_handler.get_function_symbol(function_name, tokenIndex, function_params)  
+        function_symbol = self.variables_handler.get_function_symbol(function_name, function_params, tokenIndex)  
 
-        scope_to_restore_on_exit = self.scope_handler.current_symbols_scope
-        self.scope_handler.current_symbols_scope = function_symbol.inner_scope
-        
+        self.scope_handler.push_function_inner_scope(function_symbol.inner_scope)        
         default_params_to_restore_on_exit = function_symbol.function_input_params_definition.copy()
 
         symbol_params_to_push = []
@@ -272,7 +268,7 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
             symbol_to_push.quantum_register = function_params[index].quantum_register
             symbol_params_to_push.append(symbol_to_push)
             # regs.append(symbol_to_push.quantum_register)
-        [symbol for symbol in function_symbol.inner_scope.symbols if symbol.symbol_class == SymbolClass.FunctionSymbol][:len(function_params)] = symbol_params_to_push
+        [symbol for symbol in function_symbol.inner_scope.__hash__.symbols if symbol.symbol_class == SymbolClass.FunctionSymbol][:len(function_params)] = symbol_params_to_push
 
         #TODO: staff commented for make return value work for quantum variable, do some tests to assure the behaviour is correct
         # self.quantum_circuit_handler.start_quantum_function()
@@ -280,8 +276,8 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
         # gate = self.quantum_circuit_handler.end_quantum_function(*regs, gate_name=function_symbol.name, create_gate=True)
         # function_symbol.quantum_function = gate
 
-        self.scope_handler.current_symbols_scope = scope_to_restore_on_exit
-        [symbol for symbol in function_symbol.inner_scope.symbols if symbol.symbol_class == SymbolClass.FunctionSymbol][:len(function_params)] = default_params_to_restore_on_exit
+        self.scope_handler.pop_function_inner_scope(function_symbol.inner_scope)
+        [symbol for symbol in function_symbol.inner_scope.scope_node.symbols if symbol.symbol_class == SymbolClass.FunctionSymbol][:len(function_params)] = default_params_to_restore_on_exit
 
         return function_symbol
 
@@ -308,7 +304,6 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
 
             self.quantum_circuit_handler.start_quantum_function()
             termList:list[Symbol] = self.visit(ctx.termList())    
-            termList.reverse()        
 
             grover_result = self.quantum_circuit_handler.declare_quantum_register("grover_phase_ancilla", Qubit())
             oracle_registers = array_register
@@ -388,7 +383,6 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
 
             self.quantum_circuit_handler.start_quantum_function()
             termList:list[Symbol] = self.visit(ctx.termList())    
-            termList.reverse()        
 
             grover_result = self.quantum_circuit_handler.declare_quantum_register("grover_phase_ancilla", Qubit())
             oracle_registers = [array_register]
