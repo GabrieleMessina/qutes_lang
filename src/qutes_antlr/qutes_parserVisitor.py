@@ -124,6 +124,11 @@ class qutes_parserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by qutes_parser#ExpOperator.
+    def visitExpOperator(self, ctx:qutes_parser.ExpOperatorContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by qutes_parser#FunctionCallExpression.
     def visitFunctionCallExpression(self, ctx:qutes_parser.FunctionCallExpressionContext):
         return self.visitChildren(ctx)

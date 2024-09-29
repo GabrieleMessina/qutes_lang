@@ -24,6 +24,9 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
     def visitMultiplicativeOperator(self, ctx:qutes_parser.MultiplicativeOperatorContext):
         return self.__visit_binary_operator(ctx)
 
+    def visitExpOperator(self, ctx:qutes_parser.ExpOperatorContext):
+        return self.__visit_binary_operator(ctx)
+
     def visitSumOperator(self, ctx:qutes_parser.SumOperatorContext):
         return self.__visit_binary_operator(ctx)
 
@@ -112,6 +115,11 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
                     pass
                 result = first_term_value % second_term_value
+        if(isinstance(ctx, qutes_parser.ExpOperatorContext)):
+            if(ctx.EXP()):
+                if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
+                    pass
+                result = first_term_value ** second_term_value
         
         return self.variables_handler.declare_anonymous_variable(QutesDataType.type_of(result), result, ctx.start.tokenIndex)
     
@@ -249,8 +257,6 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
         return self.variables_handler.declare_anonymous_variable(QutesDataType.type_of(result), result, ctx.start.tokenIndex)
 
     def __visitFunctionCall(self, function_name, function_params:list[Symbol], tokenIndex):
-        self.scope_handler.start_function() #To avoid block statement to push its scope
-
         function_symbol = self.variables_handler.get_function_symbol(function_name, tokenIndex, function_params)  
 
         scope_to_restore_on_exit = self.scope_handler.current_symbols_scope
@@ -277,7 +283,6 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
         self.scope_handler.current_symbols_scope = scope_to_restore_on_exit
         [symbol for symbol in function_symbol.inner_scope.symbols if symbol.symbol_class == SymbolClass.FunctionSymbol][:len(function_params)] = default_params_to_restore_on_exit
 
-        self.scope_handler.end_function()
         return function_symbol
 
     free_grover_count = iter(range(1, 1000))

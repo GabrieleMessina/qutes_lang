@@ -215,6 +215,15 @@ class qutes_parserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by qutes_parser#ExpOperator.
+    def enterExpOperator(self, ctx:qutes_parser.ExpOperatorContext):
+        pass
+
+    # Exit a parse tree produced by qutes_parser#ExpOperator.
+    def exitExpOperator(self, ctx:qutes_parser.ExpOperatorContext):
+        pass
+
+
     # Enter a parse tree produced by qutes_parser#FunctionCallExpression.
     def enterFunctionCallExpression(self, ctx:qutes_parser.FunctionCallExpressionContext):
         pass
