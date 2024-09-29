@@ -15,12 +15,19 @@ class QutesGrammarStatementVisitor(QutesBaseVisitor):
         self.scope_handler.push_scope()
         condition = self.visit(ctx.expr())
         if(condition != None):
-            if(self.variables_handler.get_value(condition) == True):
-                self.visit(ctx.statement())
-            elif(isinstance(ctx.statement(), qutes_parser.BlockStatementContext)):
-                #remove the unused block statement scope
-                self.scope_handler.push_scope()
-                self.scope_handler.pop_scope()
+            if(condition.is_quantum()):
+                self.quantum_circuit_handler.start_quantum_function()
+                gate = self.visit(ctx.statement())
+                gate_params = set([symbol.quantum_register for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.quantum_register != None])
+                gate = self.quantum_circuit_handler.end_quantum_function(*gate_params, gate_name=f"controlled_gate")
+                self.quantum_circuit_handler.push_compose_controlled_circuit_operation(gate, quantum_registers=gate.qregs, quantum_controller_registers=[condition.quantum_register])
+            else:
+                if(self.variables_handler.get_value(condition) == True):
+                    self.visit(ctx.statement())
+                elif(isinstance(ctx.statement(), qutes_parser.BlockStatementContext)):
+                    #do nothing but remove the unused block statement scope
+                    self.scope_handler.push_scope()
+                    self.scope_handler.pop_scope()
         self.scope_handler.pop_scope()
         return None
     
@@ -28,18 +35,23 @@ class QutesGrammarStatementVisitor(QutesBaseVisitor):
         self.scope_handler.push_scope()
         condition:Symbol = self.visit(ctx.expr())
         if(condition != None):
-            if(self.variables_handler.get_value(condition) == True):
-                self.visit(ctx.statement(0))
-                if(isinstance(ctx.statement(1), qutes_parser.BlockStatementContext)):
-                    #get rid of the ELSE branch scope 
-                    self.scope_handler.push_scope()
-                    self.scope_handler.pop_scope()
+            if(condition.is_quantum()):
+                gate = self.visit(ctx.statement(0))
+                self.quantum_circuit_handler.push_compose_controlled_circuit_operation(gate.quantum_function, quantum_controller_registers=[condition.quantum_register])
+                #TODO: implement the else branch (statement(1)) with an inversed controlled circuit
             else:
-                if(isinstance(ctx.statement(0), qutes_parser.BlockStatementContext)):
-                    #get rid of the IF branch scope 
-                    self.scope_handler.push_scope()
-                    self.scope_handler.pop_scope()
-                self.visit(ctx.statement(1))
+                if(self.variables_handler.get_value(condition) == True):
+                    self.visit(ctx.statement(0))
+                    if(isinstance(ctx.statement(1), qutes_parser.BlockStatementContext)):
+                        #get rid of the ELSE branch scope 
+                        self.scope_handler.push_scope()
+                        self.scope_handler.pop_scope()
+                else:
+                    if(isinstance(ctx.statement(0), qutes_parser.BlockStatementContext)):
+                        #get rid of the IF branch scope 
+                        self.scope_handler.push_scope()
+                        self.scope_handler.pop_scope()
+                    self.visit(ctx.statement(1))
         self.scope_handler.pop_scope()
         return None   
 
