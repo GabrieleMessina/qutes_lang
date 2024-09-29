@@ -64,14 +64,16 @@ class Symbol():
     def __to_printable__(self) -> str:
         if(Symbol.verbose_print):
             if self.symbol_class is SymbolClass.FunctionSymbol:
-                return f"{self.parent_scope.scope_type_detail}.{self.name}({self.function_input_params_definition}) -> {self.symbol_declaration_static_type.name}"
+                func_params = str.join(", ", [str(s) for s in self.function_input_params_definition])
+                return f"{self.symbol_declaration_static_type.name} {self.parent_scope.scope_type_detail}.{self.name}({func_params})"
             else:
                 return f"{self.symbol_declaration_static_type.name} {self.parent_scope.scope_type_detail}.{self.name} = {self.value}"
         else:
             if self.symbol_class is SymbolClass.FunctionSymbol:
-                return f"{self.parent_scope.scope_type_detail}.{self.name}({self.function_input_params_definition}) -> {self.symbol_declaration_static_type.name}"
+                func_params = str.join(", ", [str(s) for s in self.function_input_params_definition])
+                return f"{self.symbol_declaration_static_type.name} {self.name}({func_params})"
             else:
-                return f"{self.value}"
+                return f"{self.name} = {self.value}"
 
     def __str__(self) -> str:
         return self.__to_printable__()
