@@ -19,7 +19,7 @@ class QutesGrammarStatementVisitor(QutesBaseVisitor):
                 self.quantum_circuit_handler.start_quantum_function()
                 gate = self.visit(ctx.statement())
                 gate_params = set([symbol.quantum_register for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.quantum_register != None])
-                gate = self.quantum_circuit_handler.end_quantum_function(*gate_params, gate_name=f"controlled_gate")
+                gate = self.quantum_circuit_handler.end_quantum_function(*gate_params)
                 self.quantum_circuit_handler.push_compose_controlled_circuit_operation(gate, quantum_registers=gate.qregs, quantum_controller_registers=[condition.quantum_register])
             else:
                 if(self.variables_handler.get_value(condition) == True):
@@ -36,7 +36,10 @@ class QutesGrammarStatementVisitor(QutesBaseVisitor):
         condition:Symbol = self.visit(ctx.expr())
         if(condition != None):
             if(condition.is_quantum()):
+                self.quantum_circuit_handler.start_quantum_function()
                 gate = self.visit(ctx.statement(0))
+                gate_params = set([symbol.quantum_register for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.quantum_register != None])
+                gate = self.quantum_circuit_handler.end_quantum_function(*gate_params)
                 self.quantum_circuit_handler.push_compose_controlled_circuit_operation(gate.quantum_function, quantum_controller_registers=[condition.quantum_register])
                 #TODO: implement the else branch (statement(1)) with an inversed controlled circuit
             else:

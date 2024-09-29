@@ -106,11 +106,12 @@ class QuantumCircuitHandler():
         self._operation_stacks.append([])
         self._current_operation_stack = self._operation_stacks[-1]
 
-    def end_quantum_function(self, *regs, gate_name:str, create_gate:bool = False) -> Gate:
+    quantum_function_count = iter(range(1000))
+    def end_quantum_function(self, *regs, gate_name:str|None = None, create_gate:bool = False) -> Gate:
         gate = self.create_circuit(*regs, do_initialization=False)
         if(create_gate):
             gate = gate.to_gate()
-        gate.name = gate_name
+        gate.name = gate_name if gate_name != None else f"gate_{next(QuantumCircuitHandler.quantum_function_count)}"
         self._operation_stacks.pop()
         self._current_operation_stack = self._operation_stacks[-1]
         return gate
@@ -300,7 +301,7 @@ class QuantumCircuitHandler():
             for qubit in qreg:
                 circuit_to_compose.qubits.remove(qubit)
 
-        self.print_circuit(circuit_to_compose, save_image=True, image_file_prefix=circuit_to_compose.name)
+        self.print_circuit(circuit_to_compose, save_image=True, print_circuit_to_console=False, image_file_prefix=circuit_to_compose.name)
             
         # Make the gate controlled
         circuit_to_compose = circuit_to_compose.control(len(unwrap(quantum_controller_registers)), label="Controlled")

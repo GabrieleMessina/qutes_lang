@@ -84,8 +84,10 @@ class VariablesHandler():
             raise SyntaxError(f"Symbol with name '{variable_name}' already declared.")
 
 
+    anon_counter = iter(range(1000))
     def declare_anonymous_variable(self, declaration_type : QutesDataType, value, ast_token_index:int) -> Symbol:
-        return self.declare_variable(declaration_type, f"anon_{uuid4().hex[:6]}", ast_token_index, value, True)
+        return self.declare_variable(declaration_type, f"anon_{next(VariablesHandler.anon_counter)}", ast_token_index, value, True)
+        # return self.declare_variable(declaration_type, f"anon_{uuid4().hex[:6]}", ast_token_index, value, True)
 
     def create_symbol(self, qutes_type : QutesDataType, value, ast_token_index:int) -> Symbol:
         if(value is None):
@@ -127,7 +129,7 @@ class VariablesHandler():
             self.scope_handler.current_symbols_scope.symbols.append(anonymous_symbol)
             return anonymous_symbol
         else:
-            raise SyntaxError(f"Symbol with name '{function_name}' return type already declared.")
+            raise SyntaxError(f"Symbol with name '{function_name}' already declared.")
     
     def get_value(self, var_value):
         if(isinstance(var_value, Symbol)):
