@@ -26,7 +26,7 @@ class QutesGrammarStatementVisitor(QutesBaseVisitor):
     
     def visitIfElseStatement(self, ctx:qutes_parser.IfElseStatementContext):
         self.scope_handler.push_scope()
-        condition = self.visit(ctx.expr())
+        condition:Symbol = self.visit(ctx.expr())
         if(condition != None):
             if(self.variables_handler.get_value(condition) == True):
                 self.visit(ctx.statement(0))
@@ -50,20 +50,15 @@ class QutesGrammarStatementVisitor(QutesBaseVisitor):
         index:Symbol|None = None
         if(ctx.variableName(1)):
             index = self.variables_handler.get_variable_symbol(self.visit(ctx.variableName(1)), ctx.start.tokenIndex)
-            if(index.symbol_declaration_static_type != QutesDataType.int):
-                raise TypeError(f"Index variable '{index.name}' must be of type 'int'.")
+        
         array = self.visit(ctx.qualifiedName()).value.array
         if(array != None):
-            self.scope_handler.start_loop() #avoid block statement to change the scope
-            
             for i, next_value in enumerate(array):
-                self.scope_handler.handle_loop_cycle()
+                self.scope_handler.restart_visiting_cycle_scope()
                 self.variables_handler.update_variable_state(auxiliary.name, next_value, False)
                 if(index != None):
                     self.variables_handler.update_variable_state(index.name, i)
                 self.visit(ctx.statement())
-
-            self.scope_handler.end_loop() #reset scope handling
 
         self.scope_handler.pop_scope()
         return None
@@ -75,14 +70,10 @@ class QutesGrammarStatementVisitor(QutesBaseVisitor):
         self.scope_handler.push_scope()
         condition = self.visit(ctx.expr())
         if(condition != None):
-            self.scope_handler.start_loop() #avoid block statement to change the scope
-            
             while(self.variables_handler.get_value(condition)):
-                self.scope_handler.handle_loop_cycle()
+                self.scope_handler.restart_visiting_cycle_scope()
                 self.visit(ctx.statement())
                 condition = self.visit(ctx.expr())
-
-            self.scope_handler.end_loop() #reset scope handling
 
         self.scope_handler.pop_scope()
         return None
@@ -103,6 +94,7 @@ class QutesGrammarStatementVisitor(QutesBaseVisitor):
             if(self.log_code_structure): print(log_string, end=None)
             if(isinstance(new_value, Symbol) and new_value.is_return_value_of_function):
                 return new_value
+        
         self.scope_handler.pop_scope()
         return None
     
@@ -112,7 +104,6 @@ class QutesGrammarStatementVisitor(QutesBaseVisitor):
         function_params = []
         if(ctx.functionDeclarationParams()):
             function_params = self.visit(ctx.functionDeclarationParams())
-        function_params.reverse()
         #do not call a visit on the statement here, or on all the context, the statement is being saved by the discovery and should be traversed only on function execution
         self.scope_handler.pop_scope()
         return None

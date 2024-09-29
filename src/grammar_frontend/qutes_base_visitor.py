@@ -34,6 +34,7 @@ class QutesBaseVisitor(qutesVisitor):
             print("----Code Structure----")
 
     def visit(self, tree):
+        """ Visit the node """
         caller_name = inspect.stack()[1].function
         if(self.log_trace_enabled): print("start " + caller_name)
         result = super(qutesVisitor, self).visit(tree)
@@ -42,6 +43,7 @@ class QutesBaseVisitor(qutesVisitor):
         return result
 
     def visitChildren(self, node):        
+        """ Visit the node childre, but not the node itself """
         caller_name = inspect.stack()[1].function
         if(self.log_trace_enabled): print("start " + caller_name)
         result = super(qutesVisitor, self).visitChildren(node)

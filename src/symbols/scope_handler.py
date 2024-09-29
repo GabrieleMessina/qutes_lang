@@ -9,6 +9,7 @@ class ScopeHandler():
         self.current_symbols_scope:ScopeTreeNode = self.symbols_tree
 
 class ScopeHandlerForSymbolsDiscovery(ScopeHandler):
+    print_trace = ScopeHandler.print_trace
     # Class that handles the scope for symbol discovery, first step of compilation
     def __init__(self):
         super().__init__()
@@ -24,12 +25,13 @@ class ScopeHandlerForSymbolsDiscovery(ScopeHandler):
         #         self.current_symbols_scope.children = list(self.current_symbols_scope.children) + [new_scope]
         #     else: self.current_symbols_scope.children = [new_scope]
 
+        # Add the new root
         if(not self.symbols_tree):
             self.symbols_tree = new_scope
 
         self.current_symbols_scope = new_scope
 
-        if(ScopeHandler.print_trace and self.current_symbols_scope != None):
+        if(ScopeHandlerForSymbolsDiscovery.print_trace and self.current_symbols_scope != None):
             print (f"push_scope: \n{RenderTree(self.current_symbols_scope)}")
 
         return self.current_symbols_scope
@@ -42,7 +44,7 @@ class ScopeHandlerForSymbolsDiscovery(ScopeHandler):
     def pop_scope(self) -> ScopeTreeNode:
         self.current_symbols_scope = self.current_symbols_scope.parent
 
-        if(ScopeHandler.print_trace and self.current_symbols_scope != None):
+        if(ScopeHandlerForSymbolsDiscovery.print_trace and self.current_symbols_scope != None):
             print (f"pop_scope: \n{RenderTree(self.current_symbols_scope)}")
         
         return self.current_symbols_scope
@@ -54,56 +56,40 @@ class ScopeHandlerForSymbolsUpdate(ScopeHandler):
     # - Every time we need to create a new scope, we visit instead the next node in the tree
     # - And every time we need to close a scope, we return to the parent of the current node
     # - This way we know, at each moment, what symbols are defined.
+    print_trace = ScopeHandler.print_trace
     def __init__(self, symbols_tree:ScopeTreeNode):
         super().__init__()
         if not symbols_tree:
             raise ValueError("A symbols tree must be provided to the scope handler for this step.")
-        self.symbols_tree:ScopeTreeNode = symbols_tree
-        self.current_symbols_scope:ScopeTreeNode = self.symbols_tree
-        self.tree_preorder_iterator = PreOrderIter(self.symbols_tree)
-        self.is_inside_loop = False
-        self.loop_inner_scope = None
-        self.is_inside_function = False
+        self.symbols_tree_root:ScopeTreeNode = symbols_tree
+        self.current_symbols_scope:ScopeTreeNode = self.symbols_tree_root
+        self.tree_preorder_iterator = PreOrderIter(self.symbols_tree_root)
 
-    def start_loop(self) -> None:
-        self.is_inside_loop = True
-        self.loop_inner_scope = self.current_symbols_scope
-
-    def handle_loop_cycle(self) -> None:
-        temp_iterator = PreOrderIter(self.symbols_tree)
+    def restart_visiting_cycle_scope(self) -> None:
+        """ This method must be called every time a loop cycle is executed
+            It will reset the iterator to the current scope, so the next scope to be visited is the current scope again (otherwise the next sibling will be visited).
+            This is achieved by creating a new iterator from the tree root and iterating until the current scope is reached again.
+        """
+        temp_iterator = PreOrderIter(self.symbols_tree_root)
         temp_node = None
         while temp_node != self.current_symbols_scope:
             temp_node = next(temp_iterator)
         self.tree_preorder_iterator = temp_iterator
 
-    def end_loop(self) -> None:
-        self.is_inside_loop = False
-        self.loop_inner_scope = None
-
-    def start_function(self) -> None:
-        self.is_inside_function = True
-
-    def end_function(self) -> None:
-        self.is_inside_function = False
-
     #Start visiting scope
-    def push_scope(self, tree_iterator = None) -> ScopeTreeNode:
-        if tree_iterator != None:
-            self.tree_preorder_iterator = tree_iterator
-        if(self.is_inside_function == False):
-            nextNode = next(self.tree_preorder_iterator)
-            if(ScopeHandler.print_trace and nextNode != None):
-                print (f"push_scope: \n{RenderTree(nextNode)}")
-            if(nextNode != None):
-                self.current_symbols_scope = nextNode
+    def push_scope(self) -> ScopeTreeNode:
+        nextNode = next(self.tree_preorder_iterator)
+        if(ScopeHandlerForSymbolsUpdate.print_trace and nextNode != None):
+            print (f"push_scope: \n{RenderTree(nextNode)}")
+        if(nextNode != None):
+            self.current_symbols_scope = nextNode
         return self.current_symbols_scope
     
     #End visiting scope, return to parent and never(almost, see loops) visit this scope again
     def pop_scope(self) -> ScopeTreeNode:
-        if(self.is_inside_function == False):
-            parentNode = self.current_symbols_scope.parent
-            if(parentNode != None):
-                self.current_symbols_scope = parentNode
-            if(ScopeHandler.print_trace and self.current_symbols_scope != None):
-                print (f"pop_scope: \n{RenderTree(self.current_symbols_scope)}")
+        parentNode = self.current_symbols_scope.parent
+        if(parentNode != None):
+            self.current_symbols_scope = parentNode
+        if(ScopeHandlerForSymbolsUpdate.print_trace and self.current_symbols_scope != None):
+            print (f"pop_scope: \n{RenderTree(self.current_symbols_scope)}")
         return self.current_symbols_scope

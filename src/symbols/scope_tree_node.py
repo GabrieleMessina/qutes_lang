@@ -5,14 +5,13 @@ from enum import Enum, auto
 class ScopeClass(Enum):
     BaseScope = 1
     GlobalScope = auto()
-    LocalScope = auto()
+    BlockScope = auto()
     IfElseScope = auto()
     LoopScope = auto()
     BranchScope = auto()
     FunctionScope = auto()
-    FunctionBlockScope = auto()
 
-class ScopeTreeNode(NodeMixin): #TODO: rename to ASTNode?
+class ScopeTreeNode(NodeMixin):
     """A Node for the Scope Tree data structure"""
         
     def __init__(self, scope_class:ScopeClass, scope_type_detail:str, parent=None, children=None, symbols:list['Symbol']=[]):
@@ -25,7 +24,10 @@ class ScopeTreeNode(NodeMixin): #TODO: rename to ASTNode?
             self.children = children
     
     def __to_printable__(self) -> str:
-        return f"{self.scope_class}/{self.scope_type_detail}: {self.symbols}"
+        if self.parent:
+            return f"{self.scope_class}/{self.scope_type_detail}: {[a for a in self.symbols if a not in self.parent.symbols]}"
+        else:
+            return f"{self.scope_class}/{self.scope_type_detail}: {self.symbols}"
 
     def __str__(self) -> str:
         return self.__to_printable__()

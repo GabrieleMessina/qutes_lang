@@ -62,7 +62,7 @@ class SymbolsDiscoveryVisitor(qutesVisitor):
             index_var_name = ctx.variableName(1).getText()
             self.variables_handler.declare_variable(QutesDataType.int, index_var_name, token_index)
 
-        self.visit(ctx.statement())
+        self.visitChildren(ctx)
         self.scope_handler.pop_scope()
 
     # visit a parse tree produced by qutesParser#WhileStatement.
@@ -83,16 +83,11 @@ class SymbolsDiscoveryVisitor(qutesVisitor):
 
     # visit a parse tree produced by qutesParser#BlockStatement.
     def visitBlockStatement(self, ctx:qutesParser.BlockStatementContext):
-        if(self.scope_handler.current_symbols_scope.scope_class == ScopeClass.IfElseScope):
-            self.scope_handler.push_scope(ScopeClass.BranchScope, f"BranchBlock{self.if_else_scope_count}")
-        elif(self.scope_handler.current_symbols_scope.scope_class == ScopeClass.LoopScope):
-            self.scope_handler.push_scope(ScopeClass.BranchScope, f"LoopBlock{self.loop_scope_count}")
-        elif(self.scope_handler.current_symbols_scope.scope_class == ScopeClass.FunctionScope):
-            #self.scope_handler.push_scope(ScopeClass.FunctionBlockScope, f"FunctionBlock{self.function_scope_count}")
+        if(self.scope_handler.current_symbols_scope.scope_class == ScopeClass.FunctionScope):
             pass
         else:
             self.scope_count += 1
-            self.scope_handler.push_scope(ScopeClass.LocalScope, f"Block{self.scope_count}")
+            self.scope_handler.push_scope(ScopeClass.BlockScope, f"Block{self.scope_count}")
 
         self.visitChildren(ctx)
 

@@ -181,5 +181,5 @@ class TestGrammar(QutesBaseTest):
                 {{ string {var_name} = {declaration_value_of_var}; }}
                 """
         result = self.parse_qutes_code(code)
-        actual_value_of_var = [symbol.value for symbol in result.scope_handler.symbols_tree.children[0].symbols if symbol.name == var_name][-1]
+        actual_value_of_var = [symbol.value for symbol in result.scope_handler.symbols_tree_root.children[0].symbols if symbol.name == var_name][-1]
         self.assertEqual(str(actual_value_of_var), str(expected_value_of_var), f"Expected value: {expected_value_of_var}, actual value: {actual_value_of_var}")

@@ -38,8 +38,6 @@ class QutesGrammarExpressionVisitor(QutesBaseVisitor):
         return result
 
     def __visitFunctionCall(self, function_name, function_params, tokenIndex):
-        self.scope_handler.start_function() #To avoid block statement to push its scope
-
         function_symbol = self.variables_handler.get_function_symbol(function_name, tokenIndex, function_params)  
 
         scope_to_restore_on_exit = self.scope_handler.current_symbols_scope
@@ -64,7 +62,6 @@ class QutesGrammarExpressionVisitor(QutesBaseVisitor):
         self.scope_handler.current_symbols_scope = scope_to_restore_on_exit
         [symbol for symbol in function_symbol.inner_scope.symbols if symbol.symbol_class == SymbolClass.FunctionSymbol][:len(function_params)] = default_params_to_restore_on_exit
 
-        self.scope_handler.end_function()
         return result #The function return value
     
     def visitArrayAccessExpression(self, ctx:qutes_parser.ArrayAccessExpressionContext):
