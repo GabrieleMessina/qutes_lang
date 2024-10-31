@@ -9,7 +9,8 @@
                 "ms-python.vscode-pylance",
                 "ms-python.pylint",
                 "Gruntfuggly.todo-tree",
-                "GabrieleMessina.qutes"
+                "GabrieleMessina.qutes",
+                "ms-python.debugpy"
             ]
         },
         "codespaces": {
