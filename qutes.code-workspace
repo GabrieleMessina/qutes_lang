@@ -42,12 +42,21 @@
 		"version": "0.2.0",
 		"configurations": [
         {
-            "name": "Qutes: Run test source code",
+            "name": "Qutes: Run Current File",
             "type": "debugpy",
             "request": "launch",
             "program": "src/qutes.py",
             "console": "integratedTerminal",
-            "args": ["-image","-circuit","-iter","1","./specification/grammar/grammar_tests.qut"],
+            "args": ["-image","-circuit","-iter","1","${file}"],
+            "justMyCode": true
+        },
+		{
+            "name": "Qutes Verbose: Run Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "src/qutes.py",
+            "console": "integratedTerminal",
+            "args": ["-image","-circuit","-iter","--verbose","1","${file}"],
             "justMyCode": true
         },
     ]
