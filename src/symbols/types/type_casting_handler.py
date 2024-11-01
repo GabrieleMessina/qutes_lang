@@ -45,7 +45,7 @@ class TypeCastingHandler():
         QutesDataType.qustring_array: [QutesDataType.qustring_array],
     }
 
-    def promote_value_to_type(self, var_value : any, from_type:'QutesDataType', to_type : 'QutesDataType', symbol_or_literal) -> any:
+    def promote_value_to_type(self, var_value : any, from_type:'QutesDataType', to_type : 'QutesDataType') -> any:
         match to_type:
             case QutesDataType.bool:
                 return bool(int(var_value))
@@ -68,25 +68,25 @@ class TypeCastingHandler():
             case QutesDataType.qustring:
                 return Qustring.fromValue(var_value)
             case QutesDataType.bool_array:
-                return [self.promote_value_to_type(value, QutesDataType.type_of(value), QutesDataType.bool) for value in var_value]
+                return [self.promote_value_to_type(symbol.value, QutesDataType.type_of(symbol.value), QutesDataType.bool) for symbol in var_value]
             case QutesDataType.int_array:
-                return [self.promote_value_to_type(value, QutesDataType.type_of(value), QutesDataType.int) for value in var_value]
+                return [self.promote_value_to_type(symbol.value, QutesDataType.type_of(symbol.value), QutesDataType.int) for symbol in var_value]
             case QutesDataType.float_array:
-                return [self.promote_value_to_type(value, QutesDataType.type_of(value), QutesDataType.float) for value in var_value]
+                return [self.promote_value_to_type(symbol.value, QutesDataType.type_of(symbol.value), QutesDataType.float) for symbol in var_value]
             case QutesDataType.string_array:
-                return [self.promote_value_to_type(value, QutesDataType.type_of(value), QutesDataType.string) for value in var_value]
+                return [self.promote_value_to_type(symbol.value, QutesDataType.type_of(symbol.value), QutesDataType.string) for symbol in var_value]
             case QutesDataType.qubit_array:
-                return [self.promote_value_to_type(value, QutesDataType.type_of(value), QutesDataType.qubit) for value in var_value]
+                return [self.promote_value_to_type(symbol.value, QutesDataType.type_of(symbol.value), QutesDataType.qubit) for symbol in var_value]
             case QutesDataType.quint_array:
-                return [self.promote_value_to_type(value, QutesDataType.type_of(value), QutesDataType.quint) for value in var_value]
+                return [self.promote_value_to_type(symbol.value, QutesDataType.type_of(symbol.value), QutesDataType.quint) for symbol in var_value]
             case QutesDataType.qustring_array:
-                return [self.promote_value_to_type(value, QutesDataType.type_of(value), QutesDataType.qustring) for value in var_value]
+                return [self.promote_value_to_type(symbol.value, QutesDataType.type_of(symbol.value), QutesDataType.qustring) for symbol in var_value]
             case _:
                 return QutesDataType.undefined
 
     def __cast_value_to_type(self, var_value : any, from_type:'QutesDataType', to_type : 'QutesDataType') -> any:
         if self.type_promotable_to[to_type].count(from_type) > 0:
-            return self.promote_value_to_type(var_value, from_type, to_type, None)
+            return self.promote_value_to_type(var_value, from_type, to_type)
         if self.type_down_castable_to[to_type].count(from_type) > 0:
             return self.down_cast_value_to_type(var_value, from_type, to_type, None)
         raise TypeError(f"Cannot cast type '{from_type}' to '{to_type}'.")
@@ -146,3 +146,20 @@ class TypeCastingHandler():
                 return [self.down_cast_value_to_type(value, QutesDataType.type_of(value), QutesDataType.qustring, value) for value in var_value]
             case _:
                 return QutesDataType.undefined
+            
+    #TODO: use this method to check if a type can be casted to another type
+    def types_are_compatible(types: list[QutesDataType]) -> QutesDataType:
+        types = list(set(types))
+        if len(types) == 0:
+            return QutesDataType.bool
+        if len(types) == 1:
+            return types[0]
+        if all(type == types[0] for type in types):
+            return types[0]
+        # if not all types are the same, check if they can be promoted to a common type
+        else:
+            # for each type, check if all elements can be casted to that type
+            for type in types:
+                if all((type in TypeCastingHandler.type_promotable_to[other_type]) or (type in TypeCastingHandler.type_down_castable_to[other_type]) for other_type in types):
+                    return type
+        raise TypeError(f"Types {types} are not compatible.")

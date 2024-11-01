@@ -66,7 +66,10 @@ class QutesGrammarStatementVisitor(QutesBaseVisitor):
         if(ctx.variableName(1)):
             index = self.variables_handler.get_variable_symbol(self.visit(ctx.variableName(1)), ctx.start.tokenIndex)
         
-        array = self.visit(ctx.qualifiedName()).value.array
+        array = self.visit(ctx.qualifiedName()).value
+        if(isinstance(array, QuantumArrayType)):
+            array = array.array
+
         if(array != None):
             for i, next_value in enumerate(array):
                 self.scope_handler.restart_visiting_cycle_scope()

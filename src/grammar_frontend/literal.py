@@ -37,10 +37,14 @@ class QutesGrammarLiteralVisitor(QutesBaseVisitor):
     def visitArray(self, ctx:qutes_parser.ArrayContext) -> list[Symbol]:
         terms:list[Symbol] = self.visit(ctx.termList())
         for term in terms:
-            self.variables_handler.delete_variable(term)
+            if(term.is_anonymous):
+                self.variables_handler.delete_variable(term)
         array_type = QutesDataType.promote_unit_to_array_type(terms[0].symbol_declaration_static_type) #TODO: check if all elements are of the same type
         unit_type = QutesDataType.get_unit_class_from_array_type(array_type)
-        array_symbol = self.variables_handler.declare_anonymous_variable(array_type, QuantumArrayType(unit_type, terms), ctx.start.tokenIndex)
+        if(QutesDataType.is_quantum_type(array_type)):
+            array_symbol = self.variables_handler.declare_anonymous_variable(array_type, QuantumArrayType(unit_type, terms), ctx.start.tokenIndex)
+        else:
+            array_symbol = self.variables_handler.declare_anonymous_variable(array_type, terms, ctx.start.tokenIndex)
         return array_symbol
 
     def visitVariableType(self, ctx:qutes_parser.VariableTypeContext):

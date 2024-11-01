@@ -36,7 +36,7 @@ class VariablesHandler():
             if(value_to_assign_qutes_type != definition_qutes_type):
                 # promote the current data type if needed.
                 if(promoted_type != QutesDataType.undefined):
-                    value_to_assign = self.type_casting_handler.promote_value_to_type(value_to_assign, value_to_assign_qutes_type, promoted_type, new_state)
+                    value_to_assign = self.type_casting_handler.promote_value_to_type(value_to_assign, value_to_assign_qutes_type, promoted_type)
                     final_type = promoted_type
                 elif(down_cast_type != QutesDataType.undefined):
                     value_to_assign = self.type_casting_handler.down_cast_value_to_type(value_to_assign, value_to_assign_qutes_type, down_cast_type, new_state)
@@ -83,6 +83,7 @@ class VariablesHandler():
     def declare_anonymous_variable(self, declaration_type : QutesDataType, value, ast_token_index:int) -> Symbol:
         return self.declare_variable(declaration_type, f"{QuantumCircuitHandler.anon_variable_name_prefix}_{next(QuantumCircuitHandler.anon_counter)}", ast_token_index, value, True)
 
+    # TODO: check who is calling this method and why.
     def delete_variable(self, symbol:Symbol) -> None:
         if symbol in self.scope_handler.current_symbols_scope.symbols:
             self.scope_handler.current_symbols_scope.symbols.remove(symbol)
@@ -108,7 +109,7 @@ class VariablesHandler():
         if(value_qutes_type != definition_type):
             # promote the current data type if needed.
             if(promoted_type != QutesDataType.undefined):
-                value = self.type_casting_handler.promote_value_to_type(value, value_qutes_type, promoted_type, None)
+                value = self.type_casting_handler.promote_value_to_type(value, value_qutes_type, promoted_type)
                 final_type = promoted_type
             elif(down_cast_type != QutesDataType.undefined):
                 value = self.type_casting_handler.down_cast_value_to_type(value, value_qutes_type, down_cast_type, None)
