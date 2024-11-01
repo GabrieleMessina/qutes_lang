@@ -25,7 +25,7 @@ class QutesGrammarLiteralVisitor(QutesBaseVisitor):
         return head
 
     def visitTermList(self, ctx:qutes_parser.TermListContext) -> list[Symbol]:
-        head = [self.visit(ctx.literal()) if ctx.literal() else self.visit(ctx.qualifiedName())]
+        head = [self.visit(ctx.literal()) if ctx.literal() else self.visit(ctx.arrayAccess()) if ctx.arrayAccess() else self.visit(ctx.qualifiedName())]
         tail = []
         if(ctx.termList()):
             tail = self.visit(ctx.termList()) #recursion
@@ -33,6 +33,18 @@ class QutesGrammarLiteralVisitor(QutesBaseVisitor):
                 tail = [tail]
             head.extend(tail)
         return head
+    
+    def visitArrayAccess(self, ctx:qutes_parser.ArrayAccessContext):
+        array_symbol:Symbol = self.visit(ctx.qualifiedName())
+        index_symbol:Symbol = self.visit(ctx.expr())
+
+        array_value = self.variables_handler.get_value(array_symbol).array
+        index_value = self.variables_handler.get_value(index_symbol)
+        
+        value = array_value[index_value] 
+        if not isinstance(value, Symbol):
+            value = self.variables_handler.declare_anonymous_variable(QutesDataType.get_unit_type_from_array_type(array_symbol.casted_static_type), value, array_symbol.ast_token_index)
+        return value
     
     def visitArray(self, ctx:qutes_parser.ArrayContext) -> list[Symbol]:
         terms:list[Symbol] = self.visit(ctx.termList())

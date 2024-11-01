@@ -42,7 +42,7 @@ expr // Order: https://en.wikipedia.org/wiki/Order_of_operations#Programming_lan
    | array #ArrayExpression
    // Function call, scope, array/member access
    | functionName ROUND_PARENTHESIS_OPEN termList? ROUND_PARENTHESIS_CLOSE #FunctionCallExpression
-   | expr SQUARE_PARENTHESIS_OPEN expr SQUARE_PARENTHESIS_CLOSE #ArrayAccessExpression
+   | arrayAccess #ArrayAccessExpression
    // Unary operators, sizeof and type casts
    | expr op=(AUTO_INCREMENT | AUTO_DECREMENT) #PostfixOperator
    | expr op=EXP expr #ExpOperator
@@ -67,8 +67,12 @@ expr // Order: https://en.wikipedia.org/wiki/Order_of_operations#Programming_lan
    | op=GROVER functionName ROUND_PARENTHESIS_OPEN termList? ROUND_PARENTHESIS_CLOSE #FreeGroverOperator
    ;
 
+arrayAccess
+   : qualifiedName SQUARE_PARENTHESIS_OPEN expr SQUARE_PARENTHESIS_CLOSE
+   ;
+
 termList
-   : (literal | qualifiedName) (COMMA termList)?
+   : (literal | qualifiedName | arrayAccess) (COMMA termList)?
    ;
 
 array

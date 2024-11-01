@@ -194,6 +194,11 @@ class qutes_parserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by qutes_parser#arrayAccess.
+    def visitArrayAccess(self, ctx:qutes_parser.ArrayAccessContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by qutes_parser#termList.
     def visitTermList(self, ctx:qutes_parser.TermListContext):
         return self.visitChildren(ctx)

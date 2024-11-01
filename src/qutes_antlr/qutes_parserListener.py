@@ -341,6 +341,15 @@ class qutes_parserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by qutes_parser#arrayAccess.
+    def enterArrayAccess(self, ctx:qutes_parser.ArrayAccessContext):
+        pass
+
+    # Exit a parse tree produced by qutes_parser#arrayAccess.
+    def exitArrayAccess(self, ctx:qutes_parser.ArrayAccessContext):
+        pass
+
+
     # Enter a parse tree produced by qutes_parser#termList.
     def enterTermList(self, ctx:qutes_parser.TermListContext):
         pass
