@@ -1,0 +1,38 @@
+void entangle(qubit a1, qubit b1){
+   hadamard a1;
+   mcx a1, b1;
+}
+void hadamard_measure(qubit a2, qubit b2){
+    mcx b2, a2;
+    hadamard a2;
+}
+
+void function(qubit a, qubit b){
+    qubit[] q = [a, 0q, 0q, 0q, 0q, b];
+    int[] c = [0, 2, 4];
+    foreach i in c
+    {
+        entangle(q[i], q[i + 1]);
+    }
+    int[] d = [0, 2];
+    foreach i in d{
+        hadamard_measure(q[i + 1],q[i + 2]);
+        bool q_i1 = q[i + 1];
+        if(q_i1){
+            pauliz q[i];
+        }
+        bool q_i2 = q[i + 2];
+        if(q_i2){
+            not q[i + 3];
+        }
+    }
+    bool res_a = a;
+    bool res_b = b;
+    println res_a;
+    println res_b;
+}
+
+qubit ax = 1q;
+qubit bx = 1q;
+
+function(ax, bx);
