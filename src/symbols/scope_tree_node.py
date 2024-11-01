@@ -36,9 +36,17 @@ class ScopeTreeNode(NodeMixin):
         return self.__to_printable__()
     
 class ScopeStackNode():        
-    def __init__(self, scope_node:ScopeTreeNode, scope_iterator:PreOrderIter):
-        self.scope_node = scope_node
+    def __init__(self, scope_node:ScopeTreeNode, scope_iterator:PreOrderIter, current_scope_node:ScopeTreeNode = None):
+        self.scope_node = scope_node #TODO: rename to root_scope_node
+        self.current_scope_node = current_scope_node
         self.scope_iterator = scope_iterator
+
+    def copy(self):
+        iterator = PreOrderIter(self.scope_node)
+        if self.current_scope_node:
+            iterator = PreOrderIter(self.current_scope_node)
+            next(iterator)
+        return ScopeStackNode(self.scope_node, iterator, self.current_scope_node)
     
     def __to_printable__(self) -> str:
         return f"stack:{self.scope_node}"

@@ -74,21 +74,24 @@ class ScopeHandlerForSymbolsUpdate(ScopeHandler):
     def create_function_inner_scope(self) -> ScopeStackNode:
         if(ScopeHandlerForSymbolsUpdate.print_trace and self.current_symbols_scope != None):
             print (f"create_function_inner_scope")
+        # Skip function scope visiting (deferred to the function call) jumping directly to next sibling
+        parent_children = list(self.current_symbols_scope.parent.children)
+        function_index_in_parent = parent_children.index(self.current_symbols_scope)
+        next_child = parent_children[function_index_in_parent + 1] if function_index_in_parent + 1 < len(parent_children) else None
+        self.scopes_stack[-1].scope_iterator = PreOrderIter(next_child) if next_child else None
         return ScopeStackNode(self.current_symbols_scope, PreOrderIter(self.current_symbols_scope))
 
     def push_function_inner_scope(self, function_inner_scope:ScopeStackNode) -> None:
-        parent_children = list(self.current_symbols_scope.children)
-        function_index_in_parent = parent_children.index(function_inner_scope.scope_node)
-        next_child = parent_children[function_index_in_parent + 1]
-        self.scopes_stack[-1].scope_iterator = PreOrderIter(next_child)
-        self.scopes_stack.append(function_inner_scope)
+        self.scopes_stack[-1].current_scope_node = self.current_symbols_scope
+        self.scopes_stack.append(function_inner_scope.copy())
         self.push_scope()
         if(ScopeHandlerForSymbolsUpdate.print_trace and self.current_symbols_scope != None):
             print (f"push_function_inner_scope")
 
     def pop_function_inner_scope(self, function_inner_scope:ScopeStackNode) -> None:
         self.pop_scope()
-        self.scopes_stack.remove(function_inner_scope)
+        self.scopes_stack.pop()
+        self.current_symbols_scope = self.scopes_stack[-1].current_scope_node
         if(ScopeHandlerForSymbolsUpdate.print_trace and self.current_symbols_scope != None):
             print (f"pop_function_inner_scope")
 
