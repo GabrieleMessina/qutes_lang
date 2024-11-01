@@ -173,7 +173,9 @@ class QutesGrammarStatementVisitor(QutesBaseVisitor):
         return var_symbol
 
     def visitReturnStatement(self, ctx:qutes_parser.ReturnStatementContext):
-        result = self.visit(ctx.expr())
+        result = None
+        if(ctx.expr()):
+            result = self.visit(ctx.expr())
         if(isinstance(result, Symbol)):
             result.is_return_value_of_function = True
         return result    

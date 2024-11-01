@@ -21,7 +21,7 @@ statement
    | variableType functionName ROUND_PARENTHESIS_OPEN functionDeclarationParams? ROUND_PARENTHESIS_CLOSE statement #FunctionStatement
    | variableDeclaration END_OF_STATEMENT #DeclarationStatement
    | qualifiedName ASSIGN expr END_OF_STATEMENT #AssignmentStatement
-   | RETURN expr END_OF_STATEMENT #ReturnStatement
+   | RETURN expr? END_OF_STATEMENT #ReturnStatement
    | expr END_OF_STATEMENT #ExpressionStatement
    | (MEASURE | BARRIER | PRINT_LN) #FactStatement
    | END_OF_STATEMENT #EmptyStatement
