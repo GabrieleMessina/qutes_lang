@@ -77,6 +77,10 @@ class ScopeHandlerForSymbolsUpdate(ScopeHandler):
         return ScopeStackNode(self.current_symbols_scope, PreOrderIter(self.current_symbols_scope))
 
     def push_function_inner_scope(self, function_inner_scope:ScopeStackNode) -> None:
+        parent_children = list(self.current_symbols_scope.children)
+        function_index_in_parent = parent_children.index(function_inner_scope.scope_node)
+        next_child = parent_children[function_index_in_parent + 1]
+        self.scopes_stack[-1].scope_iterator = PreOrderIter(next_child)
         self.scopes_stack.append(function_inner_scope)
         self.push_scope()
         if(ScopeHandlerForSymbolsUpdate.print_trace and self.current_symbols_scope != None):
