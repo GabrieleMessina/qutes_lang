@@ -1,0 +1,18 @@
+qubit[] input = [|+>,|+>,|+>];
+qubit output = |->;
+
+void function(qubit[] _input, qubit _output) {
+    foreach q,i in _input {
+        if(i < 2){
+            mcx q, _input[i + 1], _output;
+        }
+    }
+}
+
+function(input, output);
+
+foreach q in input {
+    bool result = q;
+    if(result) println "Balanced";
+    else println "Constant";
+}
