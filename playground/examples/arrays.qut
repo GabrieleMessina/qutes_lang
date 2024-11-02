@@ -1,47 +1,31 @@
-// string[] bob_bases = ["1","0","1","0","1","0","1","0"];
-// foreach base in bob_bases{
-//     if(bob_bases[0] == base){
-//         print base;
-//     }
-//     else{
-//         print base;
-//     }
-// }
-// foreach base, index in bob_bases{
-//     print "start";
-//     print index;
-//     print base;
-//     print bob_bases[index];
-//     print "end";
-// }
-
 qubit b = 1q;
 qubit c = 0q;
 qubit[] a = [b, c, |+>];
 qubit d = a[2];
+qubit e = a[0++];
+qubit f = a[++0];
+qubit g = a[0 + 2];
 
-foreach q in a{
-    print q;
+println "=======";
+println d;
+println e;
+println f;
+println g;
+println "=======";
+
+foreach q, i in a{
+    println i; 
+    println q;
 }
+
 
 int[] ba = [2, 3];
 foreach q in ba{
-    print q;
+    println q;
 }
 
-// print d;
-// print a;
-// print c;
+void function(qubit aa){
+    println aa;
+}
 
-//=========================================================
-
-// int[] foo = [6, 2, 3];
-// print foo;
-// print foo[1];
-
-// int count=0;
-// foreach i in foo{
-//     print i;
-//     count = count + i;
-// }
-// print count;
+function(a[0]);
