@@ -6,6 +6,8 @@ class TestArrays(QutesBaseTest):
     def assert_arrays_test(self, code, var_name, expected_value_of_var):
         result = self.parse_qutes_code(code)
         actual_value_of_var = result.variables_handler.get_variable_symbol(var_name, self.TOKEN_AST_INDEX_FOR_TESTS).value
+        if isinstance(actual_value_of_var, QuantumArrayType):
+            actual_value_of_var = actual_value_of_var.array
         if isinstance(actual_value_of_var, list):
             actual_value_of_var = [symbol.value for symbol in actual_value_of_var]
             self.assertListEqual(actual_value_of_var, expected_value_of_var, f"Expected value: {expected_value_of_var}, actual value: {actual_value_of_var}")

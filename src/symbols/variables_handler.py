@@ -45,7 +45,7 @@ class VariablesHandler():
                     raise TypeError(f"Cannot convert type '{definition_qutes_type}' to '{value_to_assign_qutes_type}' for '{variable_name}'.")
 
             # Update the variable value if everything is ok.
-            symbol_to_update.value = value_to_assign #TODO: in case of arrays, we need to check whether the elements are of the same type, and if any type cast is needed.
+            symbol_to_update.value = value_to_assign
             symbol_to_update.promoted_static_type = final_type
 
             #Handle quantum circuit update
@@ -95,9 +95,6 @@ class VariablesHandler():
         if(value is None):
             value = QutesDataType.get_default_value(qutes_type)
 
-        #TODO: in case of arrays, we need to check whether the elements are of the same type, and if any type cast is needed.
-        #      also we need to create a quantum register for the array if it is a quantum type.
-        #      and modify type handler to return true for quantum check even for array types.
         variable_name = None
         value_qutes_type = QutesDataType.type_of(value)
         definition_type = qutes_type

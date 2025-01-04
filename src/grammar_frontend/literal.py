@@ -3,7 +3,7 @@ from symbols.scope_tree_node import ScopeTreeNode
 from symbols.symbol import Symbol
 from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
 from symbols.variables_handler import VariablesHandler
-from symbols.types import Qubit, Quint, Qustring, QutesDataType, QuantumArrayType
+from symbols.types import Qubit, Quint, Qustring, QutesDataType, QuantumArrayType, TypeCastingHandler
 from quantum_circuit import QuantumCircuitHandler
 from grammar_frontend.qutes_base_visitor import QutesBaseVisitor
 
@@ -25,7 +25,7 @@ class QutesGrammarLiteralVisitor(QutesBaseVisitor):
         return head
 
     def visitTermList(self, ctx:qutes_parser.TermListContext) -> list[Symbol]:
-        head = [self.visit(ctx.literal()) if ctx.literal() else self.visit(ctx.arrayAccess()) if ctx.arrayAccess() else self.visit(ctx.qualifiedName())]
+        head = [self.visit(ctx.expr())]
         tail = []
         if(ctx.termList()):
             tail = self.visit(ctx.termList()) #recursion
@@ -38,7 +38,10 @@ class QutesGrammarLiteralVisitor(QutesBaseVisitor):
         array_symbol:Symbol = self.visit(ctx.qualifiedName())
         index_symbol:Symbol = self.visit(ctx.expr())
 
-        array_value = self.variables_handler.get_value(array_symbol).array
+        array_value = self.variables_handler.get_value(array_symbol)
+        if(isinstance(array_value, QuantumArrayType)):
+            array_value = array_value.array
+
         index_value = self.variables_handler.get_value(index_symbol)
         
         value = array_value[index_value] 
@@ -46,15 +49,17 @@ class QutesGrammarLiteralVisitor(QutesBaseVisitor):
             value = self.variables_handler.declare_anonymous_variable(QutesDataType.get_unit_type_from_array_type(array_symbol.casted_static_type), value, array_symbol.ast_token_index)
         return value
     
-    def visitArray(self, ctx:qutes_parser.ArrayContext) -> list[Symbol]:
+    def visitArrayLiteral(self, ctx:qutes_parser.ArrayLiteralContext) -> list[Symbol]:
         terms:list[Symbol] = self.visit(ctx.termList())
         for term in terms:
             if(term.is_anonymous):
                 self.variables_handler.delete_variable(term)
-        array_type = QutesDataType.promote_unit_to_array_type(terms[0].symbol_declaration_static_type) #TODO: check if all elements are of the same type
-        unit_type = QutesDataType.get_unit_class_from_array_type(array_type)
+        
+        unit_type = max(TypeCastingHandler.try_get_array_type(terms))
+        array_type = QutesDataType.promote_unit_to_array_type(unit_type)
+        unit_class_type = QutesDataType.get_unit_class_from_array_type(array_type)
         if(QutesDataType.is_quantum_type(array_type)):
-            array_symbol = self.variables_handler.declare_anonymous_variable(array_type, QuantumArrayType(unit_type, terms), ctx.start.tokenIndex)
+            array_symbol = self.variables_handler.declare_anonymous_variable(array_type, QuantumArrayType(unit_class_type, terms), ctx.start.tokenIndex)
         else:
             array_symbol = self.variables_handler.declare_anonymous_variable(array_type, terms, ctx.start.tokenIndex)
         return array_symbol

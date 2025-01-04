@@ -382,7 +382,7 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
             n_element_to_rotate = array_size/block_size
 
             self.quantum_circuit_handler.start_quantum_function()
-            termList:list[Symbol] = self.visit(ctx.termList())    
+            term:Symbol = self.visit(ctx.expr())
 
             grover_result = self.quantum_circuit_handler.declare_quantum_register("grover_phase_ancilla", Qubit())
             oracle_registers = [array_register]
@@ -392,37 +392,36 @@ class QutesGrammarOperationVisitor(QutesBaseVisitor):
             rotation_register = None
             phase_kickback_ancilla = None
 
-            for term in termList:
-                if(not QutesDataType.is_array_type(target_symbol.casted_static_type)):
-                    #TODO: Write tests for this case.
-                    self.quantum_circuit_handler.push_equals_operation(array_register, term.value)
-                    if(len(array_register) == 1):
-                        if(phase_kickback_ancilla == None):
-                            phase_kickback_ancilla = self.quantum_circuit_handler.declare_quantum_register(f"phase_kickback_ancilla_{current_grover_count}", Qubit(0,1))
-                            oracle_registers.append(phase_kickback_ancilla)
-                        self.quantum_circuit_handler.push_MCZ_operation([*array_register, phase_kickback_ancilla])
-                    else:
-                        self.quantum_circuit_handler.push_MCZ_operation([*array_register])
-                    self.quantum_circuit_handler.push_equals_operation(array_register, term.value)
+            if(not QutesDataType.is_array_type(target_symbol.casted_static_type)):
+                #TODO: Write tests for this case.
+                self.quantum_circuit_handler.push_equals_operation(array_register, term.value)
+                if(len(array_register) == 1):
+                    if(phase_kickback_ancilla == None):
+                        phase_kickback_ancilla = self.quantum_circuit_handler.declare_quantum_register(f"phase_kickback_ancilla_{current_grover_count}", Qubit(0,1))
+                        oracle_registers.append(phase_kickback_ancilla)
+                    self.quantum_circuit_handler.push_MCZ_operation([*array_register, phase_kickback_ancilla])
                 else:
-                    term_to_quantum = QutesDataType.promote_classical_to_quantum_value(term.value)
-                    logn = max(int(math.log2(array_size)),1)
+                    self.quantum_circuit_handler.push_MCZ_operation([*array_register])
+                self.quantum_circuit_handler.push_equals_operation(array_register, term.value)
+            else:
+                term_to_quantum = QutesDataType.promote_classical_to_quantum_value(term.value)
+                logn = max(int(math.log2(array_size)),1)
 
-                    if(n_element_to_rotate.is_integer() and utils.is_power_of_two(int(n_element_to_rotate))):
-                        logn = max(int(math.log2(n_element_to_rotate)),1)
-                    else:
-                        logn = max(int(math.log2(n_element_to_rotate))+1,1)
+                if(n_element_to_rotate.is_integer() and utils.is_power_of_two(int(n_element_to_rotate))):
+                    logn = max(int(math.log2(n_element_to_rotate)),1)
+                else:
+                    logn = max(int(math.log2(n_element_to_rotate))+1,1)
 
-                    if(term_to_quantum.size == 1):
-                        if(phase_kickback_ancilla == None):
-                            phase_kickback_ancilla = self.quantum_circuit_handler.declare_quantum_register(f"phase_kickback_ancilla_{current_grover_count}", Qubit(0,1))
-                            oracle_registers.append(phase_kickback_ancilla)
-                    if(rotation_register == None):
-                        rotation_register = self.quantum_circuit_handler.declare_quantum_register(f"rotation(grover:{current_grover_count})", Quint.init_from_size(logn,True))
-                        oracle_registers.append(rotation_register)
-                        if(self.log_grover_esm_rotation):
-                            registers_to_measure.append(rotation_register)
-                    self.quantum_circuit_handler.push_ESM_operation(array_register, rotation_register, term_to_quantum, block_size, phase_kickback_ancilla)
+                if(term_to_quantum.size == 1):
+                    if(phase_kickback_ancilla == None):
+                        phase_kickback_ancilla = self.quantum_circuit_handler.declare_quantum_register(f"phase_kickback_ancilla_{current_grover_count}", Qubit(0,1))
+                        oracle_registers.append(phase_kickback_ancilla)
+                if(rotation_register == None):
+                    rotation_register = self.quantum_circuit_handler.declare_quantum_register(f"rotation(grover:{current_grover_count})", Quint.init_from_size(logn,True))
+                    oracle_registers.append(rotation_register)
+                    if(self.log_grover_esm_rotation):
+                        registers_to_measure.append(rotation_register)
+                self.quantum_circuit_handler.push_ESM_operation(array_register, rotation_register, term_to_quantum, block_size, phase_kickback_ancilla)
                    
             oracle_registers.append(grover_result)
             quantum_function = self.quantum_circuit_handler.end_quantum_function(*oracle_registers, gate_name=f"grover_oracle_{current_grover_count}", create_gate=False)

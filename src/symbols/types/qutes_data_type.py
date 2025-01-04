@@ -56,23 +56,21 @@ class QutesDataType(Enum):
             return QutesDataType.float
         if isinstance(var_value, str):
             return QutesDataType.string
-        if isinstance(var_value, Qubit):
+        if isinstance(var_value, Qubit) or var_value is Qubit:
             return QutesDataType.qubit
-        if isinstance(var_value, Quint):
+        if isinstance(var_value, Quint) or var_value is Quint:
             return QutesDataType.quint
-        if isinstance(var_value, Qustring):
+        if isinstance(var_value, Qustring) or var_value is Qustring:
             return QutesDataType.qustring
         if isinstance(var_value, list):
             if(len(var_value) == 0):
                 return QutesDataType.bool_array
             return QutesDataType.promote_unit_to_array_type(QutesDataType.type_of(var_value[0]))
         if isinstance(var_value, QuantumArrayType):
-            if var_value.unit_type == Qubit:
-                return QutesDataType.qubit_array
-            if var_value.unit_type == Quint:
-                return QutesDataType.quint_array
-            if var_value.unit_type == Qustring:
-                return QutesDataType.qustring_array
+            unit_type = var_value.unit_class_type
+            if(not isinstance(unit_type, QutesDataType)):
+                unit_type = QutesDataType.type_of(var_value.unit_class_type)
+            return QutesDataType.promote_unit_to_array_type(unit_type)
         if isinstance(var_value, Symbol):
             return var_value.symbol_declaration_static_type
         return QutesDataType.undefined

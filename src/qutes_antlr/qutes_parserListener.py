@@ -206,21 +206,21 @@ class qutes_parserListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by qutes_parser#GroverOperator.
-    def enterGroverOperator(self, ctx:qutes_parser.GroverOperatorContext):
-        pass
-
-    # Exit a parse tree produced by qutes_parser#GroverOperator.
-    def exitGroverOperator(self, ctx:qutes_parser.GroverOperatorContext):
-        pass
-
-
     # Enter a parse tree produced by qutes_parser#ExpOperator.
     def enterExpOperator(self, ctx:qutes_parser.ExpOperatorContext):
         pass
 
     # Exit a parse tree produced by qutes_parser#ExpOperator.
     def exitExpOperator(self, ctx:qutes_parser.ExpOperatorContext):
+        pass
+
+
+    # Enter a parse tree produced by qutes_parser#GroverOperator.
+    def enterGroverOperator(self, ctx:qutes_parser.GroverOperatorContext):
+        pass
+
+    # Exit a parse tree produced by qutes_parser#GroverOperator.
+    def exitGroverOperator(self, ctx:qutes_parser.GroverOperatorContext):
         pass
 
 
@@ -359,12 +359,12 @@ class qutes_parserListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by qutes_parser#array.
-    def enterArray(self, ctx:qutes_parser.ArrayContext):
+    # Enter a parse tree produced by qutes_parser#arrayLiteral.
+    def enterArrayLiteral(self, ctx:qutes_parser.ArrayLiteralContext):
         pass
 
-    # Exit a parse tree produced by qutes_parser#array.
-    def exitArray(self, ctx:qutes_parser.ArrayContext):
+    # Exit a parse tree produced by qutes_parser#arrayLiteral.
+    def exitArrayLiteral(self, ctx:qutes_parser.ArrayLiteralContext):
         pass
 
 

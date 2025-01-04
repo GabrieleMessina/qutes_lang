@@ -15,7 +15,7 @@ statement
    : IF_STATEMENT expr statement #IfStatement
    | IF_STATEMENT expr statement ELSE_STATEMENT statement #IfElseStatement
    | WHILE_STATEMENT expr statement #WhileStatement
-   | FOREACH_STATEMENT variableName (COMMA variableName)? IN_STATEMENT qualifiedName statement #ForeachStatement
+   | FOREACH_STATEMENT variableName (COMMA variableName)? IN_STATEMENT (qualifiedName | arrayLiteral) statement #ForeachStatement
    | DO_STATEMENT statement WHILE_STATEMENT expr #DoWhileStatement
    | CURLY_PARENTHESIS_OPEN statement* CURLY_PARENTHESIS_CLOSE #BlockStatement
    | variableType functionName ROUND_PARENTHESIS_OPEN functionDeclarationParams? ROUND_PARENTHESIS_CLOSE statement #FunctionStatement
@@ -39,7 +39,7 @@ expr // Order: https://en.wikipedia.org/wiki/Order_of_operations#Programming_lan
    : ROUND_PARENTHESIS_OPEN expr ROUND_PARENTHESIS_CLOSE #ParentesizeExpression
    | literal #LiteralExpression
    | qualifiedName #QualifiedNameExpression
-   | array #ArrayExpression
+   | arrayLiteral #ArrayExpression
    // Function call, scope, array/member access
    | functionName ROUND_PARENTHESIS_OPEN termList? ROUND_PARENTHESIS_CLOSE #FunctionCallExpression
    | arrayAccess #ArrayAccessExpression
@@ -63,7 +63,7 @@ expr // Order: https://en.wikipedia.org/wiki/Order_of_operations#Programming_lan
    | op=(MCX | MCZ | MCY | SWAP) termList #MultipleUnaryOperator
    | op=(PRINT | PRINT_LN | PAULIY | PAULIZ | HADAMARD | MEASURE) expr #UnaryOperator
    | op=MCP termList BY expr #MultipleUnaryPhaseOperator
-   | termList op=IN_STATEMENT qualifiedName #GroverOperator
+   | expr op=IN_STATEMENT qualifiedName #GroverOperator
    | op=GROVER functionName ROUND_PARENTHESIS_OPEN termList? ROUND_PARENTHESIS_CLOSE #FreeGroverOperator
    ;
 
@@ -72,10 +72,10 @@ arrayAccess
    ;
 
 termList
-   : (literal | qualifiedName | arrayAccess) (COMMA termList)?
+   : expr (COMMA termList)?
    ;
 
-array
+arrayLiteral
    : SQUARE_PARENTHESIS_OPEN termList SQUARE_PARENTHESIS_CLOSE
    ;
 

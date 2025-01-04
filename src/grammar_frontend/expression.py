@@ -24,7 +24,7 @@ class QutesGrammarExpressionVisitor(QutesBaseVisitor):
         return self.visit(ctx.qualifiedName())
     
     def visitArrayExpression(self, ctx:qutes_parser.ArrayExpressionContext):
-        return self.visit(ctx.array())
+        return self.visit(ctx.arrayLiteral())
 
     def visitFunctionCallExpression(self, ctx:qutes_parser.FunctionCallExpressionContext):
         function_name = self.visit(ctx.functionName())

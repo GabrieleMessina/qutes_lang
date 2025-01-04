@@ -9,9 +9,7 @@ void hadamard_measure(qubit a2, qubit b2){
 
 void function(qubit a, qubit b){
     qubit[] q = [a, 0q, 0q, 0q, 0q, b];
-    int[] c = [0, 2, 4];
-    foreach i in c
-    {
+    foreach i in [0, 2, 4]{
         entangle(q[i], q[i + 1]);
     }
     int[] d = [0, 2];

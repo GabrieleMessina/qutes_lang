@@ -51,8 +51,11 @@ class SymbolsDiscoveryVisitor(qutesVisitor):
         self.scope_handler.push_scope(ScopeClass.LoopScope, f"Foreach{self.loop_scope_count}")
         
         token_index = ctx.start.tokenIndex
-        
-        array_symbol:Symbol = self.variables_handler.get_variable_symbol(ctx.qualifiedName().getText(), token_index) 
+
+        array_symbol_or_name:Symbol|str|None = self.visit(ctx.expr()) #Symbol already declared, fullyqualifiedname, nothing (probably literal)
+        array_symbol = array_symbol_or_name
+        if(isinstance(array_symbol, str)):
+            array_symbol = self.variables_handler.get_variable_symbol(array_symbol, token_index)
         auxiliary_var_name = ctx.variableName(0).getText()
         auxiliary_qutes_type = QutesDataType.get_unit_type_from_array_type(array_symbol.symbol_declaration_static_type)
 

@@ -148,18 +148,22 @@ class TypeCastingHandler():
                 return QutesDataType.undefined
             
     #TODO: use this method to check if a type can be casted to another type
-    def types_are_compatible(types: list[QutesDataType]) -> QutesDataType:
+    def get_compatible_types(types: list[QutesDataType]) -> list[QutesDataType]:
         types = list(set(types))
         if len(types) == 0:
-            return QutesDataType.bool
+            return [QutesDataType.bool]
         if len(types) == 1:
-            return types[0]
-        if all(type == types[0] for type in types):
-            return types[0]
+            return types
         # if not all types are the same, check if they can be promoted to a common type
         else:
             # for each type, check if all elements can be casted to that type
+            eligible_types = []
             for type in types:
-                if all((type in TypeCastingHandler.type_promotable_to[other_type]) or (type in TypeCastingHandler.type_down_castable_to[other_type]) for other_type in types):
-                    return type
+                if all((type in TypeCastingHandler.type_promotable_to[other_type]) for other_type in types):
+                    eligible_types.append(type)
+            if len(eligible_types) == len(types):
+                return max(eligible_types)
         raise TypeError(f"Types {types} are not compatible.")
+    
+    def try_get_array_type(array: list['Symbol']) -> list[QutesDataType]:
+        return TypeCastingHandler.get_compatible_types([QutesDataType.type_of(symbol) for symbol in array])
