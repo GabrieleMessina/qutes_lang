@@ -26,7 +26,7 @@ class CodeExecutionVisitor(ExpressionsVisitor, StatementsVisitor, LiteralsVisito
         self.log_step_by_step_results_enabled = False
 
         Symbol.verbose_print = verbose
-        ScopeHandlerForSymbolsUpdate.print_trace = True
+        ScopeHandlerForSymbolsUpdate.print_trace = False
         self.allow_program_print = True
         self.log_grover_verbose = verbose
         self.log_grover_esm_rotation = True

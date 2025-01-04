@@ -48,7 +48,6 @@ def main(argv):
     symbol_discovery_visitor.visit(tree)
 
     symbols_tree = symbol_discovery_visitor.scope_handler.get_symbols_tree()
-    scopes_stack = symbol_discovery_visitor.scope_handler.get_scopes_stack()
     
     scope_handler = ScopeHandlerForSymbolsUpdate(symbols_tree)
     variables_handler = VariablesHandler(scope_handler, quantum_circuit_handler)

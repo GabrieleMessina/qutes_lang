@@ -126,7 +126,7 @@ class StatementsVisitor(QutesBaseVisitor):
         function_symbol.inner_scope = self.scope_handler.create_function_inner_scope()
         #do not call a visit on the statement here, or on all the context, the statement is being saved by the discovery and should be traversed only on function execution
         self.scope_handler.pop_scope()
-        return None
+        return function_symbol
     
     def visitDeclarationStatement(self, ctx:qutes_parser.DeclarationStatementContext):
         return self.visit(ctx.variableDeclaration())
