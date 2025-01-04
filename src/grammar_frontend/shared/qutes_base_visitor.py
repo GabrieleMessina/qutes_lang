@@ -5,7 +5,6 @@ from symbols.variables_handler import VariablesHandler
 from quantum_circuit import QuantumCircuitHandler
 from quantum_circuit.qutes_gates import QutesGates
 from qutes_antlr.qutes_parserVisitor import qutes_parserVisitor as qutesVisitor
-from symbols.symbol import Symbol
 import inspect
 
 class QutesBaseVisitor(qutesVisitor):
@@ -14,22 +13,7 @@ class QutesBaseVisitor(qutesVisitor):
         self.quantum_circuit_handler = quantum_circuit_handler
         self.scope_handler = scope_handler
         self.variables_handler = variables_handler
-
         self.qutes_gates = QutesGates(self.quantum_circuit_handler, self.variables_handler)
-
-        # Debug flags
-        Symbol.verbose_print = verbose
-        ScopeHandlerForSymbolsUpdate.print_trace = False
-        self.allow_program_print = True
-        self.log_code_structure = False
-        self.log_trace_enabled = False
-        self.log_step_by_step_results_enabled = False
-        self.log_grover_verbose = verbose
-        self.log_grover_esm_rotation = True
-
-        if(self.log_code_structure or self.log_trace_enabled or self.log_step_by_step_results_enabled):
-            print()
-            print("----Code Structure----")
 
     def visit(self, tree):
         """ Visit the node """

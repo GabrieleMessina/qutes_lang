@@ -2,7 +2,7 @@ import unittest
 from antlr4 import CommonTokenStream, InputStream
 from grammar_frontend.shared.qutes_lexer import QutesLexer
 from grammar_frontend.shared.qutes_parser import QutesParser
-from grammar_frontend.code_execution.code_execution_visitor import QutesGrammarVisitor
+from grammar_frontend.code_execution.code_execution_visitor import CodeExecutionVisitor
 from grammar_frontend.symbols_discovery_visitor import SymbolsDiscoveryVisitor
 from grammar_frontend.shared.qutes_syntax_error_listener import QutesErrorListener
 from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
@@ -39,7 +39,7 @@ class QutesBaseTest(unittest.TestCase):
         scope_handler = ScopeHandlerForSymbolsUpdate(symbols_tree)
         variables_handler = VariablesHandler(scope_handler, quantum_circuit_handler)
 
-        grammar_visitor = QutesGrammarVisitor(symbols_tree, quantum_circuit_handler, scope_handler, variables_handler)
+        grammar_visitor = CodeExecutionVisitor(symbols_tree, quantum_circuit_handler, scope_handler, variables_handler)
         result = grammar_visitor.visit(tree)
 
         return QutesTestResult(result, scope_handler, variables_handler, quantum_circuit_handler)

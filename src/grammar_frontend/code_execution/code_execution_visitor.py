@@ -5,19 +5,34 @@ from symbols.scope_tree_node import ScopeTreeNode
 from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
 from symbols.variables_handler import VariablesHandler
 from quantum_circuit import QuantumCircuitHandler
+from symbols.symbol import Symbol
 
-from grammar_frontend.code_execution.expressions_visitor import QutesGrammarExpressionVisitor
-from grammar_frontend.code_execution.statements_visitor import QutesGrammarStatementVisitor
-from grammar_frontend.shared.literals_visitor import LiteralVisitor
-from grammar_frontend.code_execution.operations_visitor import QutesGrammarOperationVisitor
+from grammar_frontend.code_execution.expressions_visitor import ExpressionsVisitor
+from grammar_frontend.code_execution.statements_visitor import StatementsVisitor
+from grammar_frontend.shared.literals_visitor import LiteralsVisitor
+from grammar_frontend.code_execution.operations_visitor import OperationsVisitor
 
-class QutesGrammarVisitor(QutesGrammarExpressionVisitor, QutesGrammarStatementVisitor, LiteralVisitor, QutesGrammarOperationVisitor):
+class CodeExecutionVisitor(ExpressionsVisitor, StatementsVisitor, LiteralsVisitor, OperationsVisitor):
     """An antlr visitor for the qutes grammar."""
 
     def __init__(self, symbols_tree:ScopeTreeNode, quantum_circuit_handler : QuantumCircuitHandler, scope_handler:ScopeHandlerForSymbolsUpdate, variables_handler:VariablesHandler, verbose:bool = False):
         if not symbols_tree:
             raise ValueError("A symbols tree must be provided to the QutesGrammarVisitor.")
         super().__init__(symbols_tree, quantum_circuit_handler, scope_handler, variables_handler, verbose)
+
+        # Debug flags
+        Symbol.verbose_print = verbose
+        ScopeHandlerForSymbolsUpdate.print_trace = False
+        self.allow_program_print = True
+        self.log_code_structure = False
+        self.log_trace_enabled = False
+        self.log_step_by_step_results_enabled = False
+        self.log_grover_verbose = verbose
+        self.log_grover_esm_rotation = True
+
+        if(self.log_code_structure or self.log_trace_enabled or self.log_step_by_step_results_enabled):
+            print()
+            print("----Code Structure----")
 
     def visitProgram(self, ctx:qutes_parser.ProgramContext):
         if self.allow_program_print:

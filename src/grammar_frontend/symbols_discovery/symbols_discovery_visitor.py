@@ -6,10 +6,10 @@ from symbols.variables_handler import VariablesHandler
 from quantum_circuit import QuantumCircuitHandler
 from symbols.scope_handler import ScopeHandlerForSymbolsDiscovery
 
-from grammar_frontend.shared.literals_visitor import LiteralVisitor
-from grammar_frontend.symbols_discovery.statements_visitor import StatementVisitor
+from grammar_frontend.shared.literals_visitor import LiteralsVisitor
+from grammar_frontend.symbols_discovery.statements_visitor import StatementsVisitor
 
-class SymbolsDiscoveryVisitor(LiteralVisitor, StatementVisitor):
+class SymbolsDiscoveryVisitor(LiteralsVisitor, StatementsVisitor):
     """An antlr visitor for the qutes grammar that discovers symbols like variable, function names etc."""
 
     def __init__(self, quantum_circuit_handler : QuantumCircuitHandler, verbose:bool = False):

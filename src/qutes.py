@@ -6,7 +6,7 @@ from antlr4 import FileStream, CommonTokenStream
 from anytree import RenderTree
 from grammar_frontend.shared.qutes_lexer import QutesLexer
 from grammar_frontend.shared.qutes_parser import QutesParser
-from grammar_frontend.code_execution.code_execution_visitor import QutesGrammarVisitor
+from grammar_frontend.code_execution.code_execution_visitor import CodeExecutionVisitor
 from grammar_frontend.symbols_discovery.symbols_discovery_visitor import SymbolsDiscoveryVisitor
 from grammar_frontend.shared.qutes_syntax_error_listener import QutesErrorListener
 from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
@@ -52,7 +52,7 @@ def main(argv):
     scope_handler = ScopeHandlerForSymbolsUpdate(symbols_tree)
     variables_handler = VariablesHandler(scope_handler, quantum_circuit_handler)
 
-    grammar_visitor = QutesGrammarVisitor(symbols_tree, quantum_circuit_handler, scope_handler, variables_handler, args.log_verbose)
+    grammar_visitor = CodeExecutionVisitor(symbols_tree, quantum_circuit_handler, scope_handler, variables_handler, args.log_verbose)
     result = str(grammar_visitor.visit(tree))
     
     print()

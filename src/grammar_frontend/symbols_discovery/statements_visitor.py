@@ -10,7 +10,7 @@ from quantum_circuit import QuantumCircuitHandler
 from symbols.scope_tree_node import ScopeTreeNode
 from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
 
-class StatementVisitor(QutesBaseVisitor):
+class StatementsVisitor(QutesBaseVisitor):
     """An antlr visitor for the qutes grammar that discovers symbols like variable, function names etc."""
 
     def __init__(self, symbols_tree:ScopeTreeNode, quantum_circuit_handler : QuantumCircuitHandler, scope_handler:ScopeHandlerForSymbolsUpdate, variables_handler:VariablesHandler, verbose:bool = False):

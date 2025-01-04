@@ -5,9 +5,8 @@ from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
 from symbols.variables_handler import VariablesHandler
 from quantum_circuit import QuantumCircuitHandler
 from grammar_frontend.shared.qutes_base_visitor import QutesBaseVisitor
-from symbols.types import QutesDataType
 
-class QutesGrammarExpressionVisitor(QutesBaseVisitor):
+class ExpressionsVisitor(QutesBaseVisitor):
     def __init__(self, symbols_tree:ScopeTreeNode, quantum_circuit_handler : QuantumCircuitHandler, scope_handler:ScopeHandlerForSymbolsUpdate, variables_handler:VariablesHandler, verbose:bool = False):
         super().__init__(symbols_tree, quantum_circuit_handler, scope_handler, variables_handler, verbose)
 
