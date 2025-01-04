@@ -35,18 +35,34 @@ class ScopeTreeNode(NodeMixin):
     def __repr__(self) -> str:
         return self.__to_printable__()
     
+    def get_next_sibling(self):
+        """ Get the next sibling of the current scope node. """
+        current_node_index = self.parent.children.index(self)
+        parent_children = self.parent.children
+        if len(parent_children) > current_node_index + 1:
+            return parent_children[current_node_index + 1]
+        return None
+    
 class ScopeStackNode():        
-    def __init__(self, scope_node:ScopeTreeNode, scope_iterator:PreOrderIter, current_scope_node:ScopeTreeNode = None):
-        self.root_scope_node = scope_node
-        self.current_scope_node = current_scope_node
-        self.scope_iterator = scope_iterator
+    def __init__(self, root_scope_node:ScopeTreeNode):
+        self.root_scope_node:ScopeTreeNode = root_scope_node
+        self._current_scope_node:ScopeTreeNode = None
+        self._scope_iterator:PreOrderIter = None
+        self.reset()
+
+    def reset(self):
+        self._scope_iterator = PreOrderIter(self.root_scope_node)
+        self._current_scope_node = None
 
     def copy(self):
         iterator = PreOrderIter(self.root_scope_node)
-        if self.current_scope_node:
-            iterator = PreOrderIter(self.current_scope_node)
+        if self._current_scope_node:
+            iterator = PreOrderIter(self._current_scope_node)
             next(iterator)
-        return ScopeStackNode(self.root_scope_node, iterator, self.current_scope_node)
+        new_scope = ScopeStackNode(self.root_scope_node)
+        new_scope._scope_iterator = iterator
+        new_scope._current_scope_node = self._current_scope_node
+        return new_scope
     
     def __to_printable__(self) -> str:
         return f"stack:{self.root_scope_node}"

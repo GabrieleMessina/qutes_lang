@@ -123,8 +123,9 @@ class StatementsVisitor(QutesBaseVisitor):
         if(ctx.functionDeclarationParams()):
             function_params = self.visit(ctx.functionDeclarationParams())
         function_symbol:Symbol = self.variables_handler.get_function_symbol(function_name, function_params, ctx.start.tokenIndex)
-        function_symbol.inner_scope = self.scope_handler.create_function_inner_scope()
-        #do not call a visit on the statement here, or on all the context, the statement is being saved by the discovery and should be traversed only on function execution
+        # do not call a visit on the statement here, or on all the context, the statement is being saved by the discovery and should be traversed only on function execution
+        # so we need to skip the possibly existing statement scopes  
+        self.scope_handler.skip_function_body_scopes()
         self.scope_handler.pop_scope()
         return function_symbol
     

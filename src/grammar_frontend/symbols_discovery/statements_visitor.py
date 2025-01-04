@@ -96,6 +96,7 @@ class StatementsVisitor(QutesBaseVisitor):
         if(ctx.functionDeclarationParams()):
             input_params_declaration = self.visit(ctx.functionDeclarationParams())
         function_symbol.function_input_params_definition = input_params_declaration
+        function_symbol.inner_scope = self.scope_handler.create_function_inner_scope()
 
         self.visit(ctx.statement())
         self.scope_handler.pop_scope()
