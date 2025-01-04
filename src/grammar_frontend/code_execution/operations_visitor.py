@@ -254,6 +254,7 @@ class OperationsVisitor(QutesBaseVisitor):
 
         return self.variables_handler.declare_anonymous_variable(QutesDataType.type_of(result), result, ctx.start.tokenIndex)
 
+    # WIP
     def __visitFunctionCall(self, function_name, function_params:list[Symbol], tokenIndex):
         function_symbol = self.variables_handler.get_function_symbol(function_name, function_params, tokenIndex)  
 

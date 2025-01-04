@@ -34,21 +34,6 @@ class LiteralsVisitor(QutesBaseVisitor):
             head.extend(tail)
         return head
     
-    def visitArrayAccess(self, ctx:qutes_parser.ArrayAccessContext):
-        array_symbol:Symbol = self.visit(ctx.qualifiedName())
-        index_symbol:Symbol = self.visit(ctx.expr())
-
-        array_value = self.variables_handler.get_value(array_symbol)
-        if(isinstance(array_value, QuantumArrayType)):
-            array_value = array_value.array
-
-        index_value = self.variables_handler.get_value(index_symbol)
-        
-        value = array_value[index_value] 
-        if not isinstance(value, Symbol):
-            value = self.variables_handler.declare_anonymous_variable(QutesDataType.get_unit_type_from_array_type(array_symbol.casted_static_type), value, array_symbol.ast_token_index)
-        return value
-    
     def visitArrayLiteral(self, ctx:qutes_parser.ArrayLiteralContext) -> list[Symbol]:
         terms:list[Symbol] = self.visit(ctx.termList())
         for term in terms:

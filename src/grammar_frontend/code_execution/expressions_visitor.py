@@ -1,6 +1,7 @@
 from grammar_frontend.shared.qutes_parser import QutesParser as qutes_parser
 from symbols.scope_tree_node import ScopeTreeNode
 from symbols.symbol import Symbol, SymbolClass
+from symbols.types import QutesDataType, QuantumArrayType
 from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
 from symbols.variables_handler import VariablesHandler
 from quantum_circuit import QuantumCircuitHandler
@@ -24,6 +25,21 @@ class ExpressionsVisitor(QutesBaseVisitor):
     
     def visitArrayExpression(self, ctx:qutes_parser.ArrayExpressionContext):
         return self.visit(ctx.arrayLiteral())
+    
+    def visitArrayAccess(self, ctx:qutes_parser.ArrayAccessContext):
+        array_symbol:Symbol = self.visit(ctx.qualifiedName())
+        index_symbol:Symbol = self.visit(ctx.expr())
+
+        array_value = self.variables_handler.get_value(array_symbol)
+        if(isinstance(array_value, QuantumArrayType)):
+            array_value = array_value.array
+
+        index_value = self.variables_handler.get_value(index_symbol)
+        
+        value = array_value[index_value] 
+        if not isinstance(value, Symbol):
+            value = self.variables_handler.declare_anonymous_variable(QutesDataType.get_unit_type_from_array_type(array_symbol.casted_static_type), value, array_symbol.ast_token_index)
+        return value
 
     def visitFunctionCallExpression(self, ctx:qutes_parser.FunctionCallExpressionContext):
         function_name = self.visit(ctx.functionName())

@@ -1,7 +1,7 @@
 from grammar_frontend.shared.qutes_parser import QutesParser
 from symbols.types import QuantumType
-from utils.phase import Phase
 from quantum_circuit.state_preparation import StatePreparation
+from enum import Enum
 import cmath
 
 class Qubit(QuantumType['Qubit']):
@@ -80,3 +80,8 @@ class Qubit(QuantumType['Qubit']):
         if(self.alpha.real == 1.0 or self.beta.real == 1.0):
             return f"|{int(self.beta.real)}>"
         return f"[(\u03B1:{self.alpha})|0> {spin_str} (\u03B2:{self.beta})|1>]"
+    
+
+class Phase(Enum):
+    Positive = 0
+    Negative = 1
