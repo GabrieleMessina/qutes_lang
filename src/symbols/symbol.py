@@ -1,5 +1,6 @@
 from enum import Enum, auto
-from quantum_circuit import QuantumRegister, QuantumCircuit
+from quantum_circuit.quantum_register import QuantumRegister
+from quantum_circuit.quantum_circuit import QuantumCircuit
 from symbols.scope_tree_node import ScopeTreeNode, ScopeStackNode
 from symbols.types import QutesDataType
 

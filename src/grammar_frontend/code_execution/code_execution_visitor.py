@@ -4,7 +4,7 @@ from grammar_frontend.shared.qutes_parser import QutesParser as qutes_parser
 from symbols.scope_tree_node import ScopeTreeNode
 from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
 from symbols.variables_handler import VariablesHandler
-from quantum_circuit import QuantumCircuitHandler
+from quantum_circuit.quantum_circuit_handler import QuantumCircuitHandler
 from symbols.symbol import Symbol
 
 from grammar_frontend.code_execution.expressions_visitor import ExpressionsVisitor

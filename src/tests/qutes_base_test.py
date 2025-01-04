@@ -7,7 +7,7 @@ from grammar_frontend.symbols_discovery.symbols_discovery_visitor import Symbols
 from grammar_frontend.shared.qutes_syntax_error_listener import QutesErrorListener
 from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
 from symbols.variables_handler import VariablesHandler
-from quantum_circuit import QuantumCircuitHandler
+from quantum_circuit.quantum_circuit_handler import QuantumCircuitHandler
 
 class QutesTestResult:
     def __init__(self, result, scope_handler:ScopeHandlerForSymbolsUpdate, variables_handler:VariablesHandler, quantum_circuit_handler:QuantumCircuitHandler):
@@ -40,6 +40,9 @@ class QutesBaseTest(unittest.TestCase):
         variables_handler = VariablesHandler(scope_handler, quantum_circuit_handler)
 
         code_execution_visitor = CodeExecutionVisitor(symbols_tree, quantum_circuit_handler, scope_handler, variables_handler)
+        code_execution_visitor.allow_program_print = False
+        code_execution_visitor.log_grover_esm_rotation = False
+
         result = code_execution_visitor.visit(tree)
 
         return QutesTestResult(result, scope_handler, variables_handler, quantum_circuit_handler)

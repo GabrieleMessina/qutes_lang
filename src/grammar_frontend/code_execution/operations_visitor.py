@@ -5,7 +5,7 @@ from symbols.symbol import Symbol, SymbolClass
 from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
 from symbols.variables_handler import VariablesHandler
 from symbols.types import QutesDataType
-from quantum_circuit import QuantumCircuitHandler
+from quantum_circuit.quantum_circuit_handler import QuantumCircuitHandler
 from grammar_frontend.shared.qutes_base_visitor import QutesBaseVisitor
 from symbols.types import Qubit, Quint, QutesDataType
 import math

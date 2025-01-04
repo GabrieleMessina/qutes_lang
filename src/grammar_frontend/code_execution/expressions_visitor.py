@@ -4,7 +4,7 @@ from symbols.symbol import Symbol, SymbolClass
 from symbols.types import QutesDataType, QuantumArrayType
 from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
 from symbols.variables_handler import VariablesHandler
-from quantum_circuit import QuantumCircuitHandler
+from quantum_circuit.quantum_circuit_handler import QuantumCircuitHandler
 from grammar_frontend.shared.qutes_base_visitor import QutesBaseVisitor
 
 class ExpressionsVisitor(QutesBaseVisitor):

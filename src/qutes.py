@@ -11,7 +11,7 @@ from grammar_frontend.symbols_discovery.symbols_discovery_visitor import Symbols
 from grammar_frontend.shared.qutes_syntax_error_listener import QutesErrorListener
 from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
 from symbols.variables_handler import VariablesHandler
-from quantum_circuit import QuantumCircuitHandler
+from quantum_circuit.quantum_circuit_handler import QuantumCircuitHandler
 
 def main(argv):
     """Entrypoint for Qutes Lang compiler"""

@@ -2,7 +2,7 @@ from symbols.types.type_casting_handler import TypeCastingHandler
 from symbols.types.qutes_data_type import QutesDataType, QuantumArrayType
 from symbols.scope_handler import ScopeHandler
 from symbols.symbol import Symbol, SymbolClass
-from quantum_circuit import QuantumCircuitHandler
+from quantum_circuit.quantum_circuit_handler import QuantumCircuitHandler
 
 class VariablesHandler():
 
