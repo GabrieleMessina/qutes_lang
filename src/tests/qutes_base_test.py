@@ -1,10 +1,10 @@
 import unittest
 from antlr4 import CommonTokenStream, InputStream
-from grammar_frontend.qutes_lexer import QutesLexer
-from grammar_frontend.qutes_parser import QutesParser
-from grammar_frontend.qutes_grammar_visitor import QutesGrammarVisitor
+from grammar_frontend.shared.qutes_lexer import QutesLexer
+from grammar_frontend.shared.qutes_parser import QutesParser
+from grammar_frontend.code_execution.code_execution_visitor import QutesGrammarVisitor
 from grammar_frontend.symbols_discovery_visitor import SymbolsDiscoveryVisitor
-from grammar_frontend.qutes_syntax_error_listener import QutesErrorListener
+from grammar_frontend.shared.qutes_syntax_error_listener import QutesErrorListener
 from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
 from symbols.variables_handler import VariablesHandler
 from quantum_circuit import QuantumCircuitHandler

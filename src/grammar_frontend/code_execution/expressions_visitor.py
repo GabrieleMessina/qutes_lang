@@ -1,10 +1,10 @@
-from grammar_frontend.qutes_parser import QutesParser as qutes_parser
+from grammar_frontend.shared.qutes_parser import QutesParser as qutes_parser
 from symbols.scope_tree_node import ScopeTreeNode
 from symbols.symbol import Symbol, SymbolClass
 from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
 from symbols.variables_handler import VariablesHandler
 from quantum_circuit import QuantumCircuitHandler
-from grammar_frontend.qutes_base_visitor import QutesBaseVisitor
+from grammar_frontend.shared.qutes_base_visitor import QutesBaseVisitor
 from symbols.types import QutesDataType
 
 class QutesGrammarExpressionVisitor(QutesBaseVisitor):

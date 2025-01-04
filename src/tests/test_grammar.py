@@ -1,6 +1,6 @@
 from symbols.types import Qubit, Quint, Qustring
 from .qutes_base_test import QutesBaseTest
-from grammar_frontend.qutes_grammar_visitor import QutesGrammarVisitor
+from grammar_frontend.code_execution.code_execution_visitor import QutesGrammarVisitor
 from qutes_antlr.qutes_parserVisitor import __name__ as qutes_parserVisitor_class_name
 from quantum_circuit.state_preparation import StatePreparation
 import inspect

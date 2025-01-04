@@ -1,20 +1,22 @@
 """An antlr visitor for the qutes grammar."""
 
-from grammar_frontend.qutes_parser import QutesParser as qutes_parser
+from grammar_frontend.shared.qutes_parser import QutesParser as qutes_parser
 from symbols.scope_tree_node import ScopeTreeNode
 from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
 from symbols.variables_handler import VariablesHandler
 from quantum_circuit import QuantumCircuitHandler
 
-from grammar_frontend.expression import QutesGrammarExpressionVisitor
-from grammar_frontend.statement import QutesGrammarStatementVisitor
-from grammar_frontend.literal import QutesGrammarLiteralVisitor
-from grammar_frontend.operation import QutesGrammarOperationVisitor
+from grammar_frontend.code_execution.expressions_visitor import QutesGrammarExpressionVisitor
+from grammar_frontend.code_execution.statements_visitor import QutesGrammarStatementVisitor
+from grammar_frontend.shared.literals_visitor import LiteralVisitor
+from grammar_frontend.code_execution.operations_visitor import QutesGrammarOperationVisitor
 
-class QutesGrammarVisitor(QutesGrammarExpressionVisitor, QutesGrammarStatementVisitor, QutesGrammarLiteralVisitor, QutesGrammarOperationVisitor):
+class QutesGrammarVisitor(QutesGrammarExpressionVisitor, QutesGrammarStatementVisitor, LiteralVisitor, QutesGrammarOperationVisitor):
     """An antlr visitor for the qutes grammar."""
 
     def __init__(self, symbols_tree:ScopeTreeNode, quantum_circuit_handler : QuantumCircuitHandler, scope_handler:ScopeHandlerForSymbolsUpdate, variables_handler:VariablesHandler, verbose:bool = False):
+        if not symbols_tree:
+            raise ValueError("A symbols tree must be provided to the QutesGrammarVisitor.")
         super().__init__(symbols_tree, quantum_circuit_handler, scope_handler, variables_handler, verbose)
 
     def visitProgram(self, ctx:qutes_parser.ProgramContext):

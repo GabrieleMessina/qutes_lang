@@ -1,36 +1,23 @@
-"""An antlr listener for the qutes grammar."""
+"""An antlr visitor for the qutes grammar."""
 
-from qutes_antlr.qutes_parserVisitor import qutes_parserVisitor as qutesVisitor
-from qutes_antlr.qutes_parser import qutes_parser as qutesParser
+from grammar_frontend.shared.qutes_parser import QutesParser as qutes_parser
 from symbols.scope_tree_node import ScopeClass
-from symbols.scope_handler import ScopeHandlerForSymbolsDiscovery
 from symbols.variables_handler import VariablesHandler
 from symbols.types import QutesDataType
 from symbols import Symbol
+from grammar_frontend.shared.qutes_base_visitor import QutesBaseVisitor
 from quantum_circuit import QuantumCircuitHandler
+from symbols.scope_tree_node import ScopeTreeNode
+from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
 
-class SymbolsDiscoveryVisitor(qutesVisitor):
+class StatementVisitor(QutesBaseVisitor):
     """An antlr visitor for the qutes grammar that discovers symbols like variable, function names etc."""
 
-    def __init__(self, quantum_circuit_handler : QuantumCircuitHandler, verbose:bool = False):
-        self.quantum_circuit_handler = quantum_circuit_handler
-        self.verbose = verbose
-        self.scope_handler = ScopeHandlerForSymbolsDiscovery()
-        self.scope_count = 0
-        self.if_else_scope_count = 0
-        self.loop_scope_count = 0
-        self.function_scope_count = 0
-        self.variables_handler = VariablesHandler(self.scope_handler, self.quantum_circuit_handler)
-        
-        ScopeHandlerForSymbolsDiscovery.print_trace = False
-
-    def visitProgram(self, ctx:qutesParser.ProgramContext):
-        self.scope_handler.push_scope(ScopeClass.GlobalScope, "GlobalScope")
-        self.visitChildren(ctx)
-        self.scope_handler.pop_scope()
+    def __init__(self, symbols_tree:ScopeTreeNode, quantum_circuit_handler : QuantumCircuitHandler, scope_handler:ScopeHandlerForSymbolsUpdate, variables_handler:VariablesHandler, verbose:bool = False):
+        super().__init__(symbols_tree, quantum_circuit_handler, scope_handler, variables_handler, verbose)
 
     # visit a parse tree produced by qutesParser#IfStatement.
-    def visitIfStatement(self, ctx:qutesParser.IfStatementContext):
+    def visitIfStatement(self, ctx:qutes_parser.IfStatementContext):
         self.if_else_scope_count += 1
         self.scope_handler.push_scope(ScopeClass.IfElseScope, f"If{self.if_else_scope_count}")
         self.visitChildren(ctx)
@@ -38,7 +25,7 @@ class SymbolsDiscoveryVisitor(qutesVisitor):
 
 
     # visit a parse tree produced by qutesParser#IfElseStatement.
-    def visitIfElseStatement(self, ctx:qutesParser.IfElseStatementContext):
+    def visitIfElseStatement(self, ctx:qutes_parser.IfElseStatementContext):
         self.if_else_scope_count += 1
         self.scope_handler.push_scope(ScopeClass.IfElseScope, f"IfElse{self.if_else_scope_count}")
         self.visitChildren(ctx)
@@ -46,7 +33,7 @@ class SymbolsDiscoveryVisitor(qutesVisitor):
 
 
     # visit a parse tree produced by qutesParser#ForeachStatement.
-    def visitForeachStatement(self, ctx:qutesParser.ForeachStatementContext):
+    def visitForeachStatement(self, ctx:qutes_parser.ForeachStatementContext):
         self.loop_scope_count += 1
         self.scope_handler.push_scope(ScopeClass.LoopScope, f"Foreach{self.loop_scope_count}")
         
@@ -69,7 +56,7 @@ class SymbolsDiscoveryVisitor(qutesVisitor):
         self.scope_handler.pop_scope()
 
     # visit a parse tree produced by qutesParser#WhileStatement.
-    def visitWhileStatement(self, ctx:qutesParser.WhileStatementContext):
+    def visitWhileStatement(self, ctx:qutes_parser.WhileStatementContext):
         self.loop_scope_count += 1
         self.scope_handler.push_scope(ScopeClass.LoopScope, f"While{self.loop_scope_count}")
         self.visitChildren(ctx)
@@ -77,7 +64,7 @@ class SymbolsDiscoveryVisitor(qutesVisitor):
 
 
     # visit a parse tree produced by qutesParser#DoWhileStatement.
-    def visitDoWhileStatement(self, ctx:qutesParser.DoWhileStatementContext):
+    def visitDoWhileStatement(self, ctx:qutes_parser.DoWhileStatementContext):
         self.loop_scope_count += 1
         self.scope_handler.push_scope(ScopeClass.LoopScope, f"DoWhile{self.loop_scope_count}")
         self.visitChildren(ctx)
@@ -85,7 +72,7 @@ class SymbolsDiscoveryVisitor(qutesVisitor):
 
 
     # visit a parse tree produced by qutesParser#BlockStatement.
-    def visitBlockStatement(self, ctx:qutesParser.BlockStatementContext):
+    def visitBlockStatement(self, ctx:qutes_parser.BlockStatementContext):
         self.scope_count += 1
         self.scope_handler.push_scope(ScopeClass.BlockScope, f"Block{self.scope_count}")
         self.visitChildren(ctx)
@@ -93,7 +80,7 @@ class SymbolsDiscoveryVisitor(qutesVisitor):
 
 
     # visit a parse tree produced by qutes_parser#FunctionStatement.
-    def visitFunctionStatement(self, ctx:qutesParser.FunctionStatementContext):
+    def visitFunctionStatement(self, ctx:qutes_parser.FunctionStatementContext):
         self.function_scope_count += 1
         return_type = ctx.variableType().getText()
         qutes_type = QutesDataType.from_string_type(return_type)
@@ -114,7 +101,7 @@ class SymbolsDiscoveryVisitor(qutesVisitor):
         self.scope_handler.pop_scope()
 
     # Visit a parse tree produced by qutes_parser#functionParams.
-    def visitFunctionDeclarationParams(self, ctx:qutesParser.FunctionDeclarationParamsContext):
+    def visitFunctionDeclarationParams(self, ctx:qutes_parser.FunctionDeclarationParamsContext):
         head = [self.visit(ctx.variableDeclaration())]
         tail = []
         if(ctx.functionDeclarationParams()):
@@ -125,7 +112,7 @@ class SymbolsDiscoveryVisitor(qutesVisitor):
         return head
 
     # visit a parse tree produced by qutes_parser#variableDeclaration.
-    def visitVariableDeclaration(self, ctx:qutesParser.VariableDeclarationContext):
+    def visitVariableDeclaration(self, ctx:qutes_parser.VariableDeclarationContext):
         var_type = ctx.variableType().getText()
         var_name = ctx.variableName().getText()
         qutes_type = QutesDataType.from_string_type(var_type)
@@ -139,3 +126,4 @@ class SymbolsDiscoveryVisitor(qutesVisitor):
         # Variable should be declared after expr is evaluated.
         result = self.variables_handler.declare_variable(qutes_type, var_name, token_index)
         return result
+    

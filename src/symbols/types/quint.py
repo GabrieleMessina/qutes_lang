@@ -1,4 +1,4 @@
-from grammar_frontend.qutes_parser import QutesParser
+from grammar_frontend.shared.qutes_parser import QutesParser
 from symbols.types import Qubit, QuantumType
 from qiskit.quantum_info import Statevector
 from quantum_circuit.state_preparation import StatePreparation

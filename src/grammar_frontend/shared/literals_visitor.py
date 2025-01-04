@@ -1,13 +1,13 @@
-from grammar_frontend.qutes_parser import QutesParser as qutes_parser
+from grammar_frontend.shared.qutes_parser import QutesParser as qutes_parser
 from symbols.scope_tree_node import ScopeTreeNode
 from symbols.symbol import Symbol
 from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
 from symbols.variables_handler import VariablesHandler
 from symbols.types import Qubit, Quint, Qustring, QutesDataType, QuantumArrayType, TypeCastingHandler
 from quantum_circuit import QuantumCircuitHandler
-from grammar_frontend.qutes_base_visitor import QutesBaseVisitor
+from grammar_frontend.shared.qutes_base_visitor import QutesBaseVisitor
 
-class QutesGrammarLiteralVisitor(QutesBaseVisitor):
+class LiteralVisitor(QutesBaseVisitor):
     def __init__(self, symbols_tree:ScopeTreeNode, quantum_circuit_handler : QuantumCircuitHandler, scope_handler:ScopeHandlerForSymbolsUpdate, variables_handler:VariablesHandler, verbose:bool = False):
         super().__init__(symbols_tree, quantum_circuit_handler, scope_handler, variables_handler, verbose)
     

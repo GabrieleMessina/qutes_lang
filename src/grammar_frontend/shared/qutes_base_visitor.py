@@ -10,8 +10,6 @@ import inspect
 
 class QutesBaseVisitor(qutesVisitor):
     def __init__(self, symbols_tree:ScopeTreeNode, quantum_circuit_handler : QuantumCircuitHandler, scope_handler:ScopeHandlerForSymbolsUpdate, variables_handler:VariablesHandler, verbose:bool = False):
-        if not symbols_tree:
-            raise ValueError("A symbols tree must be provided to the QutesGrammarVisitor.")
         self.symbols_tree = symbols_tree
         self.quantum_circuit_handler = quantum_circuit_handler
         self.scope_handler = scope_handler
