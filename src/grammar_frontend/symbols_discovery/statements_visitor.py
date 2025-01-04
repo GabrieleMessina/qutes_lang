@@ -8,7 +8,7 @@ from symbols import Symbol
 from grammar_frontend.shared.qutes_base_visitor import QutesBaseVisitor
 from quantum_circuit import QuantumCircuitHandler
 from symbols.scope_tree_node import ScopeTreeNode
-from symbols.scope_handler import ScopeHandlerForSymbolsUpdate
+from symbols.scope_handler import ScopeHandlerForSymbolsDiscovery
 
 class StatementsVisitor(QutesBaseVisitor):
     """An antlr visitor for the qutes grammar that discovers symbols like variable, function names etc."""

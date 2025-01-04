@@ -44,16 +44,17 @@ def main(argv):
 
     quantum_circuit_handler = QuantumCircuitHandler()
 
-    grammar_listener = SymbolsDiscoveryVisitor(quantum_circuit_handler, args.log_verbose)
-    grammar_listener.visit(tree)
+    symbol_discovery_visitor = SymbolsDiscoveryVisitor(quantum_circuit_handler, args.log_verbose)
+    symbol_discovery_visitor.visit(tree)
 
-    symbols_tree = grammar_listener.scope_handler.symbols_tree
+    symbols_tree = symbol_discovery_visitor.scope_handler.get_symbols_tree()
+    scopes_stack = symbol_discovery_visitor.scope_handler.get_scopes_stack()
     
     scope_handler = ScopeHandlerForSymbolsUpdate(symbols_tree)
     variables_handler = VariablesHandler(scope_handler, quantum_circuit_handler)
 
-    grammar_visitor = CodeExecutionVisitor(symbols_tree, quantum_circuit_handler, scope_handler, variables_handler, args.log_verbose)
-    result = str(grammar_visitor.visit(tree))
+    code_execution_visitor = CodeExecutionVisitor(symbols_tree, quantum_circuit_handler, scope_handler, variables_handler, args.log_verbose)
+    result = str(code_execution_visitor.visit(tree))
     
     print()
     print("----Result----")

@@ -48,7 +48,7 @@ class ExpressionsVisitor(QutesBaseVisitor):
             symbol_to_push.value = function_params[index].value
             symbol_to_push.quantum_register = function_params[index].quantum_register
             symbol_params_to_push.append(symbol_to_push)
-        [symbol for symbol in function_symbol.inner_scope.scope_node.symbols if symbol.symbol_class == SymbolClass.FunctionSymbol][:len(function_params)] = symbol_params_to_push
+        [symbol for symbol in function_symbol.inner_scope.root_scope_node.symbols if symbol.symbol_class == SymbolClass.FunctionSymbol][:len(function_params)] = symbol_params_to_push
 
         #TODO: staff commented for make return value work for quantum variable, do some tests to assure the behaviour is correct
         # self.quantum_circuit_handler.start_quantum_function()
@@ -56,7 +56,7 @@ class ExpressionsVisitor(QutesBaseVisitor):
         # gate = self.quantum_circuit_handler.end_quantum_function(function_symbol.name)
         # function_symbol.quantum_function = gate
 
-        [symbol for symbol in function_symbol.inner_scope.scope_node.symbols if symbol.symbol_class == SymbolClass.FunctionSymbol][:len(function_params)] = default_params_to_restore_on_exit
+        [symbol for symbol in function_symbol.inner_scope.root_scope_node.symbols if symbol.symbol_class == SymbolClass.FunctionSymbol][:len(function_params)] = default_params_to_restore_on_exit
         self.scope_handler.pop_function_inner_scope(function_symbol.inner_scope)
 
         return result #The function return value

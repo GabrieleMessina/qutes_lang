@@ -13,7 +13,6 @@ class SymbolsDiscoveryVisitor(LiteralsVisitor, StatementsVisitor):
     """An antlr visitor for the qutes grammar that discovers symbols like variable, function names etc."""
 
     def __init__(self, quantum_circuit_handler : QuantumCircuitHandler, verbose:bool = False):
-        super().__init__(None, quantum_circuit_handler, None, None, verbose)
         self.quantum_circuit_handler = quantum_circuit_handler
         self.verbose = verbose
         self.scope_handler = ScopeHandlerForSymbolsDiscovery()
@@ -22,11 +21,14 @@ class SymbolsDiscoveryVisitor(LiteralsVisitor, StatementsVisitor):
         self.loop_scope_count = 0
         self.function_scope_count = 0
         self.variables_handler = VariablesHandler(self.scope_handler, self.quantum_circuit_handler)
+        super().__init__(None, quantum_circuit_handler, self.scope_handler, self.variables_handler, verbose)
         
         # Debug flags
-        ScopeHandlerForSymbolsDiscovery.print_trace = False
+        self.log_code_structure = False
         self.log_trace_enabled = False
         self.log_step_by_step_results_enabled = False
+
+        ScopeHandlerForSymbolsDiscovery.print_trace = False
 
     def visitProgram(self, ctx:qutes_parser.ProgramContext):
         self.scope_handler.push_scope(ScopeClass.GlobalScope, "GlobalScope")

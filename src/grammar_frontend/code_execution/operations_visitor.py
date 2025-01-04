@@ -277,7 +277,7 @@ class OperationsVisitor(QutesBaseVisitor):
         # function_symbol.quantum_function = gate
 
         self.scope_handler.pop_function_inner_scope(function_symbol.inner_scope)
-        [symbol for symbol in function_symbol.inner_scope.scope_node.symbols if symbol.symbol_class == SymbolClass.FunctionSymbol][:len(function_params)] = default_params_to_restore_on_exit
+        [symbol for symbol in function_symbol.inner_scope.root_scope_node.symbols if symbol.symbol_class == SymbolClass.FunctionSymbol][:len(function_params)] = default_params_to_restore_on_exit
 
         return function_symbol
 

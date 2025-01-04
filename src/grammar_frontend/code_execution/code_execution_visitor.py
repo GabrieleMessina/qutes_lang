@@ -21,12 +21,13 @@ class CodeExecutionVisitor(ExpressionsVisitor, StatementsVisitor, LiteralsVisito
         super().__init__(symbols_tree, quantum_circuit_handler, scope_handler, variables_handler, verbose)
 
         # Debug flags
-        Symbol.verbose_print = verbose
-        ScopeHandlerForSymbolsUpdate.print_trace = False
-        self.allow_program_print = True
         self.log_code_structure = False
         self.log_trace_enabled = False
         self.log_step_by_step_results_enabled = False
+
+        Symbol.verbose_print = verbose
+        ScopeHandlerForSymbolsUpdate.print_trace = True
+        self.allow_program_print = True
         self.log_grover_verbose = verbose
         self.log_grover_esm_rotation = True
 
