@@ -45,7 +45,7 @@ class QutesDataType(Enum):
             QutesDataType.bool_array, QutesDataType.int_array, QutesDataType.float_array, QutesDataType.string_array, QutesDataType.qubit_array, QutesDataType.quint_array, QutesDataType.qustring_array]
 
     def type_of(var_value : any) -> 'QutesDataType':
-        from symbols import Symbol
+        from symbols.symbol import Symbol
         if var_value is None:
             return QutesDataType.void
         if isinstance(var_value, bool):

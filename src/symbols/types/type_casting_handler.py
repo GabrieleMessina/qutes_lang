@@ -92,7 +92,7 @@ class TypeCastingHandler():
         raise TypeError(f"Cannot cast type '{from_type}' to '{to_type}'.")
 
     def down_cast_value_to_type(self, var_value : any, from_type:'QutesDataType', to_type : 'QutesDataType', symbol_or_literal) -> any:
-        from symbols import Symbol
+        from symbols.symbol import Symbol
         from_type_value = None
 
         # if the value is a quantum type, we need to get the value from the quantum circuit measuring it.
