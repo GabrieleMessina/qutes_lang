@@ -15,6 +15,10 @@ class QutesBaseVisitor(qutesVisitor):
         self.variables_handler = variables_handler
         self.qutes_gates = QutesGates(self.quantum_circuit_handler, self.variables_handler)
 
+        # Debug flags
+        self.log_trace_enabled = False
+        self.log_step_by_step_results_enabled = False
+
     def visit(self, tree):
         """ Visit the node """
         caller_name = inspect.stack()[1].function

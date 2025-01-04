@@ -23,7 +23,10 @@ class SymbolsDiscoveryVisitor(LiteralsVisitor, StatementsVisitor):
         self.function_scope_count = 0
         self.variables_handler = VariablesHandler(self.scope_handler, self.quantum_circuit_handler)
         
+        # Debug flags
         ScopeHandlerForSymbolsDiscovery.print_trace = False
+        self.log_trace_enabled = False
+        self.log_step_by_step_results_enabled = False
 
     def visitProgram(self, ctx:qutes_parser.ProgramContext):
         self.scope_handler.push_scope(ScopeClass.GlobalScope, "GlobalScope")
