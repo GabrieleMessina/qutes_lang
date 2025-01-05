@@ -5,10 +5,12 @@ from quantum_circuit.classical_register import ClassicalRegister
 from quantum_circuit.quantum_circuit import QuantumCircuit
 from quantum_circuit.quantum_register import QuantumRegister, QiskitQubit
 from symbols.types import Qubit, Quint, Qustring, QutesDataType, QuantumArrayType
-from qiskit import IBMQ, Aer, QiskitError, transpile
+from qiskit import QiskitError
+from qiskit_aer import AerSimulator
+from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
+from qiskit_ibm_runtime import SamplerV2 as Sampler
 from quantum_circuit.state_preparation import StatePreparation
-from qiskit.primitives import Sampler
-from qiskit.circuit.quantumcircuit import QubitSpecifier, CircuitInstruction
+from qiskit.circuit.quantumcircuit import CircuitInstruction
 from qiskit.circuit.library import GroverOperator, MCMT, ZGate, QFT, XGate, YGate, HGate, CXGate, MCXGate, PhaseGate
 from qiskit.circuit.gate import Gate
 
@@ -150,69 +152,85 @@ class QuantumCircuitHandler():
         if(print_circuit_to_console):
             print(circuit.draw())
 
-    def __counts__(self, vec):
-        for i in vec:
-                print(" - " + str(i) +" : "+ str(vec[i]))
-
-    def __revcounts__(self, vec):
-        for i in vec:
-                print(" - " + str(i)[::-1] +" : "+ str(vec[i]))
+    def get_counts_by_run(self, result) -> dict[str, int]:
+        # {bitstring: count}
+        return result[0].join_data().get_counts()
+    def get_counts_by_register(self, result) -> dict[str, dict[str, int]]:
+        # {reg_name: {bitstring: count}}
+        cnt:dict[dict[int]] = {}
+        for i, pub_res in enumerate(result): # For each circuit
+            for reg_name in pub_res.data:
+                reg_name = f'{reg_name}' if i == 0 else f'{reg_name}_circ_{i}'
+                cnt[reg_name] = getattr(pub_res.data,reg_name).get_counts()
+        return cnt
 
     # simulate the execution of a Quantum Circuit and get the results
     def __run__(self, circuit, shots, print_counts:bool = False):
         # Use Aer's qasm_simulator
-        simulator = Aer.get_backend('aer_simulator')
+        simulator = AerSimulator()
+        pm = generate_preset_pass_manager(backend=simulator, optimization_level=1)
 
-        # compile the circuit down to low-level QASM instructions
-        # supported by the backend (not needed for simple circuits)
-        compiled_circuit = transpile(circuit, simulator)
+        isa_qc = pm.run(circuit)
+        sampler = Sampler(mode=simulator)
 
-        # Execute the circuit on the qasm simulator
-        job = simulator.run(compiled_circuit, shots=shots)
-        
         # Grab results from the job
-        result = job.result()
-        cnt = None
+        result = sampler.run([isa_qc], shots=shots).result()
+        counts_by_registers = {}
         try:
-            cnt = result.get_counts(compiled_circuit)
+            counts_by_registers = self.get_counts_by_register(result)
         except QiskitError as er:
             if(er.message.startswith("No counts for experiment")):
                 print(er.message)
             else: 
                 raise er
 
-        if(cnt != None):
-            table = []
-            for index, run in enumerate(cnt):
-                count = cnt[run]
-                # reverse the bits to have the least significant as rightmost, 
-                # and the order of the measured variables from left to right where in the circuit were from top to bottom
-                # values = [f"{value[::-1]}₂ ←→ {int(value[::-1], 2):>4}⏨" for value in run.split(" ")[::-1]]
-                values = [f"{value}₂ | {int(value, 2)}⏨" for value in run.split(" ")[::-1]]
-                values.append(count)
-                values.append("Least Significant bit as rightmost") if(index == 0) else values.append("")
-                table.append(values)
+        for reg_name, counts in counts_by_registers.items():
+            for bitstring, count in counts.items():
+                classical_registers = [reg for reg in self._classic_registers if reg.name == reg_name]
+                classical_registers[0].measured_values.append(bitstring)
+                classical_registers[0].measured_counts.append(count)
 
-            if(print_counts):
-                from tabulate import tabulate
-                print("⚠️  ~ Following results only show the last execution of the circuit, in case of measurements in the middle of the circuit, like the ones needed for casts and Grover search, those results are not shown.")
-                headers = [f"{creg[0]}" for creg in cnt.creg_sizes]
-                headers.append("Counts")
-                headers.append("Notes")
-                maxcolwidths = [40] * len(headers)
-                maxcolwidths[-1] = 40 
-                colalign = ["right"] * len(headers)
-                colalign[-1] = "left" 
-                print(tabulate(table, headers=headers, stralign="right", tablefmt="fancy_grid", maxcolwidths=maxcolwidths, colalign=colalign))
+        if(print_counts):
+            self.print_result_table(result)
+            
 
-            measurement_for_runs = [res.split(" ")[::-1] for res in cnt.keys()] # reverse the order of the measured variables from left to right where in the circuit were from top to bottom
-            counts_for_runs = [res[1] for res in cnt.items()]
-            for index in range(len(cnt.creg_sizes)):
-                measurement_for_variable = [a[index] for a in measurement_for_runs] # reverse the bits to have the least significant as rightmost
-                Classical_registers = [reg for reg in self._classic_registers if reg.name == cnt.creg_sizes[index][0]]
-                Classical_registers[0].measured_values = measurement_for_variable
-                Classical_registers[0].measured_counts = counts_for_runs
-        return cnt
+    def print_result_table(self, result):
+        counts_by_run = {}
+        counts_by_registers = {}
+        try:
+            counts_by_run = self.get_counts_by_run(result)
+            counts_by_registers = self.get_counts_by_register(result)
+        except QiskitError as er:
+            pass
+
+        from tabulate import tabulate
+        table = []
+        for index, (result, count) in enumerate(counts_by_run.items()):
+            i = 0
+            while i < len(result):
+                row = []
+                for reg_name in list(counts_by_registers.keys())[::-1]:
+                    # reverse the regs list to match the qiskit ordering, 
+                    # measured variables from right to left based on measuring time
+                    reg_size = self._varname_to_register[reg_name].size
+                    bitstring = result[i:i+reg_size]
+                    row.append(f"{bitstring}₂ | {int(bitstring, 2)}⏨")
+                    i += reg_size
+                row = row[::-1] # recover ordering to have first measured as first column
+                row.append(count)
+                row.append("Least Significant bit as rightmost") if(index == 0) else row.append("")
+                table.append(row)
+
+        print("⚠️  ~ Following results only show the last execution of the circuit, in case of measurements in the middle of the circuit, like the ones needed for casts and Grover search, those results are not shown.")
+        headers = [f"{reg_name}" for reg_name in counts_by_registers.keys()]
+        headers.append("Counts")
+        headers.append("Notes")
+        maxcolwidths = [40] * len(headers)
+        maxcolwidths[-1] = 40 
+        colalign = ["right"] * len(headers)
+        colalign[-1] = "left" 
+        print(tabulate(table, headers=headers, stralign="right", tablefmt="fancy_grid", maxcolwidths=maxcolwidths, colalign=colalign))
+
 
     def run_circuit(self, circuit:QuantumCircuit, repetition:int = 1, print_count:bool = False):
         self.__run__(circuit, repetition, print_count)
@@ -375,7 +393,7 @@ class QuantumCircuitHandler():
             if(isinstance(instruction, CircuitInstruction)):
                 name : str = instruction.operation.name
                 op = instruction.operation
-                if(name.startswith("c") and name.endswith("z")):
+                if(name == "mcmt" and op.base_gate.name == "z"):
                     boolean_quantum_function.data[index] = CircuitInstruction(MCXGate(op.num_qubits), [*instruction.qubits,*oracle_registers[-1]], instruction.clbits)
         
         # check if the grover result is actually a hit.

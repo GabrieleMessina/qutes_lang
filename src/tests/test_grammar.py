@@ -79,20 +79,21 @@ class TestGrammar(QutesBaseTest):
             ("bool", "TRUE", True),
             ("bool", "1", True),
             ("bool", "1q", True),
+            ("int", "10q", 10),
             ("bool", "0q", False),
             ("int", "10", 10),
             ("int", "9", 9),
             ("int", "false+false", 0),
             ("int", "true+true", 2),
-            ("int", "10q", 10),
             ("string", "\"test\"", "test"),
             ("string", "\"test\" + \"sum\"", "testsum"),
             ("string", "1", "True"), #TODO: We should expect "1" not "True"
             ("string", "2", "2"),
         ]
         var_name:str = "foo"
-        for var_type, declaration_value, expected_value_of_var in params:
+        for index, (var_type, declaration_value, expected_value_of_var) in enumerate(params):
             with self.subTest(var_type=var_type, declaration_value=declaration_value, expected_value_of_var=expected_value_of_var):
+                var_name = f"foo_{index}"
                 code =  f"""
                         {var_type} {var_name} = {declaration_value};
                         """
