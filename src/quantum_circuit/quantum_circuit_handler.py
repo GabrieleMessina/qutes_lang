@@ -178,11 +178,8 @@ class QuantumCircuitHandler():
         counts_by_registers = {}
         try:
             counts_by_registers = self.get_counts_by_register(result)
-        except QiskitError as er:
-            if(er.message.startswith("No counts for experiment")):
-                print(er.message)
-            else: 
-                raise er
+        except (QiskitError):
+            pass
 
         for reg_name, counts in counts_by_registers.items():
             for bitstring, count in counts.items():
@@ -200,7 +197,7 @@ class QuantumCircuitHandler():
         try:
             counts_by_run = self.get_counts_by_run(result)
             counts_by_registers = self.get_counts_by_register(result)
-        except QiskitError as er:
+        except (QiskitError, ValueError):
             pass
 
         from tabulate import tabulate
@@ -220,6 +217,10 @@ class QuantumCircuitHandler():
                 row.append(count)
                 row.append("Least Significant bit as rightmost") if(index == 0) else row.append("")
                 table.append(row)
+
+        if(len(table) == 0):
+            print("⚠️  ~ No results to show")
+            return
 
         print("⚠️  ~ Following results only show the last execution of the circuit, in case of measurements in the middle of the circuit, like the ones needed for casts and Grover search, those results are not shown.")
         headers = [f"{reg_name}" for reg_name in counts_by_registers.keys()]
