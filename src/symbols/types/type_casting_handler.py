@@ -60,6 +60,8 @@ class TypeCastingHandler():
             case QutesDataType.string:
                 if isinstance(var_value, list):
                     return str(''.join([str(int(value)) for value in var_value]))
+                if from_type == QutesDataType.bool:
+                    return str(int(var_value))
                 return str(var_value)
             case QutesDataType.qubit:
                 return Qubit.fromValue(var_value)

@@ -87,7 +87,7 @@ class TestGrammar(QutesBaseTest):
             ("int", "true+true", 2),
             ("string", "\"test\"", "test"),
             ("string", "\"test\" + \"sum\"", "testsum"),
-            ("string", "1", "True"), #TODO: We should expect "1" not "True"
+            ("string", "1", "1"),
             ("string", "2", "2"),
         ]
         var_name:str = "foo"
