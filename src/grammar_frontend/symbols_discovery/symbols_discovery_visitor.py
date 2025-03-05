@@ -6,7 +6,7 @@ from symbols.variables_handler import VariablesHandler
 from quantum_circuit.quantum_circuit_handler import QuantumCircuitHandler
 from symbols.scope_handler import ScopeHandlerForSymbolsDiscovery
 
-from grammar_frontend.shared.literals_visitor import LiteralsVisitor
+from grammar_frontend.symbols_discovery.literals_visitor import LiteralsVisitor
 from grammar_frontend.symbols_discovery.statements_visitor import StatementsVisitor
 
 class SymbolsDiscoveryVisitor(LiteralsVisitor, StatementsVisitor):

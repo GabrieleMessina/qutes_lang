@@ -36,9 +36,6 @@ class LiteralsVisitor(QutesBaseVisitor):
     
     def visitArrayLiteral(self, ctx:qutes_parser.ArrayLiteralContext) -> list[Symbol]:
         terms:list[Symbol] = self.visit(ctx.termList())
-        for term in terms:
-            if(term.is_anonymous):
-                self.variables_handler.delete_variable(term)
         
         unit_type = max(TypeCastingHandler.try_get_array_type(terms))
         array_type = QutesDataType.promote_unit_to_array_type(unit_type)

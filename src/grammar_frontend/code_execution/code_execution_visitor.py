@@ -9,7 +9,7 @@ from symbols.symbol import Symbol
 
 from grammar_frontend.code_execution.expressions_visitor import ExpressionsVisitor
 from grammar_frontend.code_execution.statements_visitor import StatementsVisitor
-from grammar_frontend.shared.literals_visitor import LiteralsVisitor
+from grammar_frontend.code_execution.literals_visitor import LiteralsVisitor
 from grammar_frontend.code_execution.operations_visitor import OperationsVisitor
 
 class CodeExecutionVisitor(ExpressionsVisitor, StatementsVisitor, LiteralsVisitor, OperationsVisitor):
