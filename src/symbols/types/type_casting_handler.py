@@ -148,7 +148,7 @@ class TypeCastingHandler():
                 return [self.down_cast_value_to_type(value, QutesDataType.type_of(value), QutesDataType.qustring, value) for value in var_value]
             case _:
                 return QutesDataType.undefined
-            
+
     #TODO: use this method to check if a type can be casted to another type
     def get_compatible_types(types: list[QutesDataType]) -> list[QutesDataType]:
         types = list(set(types))
@@ -161,11 +161,11 @@ class TypeCastingHandler():
             # for each type, check if all elements can be casted to that type
             eligible_types = []
             for type in types:
-                if all((type in TypeCastingHandler.type_promotable_to[other_type]) for other_type in types):
+                if all((other_type in TypeCastingHandler.type_promotable_to[type]) for other_type in types):
                     eligible_types.append(type)
-            if len(eligible_types) == len(types):
-                return max(eligible_types)
+            if len(eligible_types) > 0:
+                return eligible_types
         raise TypeError(f"Types {types} are not compatible.")
-    
+
     def try_get_array_type(array: list['Symbol']) -> list[QutesDataType]:
         return TypeCastingHandler.get_compatible_types([QutesDataType.type_of(symbol) for symbol in array])
