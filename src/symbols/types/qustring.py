@@ -62,6 +62,8 @@ class Qustring(QuantumType['Qustring']):
     def fromValue(var_value : any) -> 'Qustring':
         if(isinstance(var_value, Qubit)):
             return Qustring(var_value.qubit_state)
+        if(isinstance(var_value, Quint)):
+            return Qustring(var_value.qubit_state)
         if(isinstance(var_value, str)):
             return Qustring.init_from_string(var_value)
         if(isinstance(var_value, list)):

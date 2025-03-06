@@ -78,11 +78,11 @@ class TypeCastingHandler():
             case QutesDataType.string_array:
                 return [self.promote_value_to_type(symbol.value, QutesDataType.type_of(symbol.value), QutesDataType.string) for symbol in var_value]
             case QutesDataType.qubit_array:
-                return [self.promote_value_to_type(symbol.value, QutesDataType.type_of(symbol.value), QutesDataType.qubit) for symbol in var_value]
+                return [self.promote_value_to_type(symbol.value, QutesDataType.type_of(symbol.value), QutesDataType.qubit) for symbol in var_value.array]
             case QutesDataType.quint_array:
-                return [self.promote_value_to_type(symbol.value, QutesDataType.type_of(symbol.value), QutesDataType.quint) for symbol in var_value]
+                return [self.promote_value_to_type(symbol.value, QutesDataType.type_of(symbol.value), QutesDataType.quint) for symbol in var_value.array]
             case QutesDataType.qustring_array:
-                return [self.promote_value_to_type(symbol.value, QutesDataType.type_of(symbol.value), QutesDataType.qustring) for symbol in var_value]
+                return [self.promote_value_to_type(symbol.value, QutesDataType.type_of(symbol.value), QutesDataType.qustring) for symbol in var_value.array]
             case _:
                 return QutesDataType.undefined
 
@@ -141,11 +141,11 @@ class TypeCastingHandler():
             case QutesDataType.string_array:
                 return [self.down_cast_value_to_type(value, QutesDataType.type_of(value), QutesDataType.string, value) for value in var_value]
             case QutesDataType.qubit_array:
-                return [self.down_cast_value_to_type(value, QutesDataType.type_of(value), QutesDataType.qubit, value) for value in var_value]
+                return [self.down_cast_value_to_type(value, QutesDataType.type_of(value), QutesDataType.qubit, value) for value in var_value.array]
             case QutesDataType.quint_array:
-                return [self.down_cast_value_to_type(value, QutesDataType.type_of(value), QutesDataType.quint, value) for value in var_value]
+                return [self.down_cast_value_to_type(value, QutesDataType.type_of(value), QutesDataType.quint, value) for value in var_value.array]
             case QutesDataType.qustring_array:
-                return [self.down_cast_value_to_type(value, QutesDataType.type_of(value), QutesDataType.qustring, value) for value in var_value]
+                return [self.down_cast_value_to_type(value, QutesDataType.type_of(value), QutesDataType.qustring, value) for value in var_value.array]
             case _:
                 return QutesDataType.undefined
 
