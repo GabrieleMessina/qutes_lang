@@ -139,6 +139,8 @@ class QuantumCircuitHandler:
         return gate
 
     def create_circuit(self, *regs, do_initialization:bool = True) -> QuantumCircuit:
+        self.__cleanup_orphan_registers()
+        
         if len(regs) == 0:
             circuit = QuantumCircuit(*self._quantum_registers, *self._classic_registers)
         else:
