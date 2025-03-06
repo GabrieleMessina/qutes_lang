@@ -65,7 +65,7 @@ class ScopeStackNode():
         return new_scope
     
     def __to_printable__(self) -> str:
-        return f"stack:{self.root_scope_node}"
+        return f"{self.__class__.__qualname__}:{self.root_scope_node}"
 
     def __str__(self) -> str:
         return self.__to_printable__()

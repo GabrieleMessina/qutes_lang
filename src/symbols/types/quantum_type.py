@@ -27,7 +27,7 @@ class QuantumType(Generic[T]):
         raise NotImplementedError("__to_printable__ method must be implemented in derived class")
 
     def __str__(self) -> str:
-        return self.__to_printable__()
+        return f"{self.__class__.__qualname__}:{self.__to_printable__()}"
 
     def __repr__(self) -> str:
-        return self.__to_printable__()
+        return f"{self.__class__.__qualname__}:{self.__to_printable__()}"

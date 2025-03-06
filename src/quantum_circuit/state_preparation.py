@@ -17,7 +17,7 @@ class StatePreparation(QiskitStatePreparation):
         return self.num_qubits
     
     def __to_printable__(self) -> str:
-        return f"{self.params}"
+        return f"{self.__class__.__qualname__}:{self.params}"
 
     def __str__(self) -> str:
         return self.__to_printable__()
