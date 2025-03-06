@@ -10,27 +10,32 @@ from grammar_frontend.shared.qutes_base_visitor import QutesBaseVisitor
 class StatementsVisitor(QutesBaseVisitor):
     def __init__(self, symbols_tree:ScopeTreeNode, quantum_circuit_handler : QuantumCircuitHandler, scope_handler:ScopeHandlerForSymbolsUpdate, variables_handler:VariablesHandler, verbose:bool = False):
         super().__init__(symbols_tree, quantum_circuit_handler, scope_handler, variables_handler, verbose)
-    
+
     def visitIfStatement(self, ctx:qutes_parser.IfStatementContext):
         self.scope_handler.push_scope()
-        condition = self.visit(ctx.expr())
-        if(condition != None):
-            if(condition.is_quantum()):
+        condition:Symbol = self.visit(ctx.expr())
+        if condition is not None:
+            if condition.is_quantum():
                 self.quantum_circuit_handler.start_quantum_function()
                 gate = self.visit(ctx.statement())
-                gate_params = set([symbol.quantum_register for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.quantum_register != None])
+                gate_params = set(
+                    [symbol.quantum_register for symbol in self.scope_handler.current_symbols_scope.symbols
+                     if symbol.quantum_register is not None
+                     and symbol.quantum_register != condition.quantum_register  # is not possible to alter the condition register withing the quantum gate controlled by it
+                     ]
+                )
                 gate = self.quantum_circuit_handler.end_quantum_function(*gate_params)
-                self.quantum_circuit_handler.push_compose_controlled_circuit_operation(gate, quantum_registers=gate.qregs, quantum_controller_registers=[condition.quantum_register])
+                self.quantum_circuit_handler.push_compose_controlled_circuit_operation(gate, quantum_registers=gate.qregs, quantum_controller_registers=[condition.quantum_register], controller_name=condition.name)
             else:
-                if(self.variables_handler.get_value(condition) == True):
+                if self.variables_handler.get_value(condition) == True:
                     self.visit(ctx.statement())
-                elif(isinstance(ctx.statement(), qutes_parser.BlockStatementContext)):
+                elif isinstance(ctx.statement(), qutes_parser.BlockStatementContext):
                     #do nothing but remove the unused block statement scope
                     self.scope_handler.push_scope()
                     self.scope_handler.pop_scope()
         self.scope_handler.pop_scope()
         return None
-    
+
     def visitIfElseStatement(self, ctx:qutes_parser.IfElseStatementContext):
         self.scope_handler.push_scope()
         condition:Symbol = self.visit(ctx.expr())
@@ -46,17 +51,17 @@ class StatementsVisitor(QutesBaseVisitor):
                 if(self.variables_handler.get_value(condition) == True):
                     self.visit(ctx.statement(0))
                     if(isinstance(ctx.statement(1), qutes_parser.BlockStatementContext)):
-                        #get rid of the ELSE branch scope 
+                        #get rid of the ELSE branch scope
                         self.scope_handler.push_scope()
                         self.scope_handler.pop_scope()
                 else:
                     if(isinstance(ctx.statement(0), qutes_parser.BlockStatementContext)):
-                        #get rid of the IF branch scope 
+                        #get rid of the IF branch scope
                         self.scope_handler.push_scope()
                         self.scope_handler.pop_scope()
                     self.visit(ctx.statement(1))
         self.scope_handler.pop_scope()
-        return None   
+        return None
 
     def visitForeachStatement(self, ctx:qutes_parser.ForeachStatementContext):
         self.scope_handler.push_scope()
@@ -65,7 +70,7 @@ class StatementsVisitor(QutesBaseVisitor):
         index:Symbol|None = None
         if(ctx.variableName(1)):
             index = self.variables_handler.get_variable_symbol(self.visit(ctx.variableName(1)), ctx.start.tokenIndex)
-        
+
         array = self.visit(ctx.expr()).value
         if(isinstance(array, QuantumArrayType)):
             array = array.array
@@ -83,7 +88,7 @@ class StatementsVisitor(QutesBaseVisitor):
 
     def visitWhileStatement(self, ctx:qutes_parser.WhileStatementContext):
         return self.__visit_while_statement(ctx)
-    
+
     def __visit_while_statement(self, ctx:qutes_parser.IfStatementContext):
         self.scope_handler.push_scope()
         condition = self.visit(ctx.expr())
@@ -112,10 +117,10 @@ class StatementsVisitor(QutesBaseVisitor):
             if(self.log_code_structure): print(log_string, end=None)
             if(isinstance(new_value, Symbol) and new_value.is_return_value_of_function):
                 return new_value
-        
+
         self.scope_handler.pop_scope()
         return None
-    
+
     def visitFunctionStatement(self, ctx:qutes_parser.FunctionStatementContext):
         self.scope_handler.push_scope()
         function_name = self.visit(ctx.functionName())
@@ -128,10 +133,10 @@ class StatementsVisitor(QutesBaseVisitor):
         self.scope_handler.skip_function_body_scopes()
         self.scope_handler.pop_scope()
         return function_symbol
-    
+
     def visitDeclarationStatement(self, ctx:qutes_parser.DeclarationStatementContext):
         return self.visit(ctx.variableDeclaration())
-        
+
     def visitVariableDeclaration(self, ctx:qutes_parser.VariableDeclarationContext):
         var_type =  self.visit(ctx.variableType()) # we already know the variable type thanks to the discovery listener.
         var_name = self.visit(ctx.variableName())
@@ -150,12 +155,12 @@ class StatementsVisitor(QutesBaseVisitor):
         if(isinstance(var_name, Symbol)):
             var_symbol = var_name
             var_name = var_symbol.name
-        else: 
+        else:
             var_symbol = self.variables_handler.get_variable_symbol(var_name, ctx.start.tokenIndex)
 
         if(var_value == None):
             var_value =  QutesDataType.get_default_value(var_symbol.symbol_declaration_static_type)
-        
+
         if(isinstance(ctx, qutes_parser.AssignmentStatementContext)):
             if(self.log_code_structure): print(f"{str(var_name)} = {str(var_value)}", end=None)
             var_symbol = self.variables_handler.update_variable_state(var_name, var_value)
@@ -164,7 +169,7 @@ class StatementsVisitor(QutesBaseVisitor):
                 var_symbol = self.variables_handler.update_variable_state(var_name, var_value)
                 if(self.log_code_structure): print(f"{var_symbol.symbol_declaration_static_type.name} {str(var_name)} = {str(var_value)}", end=None)
             else:
-                if(self.log_code_structure): print(f"{var_symbol.symbol_declaration_static_type.name} {str(var_name)}", end=None)        
+                if(self.log_code_structure): print(f"{var_symbol.symbol_declaration_static_type.name} {str(var_name)}", end=None)
         return var_symbol
 
     def visitReturnStatement(self, ctx:qutes_parser.ReturnStatementContext):
@@ -173,11 +178,11 @@ class StatementsVisitor(QutesBaseVisitor):
             result = self.visit(ctx.expr())
         if(isinstance(result, Symbol)):
             result.is_return_value_of_function = True
-        return result    
-    
+        return result
+
     def visitExpressionStatement(self, ctx:qutes_parser.ExpressionStatementContext):
         return self.visit(ctx.expr())
-    
+
     def visitFactStatement(self, ctx:qutes_parser.FactStatementContext):
         if(self.log_code_structure): print(f"{ctx.op.text}", end=None)
         if(ctx.MEASURE()):

@@ -128,12 +128,12 @@ class QuantumCircuitHandler:
         self._operation_stacks.append([])
         self._current_operation_stack = self._operation_stacks[-1]
 
-    quantum_function_count = iter(range(1000))
-    def end_quantum_function(self, *regs, gate_name:str|None = None, create_gate:bool = False) -> Gate:
+    def end_quantum_function(self, *regs, gate_name:str|None = None, create_gate:bool = False) -> QuantumCircuit | Gate:
         gate = self.create_circuit(*regs, do_initialization=False)
-        if(create_gate):
+        if create_gate:
             gate = gate.to_gate()
-        gate.name = gate_name if gate_name != None else f"gate_{next(QuantumCircuitHandler.quantum_function_count)}"
+        if gate_name is not None:
+            gate.name = gate_name
         self._operation_stacks.pop()
         self._current_operation_stack = self._operation_stacks[-1]
         return gate
@@ -334,26 +334,21 @@ class QuantumCircuitHandler:
             quantum_registers = self._quantum_registers
         self._current_operation_stack.append(lambda circuit: circuit.compose(circuit_to_compose, unwrap(quantum_registers), unwrap(classical_registers), inplace=True))
 
-    def push_compose_controlled_circuit_operation(self, circuit_to_compose : QuantumCircuit, quantum_registers : list[QuantumRegister] = None, classical_registers=None, quantum_controller_registers : list[QuantumRegister] = None) -> None:
+    def push_compose_controlled_circuit_operation(self, circuit_to_compose : QuantumCircuit, quantum_registers : list[QuantumRegister] = None, classical_registers=None, quantum_controller_registers : list[QuantumRegister] = None, controller_name: str|None = None) -> None:
         if classical_registers is None:
             classical_registers = []
         if quantum_registers is None:
             quantum_registers = self._quantum_registers
 
-        # Remove the controller registers from the input registers
-        quantum_registers = [reg for reg in quantum_registers if reg not in quantum_controller_registers]
-        circuit_to_compose.qregs = [reg for reg in circuit_to_compose.qregs if reg not in quantum_controller_registers]
-        for qreg in quantum_controller_registers:
-            for qubit in qreg:
-                if qubit in circuit_to_compose.qubits:
-                    circuit_to_compose.qubits.remove(qubit)
-
+        # TODO: add a global static class where to put all debug flags and use that class.
         self.print_circuit(circuit_to_compose, save_image=True, print_circuit_to_console=False, image_file_prefix=circuit_to_compose.name)
 
         # Make the gate controlled
-        circuit_to_compose = circuit_to_compose.control(len(unwrap(quantum_controller_registers)), label="Controlled")
+        num_control_qubit = len(unwrap(quantum_controller_registers))
+        control_label = f"if {controller_name}" if controller_name is not None else None
+        circuit_to_compose = circuit_to_compose.control(num_control_qubit, label=control_label)
         # Append compose operation
-        self._current_operation_stack.append(lambda circuit: circuit.compose(circuit_to_compose, unwrap(quantum_controller_registers) + unwrap(quantum_registers), unwrap(classical_registers), inplace=True))
+        self._current_operation_stack.append(lambda circuit:circuit.compose(circuit_to_compose, unwrap(quantum_controller_registers) + unwrap(quantum_registers), unwrap(classical_registers), inplace=True))
 
     def push_measure_operation(self, quantum_registers : list[QuantumRegister] = None, classical_registers : list[ClassicalRegister] = None) -> list[ClassicalRegister]:
         if quantum_registers == None:
