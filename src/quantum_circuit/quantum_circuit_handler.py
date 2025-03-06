@@ -13,7 +13,7 @@ from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
 from qiskit_ibm_runtime import SamplerV2 as Sampler
 from quantum_circuit.state_preparation import StatePreparation
 from qiskit.circuit.quantumcircuit import CircuitInstruction
-from qiskit.circuit.library import GroverOperator, MCMT, ZGate, QFT, XGate, YGate, HGate, CXGate, MCXGate, PhaseGate
+from qiskit.circuit.library import grover_operator as GroverOperator, MCMTGate as MCMT, ZGate, QFT, XGate, YGate, HGate, CXGate, MCXGate, PhaseGate
 from qiskit.circuit.gate import Gate
 
 def unwrap(l:list[QuantumRegister|ClassicalRegister]) -> list:
