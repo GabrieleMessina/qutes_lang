@@ -17,15 +17,18 @@ class StatementsVisitor(QutesBaseVisitor):
         if condition is not None:
             if condition.is_quantum():
                 self.quantum_circuit_handler.start_quantum_function()
-                gate = self.visit(ctx.statement())
-                gate_params = set(
-                    [symbol.quantum_register for symbol in self.scope_handler.current_symbols_scope.symbols
-                     if symbol.quantum_register is not None
-                     and symbol.quantum_register != condition.quantum_register  # is not possible to alter the condition register withing the quantum gate controlled by it
-                     ]
-                )
-                gate = self.quantum_circuit_handler.end_quantum_function(*gate_params)
-                self.quantum_circuit_handler.push_compose_controlled_circuit_operation(gate, quantum_registers=gate.qregs, quantum_controller_registers=[condition.quantum_register], controller_name=condition.name)
+                function_circuit = self.visit(ctx.statement())
+                # TODO: if the if body is not all quantum operations, we need to measure and do a classic if statement.
+                symbols_in_scope = [symbol.quantum_register for symbol in self.scope_handler.current_symbols_scope.symbols]
+                registers_in_scope = [quantum_register for quantum_register in symbols_in_scope if quantum_register is not None and quantum_register is not condition.quantum_register]
+                qubits_in_scope = set()
+                for reg in registers_in_scope:
+                    for qubit in reg:
+                        if qubit not in condition.quantum_register._bits:
+                            qubits_in_scope.add(qubit)
+                qubits_in_scope = list(qubits_in_scope)
+                function_circuit = self.quantum_circuit_handler.end_quantum_function(qubits_in_scope[:])
+                self.quantum_circuit_handler.push_compose_controlled_circuit_operation(function_circuit, quantum_registers=function_circuit.qubits, quantum_controller_registers=condition.quantum_register._bits, controller_name=condition.name)
             else:
                 if self.variables_handler.get_value(condition) == True:
                     self.visit(ctx.statement())
