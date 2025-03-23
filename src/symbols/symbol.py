@@ -9,7 +9,7 @@ class SymbolClass(Enum):
     FunctionSymbol = auto()
     VariableSymbol = auto()
 
-class Symbol():    
+class Symbol:
     verbose_print = False
     def __init__(self, 
                  name:str, 
@@ -19,14 +19,14 @@ class Symbol():
                  value:any, 
                  parent_scope:ScopeTreeNode, 
                  ast_token_index:int, 
-                 quantum_register : QuantumRegister | None = None, 
-                 params = []):
+                 quantum_register : QuantumRegister | None = None,
+                 params=None):
         self.name:str = name
         self.symbol_class:SymbolClass = symbol_class
         self.symbol_declaration_static_type:QutesDataType = symbol_declaration_static_type
         self.casted_static_type:QutesDataType = casted_static_type #Promoted or Down Casted
 
-        # In case of classical variables it contains the classical variable instance. 
+        # In case of classical variables it contains the ClassicType instance.
         # In case of quantum variables it contains the QuantumType instance. 
         # In case of arrays it contains an ArrayType instance which contains the array of symbols.
         # In case of functions it contains the ANTLR Function Body Context.
@@ -37,6 +37,9 @@ class Symbol():
         self.ast_token_index:int = ast_token_index
         self.is_return_value_of_function:bool = False
         self.is_anonymous:bool = False
+
+        if params is None:
+            params = []
         self.function_input_params_definition:list[Symbol] = params
         self.quantum_register:QuantumRegister | None = quantum_register #quantum_register is not used for classical variables,in case of array is None, in case of functions it contains the quantum register of the return value
         self.quantum_function:QuantumCircuit | None = None #quantum_function is not used for classical variables
