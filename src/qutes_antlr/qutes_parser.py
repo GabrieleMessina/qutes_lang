@@ -1,4 +1,4 @@
-# Generated from /workspaces/qutes_lang/specification/grammar/qutes_parser.g4 by ANTLR 4.13.1
+# Generated from d:/Users/gabry/Universita/quantum/qutes_lang/specification/grammar/qutes_parser.g4 by ANTLR 4.13.1
 # encoding: utf-8
 from antlr4 import *
 from io import StringIO
