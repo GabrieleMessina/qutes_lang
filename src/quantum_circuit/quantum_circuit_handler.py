@@ -6,7 +6,6 @@ from quantum_circuit.quantum_circuit import QuantumCircuit
 from quantum_circuit.quantum_register import QuantumRegister
 from qiskit.circuit.quantumregister import Qubit as QiskitQubit
 from symbols.types import Qubit, Quint, Qustring, QutesDataType, QuantumArrayType
-from symbols.symbol import Symbol
 from qiskit import QiskitError
 from qiskit_aer import AerSimulator
 from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
@@ -78,7 +77,7 @@ class QuantumCircuitHandler:
 
         return quantum_register
 
-    def assign_quantum_register_to_variable(self,  variable_name : str, new_quantum_register : QuantumRegister) -> None:
+    def assign_quantum_register_to_variable(self,  variable_name : str, new_quantum_register : QuantumRegister) -> QuantumRegister:
         #TODO: what about name collisions? maybe we should use symbol instead of name.
         if variable_name not in self._varname_to_register:
             raise SystemError("Error trying to update an undeclared quantum register")
@@ -101,6 +100,8 @@ class QuantumCircuitHandler:
 
         if not old_register_has_other_ref:
             self.remove_quantum_register(old_register)
+
+        return new_quantum_register
 
     def remove_quantum_register(self, quantum_register : QuantumRegister) -> None:
         if self._registers_init_state.get(quantum_register) is not None:
@@ -156,6 +157,7 @@ class QuantumCircuitHandler:
     def print_circuit(self, circuit:QuantumCircuit, save_image:bool = False, print_circuit_to_console = True, image_file_prefix = ""):
         if save_image:
             import os
+            # from PIL import Image
             from datetime import datetime
             directory = "circuit_images"
             timestamp = datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
@@ -164,7 +166,10 @@ class QuantumCircuitHandler:
             if not os.path.exists(directory):
                 os.mkdir(directory)
             circuit.draw(output='mpl', filename=file_path, style='iqp', fold=1000)
+            # image = Image.open(file_path)
+            # image.show()
             print(f"Circuit image printed at: {file_path}")
+
         if(print_circuit_to_console):
             print(circuit.draw())
 
@@ -352,15 +357,16 @@ class QuantumCircuitHandler:
 
         if classical_registers == None:
             classical_registers = []
-            for quantum_register in quantum_registers:
-                classic_register_name = "measured_"+quantum_register.name
-                search = [reg for reg in self._classic_registers if reg.name == classic_register_name]
-                already_exists = any(search)
-                if not already_exists:
-                    classic_register = self.declare_classical_register(classic_register_name, len(quantum_register))
-                else:
-                    classic_register = search[0]
-                classical_registers.append(classic_register)
+
+        for quantum_register in quantum_registers:
+            classic_register_name = "measured_"+quantum_register.name
+            search = [reg for reg in self._classic_registers if reg.name == classic_register_name]
+            already_exists = any(search)
+            if not already_exists:
+                classic_register = self.declare_classical_register(classic_register_name, len(quantum_register))
+            else:
+                classic_register = search[0]
+            classical_registers.append(classic_register)
 
         self._current_operations_queue.append(lambda circuit : cast(QuantumCircuit, circuit).measure(unwrap(quantum_registers), unwrap(classical_registers)))
         return classical_registers
