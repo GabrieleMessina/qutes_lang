@@ -1,14 +1,15 @@
 from symbols.types.type_casting_handler import TypeCastingHandler
-from symbols.types.qutes_data_type import QutesDataType, QuantumArrayType
+from symbols.types.qutes_data_type import QutesDataType
 from symbols.scope_handler import ScopeHandler
 from symbols.symbol import Symbol, SymbolClass
+from symbols.types.quantum_type import QutesType
 from quantum_circuit.quantum_circuit_handler import QuantumCircuitHandler
 
-class VariablesHandler():
+class VariablesHandler:
     def __init__(self, scope_handler : ScopeHandler, quantum_circuit_handler : QuantumCircuitHandler):
         self.scope_handler = scope_handler
         self.quantum_circuit_handler = quantum_circuit_handler
-        self.type_casting_handler = TypeCastingHandler(quantum_circuit_handler)
+        self.type_casting_handler = TypeCastingHandler(quantum_circuit_handler, self)
 
     def update_variable_state(self, variable_name : str, new_state) -> Symbol:
         eligible_symbols_to_update = [symbol for symbol in self.scope_handler.current_symbols_scope.symbols if symbol.name == variable_name]
@@ -68,9 +69,7 @@ class VariablesHandler():
             else:
                 value = self.get_value(value)
 
-            new_symbol = self.create_symbol(declaration_type, value, ast_token_index)
-            new_symbol.name = variable_name
-            new_symbol.is_anonymous = declare_as_anonymous
+            new_symbol = self._create_symbol(declaration_type, value, ast_token_index, variable_name, declare_as_anonymous)
             self.scope_handler.current_symbols_scope.symbols.append(new_symbol)
             #Handle quantum circuit update
             if(QutesDataType.is_quantum_type(declaration_type)):
@@ -89,30 +88,35 @@ class VariablesHandler():
         if symbol.quantum_register is not None:
             self.quantum_circuit_handler.remove_quantum_register(symbol.quantum_register)
 
-    def create_symbol(self, qutes_type : QutesDataType, value, ast_token_index:int) -> Symbol:
-        if(value is None):
+    def _create_symbol(self, qutes_type : QutesDataType, input_value, ast_token_index:int, name:str, is_anonymous:bool) -> Symbol:
+        value = input_value
+        if value is None:
             value = QutesDataType.get_default_value(qutes_type)
 
-        variable_name = None
+        if not isinstance(value, QutesType):
+            value = QutesDataType.python_value_to_qutes_value(value)
+
+        variable_name = name
         value_qutes_type = QutesDataType.type_of(value)
         definition_type = qutes_type
         promoted_type = value_qutes_type.promote_type(definition_type)
         down_cast_type = value_qutes_type.down_cast_type(definition_type)
         final_type = definition_type
 
-        # check if the type of the varible match the type of the value we are trying to assign.
-        if(value_qutes_type != definition_type):
+        # check if the type of the variable match the type of the value we are trying to assign.
+        if value_qutes_type != definition_type:
             # promote the current data type if needed.
-            if(promoted_type != QutesDataType.undefined):
+            if promoted_type != QutesDataType.undefined:
                 value = self.type_casting_handler.promote_value_to_type(value, value_qutes_type, promoted_type)
                 final_type = promoted_type
-            elif(down_cast_type != QutesDataType.undefined):
+            elif down_cast_type != QutesDataType.undefined:
                 value = self.type_casting_handler.down_cast_value_to_type(value, value_qutes_type, down_cast_type, None)
                 final_type = down_cast_type
             else:
                 raise TypeError(f"Cannot convert type '{definition_type}' to '{value_qutes_type}' for '{variable_name}'.")
 
         new_symbol = Symbol(variable_name, SymbolClass.VariableSymbol, qutes_type, final_type, value, self.scope_handler.current_symbols_scope, ast_token_index)
+        new_symbol.is_anonymous = is_anonymous
         return new_symbol
 
     def declare_function(self, anonymous_symbol : Symbol, function_name : str, input_params_definition:list[Symbol] = list(), value = None) -> Symbol:
