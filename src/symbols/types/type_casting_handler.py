@@ -1,3 +1,5 @@
+from __future__ import annotations
+from symbols.types import ClassicArrayType
 from symbols.types.qubit import Qubit
 from symbols.types.quint import Quint
 from symbols.types.qustring import Qustring
@@ -150,22 +152,24 @@ class TypeCastingHandler():
                 return QutesDataType.undefined
 
     #TODO: use this method to check if a type can be casted to another type
+    @staticmethod
     def get_compatible_types(types: list[QutesDataType]) -> list[QutesDataType]:
-        types = list(set(types))
-        if len(types) == 0:
+        distinct_types = list(set(types))
+        if len(distinct_types) == 0:
             return [QutesDataType.bool]
-        if len(types) == 1:
-            return types
+        if len(distinct_types) == 1:
+            return distinct_types
         # if not all types are the same, check if they can be promoted to a common type
         else:
             # for each type, check if all elements can be casted to that type
             eligible_types = []
-            for type in types:
-                if all((other_type in TypeCastingHandler.type_promotable_to[type]) for other_type in types):
+            for type in distinct_types:
+                if all((other_type in TypeCastingHandler.type_promotable_to[type]) for other_type in distinct_types):
                     eligible_types.append(type)
             if len(eligible_types) > 0:
                 return eligible_types
         raise TypeError(f"Types {types} are not compatible.")
 
+    @staticmethod
     def try_get_array_type(array: list['Symbol']) -> list[QutesDataType]:
         return TypeCastingHandler.get_compatible_types([QutesDataType.type_of(symbol) for symbol in array])
