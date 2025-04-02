@@ -62,10 +62,12 @@ class Qubit(QuantumType['Qubit']):
 
     @staticmethod
     def fromValue(var_value : any) -> 'Qubit':
-        if(isinstance(var_value, str)):
+        if isinstance(var_value, str):
             return Qubit.from_string(var_value)
-        if(isinstance(var_value, bool)):
-            if(var_value):
+        if isinstance(var_value, bool) or isinstance(var_value, int):
+            if var_value not in [0, 1]:
+                raise TypeError(f"Cannot convert {var_value} to qubit.")
+            if var_value:
                 return Qubit(complex(0), complex(1))
             else:
                 return Qubit(complex(1), complex(0))

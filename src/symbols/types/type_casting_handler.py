@@ -30,11 +30,11 @@ class TypeCastingHandler():
     }
     type_down_castable_to : dict[Enum, list[QutesDataType]] = {
         #..to this types <- this types can be converted(loosing information) to..
-        QutesDataType.bool: [QutesDataType.qubit, QutesDataType.bool],
+        QutesDataType.bool: [QutesDataType.qubit, QutesDataType.int, QutesDataType.bool],
         QutesDataType.int: [QutesDataType.quint, QutesDataType.qubit, QutesDataType.int],
         QutesDataType.float: [QutesDataType.quint, QutesDataType.qubit, QutesDataType.float, QutesDataType.int],
         QutesDataType.string: [QutesDataType.qustring, QutesDataType.string],
-        QutesDataType.qubit: [QutesDataType.qubit],
+        QutesDataType.qubit: [QutesDataType.qubit, QutesDataType.int],
         QutesDataType.quint: [QutesDataType.quint],
         QutesDataType.qustring: [QutesDataType.qustring],
         QutesDataType.void: [],
@@ -115,7 +115,10 @@ class TypeCastingHandler():
 
         match to_type:
             case QutesDataType.bool:
-                return bool(int(from_type_value))
+                int_value = int(from_type_value)
+                if int_value not in [0,1]:
+                    raise TypeError(f"Cannot convert {from_type_value} to bool.")
+                return bool(int_value)
             case QutesDataType.int:
                 if isinstance(from_type_value, list):
                     return int(''.join([str(int(value)) for value in from_type_value]), 2)
