@@ -1,8 +1,7 @@
 from grammar_frontend.shared.qutes_parser import QutesParser
-from symbols.types import Qubit, Quint
-from symbols.types import QuantumType
+from symbols.types import Qubit, Quint, QuantumType
 from quantum_circuit.state_preparation import StatePreparation, Statevector
-import utils, math
+import math
 
 class Qustring(QuantumType['Qustring']):
     # note: chr and ord, parse int and char in ASCII for char of size 7 bits
@@ -18,26 +17,32 @@ class Qustring(QuantumType['Qustring']):
         self.size:int = len(qubits)
         self.number_of_chars:int = int(self.size / Qustring.get_default_size_in_qubit())
 
+    @staticmethod
     def get_default_value():
         return [complex(1),complex(0)] * Qustring.get_default_size_in_qubit()
-    
+
+    @staticmethod
     def get_default_superposition_value():
         return [complex(0.5),complex(0.5)] * Qustring.get_default_size_in_qubit()
-    
+
+    @staticmethod
     def get_default_size_in_qubit():
         return math.ceil(math.log2(len(Qustring.__allowed_chars)))
 
+    @staticmethod
     def get_char_from_int(int_value:int):
         if(int_value > len(Qustring.__allowed_chars)):
             return Qustring.__allowed_chars[-1]
         return Qustring.__allowed_chars[int_value]
 
+    @staticmethod
     def get_int_from_char(char_value:str):
         try:
             return Qustring.__allowed_chars.index(char_value)
         except:
             return len(Qustring.__allowed_chars)-1    
 
+    @staticmethod
     def init_from_string(literal : str) -> 'Qustring':
         init_state = None
         qubit_literal_postfix = QutesParser.literal_to_string(QutesParser.QUBIT_LITERAL_POSTFIX)
@@ -59,8 +64,11 @@ class Qustring(QuantumType['Qustring']):
         init_state = StatePreparation(init_state)
         return Qustring(init_state)
 
+    @staticmethod
     def fromValue(var_value : any) -> 'Qustring':
         if(isinstance(var_value, Qubit)):
+            return Qustring(var_value.qubit_state)
+        if(isinstance(var_value, Quint)):
             return Qustring(var_value.qubit_state)
         if(isinstance(var_value, str)):
             return Qustring.init_from_string(var_value)
@@ -74,3 +82,7 @@ class Qustring(QuantumType['Qustring']):
     
     def __to_printable__(self) -> str:
         return f"{self.qubit_state}"
+
+
+class Quchar(Qustring, QuantumType['Quchar']):
+    pass

@@ -1,5 +1,5 @@
 antlr4-python3-runtime==4.13.0
-qiskit>=1.0
+qiskit==1.4
 qiskit_ibm_runtime
 qiskit-aer
 anytree

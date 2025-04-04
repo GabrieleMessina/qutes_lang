@@ -10,15 +10,19 @@ class Quint(QuantumType['Quint']):
         self.qubit_state:StatePreparation = qubits
         self.size:int = len(qubits)
 
+    @staticmethod
     def get_default_value():
         return "0"
-    
+
+    @staticmethod
     def get_default_superposition_value():
         return "+"
-    
+
+    @staticmethod
     def get_default_size_in_qubit():
         return 1
 
+    @staticmethod
     def init_from_string(literal : str) -> 'Quint':
         init_state = StatePreparation("0")
         qubit_literal_postfix = QutesParser.literal_to_string(QutesParser.QUBIT_LITERAL_POSTFIX)
@@ -57,17 +61,20 @@ class Quint(QuantumType['Quint']):
         else:
             return Quint.init_from_integer(int(literal))
         return Quint(init_state)
-    
+
+    @staticmethod
     def init_from_integer(literal : int | bool, initial_size:int = -1) -> 'Quint':
         binary_rapresentation = utils.binary(literal)
         if(initial_size != -1 and len(binary_rapresentation) < initial_size):
             binary_rapresentation += "0"*(initial_size - len(binary_rapresentation))
         return Quint(StatePreparation(binary_rapresentation))
 
+    @staticmethod
     def init_from_size(number_of_bits : int, init_in_superposition:bool = False) -> 'Quint':
         template = Quint.get_default_superposition_value() if init_in_superposition else Quint.get_default_value()
         return Quint(StatePreparation(template*number_of_bits))
-    
+
+    @staticmethod
     def fromValue(var_value : any) -> 'Quint':
         try:
             if(isinstance(var_value, Qubit)):

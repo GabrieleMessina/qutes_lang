@@ -34,7 +34,7 @@ class ExpressionsVisitor(QutesBaseVisitor):
         if(isinstance(array_value, QuantumArrayType)):
             array_value = array_value.array
 
-        index_value = self.variables_handler.get_value(index_symbol)
+        index_value = int(self.variables_handler.get_value(index_symbol))
         
         value = array_value[index_value] 
         if not isinstance(value, Symbol):
@@ -47,7 +47,7 @@ class ExpressionsVisitor(QutesBaseVisitor):
         if(ctx.termList()):
             function_params = self.visit(ctx.termList())
         result:Symbol = self.__visitFunctionCall(function_name, function_params, ctx.start.tokenIndex)
-        #TODO: staff commented for make return value work for quantum variable, do some tests to assure the behaviour is correct
+        #TODO: stuff commented for make return value work for quantum variable, do some tests to assure the behaviour is correct
         # function_symbol = self.variables_handler.get_function_symbol(function_name, ctx.start.tokenIndex, function_params)
         # self.quantum_circuit_handler.push_compose_circuit_operation(function_symbol.quantum_function)
         return result
@@ -66,7 +66,7 @@ class ExpressionsVisitor(QutesBaseVisitor):
             symbol_params_to_push.append(symbol_to_push)
         [symbol for symbol in function_symbol.inner_scope.root_scope_node.symbols if symbol.symbol_class == SymbolClass.FunctionSymbol][:len(function_params)] = symbol_params_to_push
 
-        #TODO: staff commented for make return value work for quantum variable, do some tests to assure the behaviour is correct
+        #TODO: stuff commented for make return value work for quantum variable, do some tests to assure the behaviour is correct
         # self.quantum_circuit_handler.start_quantum_function()
         result = self.visit(function_symbol.value) #Execute the function statement
         # gate = self.quantum_circuit_handler.end_quantum_function(function_symbol.name)

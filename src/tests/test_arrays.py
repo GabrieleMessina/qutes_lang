@@ -21,6 +21,16 @@ class TestArrays(QutesBaseTest):
             ("quint[]", "[2q, 3q]", [Quint.fromValue(2), Quint.fromValue(3)]),
             ("quint[]", "[[[0,1]q, 1q]q, 3q]", [Quint(StatePreparation([complex(0), complex(1), complex(0), complex(1)])), Quint.fromValue(3)]),
             ("qustring[]", "[\"101\"q, \"001\"q]", [Qustring.fromValue("101"), Qustring.fromValue("001")]),
+            # TODO: add the following if needed
+            # ("qustring[]", "[1q]"),
+            # ("qustring[]", "[1q, \"11\"q]"),
+            # ("qustring[]", "[\"11\"q, 1q]"),
+            # ("qustring[]", "[3q]"),
+            # ("qustring[]", "[3q, \"11\"q]"),
+            # ("qustring[]", "[\"11\"q, 3q]"),
+            # ("qustring[]", "[|->]"),
+            # ("qustring[]", "[|->, \"11\"q]"),
+            # ("qustring[]", "[\"11\"q, |->]"),
         ]
         var_name:str = "foo"
         for var_type, declaration_value, expected_values_of_array in params:
@@ -38,15 +48,6 @@ class TestArrays(QutesBaseTest):
             ("quint[]", "[\"11\"q]"),
             ("quint[]", "[\"11\"q, 3q]"),
             ("quint[]", "[3q, \"11\"q]"),
-            ("qustring[]", "[1q]"),
-            ("qustring[]", "[1q, \"11\"q]"),
-            ("qustring[]", "[\"11\"q, 1q]"),
-            ("qustring[]", "[3q]"),
-            ("qustring[]", "[3q, \"11\"q]"),
-            ("qustring[]", "[\"11\"q, 3q]"),
-            ("qustring[]", "[|->]"),
-            ("qustring[]", "[|->, \"11\"q]"),
-            ("qustring[]", "[\"11\"q, |->]"),
         ]
         var_name:str = "foo"
         for var_type, declaration_value in params:

@@ -75,7 +75,8 @@ class QutesGates():
         return result_symbol
     
     #Rotation gate (not controlled), k=2^p 
-    def left_rot_power_2(n, k, block_size=1):
+    @staticmethod
+    def left_rot_power_2(n:int, k:int, block_size:int=1):
         qc = QuantumCircuit(n, name=f'rot_power_2_of_{k}')
         if(k > 0):
             stop = (int(math.log2(n)) - int(math.log2(k*block_size)) + 2)
@@ -91,7 +92,8 @@ class QutesGates():
         return rot_gate  
     
     #Rotation gate (not controlled), k=any
-    def right_rot_generic(n, k, block_size=1):
+    @staticmethod
+    def right_rot_generic(n:int, k:int, block_size:int=1):
         qc = QuantumCircuit(n, name=f'rot_generic_of_{k}')
         if(k > 0):
             for w in range(k):
@@ -102,14 +104,16 @@ class QutesGates():
         rot_gate = qc.to_gate(label=f'rot_generic_of_{k}')
         return rot_gate  
 
-    #Controlled Rotation gate 
-    def crot(n, k, block_size=1):
+    #Controlled Rotation gate
+    @staticmethod
+    def crot(n:int, k:int, block_size:int=1):
         rot_gate = QutesGates.left_rot(n, k, block_size)
         c_rot_gate = rot_gate.control(1)
         return c_rot_gate
     
-    #Right Rotation gate 
-    def right_rot(n, k, block_size=1):
+    #Right Rotation gate
+    @staticmethod
+    def right_rot(n:int, k:int, block_size:int=1):
         rot_gate = QutesGates.identity(n)
         if(utils.is_power_of_two(n)):
             if(utils.is_power_of_two(k)):
@@ -121,8 +125,9 @@ class QutesGates():
             rot_gate = QutesGates.right_rot_generic(n, k, block_size)
         return rot_gate
     
-    #Left Rotation gate 
-    def left_rot(n, k, block_size=1):
+    #Left Rotation gate
+    @staticmethod
+    def left_rot(n:int, k:int, block_size:int=1):
         rot_gate = QutesGates.identity(n)
         if(utils.is_power_of_two(n)):
             if(utils.is_power_of_two(k)):
@@ -133,7 +138,8 @@ class QutesGates():
         else:
             rot_gate = QutesGates.right_rot_generic(n, k, block_size).inverse()
         return rot_gate
-    
-    def identity(n):
+
+    @staticmethod
+    def identity(n:int):
         return QuantumCircuit(n, name=f'identity_{n}').to_gate(label=f'identity_{n}')
     

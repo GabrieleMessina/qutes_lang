@@ -1,3 +1,5 @@
+from __future__ import annotations
+from symbols.types import ClassicArrayType
 from symbols.types.qubit import Qubit
 from symbols.types.quint import Quint
 from symbols.types.qustring import Qustring
@@ -28,11 +30,11 @@ class TypeCastingHandler():
     }
     type_down_castable_to : dict[Enum, list[QutesDataType]] = {
         #..to this types <- this types can be converted(loosing information) to..
-        QutesDataType.bool: [QutesDataType.qubit, QutesDataType.bool],
+        QutesDataType.bool: [QutesDataType.qubit, QutesDataType.int, QutesDataType.bool],
         QutesDataType.int: [QutesDataType.quint, QutesDataType.qubit, QutesDataType.int],
         QutesDataType.float: [QutesDataType.quint, QutesDataType.qubit, QutesDataType.float, QutesDataType.int],
         QutesDataType.string: [QutesDataType.qustring, QutesDataType.string],
-        QutesDataType.qubit: [QutesDataType.qubit],
+        QutesDataType.qubit: [QutesDataType.qubit, QutesDataType.int],
         QutesDataType.quint: [QutesDataType.quint],
         QutesDataType.qustring: [QutesDataType.qustring],
         QutesDataType.void: [],
@@ -70,19 +72,19 @@ class TypeCastingHandler():
             case QutesDataType.qustring:
                 return Qustring.fromValue(var_value)
             case QutesDataType.bool_array:
-                return [self.promote_value_to_type(symbol.value, QutesDataType.type_of(symbol.value), QutesDataType.bool) for symbol in var_value]
+                return [self.promote_value_to_type(value, QutesDataType.type_of(value), QutesDataType.bool) for value in var_value]
             case QutesDataType.int_array:
-                return [self.promote_value_to_type(symbol.value, QutesDataType.type_of(symbol.value), QutesDataType.int) for symbol in var_value]
+                return [self.promote_value_to_type(value, QutesDataType.type_of(value), QutesDataType.int) for value in var_value]
             case QutesDataType.float_array:
-                return [self.promote_value_to_type(symbol.value, QutesDataType.type_of(symbol.value), QutesDataType.float) for symbol in var_value]
+                return [self.promote_value_to_type(value, QutesDataType.type_of(value), QutesDataType.float) for value in var_value]
             case QutesDataType.string_array:
-                return [self.promote_value_to_type(symbol.value, QutesDataType.type_of(symbol.value), QutesDataType.string) for symbol in var_value]
+                return [self.promote_value_to_type(value, QutesDataType.type_of(value), QutesDataType.string) for value in var_value]
             case QutesDataType.qubit_array:
-                return [self.promote_value_to_type(symbol.value, QutesDataType.type_of(symbol.value), QutesDataType.qubit) for symbol in var_value]
+                return [self.promote_value_to_type(symbol.value, QutesDataType.type_of(symbol.value), QutesDataType.qubit) for symbol in var_value.array]
             case QutesDataType.quint_array:
-                return [self.promote_value_to_type(symbol.value, QutesDataType.type_of(symbol.value), QutesDataType.quint) for symbol in var_value]
+                return [self.promote_value_to_type(symbol.value, QutesDataType.type_of(symbol.value), QutesDataType.quint) for symbol in var_value.array]
             case QutesDataType.qustring_array:
-                return [self.promote_value_to_type(symbol.value, QutesDataType.type_of(symbol.value), QutesDataType.qustring) for symbol in var_value]
+                return [self.promote_value_to_type(symbol.value, QutesDataType.type_of(symbol.value), QutesDataType.qustring) for symbol in var_value.array]
             case _:
                 return QutesDataType.undefined
 
@@ -113,7 +115,10 @@ class TypeCastingHandler():
 
         match to_type:
             case QutesDataType.bool:
-                return bool(int(from_type_value))
+                int_value = int(from_type_value)
+                if int_value not in [0,1]:
+                    raise TypeError(f"Cannot convert {from_type_value} to bool.")
+                return bool(int_value)
             case QutesDataType.int:
                 if isinstance(from_type_value, list):
                     return int(''.join([str(int(value)) for value in from_type_value]), 2)
@@ -133,39 +138,41 @@ class TypeCastingHandler():
             case QutesDataType.qustring:
                 return Qustring.fromValue(var_value)
             case QutesDataType.bool_array:
-                return [self.down_cast_value_to_type(value, QutesDataType.type_of(value), QutesDataType.bool, value) for value in var_value]
+                return [self.down_cast_value_to_type(symbol.value, QutesDataType.type_of(symbol.value), QutesDataType.bool, symbol) for symbol in var_value.array]
             case QutesDataType.int_array:
-                return [self.down_cast_value_to_type(value, QutesDataType.type_of(value), QutesDataType.int, value) for value in var_value]
+                return [self.down_cast_value_to_type(symbol.value, QutesDataType.type_of(symbol.value), QutesDataType.int, symbol) for symbol in var_value.array]
             case QutesDataType.float_array:
-                return [self.down_cast_value_to_type(value, QutesDataType.type_of(value), QutesDataType.float, value) for value in var_value]
+                return [self.down_cast_value_to_type(symbol.value, QutesDataType.type_of(symbol.value), QutesDataType.float, symbol) for symbol in var_value.array]
             case QutesDataType.string_array:
-                return [self.down_cast_value_to_type(value, QutesDataType.type_of(value), QutesDataType.string, value) for value in var_value]
+                return [self.down_cast_value_to_type(symbol.value, QutesDataType.type_of(symbol.value), QutesDataType.string, symbol) for symbol in var_value.array]
             case QutesDataType.qubit_array:
-                return [self.down_cast_value_to_type(value, QutesDataType.type_of(value), QutesDataType.qubit, value) for value in var_value]
+                return [self.down_cast_value_to_type(symbol.value, QutesDataType.type_of(symbol.value), QutesDataType.qubit, symbol) for symbol in var_value.array]
             case QutesDataType.quint_array:
-                return [self.down_cast_value_to_type(value, QutesDataType.type_of(value), QutesDataType.quint, value) for value in var_value]
+                return [self.down_cast_value_to_type(symbol.value, QutesDataType.type_of(symbol.value), QutesDataType.quint, symbol) for symbol in var_value.array]
             case QutesDataType.qustring_array:
-                return [self.down_cast_value_to_type(value, QutesDataType.type_of(value), QutesDataType.qustring, value) for value in var_value]
+                return [self.down_cast_value_to_type(symbol.value, QutesDataType.type_of(symbol.value), QutesDataType.qustring, symbol) for symbol in var_value.array]
             case _:
                 return QutesDataType.undefined
 
     #TODO: use this method to check if a type can be casted to another type
+    @staticmethod
     def get_compatible_types(types: list[QutesDataType]) -> list[QutesDataType]:
-        types = list(set(types))
-        if len(types) == 0:
+        distinct_types = list(set(types))
+        if len(distinct_types) == 0:
             return [QutesDataType.bool]
-        if len(types) == 1:
-            return types
+        if len(distinct_types) == 1:
+            return distinct_types
         # if not all types are the same, check if they can be promoted to a common type
         else:
             # for each type, check if all elements can be casted to that type
             eligible_types = []
-            for type in types:
-                if all((other_type in TypeCastingHandler.type_promotable_to[type]) for other_type in types):
+            for type in distinct_types:
+                if all((other_type in TypeCastingHandler.type_promotable_to[type]) for other_type in distinct_types):
                     eligible_types.append(type)
             if len(eligible_types) > 0:
                 return eligible_types
         raise TypeError(f"Types {types} are not compatible.")
 
+    @staticmethod
     def try_get_array_type(array: list['Symbol']) -> list[QutesDataType]:
         return TypeCastingHandler.get_compatible_types([QutesDataType.type_of(symbol) for symbol in array])

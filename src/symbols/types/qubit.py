@@ -14,15 +14,19 @@ class Qubit(QuantumType['Qubit']):
         self.is_superposition = cmath.isclose(abs(alpha), abs(beta))
         self.qubit_state = StatePreparation([self.alpha, self.beta])
 
+    @staticmethod
     def get_default_value():
         return Qubit(complex(1),complex(0))
-    
+
+    @staticmethod
     def get_default_superposition_value():
         return Qubit(complex(0.5),complex(0.5))
-    
+
+    @staticmethod
     def get_default_size_in_qubit():
         return 1
 
+    @staticmethod
     def from_string(literal : str) -> 'Qubit':
         try:
             literal = literal.removesuffix(QutesParser.literal_to_string(QutesParser.QUBIT_LITERAL_POSTFIX))
@@ -55,12 +59,15 @@ class Qubit(QuantumType['Qubit']):
                 return Qubit(complex(alpha), complex(beta))
         except:
             raise TypeError(f"Cannot convert {literal} to qubit.")
-    
+
+    @staticmethod
     def fromValue(var_value : any) -> 'Qubit':
-        if(isinstance(var_value, str)):
+        if isinstance(var_value, str):
             return Qubit.from_string(var_value)
-        if(isinstance(var_value, bool)):
-            if(var_value):
+        if isinstance(var_value, bool) or isinstance(var_value, int):
+            if var_value not in [0, 1]:
+                raise TypeError(f"Cannot convert {var_value} to qubit.")
+            if var_value:
                 return Qubit(complex(0), complex(1))
             else:
                 return Qubit(complex(1), complex(0))

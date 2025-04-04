@@ -41,10 +41,16 @@ class StatementsVisitor(QutesBaseVisitor):
 
         array_symbol_or_name:Symbol|str|None = self.visit(ctx.expr()) #Symbol already declared, fullyqualifiedname, nothing (probably literal)
         array_symbol = array_symbol_or_name
-        if(isinstance(array_symbol, str)):
-            array_symbol = self.variables_handler.get_variable_symbol(array_symbol, token_index)
         auxiliary_var_name = ctx.variableName(0).getText()
-        auxiliary_qutes_type = QutesDataType.get_unit_type_from_array_type(array_symbol.symbol_declaration_static_type)
+
+        if isinstance(array_symbol, str):
+            array_symbol = self.variables_handler.get_variable_symbol(array_symbol, token_index)
+
+        if array_symbol is not None and array_symbol.symbol_declaration_static_type is not None:
+            auxiliary_qutes_type = QutesDataType.get_unit_type_from_array_type(array_symbol.symbol_declaration_static_type)
+        else:
+            # In this discovery phase we don't visit literal values, so array_symbol_or_name could be None.
+            auxiliary_qutes_type = QutesDataType.int #TODO: better handle this case, where we could find the real type?
 
         self.variables_handler.declare_variable(auxiliary_qutes_type, auxiliary_var_name, token_index)
         

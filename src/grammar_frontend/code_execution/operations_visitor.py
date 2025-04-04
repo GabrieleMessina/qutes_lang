@@ -252,6 +252,9 @@ class OperationsVisitor(QutesBaseVisitor):
                 first_term_symbol.value = first_term_symbol.value - 1 
                 return result
 
+        #TODO: result can be none, look at line 241 (result = self.quantum_circuit_handler.push_not_operation)
+        if result is None:
+            return None
         return self.variables_handler.declare_anonymous_variable(QutesDataType.type_of(result), result, ctx.start.tokenIndex)
 
     # WIP
@@ -271,7 +274,7 @@ class OperationsVisitor(QutesBaseVisitor):
             # regs.append(symbol_to_push.quantum_register)
         [symbol for symbol in function_symbol.inner_scope.__hash__.symbols if symbol.symbol_class == SymbolClass.FunctionSymbol][:len(function_params)] = symbol_params_to_push
 
-        #TODO: staff commented for make return value work for quantum variable, do some tests to assure the behaviour is correct
+        #TODO: stuff commented for make return value work for quantum variable, do some tests to assure the behaviour is correct
         # self.quantum_circuit_handler.start_quantum_function()
         function_return_result = self.visitChildren(function_symbol.value)
         # gate = self.quantum_circuit_handler.end_quantum_function(*regs, gate_name=function_symbol.name, create_gate=True)
@@ -316,7 +319,7 @@ class OperationsVisitor(QutesBaseVisitor):
             # self.quantum_circuit_handler.push_compose_circuit_operation(oracle_function_symbol.quantum_function, array_register)
                    
             oracle_registers.append(grover_result)
-            quantum_function = self.quantum_circuit_handler.end_quantum_function(*oracle_registers, gate_name=f"grover_oracle_{current_grover_count}", create_gate=False)
+            quantum_function = self.quantum_circuit_handler.end_quantum_function(*oracle_registers, name=f"grover_oracle_{current_grover_count}")
             
             qubits_involved_in_grover = [*range(quantum_function.num_qubits)]
 
@@ -425,7 +428,7 @@ class OperationsVisitor(QutesBaseVisitor):
                 self.quantum_circuit_handler.push_ESM_operation(array_register, rotation_register, term_to_quantum, block_size, phase_kickback_ancilla)
                    
             oracle_registers.append(grover_result)
-            quantum_function = self.quantum_circuit_handler.end_quantum_function(*oracle_registers, gate_name=f"grover_oracle_{current_grover_count}", create_gate=False)
+            quantum_function = self.quantum_circuit_handler.end_quantum_function(*oracle_registers, name=f"grover_oracle_{current_grover_count}")
             
             qubits_involved_in_grover = [*range(quantum_function.num_qubits)]
             if(rotation_register != None):

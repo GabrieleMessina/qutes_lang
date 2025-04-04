@@ -153,11 +153,15 @@ class QutesDataType(Enum):
                 return QutesDataType.float
             case QutesDataType.string_array:
                 return QutesDataType.string
+            case QutesDataType.string:
+                return QutesDataType.string
             case QutesDataType.qubit_array:
                 return QutesDataType.qubit
             case QutesDataType.quint_array:
                 return QutesDataType.quint
             case QutesDataType.qustring_array:
+                return QutesDataType.qustring
+            case QutesDataType.qustring:
                 return QutesDataType.qustring
             case _:
                 return QutesDataType.undefined
