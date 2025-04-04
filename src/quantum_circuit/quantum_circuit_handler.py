@@ -4,7 +4,7 @@ from typing import Any, Callable, cast
 from quantum_circuit.classical_register import ClassicalRegister
 from quantum_circuit.quantum_circuit import QuantumCircuit
 from quantum_circuit.quantum_register import QuantumRegister
-from qiskit.circuit.quantumregister import Qubit as QiskitQubit
+from qiskit.circuit import Qubit as QiskitQubit
 from symbols.types import Qubit, Quint, Qustring, QutesDataType, QuantumArrayType
 from qiskit import QiskitError
 from qiskit_aer import AerSimulator
