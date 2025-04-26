@@ -4,7 +4,7 @@ from typing import Any, Callable, cast
 from quantum_circuit.classical_register import ClassicalRegister
 from quantum_circuit.quantum_circuit import QuantumCircuit
 from quantum_circuit.quantum_register import QuantumRegister
-from qiskit.circuit import Qubit as QiskitQubit
+from qiskit.circuit import Qubit as QiskitQubit, Instruction
 from symbols.types import Qubit, Quint, Qustring, QutesDataType, QuantumArrayType
 from qiskit import QiskitError
 from qiskit_aer import AerSimulator
@@ -12,8 +12,9 @@ from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
 from qiskit_ibm_runtime import SamplerV2 as Sampler
 from quantum_circuit.state_preparation import StatePreparation
 from qiskit.circuit.quantumcircuit import CircuitInstruction
-from qiskit.circuit.library import grover_operator as GroverOperator, MCMTGate as MCMT, ZGate, QFT, XGate, YGate, HGate, CXGate, MCXGate, PhaseGate
+from qiskit.circuit.library import grover_operator as GroverOperator, MCMTGate as MCMT, ZGate, QFT, XGate, YGate, HGate, CXGate, MCXGate, PhaseGate, HalfAdderGate
 from qiskit.circuit.gate import Gate
+
 
 def unwrap(l:list[QuantumRegister|ClassicalRegister]) -> list:
     unwrapped = []
@@ -326,7 +327,24 @@ class QuantumCircuitHandler:
     def push_reset_operation(self, quantum_register : QuantumRegister) -> None:
         self._current_operations_queue.append(lambda circuit : cast(QuantumCircuit, circuit).reset(quantum_register))
 
-    def push_compose_circuit_operation(self, circuit_to_compose : QuantumCircuit, quantum_registers : list[QuantumRegister] = None, classical_registers=None) -> None:
+    """
+    Push sum operation for two quantum registers and a carry register.
+    The sum is done using a half adder circuit.
+    We expect symbol_b to have always one qubit more than symbol_a.
+    The carry register is used to store the carry of the sum.
+    The sum is done in place, so the symbol_b register is modified.
+    """
+    def push_sum_operation(self, symbol_a, symbol_b, symbol_carry):
+        quantum_register_a:QuantumRegister = symbol_a.quantum_register
+        quantum_register_b:QuantumRegister = symbol_b.quantum_register
+        quantum_register_carry:QuantumRegister = symbol_carry.quantum_register
+        numbers_len = min(quantum_register_a.size, quantum_register_b.size)
+
+        adder = HalfAdderGate(numbers_len)
+        quantum_registers = unwrap(quantum_register_a[:numbers_len] + quantum_register_b[:numbers_len] + quantum_register_carry[:])
+        self.push_compose_circuit_operation(adder, quantum_registers)
+
+    def push_compose_circuit_operation(self, circuit_to_compose : QuantumCircuit|Instruction, quantum_registers : list[QuantumRegister] = None, classical_registers=None) -> None:
         if classical_registers is None:
             classical_registers = []
         if quantum_registers is None:

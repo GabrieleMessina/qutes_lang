@@ -3,7 +3,6 @@ from symbols.scope_tree_node import ScopeTreeNode
 from symbols.scope_handler import ScopeHandlerForSymbolsUpdate, ScopeHandlerForSymbolsDiscovery
 from symbols.variables_handler import VariablesHandler
 from quantum_circuit.quantum_circuit_handler import QuantumCircuitHandler
-from quantum_circuit.qutes_gates import QutesGates
 from qutes_antlr.qutes_parserVisitor import qutes_parserVisitor as qutesVisitor
 import inspect
 
@@ -13,7 +12,6 @@ class QutesBaseVisitor(qutesVisitor):
         self.quantum_circuit_handler = quantum_circuit_handler
         self.scope_handler = scope_handler
         self.variables_handler = variables_handler
-        self.qutes_gates = QutesGates(self.quantum_circuit_handler, self.variables_handler)
 
         # Debug flags
         self.log_code_structure = False

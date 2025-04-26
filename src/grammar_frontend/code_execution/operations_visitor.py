@@ -68,13 +68,14 @@ class OperationsVisitor(QutesBaseVisitor):
             if(ctx.ADD()):
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)
                     and second_term_symbol and QutesDataType.is_quantum_type(second_term_symbol.symbol_declaration_static_type)):
-                    #TODO: we should measure the circuit and assign the value to the result variable.
-                    #But we don't want to measure the circuit at every operation, so we need to return a kind of promise
-                    #Promise that will be measured only when needed
-                    #At first i was thinking about measure on assignment, but that is not actually needed,
-                    #We can measure only when classical computation is required
-                    #Or when explicitly required by the user.
-                    result = self.qutes_gates.sum(first_term_symbol, second_term_symbol)
+                    result = self.variables_handler.declare_anonymous_variable(QutesDataType.quint, Quint.init_from_size(first_term_symbol.quantum_register.size+1), ctx.start.tokenIndex)
+                    carry = self.variables_handler.declare_anonymous_variable(QutesDataType.qubit, Qubit.get_default_value(), ctx.start.tokenIndex)
+
+                    self.quantum_circuit_handler.push_sum_operation(first_term_symbol, result, carry) #result var was declared above, so its value is zero, so carry is never used
+                    self.quantum_circuit_handler.push_sum_operation(second_term_symbol, result, carry) #now carry could have value
+                    self.quantum_circuit_handler.push_cnot_operation(carry.quantum_register[0], result.quantum_register[-1]) #taking care of carry.
+
+                    return result
                 else:
                     result = first_term_value + second_term_value
             if(ctx.SUB()):
