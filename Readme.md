@@ -7,6 +7,8 @@ A **High Level programming language** for **quantum computing** that allows **ev
 
 Try it out: https://gabrielemessina.github.io/qutes_lang/
 
+Read our work: https://dl.acm.org/doi/pdf/10.1145/3731545.3744153
+
 ## How to Run - 🧭 Easy Start
 > [!TIP]
 > You can use Colab or GitHub Codespace to start work with Qutes quickly.
@@ -33,3 +35,23 @@ python ./src/qutes.py ./specification/grammar/grammar_test.qut
 
 ## 🗺️ Wiki
 For **Syntax** and **Feature** References, check out our [**Wiki**](https://github.com/GabrieleMessina/qutes_lang/wiki)!
+
+## Citing Qutes
+**MLA Style**
+> Faro, Simone, Francesco Pio Marino, and Gabriele Messina. "Qutes: A High-Level Quantum Programming Language for Simplified Quantum Computing." Proceedings of the 34th International Symposium on High-Performance Parallel and Distributed Computing. 2025.
+
+**APA Style**
+> Faro, S., Marino, F. P., & Messina, G. (2025, July). Qutes: A High-Level Quantum Programming Language for Simplified Quantum Computing. In Proceedings of the 34th International Symposium on High-Performance Parallel and Distributed Computing (pp. 1-9).
+
+**Chicago Style**
+> Faro, Simone, Francesco Pio Marino, and Gabriele Messina. "Qutes: A High-Level Quantum Programming Language for Simplified Quantum Computing." In Proceedings of the 34th International Symposium on High-Performance Parallel and Distributed Computing, pp. 1-9. 2025.
+
+**BibTeX**
+> @inproceedings{quasar2025qutes,  
+  title={Qutes: A High-Level Quantum Programming Language for Simplified Quantum Computing},  
+  author={Faro, Simone and Marino, Francesco Pio and Messina, Gabriele},  
+  booktitle={Proceedings of the 34th International Symposium on High-Performance Parallel and Distributed Computing},  
+  pages={1--9},  
+  year={2025}  
+}
+</blockquote>
