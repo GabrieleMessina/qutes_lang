@@ -1,6 +1,7 @@
 # Qutes Lang
 A **High Level programming language** for **quantum computing** that allows **everyone**, even those who do not know the theory behind quantum computing in detail, **to exploit its potential** and adapt it to their field of interest.
 
+[![Qiskit Ecosystem](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fqiskit.github.io%2Fecosystem%2Fb%2F79b52453)](https://qisk.it/e)
 [![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/GabrieleMessina.qutes?label=VSCode%20Syntax%20Extension)](https://marketplace.visualstudio.com/items?itemName=GabrieleMessina.qutes)
 [![Qutes Build and Tests](https://github.com/GabrieleMessina/qutes_lang/actions/workflows/python-app.yml/badge.svg)](https://github.com/GabrieleMessina/qutes_lang/actions/workflows/python-app.yml)
 [![Codespaces Prebuilds](https://github.com/GabrieleMessina/qutes_lang/actions/workflows/codespaces/create_codespaces_prebuilds/badge.svg)](https://github.com/GabrieleMessina/qutes_lang/actions/workflows/codespaces/create_codespaces_prebuilds) 
