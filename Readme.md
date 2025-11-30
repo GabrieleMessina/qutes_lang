@@ -8,7 +8,9 @@ A **High Level programming language** for **quantum computing** that allows **ev
 
 Try it out: https://gabrielemessina.github.io/qutes_lang/
 
-Read our work: https://dl.acm.org/doi/pdf/10.1145/3731545.3744153
+Read our work: 
+- [Extending Qutes: a practical high-level language for quantum computing](https://doi.org/10.1093/comjnl/bxaf133)
+- [Qutes: A High-Level Quantum Programming Language for Simplified Quantum Computing](https://doi.org/10.1145/3731545.3744153)
 
 ## How to Run - 🧭 Easy Start
 > [!TIP]
@@ -20,7 +22,7 @@ Read our work: https://dl.acm.org/doi/pdf/10.1145/3731545.3744153
 
 <br/>
 
-> *Notes for **Codespaces**: Everything will be already settled; you only need to open the VSCode Workspace when requested and run the code from the Debug panel.
+> *Notes for **Codespaces**: Everything will already be settled; you only need to open the VSCode Workspace when requested and run the code from the Debug panel.
 >
 > If needed, remember to update the code with a Git Pull command!
 
@@ -39,20 +41,18 @@ For **Syntax** and **Feature** References, check out our [**Wiki**](https://gith
 
 ## Citing Qutes
 **MLA Style**
-> Faro, Simone, Francesco Pio Marino, and Gabriele Messina. "Qutes: A High-Level Quantum Programming Language for Simplified Quantum Computing." Proceedings of the 34th International Symposium on High-Performance Parallel and Distributed Computing. 2025.
+> Faro, Simone, Francesco Pio Marino, and Gabriele Messina. "Extending Qutes: a practical high-level language for quantum computing." The Computer Journal.
 
 **APA Style**
-> Faro, S., Marino, F. P., & Messina, G. (2025, July). Qutes: A High-Level Quantum Programming Language for Simplified Quantum Computing. In Proceedings of the 34th International Symposium on High-Performance Parallel and Distributed Computing (pp. 1-9).
+> Faro, S., Marino, F. P., & Messina, G. Extending Qutes: a practical high-level language for quantum computing. The Computer Journal.
 
 **Chicago Style**
-> Faro, Simone, Francesco Pio Marino, and Gabriele Messina. "Qutes: A High-Level Quantum Programming Language for Simplified Quantum Computing." In Proceedings of the 34th International Symposium on High-Performance Parallel and Distributed Computing, pp. 1-9. 2025.
+> Faro, Simone, Francesco Pio Marino, and Gabriele Messina. "Extending Qutes: a practical high-level language for quantum computing." The Computer Journal.
 
 **BibTeX**
-> @inproceedings{quasar2025qutes,  
-  title={Qutes: A High-Level Quantum Programming Language for Simplified Quantum Computing},  
-  author={Faro, Simone and Marino, Francesco Pio and Messina, Gabriele},  
-  booktitle={Proceedings of the 34th International Symposium on High-Performance Parallel and Distributed Computing},  
-  pages={1--9},  
-  year={2025}  
+> @article{faroextending,
+  title={Extending Qutes: a practical high-level language for quantum computing},
+  author={Faro, Simone and Marino, Francesco Pio and Messina, Gabriele},
+  journal={The Computer Journal}
 }
 </blockquote>
