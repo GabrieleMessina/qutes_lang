@@ -15,9 +15,8 @@ authors:
 repository-code: "https://github.com/GabrieleMessina/qutes_lang"
 license: MIT
 preferred-citation:
-  type: conference-paper
-  title: "Qutes: A High-Level Quantum Programming Language for Simplified Quantum Computing"
-  doi: "10.1145/3731545.3744153"
+  type: journal-article
+  title: "Extending Qutes: a practical high-level language for quantum computing"
   authors:
     - family-names: Faro
       given-names: Simone
@@ -28,8 +27,4 @@ preferred-citation:
     - family-names: Messina
       given-names: Gabriele
       orcid: 'https://orcid.org/0009-0004-9926-3691'
-  conference:
-    name: "Proceedings of the 34th International Symposium on High-Performance Parallel and Distributed Computing"
-  start: 1
-  end: 9
-  year: 2025
+  journal: "The Computer Journal"
