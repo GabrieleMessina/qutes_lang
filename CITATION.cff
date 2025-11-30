@@ -15,7 +15,7 @@ authors:
 repository-code: "https://github.com/GabrieleMessina/qutes_lang"
 license: MIT
 preferred-citation:
-  type: journal-article
+  type: article
   title: "Extending Qutes: a practical high-level language for quantum computing"
   authors:
     - family-names: Faro
