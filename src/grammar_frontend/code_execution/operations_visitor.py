@@ -68,7 +68,8 @@ class OperationsVisitor(QutesBaseVisitor):
             if(ctx.ADD()):
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)
                     and second_term_symbol and QutesDataType.is_quantum_type(second_term_symbol.symbol_declaration_static_type)):
-                    result = self.variables_handler.declare_anonymous_variable(QutesDataType.quint, Quint.init_from_size(first_term_symbol.quantum_register.size+1), ctx.start.tokenIndex)
+                    result_size = max(first_term_symbol.quantum_register.size,second_term_symbol.quantum_register.size)
+                    result = self.variables_handler.declare_anonymous_variable(QutesDataType.quint, Quint.init_from_size(result_size+1), ctx.start.tokenIndex)
                     carry = self.variables_handler.declare_anonymous_variable(QutesDataType.qubit, Qubit.get_default_value(), ctx.start.tokenIndex)
 
                     self.quantum_circuit_handler.push_sum_operation(first_term_symbol, result, carry) #result var was declared above, so its value is zero, so carry is never used
