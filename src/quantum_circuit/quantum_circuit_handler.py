@@ -352,6 +352,58 @@ class QuantumCircuitHandler:
             + quantum_register_carry[:]
         )
         self.push_compose_circuit_operation(adder, quantum_registers)
+        
+    def push_complement2_operation(
+        self,
+        quantum_register: QuantumRegister,
+        expected_size: int | None = None,
+    ):
+        if expected_size is not None:
+            quantum_register = self._pad_register(quantum_register, expected_size)
+        
+        def _invert_box(n_qubits: int) -> QuantumCircuit:
+            qc = QuantumCircuit(n_qubits, name=f"invert_{n_qubits}")
+            for i in range(n_qubits):
+                qc.x(i)
+            return qc.to_gate()
+
+        qc = QuantumCircuit(quantum_register.size, name="complement2")
+
+        n_qubits = quantum_register.size
+        for i in range(1, n_qubits):
+            invert_gate = _invert_box(n_qubits - i).control(
+                i, ctrl_state="1" + "0" * (i - 1)
+            )
+            qc = qc.compose(invert_gate, list(range(n_qubits)))
+
+        comp2_gate = qc.to_gate(label="complement2")
+        self.push_compose_circuit_operation(comp2_gate, [quantum_register])
+        
+    def _pad_register(self, quantum_register: QuantumRegister, target_size: int) -> QuantumRegister:
+        """Pad a register to target_size, reusing existing pads when possible."""
+        if quantum_register.size >= target_size:
+            return quantum_register
+        needed = target_size - quantum_register.size
+
+        existing_pads = [reg for reg in self._quantum_registers if reg.name.startswith(f"{self.PAD_PREFIX}{quantum_register.name}_")]
+        existing_pads.sort(key=lambda r: int(r.name.split("_")[-1]) if r.name.split("_")[-1].isdigit() else r.name)
+
+        pad_bits: list = []
+        for pad in existing_pads:
+            if len(pad_bits) >= needed:
+                break
+            pad_bits += pad[:]
+
+        remaining = needed - len(pad_bits)
+        if remaining > 0:
+            new_pad = self.declare_quantum_register(
+                f"{self.PAD_PREFIX}{quantum_register.name}_{next(QuantumCircuitHandler.anon_counter)}",
+                Quint.init_from_size(remaining),
+                is_anonymous=True,
+            )
+            pad_bits += new_pad[:]
+
+        return QuantumRegister(None, quantum_register.name, bits=quantum_register[:] + pad_bits)
 
     def push_compose_circuit_operation(self, circuit_to_compose : QuantumCircuit|Instruction, quantum_registers : list[QuantumRegister] = None, classical_registers=None) -> None:
         if classical_registers is None:

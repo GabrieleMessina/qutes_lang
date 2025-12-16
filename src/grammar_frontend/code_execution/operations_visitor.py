@@ -80,8 +80,26 @@ class OperationsVisitor(QutesBaseVisitor):
                     result = first_term_value + second_term_value
             if(ctx.SUB()):
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
-                    pass
-                result = first_term_value - second_term_value
+                    result_size = max(
+                        first_term_symbol.quantum_register.size,
+                        second_term_symbol.quantum_register.size,
+                    ) + 1
+                    # Copy minuend into a fresh result register of the target size.
+                    result = self.variables_handler.declare_anonymous_variable(QutesDataType.quint,Quint.init_from_size(result_size),ctx.start.tokenIndex)
+                    carry = self.variables_handler.declare_anonymous_variable(QutesDataType.qubit,Qubit.get_default_value(),ctx.start.tokenIndex)
+                    
+                    self.quantum_circuit_handler.push_sum_operation(first_term_symbol, result, carry)
+                    # Obtain -b in two's complement form.
+                    self.quantum_circuit_handler.push_complement2_operation(second_term_symbol.quantum_register, result_size - 1)
+                    # Add -b to a.
+                    self.quantum_circuit_handler.push_sum_operation(second_term_symbol, result, carry)
+                    # Restore b to its original value.
+                    self.quantum_circuit_handler.push_complement2_operation(second_term_symbol.quantum_register, result_size - 1)
+                    # Handle final carry.
+                    self.quantum_circuit_handler.push_cnot_operation(carry.quantum_register[0], result.quantum_register[-1])
+                    return result
+                else:
+                    result = first_term_value - second_term_value
         if(isinstance(ctx, qutes_parser.ShiftOperatorContext)):
             if(ctx.LSHIFT()):
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
@@ -222,10 +240,13 @@ class OperationsVisitor(QutesBaseVisitor):
                 return result
             if(ctx.SUB()):
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
-                    result = self.quantum_circuit_handler.push_pauliz_operation(first_term_symbol.quantum_register)
-                first_term_symbol.value = -first_term_symbol.value 
-                result = first_term_symbol
-                return result
+                    self.quantum_circuit_handler.push_complement2_operation(first_term_symbol.quantum_register)
+                    result = first_term_symbol
+                    return result
+                else:
+                    first_term_symbol.value = -first_term_symbol.value 
+                    result = first_term_symbol
+                    return result
             if(ctx.AUTO_INCREMENT()):
                 #TODO: handle quantum
                 first_term_symbol.value = first_term_symbol.value + 1 
