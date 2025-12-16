@@ -81,23 +81,20 @@ class OperationsVisitor(QutesBaseVisitor):
                     result = first_term_value + second_term_value
             if(ctx.SUB()):
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
-                    result_size = max(
-                        first_term_symbol.quantum_register.size,
-                        second_term_symbol.quantum_register.size,
-                    ) + 1
+                    result_size = max(first_term_symbol.quantum_register.size,second_term_symbol.quantum_register.size)
                     # Copy minuend into a fresh result register of the target size.
                     result = self.variables_handler.declare_anonymous_variable(QutesDataType.quint,Quint.init_from_size(result_size),ctx.start.tokenIndex)
                     carry = self.variables_handler.declare_anonymous_variable(QutesDataType.qubit,Qubit.get_default_value(),ctx.start.tokenIndex)
                     
                     self.quantum_circuit_handler.push_sum_operation(first_term_symbol, result, carry)
                     # Obtain -b in two's complement form.
-                    self.quantum_circuit_handler.push_complement2_operation(second_term_symbol.quantum_register, result_size - 1)
+                    self.quantum_circuit_handler.push_complement2_operation(second_term_symbol.quantum_register, result_size)
                     # Add -b to a.
                     self.quantum_circuit_handler.push_sum_operation(second_term_symbol, result, carry)
                     # Restore b to its original value.
-                    self.quantum_circuit_handler.push_complement2_operation(second_term_symbol.quantum_register, result_size - 1)
+                    self.quantum_circuit_handler.push_complement2_operation(second_term_symbol.quantum_register, result_size)
                     # Handle final carry.
-                    self.quantum_circuit_handler.push_cnot_operation(carry.quantum_register[0], result.quantum_register[-1])
+                    # self.quantum_circuit_handler.push_cnot_operation(carry.quantum_register[0], result.quantum_register[-1])
                     return result
                 else:
                     result = first_term_value - second_term_value

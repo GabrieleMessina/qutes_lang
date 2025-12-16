@@ -212,7 +212,6 @@ class QuantumCircuitHandler:
         if print_counts:
             self.print_result_table(result)
 
-
     def print_result_table(self, result):
         counts_by_run = {}
         counts_by_registers = {}
@@ -338,8 +337,7 @@ class QuantumCircuitHandler:
         quantum_register_carry: QuantumRegister = symbol_carry.quantum_register
         
         # Pad and align so we always process the full data width (accumulator size minus the overflow bit).
-        # target_data_bits uses the accumulator's data bits (ignore its overflow bit at -1)
-        target_data_bits = max(quantum_register_a.size, quantum_register_b.size - 1)
+        target_data_bits = max(quantum_register_a.size, quantum_register_b.size)
         # accumulator keeps an extra +1 bit to store overflow
         quantum_register_b = self._pad_register(quantum_register_b, target_data_bits + 1)
         quantum_register_a = self._pad_register(quantum_register_a, target_data_bits)
