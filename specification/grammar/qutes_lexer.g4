@@ -35,7 +35,6 @@ MCP : 'mcp' ;
 HADAMARD : 'hadamard' ;
 MEASURE : 'measure' ;
 PRINT : 'print' ;
-PRINT_LN : 'println' ;
 BARRIER : 'barrier' ;
 EQUAL : '==' ;
 NOT_EQUAL : '!=' ;

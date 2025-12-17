@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "QutesLang": {
+      "commandName": "Project",
+      "commandLineArgs": "\"$(SolutionDir)\\..\\specification\\grammar\\grammar_tests.qut\""
+    },
+    "WSL": {
+      "commandName": "WSL2",
+      "distributionName": ""
+    }
+  }
+}

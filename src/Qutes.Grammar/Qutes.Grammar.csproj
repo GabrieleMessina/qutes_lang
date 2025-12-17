@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Antlr4" Version="4.6.6">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Antlr4.Runtime" Version="4.6.6" />
+        <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.8.0" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" PrivateAssets="all" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Include="..\..\specification\grammar\grammar_tests.qut">
+            <Link>grammar_tests.qut</Link>
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
+        <Antlr4 Include="..\..\specification\grammar\qutes_lexer.g4">
+            <Link>qutes_lexer.g4</Link>
+            <CustomToolNamespace>Qutes.Grammar</CustomToolNamespace>
+        </Antlr4>
+        <Antlr4 Include="..\..\specification\grammar\qutes_parser.g4">
+            <Link>qutes_parser.g4</Link>
+            <CustomToolNamespace>Qutes.Grammar</CustomToolNamespace>
+        </Antlr4>
+    </ItemGroup>
+
+</Project>

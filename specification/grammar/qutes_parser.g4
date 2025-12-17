@@ -15,24 +15,24 @@ statement
    : IF_STATEMENT expr statement #IfStatement
    | IF_STATEMENT expr statement ELSE_STATEMENT statement #IfElseStatement
    | WHILE_STATEMENT expr statement #WhileStatement
-   | FOREACH_STATEMENT variableName (COMMA variableName)? IN_STATEMENT expr statement #ForeachStatement
+   | FOREACH_STATEMENT qualifiedName (COMMA qualifiedName)? IN_STATEMENT expr statement #ForeachStatement
    | DO_STATEMENT statement WHILE_STATEMENT expr #DoWhileStatement
    | CURLY_PARENTHESIS_OPEN statement* CURLY_PARENTHESIS_CLOSE #BlockStatement
-   | variableType functionName ROUND_PARENTHESIS_OPEN functionDeclarationParams? ROUND_PARENTHESIS_CLOSE statement #FunctionStatement
+   | variableType qualifiedName ROUND_PARENTHESIS_OPEN functionDeclarationParams? ROUND_PARENTHESIS_CLOSE statement #FunctionStatement
    | variableDeclaration END_OF_STATEMENT #DeclarationStatement
    | qualifiedName ASSIGN expr END_OF_STATEMENT #AssignmentStatement
    | RETURN expr? END_OF_STATEMENT #ReturnStatement
    | expr END_OF_STATEMENT #ExpressionStatement
-   | (MEASURE | BARRIER | PRINT_LN) #FactStatement
+   | (MEASURE | BARRIER | PRINT) #FactStatement
    | END_OF_STATEMENT #EmptyStatement
    ;
 
 functionDeclarationParams
-   : variableDeclaration (COMMA functionDeclarationParams)?
+   : variableDeclaration (COMMA variableDeclaration)*
    ;
 
 variableDeclaration
-   : variableType variableName (ASSIGN expr)?
+   : variableType qualifiedName (ASSIGN expr)?
    ;
 
 expr // Order: https://en.wikipedia.org/wiki/Order_of_operations#Programming_languages
@@ -41,7 +41,7 @@ expr // Order: https://en.wikipedia.org/wiki/Order_of_operations#Programming_lan
    | qualifiedName #QualifiedNameExpression
    | arrayLiteral #ArrayExpression
    // Function call, scope, array/member access
-   | functionName ROUND_PARENTHESIS_OPEN termList? ROUND_PARENTHESIS_CLOSE #FunctionCallExpression
+   | qualifiedName ROUND_PARENTHESIS_OPEN termList? ROUND_PARENTHESIS_CLOSE #FunctionCallExpression
    | arrayAccess #ArrayAccessExpression
    // Unary operators, sizeof and type casts
    | expr op=(AUTO_INCREMENT | AUTO_DECREMENT) #PostfixOperator
@@ -60,23 +60,24 @@ expr // Order: https://en.wikipedia.org/wiki/Order_of_operations#Programming_lan
    | expr op=AND expr #LogicAndOperator
    | expr op=OR expr #LogicOrOperator
    // Assignment and auto assignment operators | <assoc = right> expr op=(AUTO_SUM | AUTO_DECREMENT | AUTO_MODULE | AUTO_DIVIDE | AUTO_MODULE) expr #AutoAssignmentOperator
-   | op=(MCX | MCZ | MCY | SWAP) termList #MultipleUnaryOperator
-   | op=(PRINT | PRINT_LN | PAULIY | PAULIZ | HADAMARD | MEASURE) expr #UnaryOperator
+   | op=(MCX | MCZ | MCY) termList #MultipleUnaryOperator
+   | op=SWAP expr COMMA expr #DoubleUnaryOperator
+   | op=(PRINT | PAULIY | PAULIZ | HADAMARD | MEASURE) expr #UnaryOperator
    | op=MCP termList BY expr #MultipleUnaryPhaseOperator
    | expr op=IN_STATEMENT qualifiedName #GroverOperator
-   | op=GROVER functionName ROUND_PARENTHESIS_OPEN termList? ROUND_PARENTHESIS_CLOSE #FreeGroverOperator
+   | op=GROVER qualifiedName ROUND_PARENTHESIS_OPEN termList? ROUND_PARENTHESIS_CLOSE #FreeGroverOperator
    ;
 
 arrayAccess
    : qualifiedName SQUARE_PARENTHESIS_OPEN expr SQUARE_PARENTHESIS_CLOSE
    ;
 
-termList
-   : expr (COMMA termList)?
-   ;
-
 arrayLiteral
    : SQUARE_PARENTHESIS_OPEN termList SQUARE_PARENTHESIS_CLOSE
+   ;
+   
+termList
+   : expr (COMMA expr)*
    ;
 
 variableType
@@ -97,16 +98,6 @@ type
 
 qualifiedName 
    : SYMBOL_LITERAL (DOT SYMBOL_LITERAL)*
-   | variableName
-   | functionName
-   ;
-
-variableName
-   : SYMBOL_LITERAL
-   ;
-
-functionName
-   : SYMBOL_LITERAL
    ;
 
 literal

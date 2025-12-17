@@ -1,3 +1,7 @@
+qubit a = 1q;
+hadamard a;
+
+
 //basic boolean 
 /*{
     //a = 10; //'a' declared before usage.
@@ -350,15 +354,15 @@
 
 
 //Grover III - SubArray Match
-{
-    // qustring a = "0*00";
-    quint a = [0q, 0q, 0q, 0q, 0q, 0q, [0,1]q, [0,1]q];
-    // qustring b = "1110111";
-
-    if("01" in b){
-        print "Substring Match Found!";
-    }
-    else{
-        print "Substring Match Not Found";
-    }
-}
+// {
+//     // qustring a = "0*00";
+//     quint a = [0q, 0q, 0q, 0q, 0q, 0q, [0,1]q, [0,1]q];
+//     // qustring b = "1110111";
+// 
+//     if("01" in b){
+//         print "Substring Match Found!";
+//     }
+//     else{
+//         print "Substring Match Not Found";
+//     }
+// }

@@ -1,0 +1,239 @@
+﻿using System.Text;
+using QutesLang.Symbols.Types;
+
+namespace QutesLang.GrammarFrontend;
+
+public abstract class CircuitOperation
+{
+    protected string circuitName = "circuit";
+    public abstract void ApplyToQiskitCircuit(StringBuilder stringBuilder);
+    public abstract IQuantumType Destination { get; }
+}
+public class CNOT(IQuantumType control, IQuantumType target) : CircuitOperation
+{
+    public override IQuantumType Destination => target;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        stringBuilder.AppendLine($"{circuitName}.cx({control.QubitStringList},{target.QubitStringList})");
+    }
+}
+public class Hadamard(IQuantumType target) : CircuitOperation
+{
+    public override IQuantumType Destination => target;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        stringBuilder.AppendLine($"{circuitName}.h({target.QubitStringList})");
+    }
+}
+public class PauliY(IQuantumType target) : CircuitOperation
+{
+    public override IQuantumType Destination => target;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        stringBuilder.AppendLine($"{circuitName}.y({target.QubitStringList})");
+    }
+}
+public class PauliZ(IQuantumType target) : CircuitOperation
+{
+    public override IQuantumType Destination => target;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        stringBuilder.AppendLine($"{circuitName}.z({target.QubitStringList})");
+    }
+}
+public class Measure(IQuantumType target) : CircuitOperation
+{
+    public override IQuantumType Destination => target;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        stringBuilder.AppendLine($"{circuitName}.measure({target.QubitStringList})");
+    }
+}
+public class MCP(IEnumerable<IQuantumType> controls, IQuantumType target, FloatType rotationAngle) : CircuitOperation
+{
+    public override IQuantumType Destination => target;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        var controlList = string.Join(",", controls.Select(c => c.QubitStringList));
+        stringBuilder.AppendLine($"{circuitName}.mcp({rotationAngle.Value},[{controlList}],{target.QubitStringList})");
+    }
+}
+public class MCX(IEnumerable<IQuantumType> controls, IQuantumType target) : CircuitOperation
+{
+    public override IQuantumType Destination => target;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        var controlList = string.Join(",", controls.Select(c => c.QubitStringList));
+        stringBuilder.AppendLine($"{circuitName}.mcx([{controlList}],{target.QubitStringList})");
+    }
+}
+public class MCY(IEnumerable<IQuantumType> controls, IQuantumType target) : CircuitOperation
+{
+    public override IQuantumType Destination => target;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        var controlList = string.Join(",", controls.Select(c => c.QubitStringList));
+        stringBuilder.AppendLine($"{circuitName}.mcy([{controlList}],{target.QubitStringList})");
+    }
+}
+public class MCZ(IEnumerable<IQuantumType> controls, IQuantumType target) : CircuitOperation
+{
+    public override IQuantumType Destination => target;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        var controlList = string.Join(",", controls.Select(c => c.QubitStringList));
+        stringBuilder.AppendLine($"{circuitName}.mcz([{controlList}],{target.QubitStringList})");
+    }
+}
+public class Swap(IQuantumType a, IQuantumType b) : CircuitOperation
+{
+    public override IQuantumType Destination => a;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        stringBuilder.AppendLine($"{circuitName}.swap({a.QubitStringList}, {b.QubitStringList})");
+    }
+}
+public class Or(IQuantumType a, IQuantumType b, IQuantumType destination) : CircuitOperation
+{
+    public override IQuantumType Destination => destination;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        //TODO: implemement quantum OR operation.
+    }
+}
+public class And(IQuantumType a, IQuantumType b, IQuantumType destination) : CircuitOperation
+{
+    public override IQuantumType Destination => destination;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        //TODO: implemement quantum AND operation.
+    }
+}
+public class Equals(IQuantumType a, IQuantumType b, IQuantumType destination) : CircuitOperation
+{
+    public override IQuantumType Destination => destination;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        //TODO: implemement quantum == operation.
+    }
+}
+public class NotEquals(IQuantumType a, IQuantumType b, IQuantumType destination) : CircuitOperation
+{
+    public override IQuantumType Destination => destination;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        //TODO: implemement quantum != operation.
+    }
+}
+public class LowerThan(IQuantumType a, IQuantumType b, IQuantumType destination) : CircuitOperation
+{
+    public override IQuantumType Destination => destination;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        //TODO: implemement quantum < operation.
+    }
+}
+public class LowerEqualThan(IQuantumType a, IQuantumType b, IQuantumType destination) : CircuitOperation
+{
+    public override IQuantumType Destination => destination;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        //TODO: implemement quantum <= operation.
+    }
+}
+public class GreaterThan(IQuantumType a, IQuantumType b, IQuantumType destination) : CircuitOperation
+{
+    public override IQuantumType Destination => destination;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        //TODO: implemement quantum > operation.
+    }
+}
+public class GreaterEqualThan(IQuantumType a, IQuantumType b, IQuantumType destination) : CircuitOperation
+{
+    public override IQuantumType Destination => destination;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        //TODO: implemement quantum >= operation.
+    }
+}
+public class RightShift : CircuitOperation
+{
+    private readonly IQuantumType a;
+    private readonly QuintType offset;
+
+    public override IQuantumType Destination => a;
+    public RightShift(IQuantumType a, QuintType offset)
+    {
+        this.a = a;
+        this.offset = offset;
+    }
+    public RightShift(IQuantumType a, IntType offset)
+    {
+        this.a = a;
+        this.offset = new QuintType(offset.Value.ToString());
+    }
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        //TODO: implemement quantum >> operation.
+    }
+}
+public class LeftShift : CircuitOperation
+{
+    private readonly IQuantumType a;
+    private readonly QuintType offset;
+
+    public override IQuantumType Destination => a;
+    public LeftShift(IQuantumType a, QuintType offset)
+    {
+        this.a = a;
+        this.offset = offset;
+    }
+    public LeftShift(IQuantumType a, IntType offset)
+    {
+        this.a = a;
+        this.offset = new QuintType(offset.Value.ToString());
+    }
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        //TODO: implemement quantum >> operation.
+    }
+}
+public class Addition(IQuantumType a, IQuantumType b, IQuantumType destination) : CircuitOperation
+{
+    public override IQuantumType Destination => destination;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        //TODO: implemement quantum sum operation.
+    }
+}
+public class Subtraction(IQuantumType a, IQuantumType b, IQuantumType destination) : CircuitOperation
+{
+    public override IQuantumType Destination => destination;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        //TODO: implemement quantum subtraction operation.
+    }
+}
