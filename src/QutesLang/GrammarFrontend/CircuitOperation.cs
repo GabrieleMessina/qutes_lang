@@ -9,6 +9,18 @@ public abstract class CircuitOperation
     public abstract void ApplyToQiskitCircuit(StringBuilder stringBuilder);
     public abstract IQuantumType Destination { get; }
 }
+
+public class Empty(IQuantumType target) : CircuitOperation
+{
+    public override IQuantumType Destination => target;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        // No operation to apply for Empty
+        return;
+    }
+}
+
 public class CNOT(IQuantumType control, IQuantumType target) : CircuitOperation
 {
     public override IQuantumType Destination => target;

@@ -7,7 +7,7 @@ public class ScopeHandler : IScopeHandler
 
     public Scope CreateScope()
     {
-        return new Scope(Guid.NewGuid().ToString(), GetCurrentScope());
+        return new Scope(VariableNameGuid.New(), GetCurrentScope());
     }
 
     public Scope? GetCurrentScope()

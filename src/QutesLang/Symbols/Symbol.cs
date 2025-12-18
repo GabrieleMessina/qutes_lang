@@ -12,7 +12,7 @@ public class FunctionSymbol(IEnumerable<IQutesType> inputParamTypes, IQutesType 
 {
 }
 
-public class AnonymousValueSymbol(IQutesType value, Scope scope, int astTokenIndex) : ValueSymbol(Guid.NewGuid().ToString(), value, scope, astTokenIndex)
+public class AnonymousValueSymbol(IQutesType value, Scope scope, int astTokenIndex) : ValueSymbol(VariableNameGuid.New(), value, scope, astTokenIndex)
 {
 }
 

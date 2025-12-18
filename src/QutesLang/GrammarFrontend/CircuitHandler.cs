@@ -6,7 +6,7 @@ public class CircuitHandler(BackendProvider backendProvider = BackendProvider.Qi
 {
     private readonly List<CircuitOperation> operations = [];
     private readonly Dictionary<string, QuantumRegister> quantumRegisters = [];
-    private readonly List<CircuitQubit> circuitQubits = [];
+    private readonly HashSet<CircuitQubit> circuitQubits = [];
 
     public void PushOperation(CircuitOperation operation)
     {
@@ -20,19 +20,12 @@ public class CircuitHandler(BackendProvider backendProvider = BackendProvider.Qi
             throw new InvalidOperationException($"Quantum register with name {name} already declared.");
         }
 
-        var registerQubits = new List<CircuitQubit>();
+        var registerQubits = new HashSet<CircuitQubit>();
         foreach (var value in values)
         {
-            if(value == null)
-            {
-                var qubit = new CircuitQubit();
-                circuitQubits.Add(qubit);
-                registerQubits.Add(qubit);
-            }
-            else
-            {
-                registerQubits.Add(value);
-            }
+            var qubit = new CircuitQubit();
+            registerQubits.Add(value ?? qubit);
+            circuitQubits.Add(value ?? qubit);
         }
         quantumRegisters[name] = new (name, registerQubits);
         return registerQubits;
@@ -40,19 +33,19 @@ public class CircuitHandler(BackendProvider backendProvider = BackendProvider.Qi
 
     public string FinalizeCircuit()
     {
-        switch (backendProvider)
+        return backendProvider switch
         {
-            case BackendProvider.Qiskit:
-                return FinalizeQiskitCircuit();
-            default:
-                throw new NotImplementedException($"Backend provider {backendProvider} is not supported.");
-        }
+            BackendProvider.Qiskit => FinalizeQiskitCircuit(),
+            _ => throw new NotImplementedException($"Backend provider {backendProvider} is not supported."),
+        };
     }
 
     private string FinalizeQiskitCircuit()
     {
         var stringBuilder = new StringBuilder();
-        stringBuilder.AppendLine("from qiskit import QuantumCircuit");
+        stringBuilder.AppendLine("from qiskit import QuantumCircuit, QuantumRegister");
+        stringBuilder.AppendLine("from qiskit.circuit import Qubit");
+        stringBuilder.AppendLine("from qiskit.primitives import StatevectorSampler");
 
         // Declare qubits
         foreach (var qubit in circuitQubits)
@@ -64,10 +57,10 @@ public class CircuitHandler(BackendProvider backendProvider = BackendProvider.Qi
         foreach (var qreg in quantumRegisters.Values)
         {
             var qubitRefs = string.Join(',', qreg.Qubits.Select(q => q.Id));
-            stringBuilder.AppendLine($"{qreg.Name} = QuantumRegister({qreg.Name}, {qubitRefs})");
+            stringBuilder.AppendLine($"{qreg.Name} = QuantumRegister(name='{qreg.Name}', bits=[{qubitRefs}])");
         }
         var quantumRegisterNames = string.Join(',', quantumRegisters.Select(qr => qr.Value.Name));
-        stringBuilder.AppendLine($"circuit = QuantumCircuit([{quantumRegisterNames}])");
+        stringBuilder.AppendLine($"circuit = QuantumCircuit({quantumRegisterNames})");
 
         // Apply operations
         foreach (var operation in operations)

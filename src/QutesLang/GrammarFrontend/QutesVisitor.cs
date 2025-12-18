@@ -204,8 +204,8 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
             case IQuantumType leftValue when RightSymbol.Value is QuintType rightValue:
                 {
                     var operation
-                        = context.LSHIFT() != null ? leftValue.LShift(rightValue)
-                        : context.RSHIFT() != null ? leftValue.RShift(rightValue)
+                        = context.LSHIFT() != null ? leftValue.LeftShift(rightValue)
+                        : context.RSHIFT() != null ? leftValue.RightShift(rightValue)
                         : throw new InvalidOperationException($"Unknown operator '{context.GetChild(1).GetText()}'.");
                     //TODO: we are assuming that the destination is a new anonymous variable, but in this case the operation happens inplace,
                     // we should assume to know this detail? or is it ok to create this new anon var?
@@ -217,8 +217,8 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
             case IClassicalType leftValue when RightSymbol.Value is IntType rightValue:
                 {
                     var result
-                        = context.LSHIFT() != null ? leftValue.LShift(rightValue)
-                        : context.RSHIFT() != null ? leftValue.RShift(rightValue)
+                        = context.LSHIFT() != null ? leftValue.LeftShift(rightValue)
+                        : context.RSHIFT() != null ? leftValue.RightShift(rightValue)
                         : throw new InvalidOperationException($"Unknown operator '{context.GetChild(1).GetText()}'.");
                     return new AnonymousValueSymbol(result, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
                 }

@@ -77,4 +77,6 @@ void HandleParams(bool logSymbolsScopeValue, bool logAstTreeValue, bool logQuant
 
     Console.WriteLine("Result:");
     Console.WriteLine(result);
+    Console.WriteLine(pythonCode);
+    File.WriteAllText(Path.Combine(Environment.CurrentDirectory, "output.py"), pythonCode);
 }

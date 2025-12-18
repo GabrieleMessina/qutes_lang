@@ -1,4 +1,6 @@
-﻿using QutesLang.GrammarFrontend;
+﻿using System.Runtime.CompilerServices;
+
+using QutesLang.GrammarFrontend;
 
 namespace QutesLang.Symbols.Types;
 
@@ -12,301 +14,237 @@ public class ClassType(string qualifiedClassName) : IQutesType
 public class BoolType(bool value) : IClassicalType
 {
     public bool Value { get; set; } = value;
-
     public object GetValueAsObject() => Value;
+    public void SetValueFromObject(object value) => Value = (bool)value;
     public static BoolType GetDefaultValue() => new(false);
+    private static bool GetBoolValue(IClassicalType term, [CallerMemberName] string operationName = "")
+    {
+        if (term is BoolType boolType)
+        {
+            return boolType.Value;
+        }
+        throw new InvalidOperationException($"Operation {operationName} cannot be applied to {term.GetType().Name} type.");
+    }
+    public BoolType Equals(IClassicalType term) => new (this.Value == GetBoolValue(term));
 
-    public IQutesType LShift(IntType positions) => null!;
+    public BoolType NotEquals(IClassicalType term) => new (this.Value != GetBoolValue(term));
 
-    public IQutesType RShift(IntType positions) => null!;
+    public BoolType And(IClassicalType term) => new (this.Value && GetBoolValue(term));
 
-    public IQutesType Swap(IClassicalType positions) => null!;
-
-    public IQutesType Addition(IClassicalType term) => null!;
-
-    public IQutesType Subtraction(IClassicalType term) => null!;
-
-    public BoolType LowerThan(IClassicalType term) => null!;
-
-    public BoolType LowerEqualThan(IClassicalType term) => null!;
-
-    public BoolType GreaterThan(IClassicalType term) => null!;
-
-    public BoolType GreaterEqualThan(IClassicalType term) => null!;
-
-    public BoolType Equals(IClassicalType term) => null!;
-
-    public BoolType NotEquals(IClassicalType term) => null!;
-
-    public BoolType And(IClassicalType term) => null!;
-
-    public BoolType Or(IClassicalType term) => null!;
+    public BoolType Or(IClassicalType term) => new (this.Value || GetBoolValue(term));
 }
 
 public class IntType(int value) : IClassicalType
 {
     public int Value { get; set; } = value;
     public object GetValueAsObject() => Value;
+    public void SetValueFromObject(object value) => Value = (int)value;
     public static IntType GetDefaultValue() => new(0);
+    private static int GetIntValue(IClassicalType term) => ((IntType)term).Value;
 
-    public IQutesType LShift(IntType positions) => null!;
+    public IQutesType LeftShift(IntType positions) => new IntType(this.Value << GetIntValue(positions));
 
-    public IQutesType RShift(IntType positions) => null!;
+    public IQutesType RightShift(IntType positions) => new IntType(this.Value >> GetIntValue(positions));
 
-    public IQutesType Swap(IClassicalType positions) => null!;
+    public IQutesType Addition(IClassicalType term) => new IntType(this.Value + GetIntValue(term));
 
-    public IQutesType Addition(IClassicalType term) => null!;
+    public IQutesType Subtraction(IClassicalType term) => new IntType(this.Value - GetIntValue(term));
 
-    public IQutesType Subtraction(IClassicalType term) => null!;
+    public BoolType LowerThan(IClassicalType term) => new(this.Value < GetIntValue(term));
 
-    public BoolType LowerThan(IClassicalType term) => null!;
+    public BoolType LowerEqualThan(IClassicalType term) => new(this.Value <= GetIntValue(term));
 
-    public BoolType LowerEqualThan(IClassicalType term) => null!;
+    public BoolType GreaterThan(IClassicalType term) => new(this.Value > GetIntValue(term));
 
-    public BoolType GreaterThan(IClassicalType term) => null!;
+    public BoolType GreaterEqualThan(IClassicalType term) => new(this.Value >= GetIntValue(term));
 
-    public BoolType GreaterEqualThan(IClassicalType term) => null!;
+    public BoolType Equals(IClassicalType term) => new(this.Value == GetIntValue(term));
 
-    public BoolType Equals(IClassicalType term) => null!;
-
-    public BoolType NotEquals(IClassicalType term) => null!;
-
-    public BoolType And(IClassicalType term) => null!;
-
-    public BoolType Or(IClassicalType term) => null!;
+    public BoolType NotEquals(IClassicalType term) => new(this.Value != GetIntValue(term));
 }
 
 public class FloatType(float value) : IClassicalType
 {
     public float Value { get; set; } = value;
     public object GetValueAsObject() => Value;
+    public void SetValueFromObject(object value) => Value = (float)value;
     public static FloatType GetDefaultValue() => new(0f);
+    private static float GetFloatValue(IClassicalType term, [CallerMemberName] string operationName = "")
+    {
+        if (term is FloatType floatType)
+        {
+            return floatType.Value;
+        }
+        throw new InvalidOperationException($"Operation {operationName} cannot be applied to {term.GetType().Name} type.");
+    }
 
-    public IQutesType LShift(IntType positions) => null!;
+    public IQutesType Addition(IClassicalType term) => new FloatType(this.Value + GetFloatValue(term));
 
-    public IQutesType RShift(IntType positions) => null!;
+    public IQutesType Subtraction(IClassicalType term) => new FloatType(this.Value - GetFloatValue(term));
 
-    public IQutesType Swap(IClassicalType positions) => null!;
+    public BoolType LowerThan(IClassicalType term) => new(this.Value < GetFloatValue(term));
 
-    public IQutesType Addition(IClassicalType term) => null!;
+    public BoolType LowerEqualThan(IClassicalType term) => new(this.Value <= GetFloatValue(term));
 
-    public IQutesType Subtraction(IClassicalType term) => null!;
+    public BoolType GreaterThan(IClassicalType term) => new(this.Value > GetFloatValue(term));
 
-    public BoolType LowerThan(IClassicalType term) => null!;
+    public BoolType GreaterEqualThan(IClassicalType term) => new(this.Value >= GetFloatValue(term));
 
-    public BoolType LowerEqualThan(IClassicalType term) => null!;
+    public BoolType Equals(IClassicalType term) => new(this.Value == GetFloatValue(term));
 
-    public BoolType GreaterThan(IClassicalType term) => null!;
-
-    public BoolType GreaterEqualThan(IClassicalType term) => null!;
-
-    public BoolType Equals(IClassicalType term) => null!;
-
-    public BoolType NotEquals(IClassicalType term) => null!;
-
-    public BoolType And(IClassicalType term) => null!;
-
-    public BoolType Or(IClassicalType term) => null!;
+    public BoolType NotEquals(IClassicalType term) => new(this.Value != GetFloatValue(term));
 }
 
 public class StringType(string value) : IClassicalType
 {
     public string Value { get; set; } = value;
     public object GetValueAsObject() => Value;
+    public void SetValueFromObject(object value) => Value = (string)value;
     public static StringType GetDefaultValue() => new("");
+    private static string GetStringValue(IClassicalType term, [CallerMemberName] string operationName = "")
+    {
+        if (term is StringType stringType)
+        {
+            return stringType.Value;
+        }
+        throw new InvalidOperationException($"Operation {operationName} cannot be applied to {term.GetType().Name} type.");
+    }
 
-    public IQutesType LShift(IntType positions) => null!;
+    public IQutesType LeftShift(IntType positions)
+    {
+        var n = positions.Value % this.Value.Length;
+        var result = this.Value[n..] + this.Value[..n].Reverse();
+        return new StringType(result);
+    }
 
-    public IQutesType RShift(IntType positions) => null!;
+    public IQutesType RightShift(IntType positions)
+    {
+        var n = positions.Value % this.Value.Length;
+        var result = this.Value[^n..] + this.Value[..^n];
+        return new StringType(result);
+    }
 
-    public IQutesType Swap(IClassicalType positions) => null!;
+    public IQutesType Addition(IClassicalType term) => new StringType(this.Value + GetStringValue(term));
 
-    public IQutesType Addition(IClassicalType term) => null!;
+    public IQutesType Subtraction(IClassicalType term) => new StringType(this.Value.Replace(GetStringValue(term), string.Empty));
 
-    public IQutesType Subtraction(IClassicalType term) => null!;
+    public BoolType LowerThan(IClassicalType term) => new (string.Compare(this.Value, GetStringValue(term)) < 0);
 
-    public BoolType LowerThan(IClassicalType term) => null!;
+    public BoolType LowerEqualThan(IClassicalType term) => new (string.Compare(this.Value, GetStringValue(term)) <= 0);
 
-    public BoolType LowerEqualThan(IClassicalType term) => null!;
+    public BoolType GreaterThan(IClassicalType term) => new (string.Compare(this.Value, GetStringValue(term)) > 0);
 
-    public BoolType GreaterThan(IClassicalType term) => null!;
+    public BoolType GreaterEqualThan(IClassicalType term) => new (string.Compare(this.Value, GetStringValue(term)) >= 0);
 
-    public BoolType GreaterEqualThan(IClassicalType term) => null!;
+    public BoolType Equals(IClassicalType term) => new (this.Value == GetStringValue(term));
 
-    public BoolType Equals(IClassicalType term) => null!;
-
-    public BoolType NotEquals(IClassicalType term) => null!;
-
-    public BoolType And(IClassicalType term) => null!;
-
-    public BoolType Or(IClassicalType term) => null!;
+    public BoolType NotEquals(IClassicalType term) => new (this.Value != GetStringValue(term));
 }
 
 public class ClassicalArrayType(IEnumerable<Symbol> values) : IClassicalType
 {
-    public IEnumerable<Symbol> Values { get; } = values;
+    public IEnumerable<Symbol> Values { get; private set; } = values;
     public object GetValueAsObject() => Values;
+    public void SetValueFromObject(object value) => Values = (IEnumerable<Symbol>)value;
     public static ClassicalArrayType GetDefaultValue() => new([]);
+    private static IEnumerable<Symbol> GetArrayValues(IClassicalType term, [CallerMemberName] string operationName = "") 
+    {
+        if (term is ClassicalArrayType arrayType)
+        {
+            return arrayType.Values;
+        }
+        throw new InvalidOperationException($"Operation {operationName} cannot be applied to {term.GetType().Name} type.");
+    }
 
-    public IQutesType LShift(IntType positions) => null!;
+    public IQutesType LeftShift(IntType positions)
+    {
+        var n = positions.Value % Values.Count();
+        var result = GetArrayValues(this).Skip(n).Concat(GetArrayValues(this).Take(n).Reverse());
+        return new ClassicalArrayType(result);
+    }
 
-    public IQutesType RShift(IntType positions) => null!;
+    public IQutesType RightShift(IntType positions)
+    {
+        var n = positions.Value % Values.Count();
+        var result = GetArrayValues(this).Skip(Values.Count() - n).Concat(GetArrayValues(this).Take(Values.Count() - n));
+        return new ClassicalArrayType(result);
+    }
 
-    public IQutesType Swap(IClassicalType positions) => null!;
+    public IQutesType Addition(IClassicalType term) => new ClassicalArrayType(GetArrayValues(this).Concat(GetArrayValues(term)));
 
-    public IQutesType Addition(IClassicalType term) => null!;
+    public IQutesType Subtraction(IClassicalType term) => new ClassicalArrayType(GetArrayValues(this).Except(GetArrayValues(term)));
 
-    public IQutesType Subtraction(IClassicalType term) => null!;
+    public BoolType Equals(IClassicalType term) => new(!GetArrayValues(term).Any() && !GetArrayValues(term).Except(Values).Any());
 
-    public BoolType LowerThan(IClassicalType term) => null!;
-
-    public BoolType LowerEqualThan(IClassicalType term) => null!;
-
-    public BoolType GreaterThan(IClassicalType term) => null!;
-
-    public BoolType GreaterEqualThan(IClassicalType term) => null!;
-
-    public BoolType Equals(IClassicalType term) => null!;
-
-    public BoolType NotEquals(IClassicalType term) => null!;
-
-    public BoolType And(IClassicalType term) => null!;
-
-    public BoolType Or(IClassicalType term) => null!;
+    public BoolType NotEquals(IClassicalType term) => new(GetArrayValues(term).Any() || GetArrayValues(term).Except(Values).Any());
 }
 
 public class QubitType(string initialValue) : IQuantumType
 {
-    public int Size { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-    public IEnumerable<CircuitQubit?> Qubits { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public int Size { get; } = 1;
+    public IEnumerable<CircuitQubit?> Qubits { get; } = [new()];
 
     public static QubitType GetDefaultValue() => new ("0q");
 
-    public CircuitOperation Addition(IQuantumType term) => null!;
-
-    public CircuitOperation And(IQuantumType positions) => null!;
-
-    public CircuitOperation Equals(IQuantumType positions) => null!;
-
-    public CircuitOperation GreaterEqualThan(IQuantumType term) => null!;
-
-    public CircuitOperation GreaterThan(IQuantumType term) => null!;
-
-    public CircuitOperation LowerEqualThan(IQuantumType term) => null!;
-
-    public CircuitOperation LowerThan(IQuantumType term) => null!;
-
-    public CircuitOperation LShift(QuintType positions) => null!;
-
-    public CircuitOperation NotEquals(IQuantumType positions) => null!;
-
-    public CircuitOperation Or(IQuantumType positions) => null!;
-
-    public CircuitOperation RShift(QuintType positions) => null!;
-
-    public CircuitOperation Subtraction(IQuantumType term) => null!;
-
-    public CircuitOperation Swap(IQuantumType positions) => null!;
+    public CircuitOperation And(IQuantumType term) => new And(this, term, QubitType.GetDefaultValue());
+    public CircuitOperation Or(IQuantumType term) => new Or(this, term, QubitType.GetDefaultValue());
 }
 
 public class QuintType(string initialValue) : IQuantumType
 {
-    public int Size { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-    public IEnumerable<CircuitQubit?> Qubits { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public const int _size = 3;
+    public int Size { get; } = _size;
+    public IEnumerable<CircuitQubit?> Qubits { get; } = Enumerable.Repeat<CircuitQubit>(new(), _size);
 
     public static QuintType GetDefaultValue() => new ("0q");
 
-    public CircuitOperation Addition(IQuantumType term) => null!;
+    public CircuitOperation Addition(IQuantumType term) => new Addition(this, term, QuintType.GetDefaultValue());
+    public CircuitOperation Subtraction(IQuantumType term) => new Subtraction(this, term, QuintType.GetDefaultValue());
 
-    public CircuitOperation And(IQuantumType positions) => null!;
-
-    public CircuitOperation Equals(IQuantumType positions) => null!;
-
-    public CircuitOperation GreaterEqualThan(IQuantumType term) => null!;
-
-    public CircuitOperation GreaterThan(IQuantumType term) => null!;
-
-    public CircuitOperation LowerEqualThan(IQuantumType term) => null!;
-
-    public CircuitOperation LowerThan(IQuantumType term) => null!;
-
-    public CircuitOperation LShift(QuintType positions) => null!;
-
-    public CircuitOperation NotEquals(IQuantumType positions) => null!;
-
-    public CircuitOperation Or(IQuantumType positions) => null!;
-
-    public CircuitOperation RShift(QuintType positions) => null!;
-
-    public CircuitOperation Subtraction(IQuantumType term) => null!;
-
-    public CircuitOperation Swap(IQuantumType positions) => null!;
+    public CircuitOperation LowerThan(IQuantumType term) => new LowerThan(this, term, QubitType.GetDefaultValue());
+    public CircuitOperation LowerEqualThan(IQuantumType term) => new LowerEqualThan(this, term, QubitType.GetDefaultValue());
+    public CircuitOperation GreaterThan(IQuantumType term) => new GreaterThan(this, term, QubitType.GetDefaultValue());
+    public CircuitOperation GreaterEqualThan(IQuantumType term) => new GreaterEqualThan(this, term, QubitType.GetDefaultValue());
 }
 
-public class QustringType(string initialValue) : IQuantumType
+public class QustringType(string initialValue) : IQuantumType //TODO: this is an array type, should inherit from QuantumArrayType?
 {
-    public int Size { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-    public IEnumerable<CircuitQubit?> Qubits { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public const int _size = 3;
+    public int Size { get; private set; } = _size;
+    public IEnumerable<CircuitQubit?> Qubits { get; private set; } = Enumerable.Repeat<CircuitQubit>(new(), _size);
 
     public static QustringType GetDefaultValue() => new ("0");
 
-    public CircuitOperation Addition(IQuantumType term) => null!;
+    public CircuitOperation LeftShift(QuintType positions) => new LeftShift(this, positions);
+    public CircuitOperation RightShift(QuintType positions) => new RightShift(this, positions);
 
-    public CircuitOperation And(IQuantumType positions) => null!;
+    public CircuitOperation Addition(IQuantumType term)
+    {
+        var concatQustring = new QustringType(string.Empty) { Qubits = this.Qubits.Concat(term.Qubits) };
+        Size = concatQustring.Qubits.Count();
+        return new Empty(concatQustring);
+    }
 
-    public CircuitOperation Equals(IQuantumType positions) => null!;
-
-    public CircuitOperation GreaterEqualThan(IQuantumType term) => null!;
-
-    public CircuitOperation GreaterThan(IQuantumType term) => null!;
-
-    public CircuitOperation LowerEqualThan(IQuantumType term) => null!;
-
-    public CircuitOperation LowerThan(IQuantumType term) => null!;
-
-    public CircuitOperation LShift(QuintType positions) => null!;
-
-    public CircuitOperation NotEquals(IQuantumType positions) => null!;
-
-    public CircuitOperation Or(IQuantumType positions) => null!;
-
-    public CircuitOperation RShift(QuintType positions) => null!;
-
-    public CircuitOperation Subtraction(IQuantumType term) => null!;
-
-    public CircuitOperation Swap(IQuantumType positions) => null!;
+    public CircuitOperation LowerThan(IQuantumType term) => new LowerThan(this, term, QubitType.GetDefaultValue());
+    public CircuitOperation LowerEqualThan(IQuantumType term) => new LowerEqualThan(this, term, QubitType.GetDefaultValue());
+    public CircuitOperation GreaterThan(IQuantumType term) => new GreaterThan(this, term, QubitType.GetDefaultValue());
+    public CircuitOperation GreaterEqualThan(IQuantumType term) => new GreaterEqualThan(this, term, QubitType.GetDefaultValue());
 }
 
 public class QuantumArrayType(IEnumerable<Symbol> values) : IQuantumType
 {
-    public int Size { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-    public IEnumerable<CircuitQubit?> Qubits { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public const int _size = 3; //TODO: depends on values type size.
+    public int Size { get; private set; } = _size;
+    public IEnumerable<CircuitQubit?> Qubits { get; private set; } = Enumerable.Repeat<CircuitQubit>(new(), _size);
 
     public static QuantumArrayType GetDefaultValue() => new([]);
 
-    public CircuitOperation Addition(IQuantumType term) => null!;
+    public CircuitOperation LeftShift(QuintType positions) => new LeftShift(this, positions);
+    public CircuitOperation RightShift(QuintType positions) => new RightShift(this, positions);
 
-    public CircuitOperation And(IQuantumType positions) => null!;
-
-    public CircuitOperation Equals(IQuantumType positions) => null!;
-
-    public CircuitOperation GreaterEqualThan(IQuantumType term) => null!;
-
-    public CircuitOperation GreaterThan(IQuantumType term) => null!;
-
-    public CircuitOperation LowerEqualThan(IQuantumType term) => null!;
-
-    public CircuitOperation LowerThan(IQuantumType term) => null!;
-
-    public CircuitOperation LShift(QuintType positions) => null!;
-
-    public CircuitOperation NotEquals(IQuantumType positions) => null!;
-
-    public CircuitOperation Or(IQuantumType positions) => null!;
-
-    public CircuitOperation RShift(QuintType positions) => null!;
-
-    public CircuitOperation Subtraction(IQuantumType term) => null!;
-
-    public CircuitOperation Swap(IQuantumType positions) => null!;
+    public CircuitOperation Addition(IQuantumType term){
+        var concatArray = new QuantumArrayType([]) { Qubits = this.Qubits.Concat(term.Qubits) };
+        Size = concatArray.Qubits.Count();
+        return new Empty(concatArray);
+    }
 }

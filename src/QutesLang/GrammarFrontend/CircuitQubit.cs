@@ -2,5 +2,5 @@
 
 public class CircuitQubit()
 {
-    public string Id { get; set; } = Guid.NewGuid().ToString();
+    public string Id { get; set; } = VariableNameGuid.New();
 }
