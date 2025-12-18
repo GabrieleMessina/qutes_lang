@@ -27,7 +27,7 @@ public class CNOT(IQuantumType control, IQuantumType target) : CircuitOperation
 
     public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
     {
-        stringBuilder.AppendLine($"{circuitName}.cx({control.QubitStringList},{target.QubitStringList})");
+        stringBuilder.AppendLine($"{circuitName}.cx([{control.QubitStringList}],[{target.QubitStringList}])");
     }
 }
 public class Hadamard(IQuantumType target) : CircuitOperation
@@ -36,7 +36,7 @@ public class Hadamard(IQuantumType target) : CircuitOperation
 
     public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
     {
-        stringBuilder.AppendLine($"{circuitName}.h({target.QubitStringList})");
+        stringBuilder.AppendLine($"{circuitName}.h([{target.QubitStringList}])");
     }
 }
 public class PauliY(IQuantumType target) : CircuitOperation
@@ -45,7 +45,7 @@ public class PauliY(IQuantumType target) : CircuitOperation
 
     public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
     {
-        stringBuilder.AppendLine($"{circuitName}.y({target.QubitStringList})");
+        stringBuilder.AppendLine($"{circuitName}.y([{target.QubitStringList}])");
     }
 }
 public class PauliZ(IQuantumType target) : CircuitOperation
@@ -54,7 +54,7 @@ public class PauliZ(IQuantumType target) : CircuitOperation
 
     public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
     {
-        stringBuilder.AppendLine($"{circuitName}.z({target.QubitStringList})");
+        stringBuilder.AppendLine($"{circuitName}.z([{target.QubitStringList}])");
     }
 }
 public class Measure(IQuantumType target) : CircuitOperation
@@ -63,7 +63,36 @@ public class Measure(IQuantumType target) : CircuitOperation
 
     public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
     {
-        stringBuilder.AppendLine($"{circuitName}.measure({target.QubitStringList})");
+        //TODO: we need to define classical bits to measure into. 
+        stringBuilder.AppendLine($"{circuitName}.measure([{target.QubitStringList}])");
+    }
+}
+public class MeasureAll() : CircuitOperation
+{
+    public override IQuantumType Destination => null!;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        stringBuilder.AppendLine($"{circuitName}.measure_all()");
+    }
+}
+public class BarrierAll() : CircuitOperation
+{
+    public override IQuantumType Destination => null!;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        stringBuilder.AppendLine($"{circuitName}.barrier()");
+    }
+}
+public class Barrier(IEnumerable<IQuantumType> targets) : CircuitOperation
+{
+    public override IQuantumType Destination => null!;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        var targetList = string.Join(",", targets.Select(t => t.QubitStringList));
+        stringBuilder.AppendLine($"{circuitName}.barrier([{targetList}])");
     }
 }
 public class MCP(IEnumerable<IQuantumType> controls, IQuantumType target, FloatType rotationAngle) : CircuitOperation
@@ -73,7 +102,7 @@ public class MCP(IEnumerable<IQuantumType> controls, IQuantumType target, FloatT
     public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
     {
         var controlList = string.Join(",", controls.Select(c => c.QubitStringList));
-        stringBuilder.AppendLine($"{circuitName}.mcp({rotationAngle.Value},[{controlList}],{target.QubitStringList})");
+        stringBuilder.AppendLine($"{circuitName}.mcp({rotationAngle.Value},[{controlList}],[{target.QubitStringList}])");
     }
 }
 public class MCX(IEnumerable<IQuantumType> controls, IQuantumType target) : CircuitOperation
@@ -82,8 +111,9 @@ public class MCX(IEnumerable<IQuantumType> controls, IQuantumType target) : Circ
 
     public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
     {
+        //TODO: qiskit doesn't handle case where both control and target are lists with more than 1 element. (true for all Multi Controlled Gate and Swap)
         var controlList = string.Join(",", controls.Select(c => c.QubitStringList));
-        stringBuilder.AppendLine($"{circuitName}.mcx([{controlList}],{target.QubitStringList})");
+        stringBuilder.AppendLine($"{circuitName}.mcx([{controlList}],[{target.QubitStringList}])");
     }
 }
 public class MCY(IEnumerable<IQuantumType> controls, IQuantumType target) : CircuitOperation
@@ -93,7 +123,7 @@ public class MCY(IEnumerable<IQuantumType> controls, IQuantumType target) : Circ
     public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
     {
         var controlList = string.Join(",", controls.Select(c => c.QubitStringList));
-        stringBuilder.AppendLine($"{circuitName}.mcy([{controlList}],{target.QubitStringList})");
+        stringBuilder.AppendLine($"{circuitName}.mcy([{controlList}], [{target.QubitStringList}])");
     }
 }
 public class MCZ(IEnumerable<IQuantumType> controls, IQuantumType target) : CircuitOperation
@@ -103,7 +133,7 @@ public class MCZ(IEnumerable<IQuantumType> controls, IQuantumType target) : Circ
     public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
     {
         var controlList = string.Join(",", controls.Select(c => c.QubitStringList));
-        stringBuilder.AppendLine($"{circuitName}.mcz([{controlList}],{target.QubitStringList})");
+        stringBuilder.AppendLine($"{circuitName}.mcz([{controlList}], [{target.QubitStringList}])");
     }
 }
 public class Swap(IQuantumType a, IQuantumType b) : CircuitOperation
@@ -112,7 +142,17 @@ public class Swap(IQuantumType a, IQuantumType b) : CircuitOperation
 
     public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
     {
-        stringBuilder.AppendLine($"{circuitName}.swap({a.QubitStringList}, {b.QubitStringList})");
+        stringBuilder.AppendLine($"{circuitName}.swap([{a.QubitStringList}], [{b.QubitStringList}])");
+    }
+}
+public class MultiSwap(IEnumerable<IQuantumType> controls, IQuantumType target) : CircuitOperation
+{
+    public override IQuantumType Destination => target;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        var controlList = string.Join(",", controls.Select(c => c.QubitStringList));
+        stringBuilder.AppendLine($"{circuitName}.swap([{controlList}], [{target.QubitStringList}])");
     }
 }
 public class Or(IQuantumType a, IQuantumType b, IQuantumType destination) : CircuitOperation
@@ -131,6 +171,15 @@ public class And(IQuantumType a, IQuantumType b, IQuantumType destination) : Cir
     public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
     {
         //TODO: implemement quantum AND operation.
+    }
+}
+public class Not(IQuantumType a, IQuantumType b, IQuantumType destination) : CircuitOperation
+{
+    public override IQuantumType Destination => destination;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        //TODO: implemement quantum NOT operation.
     }
 }
 public class Equals(IQuantumType a, IQuantumType b, IQuantumType destination) : CircuitOperation
@@ -247,5 +296,59 @@ public class Subtraction(IQuantumType a, IQuantumType b, IQuantumType destinatio
     public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
     {
         //TODO: implemement quantum subtraction operation.
+    }
+}
+public class Multiply(IQuantumType a, IQuantumType b, IQuantumType destination) : CircuitOperation
+{
+    public override IQuantumType Destination => destination;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        //TODO: implemement quantum Multiply operation.
+    }
+}
+public class Divide(IQuantumType a, IQuantumType b, IQuantumType destination) : CircuitOperation
+{
+    public override IQuantumType Destination => destination;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        //TODO: implemement quantum Divide operation.
+    }
+}
+public class Module(IQuantumType a, IQuantumType b, IQuantumType destination) : CircuitOperation
+{
+    public override IQuantumType Destination => destination;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        //TODO: implemement quantum Module operation.
+    }
+}
+public class Opposite(IQuantumType a, IQuantumType destination) : CircuitOperation
+{
+    public override IQuantumType Destination => destination;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        //TODO: implemement quantum Opposite operation.
+    }
+}
+public class Increment(IQuantumType a, IQuantumType destination, int amount = 1) : CircuitOperation
+{
+    public override IQuantumType Destination => destination;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        //TODO: implemement quantum Increment operation.
+    }
+}
+public class Decrement(IQuantumType a, IQuantumType destination, int amount = 1) : CircuitOperation
+{
+    public override IQuantumType Destination => destination;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        //TODO: implemement quantum Decrement operation.
     }
 }

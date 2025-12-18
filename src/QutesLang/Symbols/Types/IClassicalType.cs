@@ -22,9 +22,14 @@ public interface IClassicalType : IQutesType
         return this;
     }
 
+    // Arithmetic operations
     IQutesType Addition(IClassicalType term) => throw new InvalidOperationException($"Operator {nameof(Addition)} cannot be applied to {this.GetType().Name} and {term.GetType().Name}.");
     IQutesType Subtraction(IClassicalType term) => throw new InvalidOperationException($"Operator {nameof(Subtraction)} cannot be applied to {this.GetType().Name} and {term.GetType().Name}.");
+    IQutesType Multiply(IClassicalType term) => throw new InvalidOperationException($"Operator {nameof(Multiply)} cannot be applied to {this.GetType().Name} and {term.GetType().Name}.");
+    IQutesType Divide(IClassicalType term) => throw new InvalidOperationException($"Operator {nameof(Divide)} cannot be applied to {this.GetType().Name} and {term.GetType().Name}.");
+    IQutesType Module(IClassicalType term) => throw new InvalidOperationException($"Operator {nameof(Module)} cannot be applied to {this.GetType().Name} and {term.GetType().Name}.");
 
+    // Comparison operations
     BoolType LowerThan(IClassicalType term) => throw new InvalidOperationException($"Operator {nameof(LowerThan)} cannot be applied to {this.GetType().Name} and {term.GetType().Name}.");
     BoolType LowerEqualThan(IClassicalType term) => throw new InvalidOperationException($"Operator {nameof(LowerEqualThan)} cannot be applied to {this.GetType().Name} and {term.GetType().Name}.");
     BoolType GreaterThan(IClassicalType term) => throw new InvalidOperationException($"Operator {nameof(GreaterThan)} cannot be applied to {this.GetType().Name} and {term.GetType().Name}.");
@@ -49,7 +54,17 @@ public interface IClassicalType : IQutesType
         return new BoolType(a.Equals(b) == false);
     }
 
+    // Logical operations
     BoolType And(IClassicalType term) => throw new InvalidOperationException($"Operator {nameof(And)} cannot be applied to {this.GetType().Name} and {term.GetType().Name}.");
     BoolType Or(IClassicalType term) => throw new InvalidOperationException($"Operator {nameof(Or)} cannot be applied to {this.GetType().Name} and {term.GetType().Name}.");
+    BoolType Not() => throw new InvalidOperationException($"Operator {nameof(Not)} cannot be applied to {this.GetType().Name}.");
+
+    // Unary operations
+    IQutesType Plus() => this;
+    IQutesType Minus() => throw new InvalidOperationException($"Operator {nameof(Minus)} cannot be applied to {this.GetType().Name}.");
+    IQutesType InplacePreIncrement() => throw new InvalidOperationException($"Operator {nameof(InplacePreIncrement)} cannot be applied to {this.GetType().Name}.");
+    IQutesType InplacePostIncrement() => throw new InvalidOperationException($"Operator {nameof(InplacePostIncrement)} cannot be applied to {this.GetType().Name}.");
+    IQutesType InplacePreDecrement() => throw new InvalidOperationException($"Operator {nameof(InplacePreDecrement)} cannot be applied to {this.GetType().Name}.");
+    IQutesType InplacePostDecrement() => throw new InvalidOperationException($"Operator {nameof(InplacePostDecrement)} cannot be applied to {this.GetType().Name}.");
     #endregion Operations
 }

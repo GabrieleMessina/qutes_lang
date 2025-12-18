@@ -73,34 +73,70 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
         return base.VisitAssignmentStatement(context);
     }
 
-    public override Symbol VisitReturnStatement(qutes_parser.ReturnStatementContext context)
-    {
-        return base.VisitReturnStatement(context);
-    }
-
+    // ReSharper disable once RedundantOverriddenMember
     public override Symbol VisitExpressionStatement(qutes_parser.ExpressionStatementContext context)
     {
-        return base.VisitExpressionStatement(context);
+        return base.VisitExpressionStatement(context); //return the visited expr symbol
     }
 
     public override Symbol VisitFactStatement(qutes_parser.FactStatementContext context)
     {
-        return base.VisitFactStatement(context);
+        if (context.MEASURE() != null)
+        {
+            circuitHandler.PushOperation(new MeasureAll());
+        }
+        else if (context.BARRIER() != null)
+        {
+            circuitHandler.PushOperation(new BarrierAll());
+        }
+        else if (context.PRINT() != null)
+        {
+            //print all variable, both quantum and classics from symbol table
+            foreach (var symbol in scopeHandler.GetCurrentScope().SymbolTable.Values)
+            {
+                if (symbol is ValueSymbol valueSymbol)
+                {
+                    switch (valueSymbol.Value)
+                    {
+                        case IQuantumType quantumType:
+                            Console.WriteLine($"{quantumType.GetType().Name} '{valueSymbol.QualifiedName}': {quantumType.QubitStringList}");
+                            break;
+                        case IClassicalType classicalType:
+                            Console.WriteLine($"{classicalType.GetType().Name} '{valueSymbol.QualifiedName}': {classicalType.GetValueAsObject()}");
+                            break;
+                    }
+                }
+            }
+        }
+        else
+        {
+            throw new InvalidOperationException($"Unknown operator '{context.GetChild(0).GetText()}'.");
+        }
+
+        return null!;
     }
 
     public override Symbol VisitEmptyStatement(qutes_parser.EmptyStatementContext context)
     {
-        return base.VisitEmptyStatement(context);
+        return null!;
     }
 
+    // ReSharper disable once RedundantOverriddenMember
+    public override Symbol VisitExpOperator(qutes_parser.ExpOperatorContext context)
+    {
+        return base.VisitExpOperator(context); //return the specific expr child type symbol
+    }
+
+    // ReSharper disable once RedundantOverriddenMember
     public override Symbol VisitParentesizeExpression(qutes_parser.ParentesizeExpressionContext context)
     {
-        return base.VisitParentesizeExpression(context);
+        return base.VisitParentesizeExpression(context); //return the visited inner expr symbol
     }
 
+    // ReSharper disable once RedundantOverriddenMember
     public override Symbol VisitLiteralExpression(qutes_parser.LiteralExpressionContext context)
     {
-        return base.VisitLiteralExpression(context);
+        return base.VisitLiteralExpression(context); //return the visited literal symbol
     }
 
     public override Symbol VisitQualifiedNameExpression(qutes_parser.QualifiedNameExpressionContext context)
@@ -118,39 +154,139 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
         }
     }
 
+    // ReSharper disable once RedundantOverriddenMember
     public override Symbol VisitArrayExpression(qutes_parser.ArrayExpressionContext context)
     {
-        return base.VisitArrayExpression(context);
+        return base.VisitArrayExpression(context); //return the visited ArrayLiteral symbol
     }
 
     public override Symbol VisitFunctionCallExpression(qutes_parser.FunctionCallExpressionContext context)
     {
+        //TODO: implement function call visitor
         return base.VisitFunctionCallExpression(context);
     }
 
+    public override Symbol VisitReturnStatement(qutes_parser.ReturnStatementContext context)
+    {
+        //TODO: implement function return statement
+        return base.VisitReturnStatement(context);
+    }
+
+    // ReSharper disable once RedundantOverriddenMember
     public override Symbol VisitArrayAccessExpression(qutes_parser.ArrayAccessExpressionContext context)
     {
-        return base.VisitArrayAccessExpression(context);
+        return base.VisitArrayAccessExpression(context); //return the visited ArrayAccess symbol
     }
 
     public override Symbol VisitPostfixOperator(qutes_parser.PostfixOperatorContext context)
     {
-        return base.VisitPostfixOperator(context);
-    }
+        Guard.IsOfType<ValueSymbol>(context.expr());
+        var targetSymbol = (ValueSymbol)Visit(context.expr());
 
-    public override Symbol VisitExpOperator(qutes_parser.ExpOperatorContext context)
-    {
-        return base.VisitExpOperator(context);
+        switch (targetSymbol.Value)
+        {
+            case IQuantumType leftValue:
+                {
+                    var operation
+                       = context.AUTO_INCREMENT() != null ? leftValue.InplacePostIncrement()
+                       : context.AUTO_DECREMENT() != null ? leftValue.InplacePostDecrement()
+                       : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
+                    var destinationSymbol = new AnonymousValueSymbol(operation.Destination, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+                    circuitHandler.PushOperation(operation);
+                    return destinationSymbol;
+                }
+
+            case IClassicalType leftValue:
+                {
+                    var result
+                        = context.AUTO_INCREMENT() != null ? leftValue.InplacePostIncrement()
+                        : context.AUTO_DECREMENT() != null ? leftValue.InplacePostDecrement()
+                        : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
+                    return new AnonymousValueSymbol(result, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+                }
+
+            default:
+                throw new InvalidOperationException($"Cannot apply operator '{context.op.Text}' to type '{targetSymbol.Value.GetType().Name}'.");
+        }
     }
 
     public override Symbol VisitPrefixOperator(qutes_parser.PrefixOperatorContext context)
     {
-        return base.VisitPrefixOperator(context);
+        Guard.IsOfType<ValueSymbol>(context.expr());
+        var targetSymbol = (ValueSymbol)Visit(context.expr());
+
+        switch (targetSymbol.Value)
+        {
+            case IQuantumType leftValue:
+                {
+                    var operation
+                       = context.NOT() != null ? leftValue.Not()
+                       : context.ADD() != null ? leftValue.Plus()
+                       : context.SUB() != null ? leftValue.Minus()
+                       : context.AUTO_INCREMENT() != null ? leftValue.InplacePreIncrement()
+                       : context.AUTO_DECREMENT() != null ? leftValue.InplacePreDecrement()
+                       : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
+                    var destinationSymbol = new AnonymousValueSymbol(operation.Destination, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+                    circuitHandler.PushOperation(operation);
+                    return destinationSymbol;
+                }
+
+            case IClassicalType leftValue:
+                {
+                    var result
+                        = context.NOT() != null ? leftValue.Not()
+                        : context.ADD() != null ? leftValue.Plus()
+                        : context.SUB() != null ? leftValue.Minus()
+                        : context.AUTO_INCREMENT() != null ? leftValue.InplacePreIncrement()
+                        : context.AUTO_DECREMENT() != null ? leftValue.InplacePreDecrement()
+                        : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
+                    return new AnonymousValueSymbol(result, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+                }
+
+            default:
+                throw new InvalidOperationException($"Cannot apply operator '{context.op.Text}' to type '{targetSymbol.Value.GetType().Name}'.");
+        }
     }
 
     public override Symbol VisitMultiplicativeOperator(qutes_parser.MultiplicativeOperatorContext context)
     {
-        return base.VisitMultiplicativeOperator(context);
+        Guard.IsOfType<ValueSymbol>(context.expr(0));
+        var leftSymbol = (ValueSymbol)Visit(context.expr(0));
+        Guard.IsOfType<ValueSymbol>(context.expr(1));
+        var RightSymbol = (ValueSymbol)Visit(context.expr(1));
+
+        if (leftSymbol.Value.GetType() != RightSymbol.Value.GetType())
+        {
+            throw new InvalidOperationException($"Cannot apply logical operator '{context.op.Text}' between different types '{leftSymbol.Value.GetType().Name}' and '{RightSymbol.Value.GetType().Name}'.");
+        }
+
+        switch (leftSymbol.Value)
+        {
+            case IQuantumType leftValue when RightSymbol.Value is IQuantumType rightValue:
+                {
+                    var operation
+                       = context.MULTIPLY() != null ? leftValue.Addition(rightValue)
+                       : context.DIVIDE() != null ? leftValue.Subtraction(rightValue)
+                       : context.MODULE() != null ? leftValue.Subtraction(rightValue)
+                       : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
+                    var destinationSymbol = new AnonymousValueSymbol(operation.Destination, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+                    circuitHandler.PushOperation(operation);
+                    return destinationSymbol;
+                }
+
+            case IClassicalType leftValue when RightSymbol.Value is IClassicalType rightValue:
+                {
+                    var result
+                        = context.MULTIPLY() != null ? leftValue.Addition(rightValue)
+                        : context.DIVIDE() != null ? leftValue.Subtraction(rightValue)
+                        : context.MODULE() != null ? leftValue.Subtraction(rightValue)
+                        : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
+                    return new AnonymousValueSymbol(result, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+                }
+
+            default:
+                throw new InvalidOperationException($"Cannot apply operator '{context.op.Text}' to type '{leftSymbol.Value.GetType().Name}'.");
+        }
     }
 
     public override Symbol VisitSumOperator(qutes_parser.SumOperatorContext context)
@@ -162,7 +298,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
 
         if (leftSymbol.Value.GetType() != RightSymbol.Value.GetType())
         {
-            throw new InvalidOperationException($"Cannot apply logical operator '{context.GetChild(1).GetText()}' between different types '{leftSymbol.Value.GetType().Name}' and '{RightSymbol.Value.GetType().Name}'.");
+            throw new InvalidOperationException($"Cannot apply logical operator '{context.op.Text}' between different types '{leftSymbol.Value.GetType().Name}' and '{RightSymbol.Value.GetType().Name}'.");
         }
 
         switch (leftSymbol.Value)
@@ -172,7 +308,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
                     var operation
                        = context.ADD() != null ? leftValue.Addition(rightValue)
                        : context.SUB() != null ? leftValue.Subtraction(rightValue)
-                       : throw new InvalidOperationException($"Unknown operator '{context.GetChild(1).GetText()}'.");
+                       : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
                     var destinationSymbol = new AnonymousValueSymbol(operation.Destination, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
                     circuitHandler.PushOperation(operation);
                     return destinationSymbol;
@@ -183,12 +319,12 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
                     var result
                         = context.ADD() != null ? leftValue.Addition(rightValue)
                         : context.SUB() != null ? leftValue.Subtraction(rightValue)
-                        : throw new InvalidOperationException($"Unknown operator '{context.GetChild(1).GetText()}'.");
+                        : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
                     return new AnonymousValueSymbol(result, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
                 }
 
             default:
-                throw new InvalidOperationException($"Cannot apply operator '{context.GetChild(1).GetText()}' to type '{leftSymbol.Value.GetType().Name}'.");
+                throw new InvalidOperationException($"Cannot apply operator '{context.op.Text}' to type '{leftSymbol.Value.GetType().Name}'.");
         }
     }
 
@@ -206,7 +342,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
                     var operation
                         = context.LSHIFT() != null ? leftValue.LeftShift(rightValue)
                         : context.RSHIFT() != null ? leftValue.RightShift(rightValue)
-                        : throw new InvalidOperationException($"Unknown operator '{context.GetChild(1).GetText()}'.");
+                        : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
                     //TODO: we are assuming that the destination is a new anonymous variable, but in this case the operation happens inplace,
                     // we should assume to know this detail? or is it ok to create this new anon var?
                     var destinationSymbol = new AnonymousValueSymbol(operation.Destination, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
@@ -219,12 +355,12 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
                     var result
                         = context.LSHIFT() != null ? leftValue.LeftShift(rightValue)
                         : context.RSHIFT() != null ? leftValue.RightShift(rightValue)
-                        : throw new InvalidOperationException($"Unknown operator '{context.GetChild(1).GetText()}'.");
+                        : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
                     return new AnonymousValueSymbol(result, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
                 }
 
             default:
-                throw new InvalidOperationException($"Cannot apply operator '{context.GetChild(1).GetText()}' to type '{leftSymbol.Value.GetType().Name}'.");
+                throw new InvalidOperationException($"Cannot apply operator '{context.op.Text}' to type '{leftSymbol.Value.GetType().Name}'.");
         }
     }
 
@@ -235,7 +371,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
 
         if (leftSymbol.Value.GetType() != rightSymbol.Value.GetType())
         {
-            throw new InvalidOperationException($"Cannot apply operator '{context.GetChild(1).GetText()}' between different types '{leftSymbol.Value.GetType().Name}' and '{rightSymbol.Value.GetType().Name}'.");
+            throw new InvalidOperationException($"Cannot apply operator '{context.op.Text}' between different types '{leftSymbol.Value.GetType().Name}' and '{rightSymbol.Value.GetType().Name}'.");
         }
 
         switch (leftSymbol.Value)
@@ -247,7 +383,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
                         : context.LOWEREQUAL() != null ? leftValue.LowerEqualThan(rightValue)
                         : context.GREATER() != null ? leftValue.GreaterThan(rightValue)
                         : context.GREATEREQUAL() != null ? leftValue.GreaterEqualThan(rightValue)
-                        : throw new InvalidOperationException($"Unknown operator '{context.GetChild(1).GetText()}'.");
+                        : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
                     var destinationSymbol = new AnonymousValueSymbol(operation.Destination, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
                     circuitHandler.PushOperation(operation);
                     return destinationSymbol;
@@ -260,12 +396,12 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
                         : context.LOWEREQUAL() != null ? leftValue.LowerEqualThan(rightValue)
                         : context.GREATER() != null ? leftValue.GreaterThan(rightValue)
                         : context.GREATEREQUAL() != null ? leftValue.GreaterEqualThan(rightValue)
-                        : throw new InvalidOperationException($"Unknown operator '{context.GetChild(1).GetText()}'.");
+                        : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
                     return new AnonymousValueSymbol(result, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
                 }
 
             default:
-                throw new InvalidOperationException($"Cannot apply operator '{context.GetChild(1).GetText()}' to type '{leftSymbol.Value.GetType().Name}'.");
+                throw new InvalidOperationException($"Cannot apply operator '{context.op.Text}' to type '{leftSymbol.Value.GetType().Name}'.");
         }
     }
 
@@ -276,7 +412,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
 
         if (leftSymbol.Value.GetType() != rightSymbol.Value.GetType())
         {
-            throw new InvalidOperationException($"Cannot apply operator '{context.GetChild(1).GetText()}' between different types '{leftSymbol.Value.GetType().Name}' and '{rightSymbol.Value.GetType().Name}'.");
+            throw new InvalidOperationException($"Cannot apply operator '{context.op.Text}' between different types '{leftSymbol.Value.GetType().Name}' and '{rightSymbol.Value.GetType().Name}'.");
         }
 
         switch (leftSymbol.Value)
@@ -286,7 +422,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
                     var operation
                         = context.EQUAL() != null ? leftValue.Equals(rightValue)
                         : context.NOT_EQUAL() != null ? leftValue.NotEquals(rightValue)
-                        : throw new InvalidOperationException($"Unknown operator '{context.GetChild(1).GetText()}'.");
+                        : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
                     var destinationSymbol = new AnonymousValueSymbol(operation.Destination, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
                     circuitHandler.PushOperation(operation);
                     return destinationSymbol;
@@ -297,12 +433,12 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
                     var result
                         = context.EQUAL() != null ? leftValue.Equals(rightValue)
                         : context.NOT_EQUAL() != null ? leftValue.NotEquals(rightValue)
-                        : throw new InvalidOperationException($"Unknown operator '{context.GetChild(1).GetText()}'.");
+                        : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
                     return new AnonymousValueSymbol(result, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
                 }
 
             default:
-                throw new InvalidOperationException($"Cannot apply operator '{context.GetChild(1).GetText()}' to type '{leftSymbol.Value.GetType().Name}'.");
+                throw new InvalidOperationException($"Cannot apply operator '{context.op.Text}' to type '{leftSymbol.Value.GetType().Name}'.");
         }
     }
 
@@ -317,7 +453,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
                 {
                     var operation
                         = context.AND() != null ? leftValue.And(rightValue)
-                        : throw new InvalidOperationException($"Unknown operator '{context.GetChild(1).GetText()}'.");
+                        : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
                     var destinationSymbol = new AnonymousValueSymbol(operation.Destination, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
                     circuitHandler.PushOperation(operation);
                     return destinationSymbol;
@@ -327,12 +463,12 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
                 {
                     var result
                         = context.AND() != null ? leftValue.And(rightValue)
-                        : throw new InvalidOperationException($"Unknown operator '{context.GetChild(1).GetText()}'.");
+                        : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
                     return new AnonymousValueSymbol(result, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
                 }
 
             default:
-                throw new InvalidOperationException($"Cannot apply operator '{context.GetChild(1).GetText()}' to type '{leftSymbol.Value.GetType().Name}'.");
+                throw new InvalidOperationException($"Cannot apply operator '{context.op.Text}' to type '{leftSymbol.Value.GetType().Name}'.");
         }
     }
 
@@ -347,7 +483,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
                 {
                     var operation
                         = context.OR() != null ? leftValue.Or(rightValue)
-                        : throw new InvalidOperationException($"Unknown operator '{context.GetChild(1).GetText()}'.");
+                        : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
                     var destinationSymbol = new AnonymousValueSymbol(operation.Destination, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
                     circuitHandler.PushOperation(operation);
                     return destinationSymbol;
@@ -357,12 +493,12 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
                 {
                     var result
                         = context.OR() != null ? leftValue.Or(rightValue)
-                        : throw new InvalidOperationException($"Unknown operator '{context.GetChild(1).GetText()}'.");
+                        : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
                     return new AnonymousValueSymbol(result, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
                 }
 
             default:
-                throw new InvalidOperationException($"Cannot apply operator '{context.GetChild(1).GetText()}' to type '{leftSymbol.Value.GetType().Name}'.");
+                throw new InvalidOperationException($"Cannot apply operator '{context.op.Text}' to type '{leftSymbol.Value.GetType().Name}'.");
         }
     }
 
@@ -377,7 +513,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
                 {
                     var operation
                         = context.SWAP() != null ? firstValue.Swap(secondValue)
-                        : throw new InvalidOperationException($"Unknown operator '{context.GetChild(1).GetText()}'.");
+                        : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
                     var destinationSymbol = new AnonymousValueSymbol(operation.Destination, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
                     circuitHandler.PushOperation(operation);
                     return destinationSymbol;
@@ -387,12 +523,12 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
                 {
                     var result
                         = context.SWAP() != null ? leftValue.Swap(rightValue)
-                        : throw new InvalidOperationException($"Unknown operator '{context.GetChild(1).GetText()}'.");
+                        : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
                     return new AnonymousValueSymbol(result, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
                 }
 
             default:
-                throw new InvalidOperationException($"Cannot apply operator '{context.GetChild(1).GetText()}' to type '{firstSymbol.Value.GetType().Name}'.");
+                throw new InvalidOperationException($"Cannot apply operator '{context.op.Text}' to type '{firstSymbol.Value.GetType().Name}'.");
         }
     }
 
@@ -407,7 +543,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
             = context.MCX() != null ? new MCX(controls, target)
             : context.MCZ() != null ? new MCZ(controls, target)
             : context.MCY() != null ? new MCY(controls, target)
-            : throw new InvalidOperationException($"Unknown operator '{context.GetChild(1).GetText()}'.");
+            : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
         var destinationSymbol = new AnonymousValueSymbol(operation.Destination, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
         circuitHandler.PushOperation(operation);
         return destinationSymbol;
@@ -432,7 +568,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
                         : context.PAULIY() != null ? new PauliY(targetValue)
                         : context.PAULIZ() != null ? new PauliZ(targetValue)
                         : context.MEASURE() != null ? new Measure(targetValue)
-                        : throw new InvalidOperationException($"Unknown operator '{context.GetChild(1).GetText()}'.");
+                        : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
                     var destinationSymbol = new AnonymousValueSymbol(operation.Destination, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
                     circuitHandler.PushOperation(operation);
                     return destinationSymbol;
@@ -446,10 +582,10 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
                         return targetSymbol;
                     }
 
-                    throw new InvalidOperationException($"Cannot apply operator '{context.GetChild(1).GetText()}' to type '{targetSymbol.Value.GetType().Name}'.");
+                    throw new InvalidOperationException($"Cannot apply operator '{context.op.Text}' to type '{targetSymbol.Value.GetType().Name}'.");
                 }
             default:
-                throw new InvalidOperationException($"Cannot apply operator '{context.GetChild(1).GetText()}' to type '{targetSymbol.Value.GetType().Name}'.");
+                throw new InvalidOperationException($"Cannot apply operator '{context.op.Text}' to type '{targetSymbol.Value.GetType().Name}'.");
         }
     }
 
@@ -464,7 +600,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
 
         CircuitOperation operation
             = context.MCP() != null ? new MCP(controls, target, rotationValue)
-            : throw new InvalidOperationException($"Unknown operator '{context.GetChild(1).GetText()}'.");
+            : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
         var destinationSymbol = new AnonymousValueSymbol(operation.Destination, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
         circuitHandler.PushOperation(operation);
         return destinationSymbol;
@@ -521,7 +657,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
         
         if(valueSymbol.Value is IQuantumType quantumValue)
         {
-            circuitHandler.DeclareQuantumRegister(valueSymbol.QualifiedName, quantumValue.Qubits);
+            circuitHandler.DeclareQuantumRegister(namedSymbol.QualifiedName, quantumValue.Qubits);
         }
 
         return namedSymbol;
