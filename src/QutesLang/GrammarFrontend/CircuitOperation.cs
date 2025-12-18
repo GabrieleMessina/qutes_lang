@@ -39,6 +39,16 @@ public class Hadamard(IQuantumType target) : CircuitOperation
         stringBuilder.AppendLine($"{circuitName}.h([{target.QubitStringList}])");
     }
 }
+public class MultiHadamard(IEnumerable<IQuantumType> controls) : CircuitOperation
+{
+    public override IQuantumType Destination => null!;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        var controlList = string.Join(",", controls.Select(c => c.QubitStringList));
+        stringBuilder.AppendLine($"{circuitName}.h([{controlList}])");
+    }
+}
 public class PauliY(IQuantumType target) : CircuitOperation
 {
     public override IQuantumType Destination => target;
@@ -67,6 +77,16 @@ public class Measure(IQuantumType target) : CircuitOperation
         stringBuilder.AppendLine($"{circuitName}.measure([{target.QubitStringList}])");
     }
 }
+public class MultiMeasure(IEnumerable<IQuantumType> controls) : CircuitOperation
+{
+    public override IQuantumType Destination => null!;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        var controlList = string.Join(",", controls.Select(c => c.QubitStringList));
+        stringBuilder.AppendLine($"{circuitName}.measure([{controlList}])");
+    }
+}
 public class MeasureAll() : CircuitOperation
 {
     public override IQuantumType Destination => null!;
@@ -74,15 +94,6 @@ public class MeasureAll() : CircuitOperation
     public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
     {
         stringBuilder.AppendLine($"{circuitName}.measure_all()");
-    }
-}
-public class BarrierAll() : CircuitOperation
-{
-    public override IQuantumType Destination => null!;
-
-    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
-    {
-        stringBuilder.AppendLine($"{circuitName}.barrier()");
     }
 }
 public class Barrier(IEnumerable<IQuantumType> targets) : CircuitOperation
@@ -93,6 +104,25 @@ public class Barrier(IEnumerable<IQuantumType> targets) : CircuitOperation
     {
         var targetList = string.Join(",", targets.Select(t => t.QubitStringList));
         stringBuilder.AppendLine($"{circuitName}.barrier([{targetList}])");
+    }
+}
+public class MultiBarrier(IEnumerable<IQuantumType> controls) : CircuitOperation
+{
+    public override IQuantumType Destination => null!;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        var controlList = string.Join(",", controls.Select(c => c.QubitStringList));
+        stringBuilder.AppendLine($"{circuitName}.barrier([{controlList}])");
+    }
+}
+public class BarrierAll() : CircuitOperation
+{
+    public override IQuantumType Destination => null!;
+
+    public override void ApplyToQiskitCircuit(StringBuilder stringBuilder)
+    {
+        stringBuilder.AppendLine($"{circuitName}.barrier()");
     }
 }
 public class MCP(IEnumerable<IQuantumType> controls, IQuantumType target, FloatType rotationAngle) : CircuitOperation

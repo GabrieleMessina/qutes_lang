@@ -60,8 +60,8 @@ expr // Order: https://en.wikipedia.org/wiki/Order_of_operations#Programming_lan
    | expr op=AND expr #LogicAndOperator
    | expr op=OR expr #LogicOrOperator
    // Assignment and auto assignment operators | <assoc = right> expr op=(AUTO_SUM | AUTO_DECREMENT | AUTO_MODULE | AUTO_DIVIDE | AUTO_MODULE) expr #AutoAssignmentOperator
-   | op=(MCX | MCZ | MCY) termList #MultipleUnaryOperator
-   | op=SWAP expr COMMA expr #DoubleUnaryOperator
+   | op=(MCX | MCZ | MCY | HADAMARD | MEASURE | BARRIER | SWAP) termList #MultipleUnaryOperator
+   | op=(SWAP | CNOT) expr COMMA expr #DoubleUnaryOperator
    | op=(PRINT | PAULIY | PAULIZ | HADAMARD | MEASURE) expr #UnaryOperator
    | op=MCP termList BY expr #MultipleUnaryPhaseOperator
    | expr op=IN_STATEMENT qualifiedName #GroverOperator

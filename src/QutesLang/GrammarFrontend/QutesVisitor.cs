@@ -502,6 +502,26 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
         }
     }
 
+    public override Symbol VisitMultipleUnaryOperator(qutes_parser.MultipleUnaryOperatorContext context)
+    {
+        var termListSymbol = QutesLanguageGuard.IsAssignableToType<TupleSymbol>(Visit(context.termList()));
+        var termListValues = QutesLanguageGuard.AreAllAssignableToType<IQuantumType>(termListSymbol.Elements.Cast<ValueSymbol>().Select(e => e.Value));
+        var target = termListValues.Last();
+        var controls = termListValues.Take(termListSymbol.Elements.Count() - 1);
+
+        CircuitOperation operation
+            = context.MCX() != null ? new MCX(controls, target)
+            : context.MCZ() != null ? new MCZ(controls, target)
+            : context.SWAP() != null ? new MultiSwap(controls, target)
+            : context.HADAMARD() != null ? new MultiHadamard(termListValues)
+            : context.MEASURE() != null ? new MultiMeasure(termListValues)
+            : context.BARRIER() != null ? new MultiBarrier(termListValues)
+            : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
+        var destinationSymbol = new AnonymousValueSymbol(operation.Destination, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+        circuitHandler.PushOperation(operation);
+        return destinationSymbol;
+    }
+
     public override Symbol VisitDoubleUnaryOperator(qutes_parser.DoubleUnaryOperatorContext context)
     {
         var firstSymbol = QutesLanguageGuard.IsAssignableToType<ValueSymbol>(Visit(context.expr(0)));
@@ -513,16 +533,18 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
                 {
                     var operation
                         = context.SWAP() != null ? firstValue.Swap(secondValue)
+                        : context.CNOT() != null ? new CNOT(firstValue, secondValue)
                         : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
                     var destinationSymbol = new AnonymousValueSymbol(operation.Destination, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
                     circuitHandler.PushOperation(operation);
                     return destinationSymbol;
                 }
 
-            case IClassicalType leftValue when secondSymbol.Value is IClassicalType rightValue:
+            case IClassicalType firstValue when secondSymbol.Value is IClassicalType secondValue:
                 {
                     var result
-                        = context.SWAP() != null ? leftValue.Swap(rightValue)
+                        = context.SWAP() != null ? firstValue.Swap(secondValue)
+                        : context.CNOT() != null ? ((bool)firstValue.GetValueAsObject()) == true ? firstValue.Not() : secondValue
                         : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
                     return new AnonymousValueSymbol(result, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
                 }
@@ -530,23 +552,6 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
             default:
                 throw new InvalidOperationException($"Cannot apply operator '{context.op.Text}' to type '{firstSymbol.Value.GetType().Name}'.");
         }
-    }
-
-    public override Symbol VisitMultipleUnaryOperator(qutes_parser.MultipleUnaryOperatorContext context)
-    {
-        var termListSymbol = QutesLanguageGuard.IsAssignableToType<TupleSymbol>(Visit(context.termList()));
-        var termListSymbolValue = QutesLanguageGuard.AreAllAssignableToType<IQuantumType>(termListSymbol.Elements.Cast<ValueSymbol>().Select(e => e.Value));
-        var target = termListSymbolValue.Last();
-        var controls = termListSymbolValue.Take(termListSymbol.Elements.Count() - 1);
-
-        CircuitOperation operation 
-            = context.MCX() != null ? new MCX(controls, target)
-            : context.MCZ() != null ? new MCZ(controls, target)
-            : context.MCY() != null ? new MCY(controls, target)
-            : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
-        var destinationSymbol = new AnonymousValueSymbol(operation.Destination, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
-        circuitHandler.PushOperation(operation);
-        return destinationSymbol;
     }
 
     public override Symbol VisitUnaryOperator(qutes_parser.UnaryOperatorContext context)
@@ -594,9 +599,9 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
         var rotationSymbol = QutesLanguageGuard.IsAssignableToType<ValueSymbol>(Visit(context.expr()));
         var rotationValue = QutesLanguageGuard.IsAssignableToType<FloatType>(rotationSymbol.Value);
         var termListSymbol = QutesLanguageGuard.IsAssignableToType<TupleSymbol>(Visit(context.termList()));
-        var termListElements = QutesLanguageGuard.AreAllAssignableToType<IQuantumType>(termListSymbol.Elements.Cast<ValueSymbol>().Select(e => e.Value));
-        var controls = termListElements.Take(termListSymbol.Elements.Count() - 1);
-        var target = termListElements.Last();
+        var termListValues = QutesLanguageGuard.AreAllAssignableToType<IQuantumType>(termListSymbol.Elements.Cast<ValueSymbol>().Select(e => e.Value));
+        var controls = termListValues.Take(termListSymbol.Elements.Count() - 1);
+        var target = termListValues.Last();
 
         CircuitOperation operation
             = context.MCP() != null ? new MCP(controls, target, rotationValue)
