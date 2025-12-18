@@ -8,8 +8,6 @@ using Qutes.Grammar;
 using QutesLang.Exceptions;
 using QutesLang.Symbols;
 using QutesLang.Symbols.Types;
-using QutesLang.Utils;
-
 namespace QutesLang.GrammarFrontend;
 
 public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler circuitHandler) : qutes_parserBaseVisitor<Symbol>
@@ -27,31 +25,25 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
 
     private void DeclareNewVariable(ValueSymbol symbol)
     {
-        if (scopeHandler.GetCurrentScope().SymbolTable.ContainsKey(symbol.QualifiedName))
-        {
-            throw new VariableAlreadyDeclaredException($"Variable with name '{symbol.QualifiedName}' already declared.");
-        }
-        scopeHandler.GetCurrentScope().SymbolTable[symbol.QualifiedName] = symbol;
+        scopeHandler.GetCurrentScope().DefineVariable(symbol);
     }
 
     private void DeclareNewFunction(FunctionSymbol symbol)
     {
-        if (scopeHandler.GetCurrentScope().FunctionTable.ContainsKey(symbol.QualifiedName))
-        {
-            throw new VariableAlreadyDeclaredException($"Variable with name '{symbol.QualifiedName}' already declared.");
-        }
-        scopeHandler.GetCurrentScope().FunctionTable[symbol.QualifiedName] = symbol;
+        scopeHandler.GetCurrentScope().DefineFunction(symbol);
     }
 
     public override Symbol VisitProgram(qutes_parser.ProgramContext context)
     {
         scopeHandler.PushScope(scopeHandler.CreateScope());
+        CheckForFunctionHoisting(context);
         return base.VisitProgram(context); //return value doesn't matter no one will use it.
     }
 
     public override Symbol VisitBlockStatement(qutes_parser.BlockStatementContext context)
     {
         scopeHandler.PushScope(scopeHandler.CreateScope());
+        CheckForFunctionHoisting(context);
         return base.VisitBlockStatement(context); //return value doesn't matter no one will use it.
     }
 
@@ -80,7 +72,27 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
         return base.VisitDoWhileStatement(context);
     }
 
-    public override Symbol VisitFunctionDeclarationStatement(qutes_parser.FunctionDeclarationStatementContext context)
+    public override Symbol VisitFunctionDeclarationStatement([NotNull] qutes_parser.FunctionDeclarationStatementContext context)
+    {
+        return null!; //this is handled by HandleFunctionsHoisting
+    }
+
+    private void CheckForFunctionHoisting(Antlr4.Runtime.ParserRuleContext context)
+    {
+        foreach (var node in context.children)
+        {
+            if (node is qutes_parser.BlockStatementContext or qutes_parser.ProgramContext)
+            {
+                break;
+            }
+            if (node is qutes_parser.FunctionDeclarationStatementContext functionDeclarationStatementContext)
+            {
+                HandleFunctionsHoisting(functionDeclarationStatementContext);
+            }
+        }
+    }
+
+    private FunctionSymbol HandleFunctionsHoisting(qutes_parser.FunctionDeclarationStatementContext context)
     {
         var outputTypeSymbol = QutesLanguageGuard.IsAssignableToType<TypeSymbol>(Visit(context.variableType()));
         var qualifiedNameSymbol = QutesLanguageGuard.IsAssignableToType<QualifiedNameSymbol>(Visit(context.qualifiedName()));
@@ -104,6 +116,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
     }
 
     private bool handlingReturnStatement = false;
+    private static readonly TypeSymbol VoidType = new ("void", null, 0);
     public override Symbol VisitFunctionCallExpression(qutes_parser.FunctionCallExpressionContext context)
     {
         var qualifiedNameSymbol = QutesLanguageGuard.IsAssignableToType<QualifiedNameSymbol>(Visit(context.qualifiedName()));
@@ -114,10 +127,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
         var providedParamsValues = QutesLanguageGuard.AreAllAssignableToType<ValueSymbol>(providedParamsSymbol.Elements).ToList();
 
         var qualifiedName = qualifiedNameSymbol.QualifiedName;
-        if (!scopeHandler.GetCurrentScope().FunctionTable.TryGetValue(qualifiedName, out var functionSymbol))
-        {
-            throw new VariableNotDeclaredException($"Function with name '{qualifiedName}' not declared.");
-        }
+        var functionSymbol = scopeHandler.GetCurrentScope().ResolveFunction(qualifiedName);
 
         //check that the number of parameters match
         if (functionSymbol.InputParamTypes.Count() != providedParamsSymbol.Elements.Count())
@@ -138,7 +148,9 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
         }
 
         scopeHandler.PushScope(functionSymbol.Scope);
-        var outputSymbol = QutesLanguageGuard.IsAssignableToType<ValueSymbol>(Visit(functionSymbol.Body));
+        var bodyStatementReturnValue = Visit(functionSymbol.Body);
+        bodyStatementReturnValue ??= new AnonymousValueSymbol(null!, VoidType, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+        var outputSymbol = QutesLanguageGuard.IsAssignableToType<ValueSymbol>(bodyStatementReturnValue);
         handlingReturnStatement = false;
         scopeHandler.PopScope();
 
@@ -161,8 +173,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
         else
         {
             //TODO: handle void return type properly
-            var voidType = new TypeSymbol("void", scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
-            output = new AnonymousValueSymbol(null!, voidType, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+            output = new AnonymousValueSymbol(null!, VoidType, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
         }
         return output;
     }
@@ -180,11 +191,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
 
         var qualifiedName = qualifiedNameSymbol.QualifiedName;
 
-        //find symbol in current scope
-        if(!scopeHandler.GetCurrentScope().SymbolTable.TryGetValue(qualifiedName, out var variableToUpdateSymbol))
-        {
-            throw new VariableNotDeclaredException($"Variable with name '{qualifiedName}' not declared.");
-        }
+        var variableToUpdateSymbol = scopeHandler.GetCurrentScope().ResolveVariable(qualifiedName);
 
         variableToUpdateSymbol.Value = valueToAssignSymbol.Value;
 
@@ -266,14 +273,8 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
     {
         var qualifiedNameSymbol = QutesLanguageGuard.IsAssignableToType<QualifiedNameSymbol>(Visit(context.qualifiedName()));
         var qualifiedName = qualifiedNameSymbol.QualifiedName;
-        if (!scopeHandler.GetCurrentScope().SymbolTable.TryGetValue(qualifiedName, out var symbol))
-        {
-            throw new VariableNotDeclaredException($"Variable with name '{qualifiedName}' not declared.");
-        }
-        else
-        {
-            return symbol;
-        }
+        var symbol = scopeHandler.GetCurrentScope().ResolveVariable(qualifiedName);
+        return symbol;
     }
 
     public override Symbol VisitArrayExpression(qutes_parser.ArrayExpressionContext context)
