@@ -423,7 +423,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
                 {
                     if (context.PRINT() != null)
                     {
-                        Console.WriteLine($"Quantum State: {targetValue.QubitStringList}");
+                        Console.WriteLine($"{targetValue.GetType().Name} '{targetSymbol.QualifiedName}': {targetValue.QubitStringList}");
                         return targetSymbol;
                     }
 
@@ -442,7 +442,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
                 {
                     if (context.PRINT() != null)
                     {
-                        Console.WriteLine($"State: {targetValue.GetValueAsObject()}");
+                        Console.WriteLine($"{targetValue.GetType().Name} '{targetSymbol.QualifiedName}': {targetValue.GetValueAsObject()}");
                         return targetSymbol;
                     }
 
