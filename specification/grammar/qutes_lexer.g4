@@ -1,9 +1,5 @@
 lexer grammar qutes_lexer;
 
-options {
-   caseInsensitive = true; //TODO: we should remove this for better variable declaration?
-}
-
 // ----- Reserved keyword ----- 
 INT_TYPE : 'int' ;
 BOOL_TYPE : 'bool' ;
@@ -29,6 +25,7 @@ PAULIY : 'pauliy' ;
 PAULIZ : 'pauliz' ;
 GROVER : 'grover' ;
 MCZ : 'mcz' ;
+CNOT : 'cnot' ;
 MCX : 'mcx' ;
 MCY : 'mcy' ;
 MCP : 'mcp' ;

@@ -6,7 +6,7 @@ public class CircuitHandler(BackendProvider backendProvider = BackendProvider.Qi
 {
     private readonly List<CircuitOperation> operations = [];
     private readonly Dictionary<string, QuantumRegister> quantumRegisters = [];
-    private readonly HashSet<CircuitQubit> circuitQubits = [];
+    private readonly ReferenceCounter<CircuitQubit> circuitQubits = new();
 
     public void PushOperation(CircuitOperation operation)
     {
@@ -31,6 +31,31 @@ public class CircuitHandler(BackendProvider backendProvider = BackendProvider.Qi
         return registerQubits;
     }
 
+    public IEnumerable<CircuitQubit> UpdateQuantumRegister(string name, IEnumerable<CircuitQubit?> values)
+    {
+        if (!quantumRegisters.TryGetValue(name, out QuantumRegister? register))
+        {
+            throw new InvalidOperationException($"Quantum register with name {name} not declared.");
+        }
+
+        // Remove old qubits from reference counter
+        foreach (var qubit in register.Qubits)
+        {
+            circuitQubits.Remove(qubit);
+        }
+
+        var registerQubits = new HashSet<CircuitQubit>();
+        foreach (var value in values)
+        {
+            var qubit = new CircuitQubit();
+            registerQubits.Add(value ?? qubit);
+            circuitQubits.Add(value ?? qubit);
+        }
+
+        register.Qubits = registerQubits;
+        return registerQubits;
+    }
+
     public string FinalizeCircuit()
     {
         return backendProvider switch
@@ -48,7 +73,7 @@ public class CircuitHandler(BackendProvider backendProvider = BackendProvider.Qi
         stringBuilder.AppendLine("from qiskit.primitives import StatevectorSampler");
 
         // Declare qubits
-        foreach (var qubit in circuitQubits)
+        foreach (var qubit in circuitQubits.Elements)
         {
             stringBuilder.AppendLine($"{qubit.Id} = Qubit()");
         }

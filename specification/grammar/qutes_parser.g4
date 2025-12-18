@@ -18,9 +18,9 @@ statement
    | FOREACH_STATEMENT qualifiedName (COMMA qualifiedName)? IN_STATEMENT expr statement #ForeachStatement
    | DO_STATEMENT statement WHILE_STATEMENT expr #DoWhileStatement
    | CURLY_PARENTHESIS_OPEN statement* CURLY_PARENTHESIS_CLOSE #BlockStatement
-   | variableType qualifiedName ROUND_PARENTHESIS_OPEN functionDeclarationParams? ROUND_PARENTHESIS_CLOSE statement #FunctionStatement
+   | variableType qualifiedName ROUND_PARENTHESIS_OPEN functionDeclarationParams? ROUND_PARENTHESIS_CLOSE statement #FunctionDeclarationStatement
    | variableDeclaration END_OF_STATEMENT #DeclarationStatement
-   | qualifiedName ASSIGN expr END_OF_STATEMENT #AssignmentStatement
+   | expr ASSIGN expr END_OF_STATEMENT #AssignmentStatement
    | RETURN expr? END_OF_STATEMENT #ReturnStatement
    | expr END_OF_STATEMENT #ExpressionStatement
    | (MEASURE | BARRIER | PRINT) #FactStatement
@@ -39,10 +39,10 @@ expr // Order: https://en.wikipedia.org/wiki/Order_of_operations#Programming_lan
    : ROUND_PARENTHESIS_OPEN expr ROUND_PARENTHESIS_CLOSE #ParentesizeExpression
    | literal #LiteralExpression
    | qualifiedName #QualifiedNameExpression
-   | arrayLiteral #ArrayExpression
+   | SQUARE_PARENTHESIS_OPEN termList SQUARE_PARENTHESIS_CLOSE #ArrayExpression
    // Function call, scope, array/member access
    | qualifiedName ROUND_PARENTHESIS_OPEN termList? ROUND_PARENTHESIS_CLOSE #FunctionCallExpression
-   | arrayAccess #ArrayAccessExpression
+   | expr SQUARE_PARENTHESIS_OPEN expr SQUARE_PARENTHESIS_CLOSE #ArrayAccessExpression
    // Unary operators, sizeof and type casts
    | expr op=(AUTO_INCREMENT | AUTO_DECREMENT) #PostfixOperator
    | expr op=EXP expr #ExpOperator
@@ -60,20 +60,12 @@ expr // Order: https://en.wikipedia.org/wiki/Order_of_operations#Programming_lan
    | expr op=AND expr #LogicAndOperator
    | expr op=OR expr #LogicOrOperator
    // Assignment and auto assignment operators | <assoc = right> expr op=(AUTO_SUM | AUTO_DECREMENT | AUTO_MODULE | AUTO_DIVIDE | AUTO_MODULE) expr #AutoAssignmentOperator
-   | op=(MCX | MCZ | MCY | HADAMARD | MEASURE | BARRIER | SWAP) termList #MultipleUnaryOperator
-   | op=(SWAP | CNOT) expr COMMA expr #DoubleUnaryOperator
    | op=(PRINT | PAULIY | PAULIZ | HADAMARD | MEASURE) expr #UnaryOperator
+   | op=(SWAP | CNOT) expr COMMA expr #DoubleUnaryOperator
+   | op=(MCX | MCZ | MCY | HADAMARD | MEASURE | BARRIER | SWAP) termList #MultipleUnaryOperator
    | op=MCP termList BY expr #MultipleUnaryPhaseOperator
-   | expr op=IN_STATEMENT qualifiedName #GroverOperator
-   | op=GROVER qualifiedName ROUND_PARENTHESIS_OPEN termList? ROUND_PARENTHESIS_CLOSE #FreeGroverOperator
-   ;
-
-arrayAccess
-   : qualifiedName SQUARE_PARENTHESIS_OPEN expr SQUARE_PARENTHESIS_CLOSE
-   ;
-
-arrayLiteral
-   : SQUARE_PARENTHESIS_OPEN termList SQUARE_PARENTHESIS_CLOSE
+   | expr op=IN_STATEMENT expr #GroverOperator
+   | op=GROVER expr ROUND_PARENTHESIS_OPEN termList? ROUND_PARENTHESIS_CLOSE #FreeGroverOperator
    ;
    
 termList
@@ -82,7 +74,6 @@ termList
 
 variableType
    : type (SQUARE_PARENTHESIS_OPEN SQUARE_PARENTHESIS_CLOSE)?
-   | qualifiedName (SQUARE_PARENTHESIS_OPEN SQUARE_PARENTHESIS_CLOSE)?
    ;
 
 type

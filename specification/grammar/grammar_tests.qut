@@ -1,5 +1,12 @@
 qubit a = 1q;
-hadamard a;
+
+void main() {
+    hadamard a;
+    return;
+    print a;
+}
+
+main();
 
 
 //basic boolean 
