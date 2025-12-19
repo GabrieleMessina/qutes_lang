@@ -187,7 +187,7 @@ public class ClassicalArrayType(IEnumerable<Symbol> values) : IClassicalType
 public class QubitType(string initialValue) : IQuantumType
 {
     public int Size { get; } = 1;
-    public IEnumerable<CircuitQubit?> Qubits { get; } = [new()];
+    public IEnumerable<CircuitQubit> Qubits { get; } = [new()];
 
     public static QubitType GetDefaultValue() => new ("0q");
 
@@ -201,7 +201,7 @@ public class QuintType(string initialValue) : IQuantumType
 {
     public const int _size = 3;
     public int Size { get; } = _size;
-    public IEnumerable<CircuitQubit?> Qubits { get; } = Enumerable.Repeat<CircuitQubit>(null!, _size).Select(_ => new CircuitQubit()).ToList(); //ToList is important
+    public IEnumerable<CircuitQubit> Qubits { get; } = Enumerable.Repeat<CircuitQubit>(null!, _size).Select(_ => new CircuitQubit()).ToList(); //ToList is important
 
     public static QuintType GetDefaultValue() => new ("0q");
 
@@ -227,7 +227,7 @@ public class QustringType(string initialValue) : IQuantumType //TODO: this is an
 {
     public const int _size = 3;
     public int Size { get; private set; } = _size;
-    public IEnumerable<CircuitQubit?> Qubits { get; private set; } = Enumerable.Repeat<CircuitQubit>(null!, _size).Select(_ => new CircuitQubit()).ToList(); //ToList is important
+    public IEnumerable<CircuitQubit> Qubits { get; private set; } = Enumerable.Repeat<CircuitQubit>(null!, _size).Select(_ => new CircuitQubit()).ToList(); //ToList is important
 
     public static QustringType GetDefaultValue() => new ("0");
 
@@ -251,7 +251,7 @@ public class QuantumArrayType(IEnumerable<Symbol> values) : IQuantumType
 {
     public const int _size = 3; //TODO: depends on values type size.
     public int Size { get; private set; } = _size;
-    public IEnumerable<CircuitQubit?> Qubits { get; private set; } = Enumerable.Repeat<CircuitQubit>(new(), _size);
+    public IEnumerable<CircuitQubit> Qubits { get; private set; } = Enumerable.Repeat<CircuitQubit>(new(), _size);
 
     public static QuantumArrayType GetDefaultValue() => new([]);
 

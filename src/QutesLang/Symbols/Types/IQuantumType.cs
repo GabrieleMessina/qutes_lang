@@ -5,7 +5,7 @@ namespace QutesLang.Symbols.Types;
 public interface IQuantumType : IQutesType
 {
     public int Size { get; }
-    public IEnumerable<CircuitQubit?> Qubits { get; }
+    public IEnumerable<CircuitQubit> Qubits { get; }
     public string QubitStringList => $"{string.Join(",", Qubits.Select(c => c!.Id))}";
 
     #region Operations

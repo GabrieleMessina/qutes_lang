@@ -2,8 +2,8 @@
 
 public static class VariableNameGuid
 {
-    public static string New()
+    public static string New(string prefix = "var")
     {
-        return $"var_{Guid.NewGuid():N}";
+        return $"{prefix}_{Guid.NewGuid():N}";
     }
 }

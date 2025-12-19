@@ -1,13 +1,9 @@
 qubit a = 1q;
+qubit b = 1q;
 
-void main() {
-    hadamard a;
-    return;
-    print a;
+if a {
+    hadamard b;
 }
-
-main();
-
 
 //basic boolean 
 /*{

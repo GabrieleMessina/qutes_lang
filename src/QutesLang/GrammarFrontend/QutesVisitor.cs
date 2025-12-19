@@ -5,12 +5,11 @@ using CommunityToolkit.Diagnostics;
 
 using Qutes.Grammar;
 
-using QutesLang.Exceptions;
 using QutesLang.Symbols;
 using QutesLang.Symbols.Types;
 namespace QutesLang.GrammarFrontend;
 
-public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler circuitHandler) : qutes_parserBaseVisitor<Symbol>
+public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHandler) : qutes_parserBaseVisitor<Symbol>
 {
     protected override bool ShouldVisitNextChild([NotNull] IRuleNode node, Symbol currentResult)
     {
@@ -35,6 +34,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
 
     public override Symbol VisitProgram(qutes_parser.ProgramContext context)
     {
+        circuitHandler.CreateNewCircuit();
         scopeHandler.PushScope(scopeHandler.CreateScope());
         CheckForFunctionHoisting(context);
         return base.VisitProgram(context); //return value doesn't matter no one will use it.
@@ -49,6 +49,26 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
 
     public override Symbol VisitIfStatement(qutes_parser.IfStatementContext context)
     {
+        var condition = QutesLanguageGuard.IsAssignableToType<ValueSymbol>(Visit(context.expr()));
+        var ifBody = context.statement();
+
+        switch (condition.Value)
+        {
+            case IQuantumType quantumCondition:
+                var mainCircuit = circuitHandler.Current;
+                var quantumBodyCircuit = circuitHandler.CreateNewCircuit();
+                Visit(ifBody); //TODO: how to handle classical ops inside quantum if body.
+                quantumBodyCircuit.MakeControlledBy(quantumCondition.Qubits);
+                mainCircuit.PushOperation(new ComposeCircuit(quantumBodyCircuit));
+                break;
+            case IClassicalType:
+                var value = QutesLanguageGuard.IsAssignableToType<BoolType>(condition.Value).Value;
+                if (value == true) Visit(ifBody);
+                break;
+            default:
+                break;
+        }
+
         return base.VisitIfStatement(context);
     }
 
@@ -197,7 +217,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
 
         if (valueToAssignSymbol.Value is IQuantumType quantumValue)
         {
-            circuitHandler.UpdateQuantumRegister(variableToUpdateSymbol.QualifiedName, quantumValue.Qubits);
+            circuitHandler.UpdateQuantumVariable(variableToUpdateSymbol.QualifiedName, quantumValue.Qubits);
         }
 
         return variableToUpdateSymbol;
@@ -762,7 +782,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, IQuantumCircuitHandler cir
         
         if(valueToAssignSymbol.Value is IQuantumType quantumValue)
         {
-            circuitHandler.DeclareQuantumRegister(variableToCreateSymbol.QualifiedName, quantumValue.Qubits);
+            circuitHandler.DeclareQuantumVariable(variableToCreateSymbol.QualifiedName, quantumValue.Qubits);
         }
 
         return variableToCreateSymbol;
