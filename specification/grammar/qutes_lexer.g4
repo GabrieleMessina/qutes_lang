@@ -10,6 +10,7 @@ QUSTRING_TYPE : 'qustring' ;
 FLOAT_TYPE : 'float' ;
 VOID_TYPE : 'void' ;
 RETURN : 'return' ;
+BREAK : 'break' ;
 EXP : '^' ;
 MULTIPLY : '*' ;
 DIVIDE : '/' ;

@@ -28,6 +28,7 @@ public interface IClassicalType : IQutesType
     IQutesType Multiply(IClassicalType term) => throw new InvalidOperationException($"Operator {nameof(Multiply)} cannot be applied to {this.GetType().Name} and {term.GetType().Name}.");
     IQutesType Divide(IClassicalType term) => throw new InvalidOperationException($"Operator {nameof(Divide)} cannot be applied to {this.GetType().Name} and {term.GetType().Name}.");
     IQutesType Module(IClassicalType term) => throw new InvalidOperationException($"Operator {nameof(Module)} cannot be applied to {this.GetType().Name} and {term.GetType().Name}.");
+    IQutesType Exp(IClassicalType term) => throw new InvalidOperationException($"Operator {nameof(Exp)} cannot be applied to {this.GetType().Name} and {term.GetType().Name}.");
 
     // Comparison operations
     BoolType LowerThan(IClassicalType term) => throw new InvalidOperationException($"Operator {nameof(LowerThan)} cannot be applied to {this.GetType().Name} and {term.GetType().Name}.");

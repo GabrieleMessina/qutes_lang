@@ -24,6 +24,7 @@ public interface IQuantumType : IQutesType
     CircuitOperation Multiply(IQuantumType term) => throw new InvalidOperationException($"Operator {nameof(Multiply)} cannot be applied to {this.GetType().Name} and {term.GetType().Name}.");
     CircuitOperation Divide(IQuantumType term) => throw new InvalidOperationException($"Operator {nameof(Divide)} cannot be applied to {this.GetType().Name} and {term.GetType().Name}.");
     CircuitOperation Module(IQuantumType term) => throw new InvalidOperationException($"Operator {nameof(Module)} cannot be applied to {this.GetType().Name} and {term.GetType().Name}.");
+    CircuitOperation Exp(IQuantumType term) => throw new InvalidOperationException($"Operator {nameof(Exp)} cannot be applied to {this.GetType().Name} and {term.GetType().Name}.");
 
     // Comparison operations
     CircuitOperation LowerThan(IQuantumType term) => throw new InvalidOperationException($"Operator {nameof(LowerThan)} cannot be applied to {this.GetType().Name} and {term.GetType().Name}.");

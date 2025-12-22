@@ -58,12 +58,11 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                 var mainCircuit = circuitHandler.Current;
                 HandleBranchingVisiting(ifBody, quantumCondition, mainCircuit);
                 break;
-            case IClassicalType:
-                var value = QutesLanguageGuard.IsAssignableToType<BoolType>(condition.Value).Value;
-                if (value == true) Visit(ifBody);
+            case BoolType boolCondition:
+                if (boolCondition.Value == true) Visit(ifBody);
                 break;
             default:
-                break;
+                throw new InvalidOperationException("If condition must be of type 'bool' or a quantum type.");
         }
 
         return null!;
@@ -71,8 +70,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
     public override Symbol VisitIfElseStatement(qutes_parser.IfElseStatementContext context)
     {
-        var temp = Visit(context.expr());
-        var condition = QutesLanguageGuard.IsAssignableToType<ValueSymbol>(temp);
+        var condition = QutesLanguageGuard.IsAssignableToType<ValueSymbol>(Visit(context.expr()));
         var ifBody = context.statement(0);
         var elseBody = context.statement(1);
 
@@ -83,13 +81,12 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                 HandleBranchingVisiting(ifBody, quantumCondition, mainCircuit);
                 HandleBranchingVisiting(elseBody, quantumCondition, mainCircuit, false);
                 break;
-            case IClassicalType:
-                var value = QutesLanguageGuard.IsAssignableToType<BoolType>(condition.Value).Value;
-                if (value == true) Visit(ifBody);
+            case BoolType boolCondition:
+                if (boolCondition.Value == true) Visit(ifBody);
                 else Visit(elseBody);
                 break;
             default:
-                break;
+                throw new InvalidOperationException("If-Else condition must be of type 'bool' or a quantum type.");
         }
 
         return null!;
@@ -109,17 +106,80 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
     public override Symbol VisitWhileStatement(qutes_parser.WhileStatementContext context)
     {
-        return base.VisitWhileStatement(context);
+        var temp = Visit(context.expr());
+        var condition = QutesLanguageGuard.IsAssignableToType<ValueSymbol>(temp);
+        var whileBody = context.statement();
+
+        switch (condition.Value)
+        {
+            case IQuantumType:
+                //TODO: quantum while loops could be implemented with repeated appended controlled circuits based on all possible combination of the qubits in the condition register.
+                throw new NotImplementedException("Quantum while loops are not yet implemented.");
+            case BoolType classicalCondition:
+                while (classicalCondition.Value && !handlingBreakStatement)
+                {
+                    Visit(whileBody);
+                    classicalCondition = QutesLanguageGuard.IsAssignableToType<BoolType>(QutesLanguageGuard.IsAssignableToType<ValueSymbol>(Visit(context.expr())).Value);
+                }
+                handlingBreakStatement = false;
+                break;
+            default:
+                throw new InvalidOperationException("While loop condition must be of type 'bool' or a quantum type.");
+        }
+
+        return null!;
     }
 
     public override Symbol VisitForeachStatement(qutes_parser.ForeachStatementContext context)
     {
-        return base.VisitForeachStatement(context);
+        var collection = QutesLanguageGuard.IsAssignableToType<ArraySymbol>(Visit(context.expr()));
+        var itemNameSymbol = QutesLanguageGuard.IsAssignableToType<QualifiedNameSymbol>(Visit(context.qualifiedName(0)));
+        QualifiedNameSymbol? indexNameSymbol = null;
+
+        if (context.qualifiedName(1) != null)
+        {
+            indexNameSymbol = QutesLanguageGuard.IsAssignableToType<QualifiedNameSymbol>(Visit(context.qualifiedName(1)));
+        }
+
+        for (int i = 0; i < collection.Elements.Count() && !handlingBreakStatement; i++)
+        {
+            var itemElementSymbol = QutesLanguageGuard.IsAssignableToType<ValueSymbol>(collection.Elements.ElementAt(i));
+            var itemSymbol = new ValueSymbol(itemNameSymbol.QualifiedName, itemElementSymbol.Value, itemElementSymbol.Type, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+            DeclareNewVariable(itemSymbol);
+            if (indexNameSymbol != null)
+            {
+                var indexSymbol = new ValueSymbol(indexNameSymbol.QualifiedName, new IntType(i), new TypeSymbol("int", scopeHandler.GetCurrentScope(), context.Start.TokenIndex), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+                DeclareNewVariable(indexSymbol);
+            }
+            Visit(context.statement());
+        }
+        handlingBreakStatement = false;
+        return null!;
     }
 
     public override Symbol VisitDoWhileStatement(qutes_parser.DoWhileStatementContext context)
     {
-        return base.VisitDoWhileStatement(context);
+        var condition = QutesLanguageGuard.IsAssignableToType<ValueSymbol>(Visit(context.expr()));
+        var whileBody = context.statement();
+
+        switch (condition.Value)
+        {
+            case IQuantumType:
+                throw new NotImplementedException("Quantum while loops are not yet implemented.");
+            case BoolType classicalCondition:
+                do
+                {
+                    Visit(whileBody);
+                    classicalCondition = QutesLanguageGuard.IsAssignableToType<BoolType>(QutesLanguageGuard.IsAssignableToType<ValueSymbol>(Visit(context.expr())).Value);
+                }
+                while (classicalCondition.Value && !handlingBreakStatement);
+                handlingBreakStatement = false;
+                break;
+            default:
+                throw new InvalidOperationException("While loop condition must be of type 'bool' or a quantum type.");
+        }
+
+        return null!;
     }
 
     public override Symbol VisitFunctionDeclarationStatement([NotNull] qutes_parser.FunctionDeclarationStatementContext context)
@@ -166,6 +226,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
     }
 
     private bool handlingReturnStatement = false;
+    private bool handlingBreakStatement = false;
     private static readonly TypeSymbol VoidType = new ("void", null, 0);
     public override Symbol VisitFunctionCallExpression(qutes_parser.FunctionCallExpressionContext context)
     {
@@ -228,10 +289,15 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         return output;
     }
 
-    // ReSharper disable once RedundantOverriddenMember
+    public override Symbol VisitBreakStatement([NotNull] qutes_parser.BreakStatementContext context)
+    {
+        handlingBreakStatement = true;
+        return null!; //TODO: is it better to return an errorSymbol?
+    }
+
     public override Symbol VisitDeclarationStatement(qutes_parser.DeclarationStatementContext context)
     {
-        return base.VisitDeclarationStatement(context); //return the visited variableDeclaration symbol
+        return Visit(context.variableDeclaration());
     }
 
     public override Symbol VisitAssignmentStatement(qutes_parser.AssignmentStatementContext context)
@@ -253,10 +319,9 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         return variableToUpdateSymbol;
     }
 
-    // ReSharper disable once RedundantOverriddenMember
     public override Symbol VisitExpressionStatement(qutes_parser.ExpressionStatementContext context)
     {
-        return base.VisitExpressionStatement(context); //return the visited expr symbol
+        return Visit(context.expr());
     }
 
     public override Symbol VisitFactStatement(qutes_parser.FactStatementContext context)
@@ -301,22 +366,49 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         return null!;
     }
 
-    // ReSharper disable once RedundantOverriddenMember
     public override Symbol VisitExpOperator(qutes_parser.ExpOperatorContext context)
     {
-        return base.VisitExpOperator(context); //return the specific expr child type symbol
+        var leftSymbol = QutesLanguageGuard.IsAssignableToType<ValueSymbol>(Visit(context.expr(0)));
+        var rightSymbol = QutesLanguageGuard.IsAssignableToType<ValueSymbol>(Visit(context.expr(1)));
+
+        if (leftSymbol.Value.GetType() != rightSymbol.Value.GetType())
+        {
+            throw new InvalidOperationException($"Cannot apply logical operator '{context.op.Text}' between different types '{leftSymbol.Value.GetType().Name}' and '{rightSymbol.Value.GetType().Name}'.");
+        }
+
+        switch (leftSymbol.Value)
+        {
+            case IQuantumType leftValue when rightSymbol.Value is IQuantumType rightValue:
+                {
+                    var operation
+                       = context.EXP() != null ? leftValue.Exp(rightValue)
+                       : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
+                    var destinationSymbol = new AnonymousValueSymbol(operation.Destination, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+                    circuitHandler.PushOperation(operation);
+                    return destinationSymbol;
+                }
+
+            case IClassicalType leftValue when rightSymbol.Value is IClassicalType rightValue:
+                {
+                    var result
+                        = context.EXP() != null ? leftValue.Exp(rightValue)
+                        : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
+                    return new AnonymousValueSymbol(result, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+                }
+
+            default:
+                throw new InvalidOperationException($"Cannot apply operator '{context.op.Text}' to type '{leftSymbol.Value.GetType().Name}'.");
+        }
     }
 
-    // ReSharper disable once RedundantOverriddenMember
     public override Symbol VisitParentesizeExpression(qutes_parser.ParentesizeExpressionContext context)
     {
-        return base.VisitParentesizeExpression(context); //return the visited inner expr symbol
+        return Visit(context.expr());
     }
 
-    // ReSharper disable once RedundantOverriddenMember
     public override Symbol VisitLiteralExpression(qutes_parser.LiteralExpressionContext context)
     {
-        return base.VisitLiteralExpression(context); //return the visited literal symbol
+        return Visit(context.literal());
     }
 
     public override Symbol VisitQualifiedNameExpression(qutes_parser.QualifiedNameExpressionContext context)

@@ -22,6 +22,7 @@ statement
    | variableDeclaration END_OF_STATEMENT #DeclarationStatement
    | expr ASSIGN expr END_OF_STATEMENT #AssignmentStatement
    | RETURN expr? END_OF_STATEMENT #ReturnStatement
+   | BREAK END_OF_STATEMENT #BreakStatement
    | expr END_OF_STATEMENT #ExpressionStatement
    | (MEASURE | BARRIER | PRINT) #FactStatement
    | END_OF_STATEMENT #EmptyStatement
