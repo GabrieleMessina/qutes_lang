@@ -24,5 +24,5 @@ public interface IQuantumCircuit
     void PushOperation(CircuitOperation operation);
     void DeclareQuantumVariable(string name, QuantumRegister values);
     void UpdateQuantumVariable(string name, QuantumRegister values);
-    IQuantumCircuit MakeControlledBy(QuantumRegister controlRegister);
+    IQuantumCircuit MakeControlledBy(QuantumRegister controlRegister, bool onCondition = true);
 }

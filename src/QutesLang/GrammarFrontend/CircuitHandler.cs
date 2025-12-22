@@ -71,6 +71,8 @@ public class CircuitHandler(BackendProvider backendProvider = BackendProvider.Qi
 
 public class ControlledCircuit : QuantumCircuit
 {
+    private readonly bool onCondition;
+
     public IQuantumCircuit InnerCircuit { get; private set; }
     public QuantumRegister ControlRegister { get; }
     public override string Name { get; protected set; }
@@ -78,10 +80,11 @@ public class ControlledCircuit : QuantumCircuit
     public override Dictionary<string, QuantumRegister> QuantumVariables => GetQuantumVariables();
     public override ReferenceCounter<QuantumRegister> Registers => GetRegisters();
 
-    public ControlledCircuit(IQuantumCircuit innerCircuit, QuantumRegister controlRegister)
+    public ControlledCircuit(IQuantumCircuit innerCircuit, QuantumRegister controlRegister, bool onCondition = true)
     {
         InnerCircuit = innerCircuit;
         ControlRegister = controlRegister;
+        this.onCondition = onCondition;
         Name = "controlled_" + innerCircuit.Name;
         QuantumVariables = new(innerCircuit.QuantumVariables);
         Registers = new(innerCircuit.Registers);
@@ -91,7 +94,7 @@ public class ControlledCircuit : QuantumCircuit
     public override void FinalizeQiskitCircuit(StringBuilder stringBuilder)
     {
         base.FinalizeQiskitCircuit(stringBuilder);
-        stringBuilder.AppendLine($"{Name} = {InnerCircuit.Name}.control({ControlRegister.Qubits.Count()}, label='{Name}')");
+        stringBuilder.AppendLine($"{Name} = {InnerCircuit.Name}.control({ControlRegister.Qubits.Count()}, ctrl_state='{(onCondition?"1":"0")}', label='{Name}')");
     }
 
     private Dictionary<string, QuantumRegister> GetQuantumVariables()
@@ -119,9 +122,9 @@ public class QuantumCircuit : IQuantumCircuit
         Operations.Add(operation);
     }
 
-    public IQuantumCircuit MakeControlledBy(QuantumRegister controlRegister)
+    public IQuantumCircuit MakeControlledBy(QuantumRegister controlRegister, bool onCondition = true)
     {
-        return new ControlledCircuit(this, controlRegister);
+        return new ControlledCircuit(this, controlRegister, onCondition);
     }
 
     public void DeclareQuantumVariable(string name, QuantumRegister register)

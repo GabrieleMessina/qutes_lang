@@ -241,10 +241,10 @@ public class And(IQuantumType a, IQuantumType b, IQuantumType destination) : Cir
         //TODO: implemement quantum AND operation.
     }
 }
-public class Not(IQuantumType a, IQuantumType b, IQuantumType destination) : CircuitOperation
+public class Not(IQuantumType target) : CircuitOperation
 {
-    public override IQuantumType Destination => destination;
-    public override IEnumerable<QuantumRegister> RegistersInvolved => [a.Register, b.Register, destination.Register];
+    public override IQuantumType Destination => target;
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [target.Register];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {

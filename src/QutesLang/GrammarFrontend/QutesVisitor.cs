@@ -56,14 +56,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         {
             case IQuantumType quantumCondition:
                 var mainCircuit = circuitHandler.Current;
-                var quantumBodyCircuit = circuitHandler.CreateNewCircuit();
-                var controlledCircuit = quantumBodyCircuit.MakeControlledBy(quantumCondition.Register);
-                circuitHandler.PushCircuit(controlledCircuit);
-                circuitHandler.PushCircuit(quantumBodyCircuit);
-                Visit(ifBody); //TODO: how to handle classical ops inside quantum if body.
-                circuitHandler.PopCircuit();
-                circuitHandler.PopCircuit();
-                mainCircuit.PushOperation(new ComposeCircuit(controlledCircuit));
+                HandleBranchingVisiting(ifBody, quantumCondition, mainCircuit);
                 break;
             case IClassicalType:
                 var value = QutesLanguageGuard.IsAssignableToType<BoolType>(condition.Value).Value;
@@ -78,7 +71,40 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
     public override Symbol VisitIfElseStatement(qutes_parser.IfElseStatementContext context)
     {
-        return base.VisitIfElseStatement(context);
+        var temp = Visit(context.expr());
+        var condition = QutesLanguageGuard.IsAssignableToType<ValueSymbol>(temp);
+        var ifBody = context.statement(0);
+        var elseBody = context.statement(1);
+
+        switch (condition.Value)
+        {
+            case IQuantumType quantumCondition:
+                var mainCircuit = circuitHandler.Current;
+                HandleBranchingVisiting(ifBody, quantumCondition, mainCircuit);
+                HandleBranchingVisiting(elseBody, quantumCondition, mainCircuit, false);
+                break;
+            case IClassicalType:
+                var value = QutesLanguageGuard.IsAssignableToType<BoolType>(condition.Value).Value;
+                if (value == true) Visit(ifBody);
+                else Visit(elseBody);
+                break;
+            default:
+                break;
+        }
+
+        return null!;
+    }
+
+    private void HandleBranchingVisiting(qutes_parser.StatementContext branchBody, IQuantumType quantumCondition, IQuantumCircuit mainCircuit, bool onCondition = true)
+    {
+        var quantumBodyCircuit = circuitHandler.CreateNewCircuit();
+        var controlledCircuit = quantumBodyCircuit.MakeControlledBy(quantumCondition.Register, onCondition);
+        circuitHandler.PushCircuit(controlledCircuit);
+        circuitHandler.PushCircuit(quantumBodyCircuit);
+        Visit(branchBody); //TODO: how to handle classical ops inside quantum if body.
+        circuitHandler.PopCircuit();
+        circuitHandler.PopCircuit();
+        mainCircuit.PushOperation(new ComposeCircuit(controlledCircuit));
     }
 
     public override Symbol VisitWhileStatement(qutes_parser.WhileStatementContext context)

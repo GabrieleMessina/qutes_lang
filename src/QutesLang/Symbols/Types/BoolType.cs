@@ -194,8 +194,7 @@ public class QubitType(string initialValue) : IQuantumType
 
     public CircuitOperation And(IQuantumType term) => new And(this, term, QubitType.GetDefaultValue());
     public CircuitOperation Or(IQuantumType term) => new Or(this, term, QubitType.GetDefaultValue());
-
-    public CircuitOperation Negate(IQuantumType term) => new Not(this, term, QubitType.GetDefaultValue());
+    public CircuitOperation Not() => new Not(this);
 }
 
 public class QuintType(string initialValue) : IQuantumType
