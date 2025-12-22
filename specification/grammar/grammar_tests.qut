@@ -1,7 +1,7 @@
 qubit a = 1q;
 qubit b = 1q;
 
-if a {
+if (a){
     hadamard b;
 }
 

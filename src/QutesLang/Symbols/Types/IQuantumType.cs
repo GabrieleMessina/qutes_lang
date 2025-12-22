@@ -5,8 +5,8 @@ namespace QutesLang.Symbols.Types;
 public interface IQuantumType : IQutesType
 {
     public int Size { get; }
-    public IEnumerable<CircuitQubit> Qubits { get; }
-    public string QubitStringList => $"{string.Join(",", Qubits.Select(c => c!.Id))}";
+    public QuantumRegister Register { get; }
+    public string QubitStringList => $"{string.Join(",", Register.Qubits.Select(c => c!.Id))}";
 
     #region Operations
     CircuitOperation LeftShift(QuintType positions) => throw new InvalidOperationException($"Operator {nameof(LeftShift)} cannot be applied to {this.GetType().Name} and {positions.GetType().Name}.");

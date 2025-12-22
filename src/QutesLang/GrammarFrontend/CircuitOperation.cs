@@ -7,13 +7,13 @@ public abstract class CircuitOperation
 {
     public abstract void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder);
     public abstract IQuantumType Destination { get; }
-    public abstract IEnumerable<CircuitQubit> QubitInvolved{ get; }
+    public abstract IEnumerable<QuantumRegister> RegistersInvolved { get; }
 }
 
 public class Empty(IQuantumType target) : CircuitOperation
 {
     public override IQuantumType Destination => target;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [..target.Qubits];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [target.Register];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -25,19 +25,25 @@ public class Empty(IQuantumType target) : CircuitOperation
 public class ComposeCircuit(IQuantumCircuit other) : CircuitOperation
 {
     public override IQuantumType Destination => null!;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [..other.Qubits.Elements];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [..other.QuantumVariables.Values];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
-        var qubitStringList = string.Join(",", other.QuantumVariables.Values.SelectMany(qr => qr.Qubits).Select(q => q.Id));
-        stringBuilder.AppendLine($"{circuit.Name}.compose([{other.Name}],[{qubitStringList}], inplace=True)");
+        var qubitToComposeWithOther = other.QuantumVariables.Values.SelectMany(qr => qr.Qubits).ToList();
+        if(circuit is ControlledCircuit controlledCircuit)
+        {
+            qubitToComposeWithOther.AddRange(controlledCircuit.ControlRegister.Qubits);
+        }
+        var qubitStringList = string.Join(",", qubitToComposeWithOther.Select(q => q.Id));
+        string clbitStringList = string.Empty;
+        stringBuilder.AppendLine($"{circuit.Name}.compose({other.Name},[{qubitStringList}], [{clbitStringList}], inplace=True)");
     }
 }
 
 public class CNOT(IQuantumType control, IQuantumType target) : CircuitOperation
 {
     public override IQuantumType Destination => target;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [..control.Qubits, ..target.Qubits];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [control.Register, target.Register];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -47,7 +53,7 @@ public class CNOT(IQuantumType control, IQuantumType target) : CircuitOperation
 public class Hadamard(IQuantumType target) : CircuitOperation
 {
     public override IQuantumType Destination => target;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [..target.Qubits];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [target.Register];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -57,7 +63,7 @@ public class Hadamard(IQuantumType target) : CircuitOperation
 public class MultiHadamard(IEnumerable<IQuantumType> controls) : CircuitOperation
 {
     public override IQuantumType Destination => null!;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [..controls.SelectMany(c => c.Qubits)];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [..controls.Select(c => c.Register)];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -68,7 +74,7 @@ public class MultiHadamard(IEnumerable<IQuantumType> controls) : CircuitOperatio
 public class PauliY(IQuantumType target) : CircuitOperation
 {
     public override IQuantumType Destination => target;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [..target.Qubits];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [target.Register];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -78,7 +84,7 @@ public class PauliY(IQuantumType target) : CircuitOperation
 public class PauliZ(IQuantumType target) : CircuitOperation
 {
     public override IQuantumType Destination => target;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [..target.Qubits];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [target.Register];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -88,7 +94,7 @@ public class PauliZ(IQuantumType target) : CircuitOperation
 public class Measure(IQuantumType target) : CircuitOperation
 {
     public override IQuantumType Destination => target;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [..target.Qubits];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [target.Register];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -99,7 +105,7 @@ public class Measure(IQuantumType target) : CircuitOperation
 public class MultiMeasure(IEnumerable<IQuantumType> controls) : CircuitOperation
 {
     public override IQuantumType Destination => null!;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [..controls.SelectMany(c => c.Qubits)];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [..controls.Select(c => c.Register)];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -110,7 +116,7 @@ public class MultiMeasure(IEnumerable<IQuantumType> controls) : CircuitOperation
 public class MeasureAll() : CircuitOperation
 {
     public override IQuantumType Destination => null!;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -120,7 +126,7 @@ public class MeasureAll() : CircuitOperation
 public class Barrier(IEnumerable<IQuantumType> targets) : CircuitOperation
 {
     public override IQuantumType Destination => null!;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [..targets.SelectMany(t => t.Qubits)];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [..targets.Select(t => t.Register)];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -131,7 +137,7 @@ public class Barrier(IEnumerable<IQuantumType> targets) : CircuitOperation
 public class MultiBarrier(IEnumerable<IQuantumType> controls) : CircuitOperation
 {
     public override IQuantumType Destination => null!;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [..controls.SelectMany(c => c.Qubits)];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [..controls.Select(c => c.Register)];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -142,7 +148,7 @@ public class MultiBarrier(IEnumerable<IQuantumType> controls) : CircuitOperation
 public class BarrierAll() : CircuitOperation
 {
     public override IQuantumType Destination => null!;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -152,7 +158,7 @@ public class BarrierAll() : CircuitOperation
 public class MCP(IEnumerable<IQuantumType> controls, IQuantumType target, FloatType rotationAngle) : CircuitOperation
 {
     public override IQuantumType Destination => target;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [..controls.SelectMany(c => c.Qubits), ..target.Qubits];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [..controls.Select(c => c.Register), target.Register];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -163,7 +169,7 @@ public class MCP(IEnumerable<IQuantumType> controls, IQuantumType target, FloatT
 public class MCX(IEnumerable<IQuantumType> controls, IQuantumType target) : CircuitOperation
 {
     public override IQuantumType Destination => target;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [..controls.SelectMany(c => c.Qubits), ..target.Qubits];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [..controls.Select(c => c.Register), target.Register];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -175,7 +181,7 @@ public class MCX(IEnumerable<IQuantumType> controls, IQuantumType target) : Circ
 public class MCY(IEnumerable<IQuantumType> controls, IQuantumType target) : CircuitOperation
 {
     public override IQuantumType Destination => target;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [..controls.SelectMany(c => c.Qubits), ..target.Qubits];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [..controls.Select(c => c.Register), target.Register];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -186,7 +192,7 @@ public class MCY(IEnumerable<IQuantumType> controls, IQuantumType target) : Circ
 public class MCZ(IEnumerable<IQuantumType> controls, IQuantumType target) : CircuitOperation
 {
     public override IQuantumType Destination => target;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [..controls.SelectMany(c => c.Qubits), ..target.Qubits];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [..controls.Select(c => c.Register), target.Register];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -197,7 +203,7 @@ public class MCZ(IEnumerable<IQuantumType> controls, IQuantumType target) : Circ
 public class Swap(IQuantumType a, IQuantumType b) : CircuitOperation
 {
     public override IQuantumType Destination => a;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [..a.Qubits, ..b.Qubits];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [a.Register, b.Register];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -207,7 +213,7 @@ public class Swap(IQuantumType a, IQuantumType b) : CircuitOperation
 public class MultiSwap(IEnumerable<IQuantumType> controls, IQuantumType target) : CircuitOperation
 {
     public override IQuantumType Destination => target;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [..controls.SelectMany(c => c.Qubits), ..target.Qubits];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [..controls.Select(c => c.Register), target.Register];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -218,7 +224,7 @@ public class MultiSwap(IEnumerable<IQuantumType> controls, IQuantumType target) 
 public class Or(IQuantumType a, IQuantumType b, IQuantumType destination) : CircuitOperation
 {
     public override IQuantumType Destination => destination;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [..a.Qubits, ..b.Qubits, ..destination.Qubits];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [a.Register, b.Register, destination.Register];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -228,7 +234,7 @@ public class Or(IQuantumType a, IQuantumType b, IQuantumType destination) : Circ
 public class And(IQuantumType a, IQuantumType b, IQuantumType destination) : CircuitOperation
 {
     public override IQuantumType Destination => destination;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [..a.Qubits, ..b.Qubits, ..destination.Qubits];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [a.Register, b.Register, destination.Register];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -238,7 +244,7 @@ public class And(IQuantumType a, IQuantumType b, IQuantumType destination) : Cir
 public class Not(IQuantumType a, IQuantumType b, IQuantumType destination) : CircuitOperation
 {
     public override IQuantumType Destination => destination;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [..a.Qubits, ..b.Qubits, ..destination.Qubits];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [a.Register, b.Register, destination.Register];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -248,7 +254,7 @@ public class Not(IQuantumType a, IQuantumType b, IQuantumType destination) : Cir
 public class Equals(IQuantumType a, IQuantumType b, IQuantumType destination) : CircuitOperation
 {
     public override IQuantumType Destination => destination;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [..a.Qubits, ..b.Qubits, ..destination.Qubits];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [a.Register, b.Register, destination.Register];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -258,7 +264,7 @@ public class Equals(IQuantumType a, IQuantumType b, IQuantumType destination) : 
 public class NotEquals(IQuantumType a, IQuantumType b, IQuantumType destination) : CircuitOperation
 {
     public override IQuantumType Destination => destination;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [..a.Qubits, ..b.Qubits, ..destination.Qubits];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [a.Register, b.Register, destination.Register];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -268,7 +274,7 @@ public class NotEquals(IQuantumType a, IQuantumType b, IQuantumType destination)
 public class LowerThan(IQuantumType a, IQuantumType b, IQuantumType destination) : CircuitOperation
 {
     public override IQuantumType Destination => destination;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [..a.Qubits, ..b.Qubits, ..destination.Qubits];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [a.Register, b.Register, destination.Register];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -278,7 +284,7 @@ public class LowerThan(IQuantumType a, IQuantumType b, IQuantumType destination)
 public class LowerEqualThan(IQuantumType a, IQuantumType b, IQuantumType destination) : CircuitOperation
 {
     public override IQuantumType Destination => destination;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [.. a.Qubits, .. b.Qubits, .. destination.Qubits];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [ a.Register,  b.Register,  destination.Register];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -288,7 +294,7 @@ public class LowerEqualThan(IQuantumType a, IQuantumType b, IQuantumType destina
 public class GreaterThan(IQuantumType a, IQuantumType b, IQuantumType destination) : CircuitOperation
 {
     public override IQuantumType Destination => destination;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [.. a.Qubits, .. b.Qubits, .. destination.Qubits];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [ a.Register,  b.Register,  destination.Register];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -298,7 +304,7 @@ public class GreaterThan(IQuantumType a, IQuantumType b, IQuantumType destinatio
 public class GreaterEqualThan(IQuantumType a, IQuantumType b, IQuantumType destination) : CircuitOperation
 {
     public override IQuantumType Destination => destination;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [.. a.Qubits, .. b.Qubits, .. destination.Qubits];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [ a.Register,  b.Register,  destination.Register];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -311,7 +317,7 @@ public class RightShift : CircuitOperation
     private readonly QuintType offset;
 
     public override IQuantumType Destination => a;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [.. a.Qubits, .. offset.Qubits];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [a.Register, offset.Register];
     public RightShift(IQuantumType a, QuintType offset)
     {
         this.a = a;
@@ -334,7 +340,7 @@ public class LeftShift : CircuitOperation
     private readonly QuintType offset;
 
     public override IQuantumType Destination => a;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [.. a.Qubits, .. offset.Qubits];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [ a.Register,  offset.Register];
     public LeftShift(IQuantumType a, QuintType offset)
     {
         this.a = a;
@@ -354,7 +360,7 @@ public class LeftShift : CircuitOperation
 public class Addition(IQuantumType a, IQuantumType b, IQuantumType destination) : CircuitOperation
 {
     public override IQuantumType Destination => destination;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [.. a.Qubits, .. b.Qubits, .. destination.Qubits];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [ a.Register,  b.Register,  destination.Register];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -364,7 +370,7 @@ public class Addition(IQuantumType a, IQuantumType b, IQuantumType destination) 
 public class Subtraction(IQuantumType a, IQuantumType b, IQuantumType destination) : CircuitOperation
 {
     public override IQuantumType Destination => destination;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [.. a.Qubits, .. b.Qubits, .. destination.Qubits];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [ a.Register,  b.Register,  destination.Register];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -374,7 +380,7 @@ public class Subtraction(IQuantumType a, IQuantumType b, IQuantumType destinatio
 public class Multiply(IQuantumType a, IQuantumType b, IQuantumType destination) : CircuitOperation
 {
     public override IQuantumType Destination => destination;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [.. a.Qubits, .. b.Qubits, .. destination.Qubits];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [ a.Register,  b.Register,  destination.Register];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -384,7 +390,7 @@ public class Multiply(IQuantumType a, IQuantumType b, IQuantumType destination) 
 public class Divide(IQuantumType a, IQuantumType b, IQuantumType destination) : CircuitOperation
 {
     public override IQuantumType Destination => destination;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [.. a.Qubits, .. b.Qubits, .. destination.Qubits];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [ a.Register,  b.Register,  destination.Register];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -394,7 +400,7 @@ public class Divide(IQuantumType a, IQuantumType b, IQuantumType destination) : 
 public class Module(IQuantumType a, IQuantumType b, IQuantumType destination) : CircuitOperation
 {
     public override IQuantumType Destination => destination;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [.. a.Qubits, .. b.Qubits, .. destination.Qubits];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [ a.Register,  b.Register,  destination.Register];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -404,7 +410,7 @@ public class Module(IQuantumType a, IQuantumType b, IQuantumType destination) : 
 public class Opposite(IQuantumType a, IQuantumType destination) : CircuitOperation
 {
     public override IQuantumType Destination => destination;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [.. a.Qubits, .. destination.Qubits];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [ a.Register,  destination.Register];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -414,7 +420,7 @@ public class Opposite(IQuantumType a, IQuantumType destination) : CircuitOperati
 public class Increment(IQuantumType a, IQuantumType destination, int amount = 1) : CircuitOperation
 {
     public override IQuantumType Destination => destination;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [.. a.Qubits, .. destination.Qubits];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [ a.Register,  destination.Register];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -424,7 +430,7 @@ public class Increment(IQuantumType a, IQuantumType destination, int amount = 1)
 public class Decrement(IQuantumType a, IQuantumType destination, int amount = 1) : CircuitOperation
 {
     public override IQuantumType Destination => destination;
-    public override IEnumerable<CircuitQubit> QubitInvolved => [.. a.Qubits, .. destination.Qubits];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [ a.Register,  destination.Register];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {

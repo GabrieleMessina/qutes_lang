@@ -186,8 +186,9 @@ public class ClassicalArrayType(IEnumerable<Symbol> values) : IClassicalType
 
 public class QubitType(string initialValue) : IQuantumType
 {
-    public int Size { get; } = 1;
-    public IEnumerable<CircuitQubit> Qubits { get; } = [new()];
+    public const int DefaultSize = 1;
+    public int Size { get; } = DefaultSize;
+    public QuantumRegister Register { get; } = new(DefaultSize);
 
     public static QubitType GetDefaultValue() => new ("0q");
 
@@ -199,9 +200,9 @@ public class QubitType(string initialValue) : IQuantumType
 
 public class QuintType(string initialValue) : IQuantumType
 {
-    public const int _size = 3;
-    public int Size { get; } = _size;
-    public IEnumerable<CircuitQubit> Qubits { get; } = Enumerable.Repeat<CircuitQubit>(null!, _size).Select(_ => new CircuitQubit()).ToList(); //ToList is important
+    public const int DefaultSize = 3;
+    public int Size { get; } = DefaultSize;
+    public QuantumRegister Register { get; } = new(DefaultSize);
 
     public static QuintType GetDefaultValue() => new ("0q");
 
@@ -223,11 +224,24 @@ public class QuintType(string initialValue) : IQuantumType
     public CircuitOperation InplacePostDecrement() => new Decrement(this, this);
 }
 
-public class QustringType(string initialValue) : IQuantumType //TODO: this is an array type, should inherit from QuantumArrayType?
+public class QustringType : IQuantumType //TODO: this is an array type, should inherit from QuantumArrayType?
 {
-    public const int _size = 3;
-    public int Size { get; private set; } = _size;
-    public IEnumerable<CircuitQubit> Qubits { get; private set; } = Enumerable.Repeat<CircuitQubit>(null!, _size).Select(_ => new CircuitQubit()).ToList(); //ToList is important
+    public const int CharSize = 3;
+
+    public QustringType(QuantumRegister register)
+    {
+        Size = register.Qubits.Count();
+        Register = register;
+    }
+
+    public QustringType(string initialValue)
+    {
+        Size = initialValue.Length * CharSize;
+        Register = new(Size);
+    }
+
+    public int Size { get; }
+    public QuantumRegister Register { get; }
 
     public static QustringType GetDefaultValue() => new ("0");
 
@@ -236,8 +250,7 @@ public class QustringType(string initialValue) : IQuantumType //TODO: this is an
 
     public CircuitOperation Addition(IQuantumType term)
     {
-        var concatQustring = new QustringType(string.Empty) { Qubits = this.Qubits.Concat(term.Qubits) };
-        Size = concatQustring.Qubits.Count();
+        var concatQustring = new QustringType(new QuantumRegister(Register.Qubits.Concat(term.Register.Qubits), Register.Name));
         return new Empty(concatQustring);
     }
 
@@ -247,11 +260,23 @@ public class QustringType(string initialValue) : IQuantumType //TODO: this is an
     public CircuitOperation GreaterEqualThan(IQuantumType term) => new GreaterEqualThan(this, term, QubitType.GetDefaultValue());
 }
 
-public class QuantumArrayType(IEnumerable<Symbol> values) : IQuantumType
+public class QuantumArrayType : IQuantumType
 {
-    public const int _size = 3; //TODO: depends on values type size.
-    public int Size { get; private set; } = _size;
-    public IEnumerable<CircuitQubit> Qubits { get; private set; } = Enumerable.Repeat<CircuitQubit>(new(), _size);
+    public QuantumArrayType(QuantumRegister register)
+    {
+        Size = register.Qubits.Count();
+        Register = register;
+    }
+
+    public QuantumArrayType(IEnumerable<ValueSymbol> values)
+    {
+        Size = DefaultSize; //TODO: handle.
+        Register = new(Size);
+    }
+
+    public const int DefaultSize = 1; //TODO: depends on values type size.
+    public int Size { get; } = DefaultSize;
+    public QuantumRegister Register { get; } = new(DefaultSize);
 
     public static QuantumArrayType GetDefaultValue() => new([]);
 
@@ -259,8 +284,7 @@ public class QuantumArrayType(IEnumerable<Symbol> values) : IQuantumType
     public CircuitOperation RightShift(QuintType positions) => new RightShift(this, positions);
 
     public CircuitOperation Addition(IQuantumType term){
-        var concatArray = new QuantumArrayType([]) { Qubits = this.Qubits.Concat(term.Qubits) };
-        Size = concatArray.Qubits.Count();
+        var concatArray = new QuantumArrayType(new QuantumRegister(Register.Qubits.Concat(term.Register.Qubits), Register.Name));
         return new Empty(concatArray);
     }
 }

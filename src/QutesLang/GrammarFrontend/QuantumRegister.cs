@@ -1,7 +1,19 @@
 ﻿namespace QutesLang.GrammarFrontend;
 
-public class QuantumRegister(string name, IEnumerable<CircuitQubit> qubits)
+public class QuantumRegister
 {
-    public string Name { get; } = name;
-    public IEnumerable<CircuitQubit> Qubits { get; set; } = qubits;
+    public QuantumRegister(int size, string? name = null)
+    {
+        Name = name;
+        Qubits = Enumerable.Range(0, size).Select(i => new CircuitQubit()).ToList(); //ToList is important here.
+    }
+
+    public QuantumRegister(IEnumerable<CircuitQubit> qubits, string? name = null)
+    {
+        Name = name;
+        Qubits = qubits;
+    }
+
+    public string? Name { get; set; }
+    public IEnumerable<CircuitQubit> Qubits { get; }
 }

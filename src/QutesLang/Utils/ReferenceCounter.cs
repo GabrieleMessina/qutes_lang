@@ -2,7 +2,19 @@
 
 public class ReferenceCounter<T> where T : notnull
 {
-    private readonly Dictionary<T, int> storage = []; // Key: element, Value: count
+    private readonly Dictionary<T, int> storage; // Key: element, Value: count
+
+    public ReferenceCounter()
+    {
+        storage = [];
+    }
+
+    public ReferenceCounter(ReferenceCounter<T> counter)
+    {
+        storage = new Dictionary<T, int>(counter.storage);
+    }
+
+    public IEnumerable<T> Elements => storage.Keys;
 
     /// <summary>
     /// Adds an element. If it exists, increments the counter.
@@ -39,5 +51,9 @@ public class ReferenceCounter<T> where T : notnull
         }
         return false;
     }
-    public IEnumerable<T> Elements => storage.Keys;
+
+    public bool Contains(T item)
+    {
+        return storage.ContainsKey(item);
+    }
 }

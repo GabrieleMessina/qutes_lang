@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Linq;
+using System.Text;
 
 namespace QutesLang.GrammarFrontend;
 
@@ -9,14 +10,24 @@ public enum BackendProvider
 
 public class CircuitHandler(BackendProvider backendProvider = BackendProvider.Qiskit) : ICircuitHandler
 {
-    public QuantumCircuit Current => circuits.Last();
-    private readonly Stack<QuantumCircuit> circuits = [];
+    public IQuantumCircuit Current => circuitsStack.Peek();
+    private readonly Stack<IQuantumCircuit> circuitsStack = [];
+    private readonly Stack<IQuantumCircuit> circuitsDeclared = [];
 
-    public QuantumCircuit CreateNewCircuit()
+    public IQuantumCircuit CreateNewCircuit()
     {
-        var circuit = new QuantumCircuit();
-        circuits.Push(circuit);
-        return circuit;
+        return new QuantumCircuit();
+    }
+
+    public void PushCircuit(IQuantumCircuit circuit)
+    {
+        circuitsStack.Push(circuit);
+        circuitsDeclared.Push(circuit);
+    }
+
+    public IQuantumCircuit PopCircuit()
+    {
+        return circuitsStack.Pop();
     }
 
     public string FinalizeCircuit()
@@ -35,9 +46,9 @@ public class CircuitHandler(BackendProvider backendProvider = BackendProvider.Qi
         stringBuilder.AppendLine("from qiskit.circuit import Qubit");
         stringBuilder.AppendLine("from qiskit.primitives import StatevectorSampler");
 
-        foreach (var circuit in circuits) // Processed in reverse order to maintain correct dependencies
+        foreach (var circuit in circuitsDeclared) // Processed in stack order to maintain correct dependencies
         {
-            circuit.FinalizeQiskitCircuit();
+            ((QuantumCircuit)circuit).FinalizeQiskitCircuit(stringBuilder);
         }
         return stringBuilder.ToString();
     }
@@ -47,84 +58,104 @@ public class CircuitHandler(BackendProvider backendProvider = BackendProvider.Qi
         Current.PushOperation(operation);
     }
 
-    public void DeclareQuantumVariable(string name, IEnumerable<CircuitQubit> values)
+    public void DeclareQuantumVariable(string name, QuantumRegister values)
     {
         Current.DeclareQuantumVariable(name, values);
     }
 
-    public void UpdateQuantumVariable(string name, IEnumerable<CircuitQubit> values)
+    public void UpdateQuantumVariable(string name, QuantumRegister values)
     {
         Current.UpdateQuantumVariable(name, values);
     }
 }
+
+public class ControlledCircuit : QuantumCircuit
+{
+    public IQuantumCircuit InnerCircuit { get; private set; }
+    public QuantumRegister ControlRegister { get; }
+    public override string Name { get; protected set; }
+
+    public override Dictionary<string, QuantumRegister> QuantumVariables => GetQuantumVariables();
+    public override ReferenceCounter<QuantumRegister> Registers => GetRegisters();
+
+    public ControlledCircuit(IQuantumCircuit innerCircuit, QuantumRegister controlRegister)
+    {
+        InnerCircuit = innerCircuit;
+        ControlRegister = controlRegister;
+        Name = "controlled_" + innerCircuit.Name;
+        QuantumVariables = new(innerCircuit.QuantumVariables);
+        Registers = new(innerCircuit.Registers);
+        DeclareQuantumVariable(controlRegister.Name ?? "control", controlRegister);
+    }
+
+    public override void FinalizeQiskitCircuit(StringBuilder stringBuilder)
+    {
+        base.FinalizeQiskitCircuit(stringBuilder);
+        stringBuilder.AppendLine($"{Name} = {InnerCircuit.Name}.control({ControlRegister.Qubits.Count()}, label='{Name}')");
+    }
+
+    private Dictionary<string, QuantumRegister> GetQuantumVariables()
+    {
+        return new([..InnerCircuit.QuantumVariables.AsEnumerable(), KeyValuePair.Create("", ControlRegister)]);
+    }
+
+    private ReferenceCounter<QuantumRegister> GetRegisters()
+    {
+        var registers = new ReferenceCounter<QuantumRegister>(InnerCircuit.Registers);
+        registers.Add(ControlRegister);
+        return registers;
+    }
+}
+
 public class QuantumCircuit : IQuantumCircuit
 {
-    public string Name { get; private set; } = VariableNameGuid.New(prefix: "circuit");
-    public List<CircuitOperation> Operations { get; } = [];
-    public Dictionary<string, QuantumRegister> QuantumVariables { get; } = [];
-    public ReferenceCounter<CircuitQubit> Qubits { get; } = new();
-    public IEnumerable<CircuitQubit> ControlQubits { get; private set; } = [];
+    public virtual string Name { get; protected set; } = VariableNameGuid.New(prefix: "circuit");
+    public virtual List<CircuitOperation> Operations { get; protected set; } = [];
+    public virtual Dictionary<string, QuantumRegister> QuantumVariables { get; protected set; } = [];
+    public virtual ReferenceCounter<QuantumRegister> Registers { get; protected set; } = new();
 
     public void PushOperation(CircuitOperation operation)
     {
         Operations.Add(operation);
     }
 
-    public void MakeControlledBy(IEnumerable<CircuitQubit> controlQubits)
+    public IQuantumCircuit MakeControlledBy(QuantumRegister controlRegister)
     {
-        ControlQubits = controlQubits;
+        return new ControlledCircuit(this, controlRegister);
     }
 
-    public void DeclareQuantumVariable(string name, IEnumerable<CircuitQubit> values)
+    public void DeclareQuantumVariable(string name, QuantumRegister register)
     {
         if (QuantumVariables.ContainsKey(name))
         {
             throw new InvalidOperationException($"Quantum variable with name {name} already declared.");
         }
 
-        var registerQubits = new HashSet<CircuitQubit>();
-        foreach (var value in values)
-        {
-            registerQubits.Add(value);
-            Qubits.Add(value);
-        }
-        QuantumVariables[name] = new (name, registerQubits);
+        register.Name ??= name;
+
+        Registers.Add(register);
+        QuantumVariables[name] = register;
     }
 
-    public void UpdateQuantumVariable(string name, IEnumerable<CircuitQubit> values)
+    public void UpdateQuantumVariable(string name, QuantumRegister registerNewValue)
     {
         if (!QuantumVariables.TryGetValue(name, out QuantumRegister? register))
         {
             throw new InvalidOperationException($"Quantum variable with name {name} not declared.");
         }
 
-        // Remove old qubits from reference counter
-        foreach (var qubit in register.Qubits)
-        {
-            Qubits.Remove(qubit);
-        }
-
-        var registerQubits = new HashSet<CircuitQubit>();
-        foreach (var value in values)
-        {
-            registerQubits.Add(value);
-            Qubits.Add(value);
-        }
-
-        register.Qubits = registerQubits;
+        QuantumVariables[name] = registerNewValue;
     }
 
-    public string FinalizeQiskitCircuit()
+    public virtual void FinalizeQiskitCircuit(StringBuilder stringBuilder)
     {
-        var stringBuilder = new StringBuilder();
-
         // Registers consolidation
-        var usedQubits = GetUsedQubits();
-        FreeUnusedQubits(usedQubits);
-        DeclareMissingQubits(usedQubits); //e.g. registers that where declared in parent circuit
+        var usedRegister = GetUsedRegister();
+        //FreeUnusedRegister(usedRegister); //TODO: not working because not everything is an operation: e.g. if(a) => a never used because no op is associted.
+        DeclareMissingRegister(usedRegister); //e.g. registers that where declared in parent circuit
 
         // Declare qubits
-        foreach (var qubit in Qubits.Elements)
+        foreach (var qubit in Registers.Elements.SelectMany(r=>r.Qubits))
         {
             stringBuilder.AppendLine($"{qubit.Id} = Qubit()");
         }
@@ -144,40 +175,41 @@ public class QuantumCircuit : IQuantumCircuit
             operation.ApplyToQiskitCircuit(this, stringBuilder);
         }
 
-        if (ControlQubits.Any())
-        {
-            stringBuilder.AppendLine($"{Name} = {Name}.control({ControlQubits.Count()}, label='controlled_{Name}')");
-        }
-
         // Draw the circuit
         stringBuilder.AppendLine($"print({Name}.draw())");
-        return stringBuilder.ToString();
     }
 
-    private HashSet<CircuitQubit> GetUsedQubits()
+    private HashSet<QuantumRegister> GetUsedRegister()
     {
-        List<CircuitQubit> qubitsUsed = [];
+        List<QuantumRegister> registerUsed = [];
         foreach (var operation in Operations)
         {
-            qubitsUsed.AddRange(operation.QubitInvolved);
+            registerUsed.AddRange(operation.RegistersInvolved);
         }
-        return qubitsUsed.ToHashSet();
+
+        return registerUsed.ToHashSet();
     }
 
-    private void FreeUnusedQubits(HashSet<CircuitQubit> qubitsUsed)
+    private void FreeUnusedRegister(HashSet<QuantumRegister> qubitsUsed)
     {
-        //TODO: fix, we are deleting qubits but not registers.
-        IEnumerable<CircuitQubit> qubitDeclared = [..Qubits.Elements];
-        foreach (var qubit in qubitDeclared)
+        IEnumerable<QuantumRegister> registerDeclared = [..Registers.Elements];
+        foreach (var register in registerDeclared)
         {
-            if (!qubitsUsed.Contains(qubit))
+            if (!qubitsUsed.Contains(register))
             {
-                Qubits.Remove(qubit);
+                Registers.Remove(register);
             }
         }
     }
-    private void DeclareMissingQubits(HashSet<CircuitQubit> usedRegisters)
+
+    private void DeclareMissingRegister(HashSet<QuantumRegister> usedRegisters)
     {
-        //TODO: we cannot declare a huge register with all this qubits, we need to track which registers where linked to each qubit.
+        foreach (var register in usedRegisters)
+        {
+            if (!QuantumVariables.ContainsValue(register))
+            {
+                DeclareQuantumVariable(register.Name!, register);
+            }
+        }
     }
 }
