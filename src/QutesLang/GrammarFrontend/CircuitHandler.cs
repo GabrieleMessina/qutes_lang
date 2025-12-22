@@ -94,7 +94,8 @@ public class ControlledCircuit : QuantumCircuit
     public override void FinalizeQiskitCircuit(StringBuilder stringBuilder)
     {
         base.FinalizeQiskitCircuit(stringBuilder);
-        stringBuilder.AppendLine($"{Name} = {InnerCircuit.Name}.control({ControlRegister.Qubits.Count()}, ctrl_state='{(onCondition?"1":"0")}', label='{Name}')");
+        var controlBitCount = ControlRegister.Qubits.Count();
+        stringBuilder.AppendLine($"{Name} = {InnerCircuit.Name}.control({controlBitCount}, ctrl_state='{new string(onCondition?'1':'0', controlBitCount)}', label='{Name}')");
     }
 
     private Dictionary<string, QuantumRegister> GetQuantumVariables()
