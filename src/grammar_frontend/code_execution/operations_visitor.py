@@ -227,8 +227,11 @@ class OperationsVisitor(QutesBaseVisitor):
                 return result
             if(ctx.SUB()):
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
-                    self.quantum_circuit_handler.push_complement2_operation(first_term_symbol.quantum_register)
-                    result = first_term_symbol
+                    result = self.variables_handler.declare_anonymous_variable(QutesDataType.quint,Quint.get_default_value(),ctx.start.tokenIndex)
+                    carry = self.variables_handler.declare_anonymous_variable(QutesDataType.qubit,Qubit.get_default_value(),ctx.start.tokenIndex)
+                    self.quantum_circuit_handler.push_sum_operation(first_term_symbol, result, carry, label="HalfAdder_Duplication") #sum is in place, so we duplicate the value of first term adding it to result register which is zero.
+                    self.quantum_circuit_handler.push_complement2_operation(result.quantum_register)
+                    result = result
                     return result
                 else:
                     first_term_symbol.value = -first_term_symbol.value 
