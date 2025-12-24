@@ -52,9 +52,9 @@ class Qustring(QuantumType['Qustring']):
 
         for char in literal:
             if(char == Qustring.__superposition_char):
-                qubyte:Quint = Quint.init_from_size(Qustring.get_default_size_in_qubit(), True)
+                qubyte:Qustring = Qustring(Qustring.get_default_superposition_value())
             else:
-                qubyte:Quint = Quint.init_from_integer(Qustring.get_int_from_char(char), Qustring.get_default_size_in_qubit())
+                qubyte:Qustring = Qustring(Qustring.get_default_value())
             char_init_state = Statevector(qubyte.qubit_state)
             if(init_state == None):
                 init_state = char_init_state

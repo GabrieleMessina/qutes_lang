@@ -28,7 +28,6 @@ def unwrap(l:list[QuantumRegister|ClassicalRegister]) -> list:
 class QuantumCircuitHandler:
     anon_counter = iter(range(1000))
     anon_variable_name_prefix = "anon"
-    PAD_PREFIX = "pad_"
     def __init__(self):
         self._quantum_registers : list[QuantumRegister] = []
         self._registers_init_state : dict[QuantumRegister | ClassicalRegister, StatePreparation] = {}
@@ -232,7 +231,8 @@ class QuantumCircuitHandler:
                     # measured variables from right to left based on measuring time
                     reg_size = self._varname_to_register[reg_name].size
                     bitstring = result[i:i+reg_size]
-                    row.append(f"{bitstring}₂ | {int(bitstring, 2)}⏨")
+                    int_value = utils.twos_comp_to_int(bitstring)
+                    row.append(f"{bitstring}₂ | {int_value}⏨")
                     i += reg_size
                 row = row[::-1] # recover ordering to have first measured as first column
                 row.append(count)
@@ -328,80 +328,39 @@ class QuantumCircuitHandler:
         self._current_operations_queue.append(lambda circuit : cast(QuantumCircuit, circuit).reset(quantum_register))
 
     """
-    Push sum for two quantum registers plus a carry: pads addend/accumulator, 
-    keeps an overflow bit, and composes a half adder in place on the accumulator.
+    Push sum operation for two quantum registers and a carry register.
+    The sum is done using a half adder circuit.
+    The carry register is used to store the carry of the sum.
+    The sum is done in place, so the symbol_b register is modified.
     """
-    def push_sum_operation(self, symbol_a, symbol_b, symbol_carry):
-        quantum_register_a: QuantumRegister = symbol_a.quantum_register
-        quantum_register_b: QuantumRegister = symbol_b.quantum_register
-        quantum_register_carry: QuantumRegister = symbol_carry.quantum_register
+    def push_sum_operation(self, symbol_a, symbol_b, symbol_carry, label="HalfAdder") -> None:
+        quantum_register_a: QuantumRegister = symbol_a if isinstance(symbol_a, QuantumRegister) else symbol_a.quantum_register
+        quantum_register_b: QuantumRegister = symbol_b if isinstance(symbol_b, QuantumRegister) else symbol_b.quantum_register
+        quantum_register_carry: QuantumRegister = symbol_carry if isinstance(symbol_carry, QuantumRegister) else symbol_carry.quantum_register
         
-        # Pad and align so we always process the full data width (accumulator size minus the overflow bit).
-        target_data_bits = max(quantum_register_a.size, quantum_register_b.size)
-        # accumulator keeps an extra +1 bit to store overflow
-        quantum_register_b = self._pad_register(quantum_register_b, target_data_bits + 1)
-        quantum_register_a = self._pad_register(quantum_register_a, target_data_bits)
-        numbers_len = min(quantum_register_a.size, quantum_register_b.size - 1)
-
-        adder = HalfAdderGate(numbers_len, f"HalfAdder_RegSize:{numbers_len}")
+        adder = HalfAdderGate(Quint.size_in_qubit, label)
         quantum_registers = unwrap(
-            quantum_register_a[:numbers_len]
-            + quantum_register_b[:numbers_len]
+            quantum_register_a[:]
+            + quantum_register_b[:]
             + quantum_register_carry[:]
         )
         self.push_compose_circuit_operation(adder, quantum_registers)
+
+    """
+    Push subtraction operation for two quantum registers and a carry register.
+    The subtraction is done calculating the 2's complement and using a half adder circuit.
+    The carry register is used to store the carry of the subtraction.
+    The subtraction is done in place, so the symbol_b register is modified.
+    """
+    def push_sub_operation(self, symbol_a, symbol_b, symbol_carry) -> None:
+        self.push_complement2_operation(symbol_b.quantum_register)
+        self.push_sum_operation(symbol_a, symbol_b, symbol_carry, label="HalfAdder_Subtraction")
         
-    def push_complement2_operation(
-        self,
-        quantum_register: QuantumRegister,
-        expected_size: int | None = None,
-    ):
-        if expected_size is not None:
-            quantum_register = self._pad_register(quantum_register, expected_size)
-        
-        def _invert_box(n_qubits: int) -> QuantumCircuit:
-            qc = QuantumCircuit(n_qubits, name=f"invert_{n_qubits}")
-            for i in range(n_qubits):
-                qc.x(i)
-            return qc.to_gate()
-
-        qc = QuantumCircuit(quantum_register.size, name="complement2")
-
-        n_qubits = quantum_register.size
-        for i in range(1, n_qubits):
-            invert_gate = _invert_box(n_qubits - i).control(
-                i, ctrl_state="1" + "0" * (i - 1)
-            )
-            qc = qc.compose(invert_gate, list(range(n_qubits)))
-
-        comp2_gate = qc.to_gate(label="complement2")
-        self.push_compose_circuit_operation(comp2_gate, [quantum_register])
-        
-    def _pad_register(self, quantum_register: QuantumRegister, target_size: int) -> QuantumRegister:
-        """Pad a register to target_size, reusing existing pads when possible."""
-        if quantum_register.size >= target_size:
-            return quantum_register
-        needed = target_size - quantum_register.size
-
-        existing_pads = [reg for reg in self._quantum_registers if reg.name.startswith(f"{self.PAD_PREFIX}{quantum_register.name}_")]
-        existing_pads.sort(key=lambda r: int(r.name.split("_")[-1]) if r.name.split("_")[-1].isdigit() else r.name)
-
-        pad_bits: list = []
-        for pad in existing_pads:
-            if len(pad_bits) >= needed:
-                break
-            pad_bits += pad[:]
-
-        remaining = needed - len(pad_bits)
-        if remaining > 0:
-            new_pad = self.declare_quantum_register(
-                f"{self.PAD_PREFIX}{quantum_register.name}_{next(QuantumCircuitHandler.anon_counter)}",
-                Quint.init_from_size(remaining),
-                is_anonymous=True,
-            )
-            pad_bits += new_pad[:]
-
-        return QuantumRegister(None, quantum_register.name, bits=quantum_register[:] + pad_bits)
+    def push_complement2_operation(self, quantum_register: QuantumRegister) -> None:        
+        a = self.declare_quantum_register(f"twos_comp_ancilla_int_{next(QuantumCircuitHandler.anon_counter)}", Quint.init_from_integer(1), is_anonymous=True)
+        b = self.declare_quantum_register(f"twos_comp_ancilla_carry_{next(QuantumCircuitHandler.anon_counter)}", Qubit(), is_anonymous=True)
+        self.push_not_operation(quantum_register)
+        self.push_sum_operation(a, quantum_register, b, label="Complement2_Increment")
 
     def push_compose_circuit_operation(self, circuit_to_compose : QuantumCircuit|Instruction, quantum_registers : list[QuantumRegister] = None, classical_registers=None) -> None:
         if classical_registers is None:

@@ -1,7 +1,24 @@
-int a = 1;
-if(a == true){
-    print "è 1";
-}
-else{
-    print "non è 1";
-}
+// int a = 1;
+// if(a == true){
+//     print "è 1";
+// }
+// else{
+//     print "non è 1";
+// }
+
+// qubit a;
+// qubit b;
+// qubit c;
+// qubit d;
+
+// swap a, b, c, d;
+
+
+quint a = 3;
+quint b = -4;
+
+quint c = a - b;
+
+print a;
+print b;
+print c;

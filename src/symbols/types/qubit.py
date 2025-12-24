@@ -73,10 +73,6 @@ class Qubit(QuantumType['Qubit']):
                 return Qubit(complex(1), complex(0))
         raise TypeError(f"Cannot convert {type(var_value)} to qubit.")
 
-    def update_size_with_padding(self, new_size : int) -> 'Quint':
-        from symbols.types import Quint
-        return Quint([self]).update_size_with_padding(new_size)
-
     def to_classical_type(self) -> bool:
         return self.alpha.real == 0.0 and self.beta.real == 1.0
 

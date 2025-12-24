@@ -68,33 +68,22 @@ class OperationsVisitor(QutesBaseVisitor):
             if(ctx.ADD()):
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)
                     and second_term_symbol and QutesDataType.is_quantum_type(second_term_symbol.symbol_declaration_static_type)):
-                    result_size = max(first_term_symbol.quantum_register.size,second_term_symbol.quantum_register.size)
-                    result = self.variables_handler.declare_anonymous_variable(QutesDataType.quint, Quint.init_from_size(result_size+1), ctx.start.tokenIndex)
+                    result = self.variables_handler.declare_anonymous_variable(QutesDataType.quint, Quint.get_default_value(), ctx.start.tokenIndex)
                     carry = self.variables_handler.declare_anonymous_variable(QutesDataType.qubit, Qubit.get_default_value(), ctx.start.tokenIndex)
 
-                    self.quantum_circuit_handler.push_sum_operation(first_term_symbol, result, carry) #result var was declared above, so its value is zero, so carry is never used
-                    self.quantum_circuit_handler.push_sum_operation(second_term_symbol, result, carry) #now carry could have value
-                    self.quantum_circuit_handler.push_cnot_operation(carry.quantum_register[0], result.quantum_register[-1]) #taking care of carry.
-
+                    self.quantum_circuit_handler.push_sum_operation(second_term_symbol, result, carry, label="HalfAdder_Duplication") #sum is in place, so we duplicate the value of second term adding it to result register which is zero.
+                    self.quantum_circuit_handler.push_sum_operation(first_term_symbol, result, carry) #then add first term to result register
                     return result
                 else:
                     result = first_term_value + second_term_value
             if(ctx.SUB()):
-                if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
-                    result_size = max(first_term_symbol.quantum_register.size,second_term_symbol.quantum_register.size)
-                    # Copy minuend into a fresh result register of the target size.
-                    result = self.variables_handler.declare_anonymous_variable(QutesDataType.quint,Quint.init_from_size(result_size),ctx.start.tokenIndex)
-                    carry = self.variables_handler.declare_anonymous_variable(QutesDataType.qubit,Qubit.get_default_value(),ctx.start.tokenIndex)
+                if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)
+                    and second_term_symbol and QutesDataType.is_quantum_type(second_term_symbol.symbol_declaration_static_type)):
+                    result = self.variables_handler.declare_anonymous_variable(QutesDataType.quint,Quint.get_default_value(),ctx.start.tokenIndex)
+                    carry = self.variables_handler.declare_anonymous_variable(QutesDataType.qubit,Qubit.get_default_value(),ctx.start.tokenIndex)                    
                     
-                    self.quantum_circuit_handler.push_sum_operation(first_term_symbol, result, carry)
-                    # Obtain -b in two's complement form.
-                    self.quantum_circuit_handler.push_complement2_operation(second_term_symbol.quantum_register, result_size)
-                    # Add -b to a.
-                    self.quantum_circuit_handler.push_sum_operation(second_term_symbol, result, carry)
-                    # Restore b to its original value.
-                    self.quantum_circuit_handler.push_complement2_operation(second_term_symbol.quantum_register, result_size)
-                    # Handle final carry.
-                    # self.quantum_circuit_handler.push_cnot_operation(carry.quantum_register[0], result.quantum_register[-1])
+                    self.quantum_circuit_handler.push_sum_operation(second_term_symbol, result, carry, label="HalfAdder_Duplication") #sum is in place, so we duplicate the value of second term adding it to result register which is zero.
+                    self.quantum_circuit_handler.push_sub_operation(first_term_symbol, result, carry) #then subtract first term to result register
                     return result
                 else:
                     result = first_term_value - second_term_value
@@ -441,7 +430,7 @@ class OperationsVisitor(QutesBaseVisitor):
                         phase_kickback_ancilla = self.quantum_circuit_handler.declare_quantum_register(f"phase_kickback_ancilla_{current_grover_count}", Qubit(0,1))
                         oracle_registers.append(phase_kickback_ancilla)
                 if(rotation_register == None):
-                    rotation_register = self.quantum_circuit_handler.declare_quantum_register(f"rotation_grover_{current_grover_count}", Quint.init_from_size(logn,True))
+                    rotation_register = self.quantum_circuit_handler.declare_quantum_register(f"rotation_grover_{current_grover_count}", Quint.init_from_integer(logn))
                     oracle_registers.append(rotation_register)
                     if(self.log_grover_esm_rotation):
                         registers_to_measure.append(rotation_register)
