@@ -148,6 +148,8 @@ public class QuantumCircuit : IQuantumCircuit
             throw new InvalidOperationException($"Quantum variable with name {name} not declared.");
         }
 
+        Registers.Remove(register);
+        Registers.Add(registerNewValue);
         QuantumVariables[name] = registerNewValue;
     }
 
