@@ -326,7 +326,7 @@ public class RightShift : CircuitOperation
     public RightShift(IQuantumType a, IntType offset)
     {
         this.a = a;
-        this.offset = new QuintType(offset.Value.ToString());
+        this.offset = new QuintType(QuintParser.Parse(offset.Value.ToString()));
     }
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
@@ -349,7 +349,7 @@ public class LeftShift : CircuitOperation
     public LeftShift(IQuantumType a, IntType offset)
     {
         this.a = a;
-        this.offset = new QuintType(offset.Value.ToString());
+        this.offset = new QuintType(QuintParser.Parse(offset.Value.ToString()));
     }
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
