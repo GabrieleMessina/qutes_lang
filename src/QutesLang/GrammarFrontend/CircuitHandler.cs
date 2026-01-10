@@ -45,6 +45,7 @@ public class CircuitHandler(BackendProvider backendProvider = BackendProvider.Qi
         stringBuilder.AppendLine("from qiskit import QuantumCircuit, QuantumRegister");
         stringBuilder.AppendLine("from qiskit.circuit import Qubit");
         stringBuilder.AppendLine("from qiskit.primitives import StatevectorSampler");
+        stringBuilder.AppendLine("from qiskit.circuit.library import StatePreparation");
 
         foreach (var circuit in circuitsDeclared) // Processed in stack order to maintain correct dependencies
         {
@@ -174,6 +175,19 @@ public class QuantumCircuit : IQuantumCircuit
         }
         var quantumRegisterNames = string.Join(',', QuantumVariables.Select(qr => qr.Value.Name));
         stringBuilder.AppendLine($"{Name} = QuantumCircuit({quantumRegisterNames})");
+
+        // Initialize qubits to desired state
+        var registersToInitialize = QuantumVariables.Values
+            .SelectMany(q => q.Registers ?? [q]) // If no sub-registers(qreg is not an array), use the register itself
+            .Distinct();
+        foreach (var qreg in registersToInitialize)
+        {
+            var initialState = qreg.InitialStateVector;
+            if(initialState != null)
+            {
+                new StatePreparation(qreg, initialState).ApplyToQiskitCircuit(this, stringBuilder);
+            }
+        }
 
         // Apply operations
         foreach (var operation in Operations)

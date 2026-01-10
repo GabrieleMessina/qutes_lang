@@ -8,11 +8,31 @@ namespace QutesLang.Symbols.Types;
 
 public class ClassType(string qualifiedClassName) : IQutesType
 {
+    public TypeSymbol Type { get; } = TypeSymbol.Class();
+    public bool TryConvertTo(TypeSymbol targetType, out IQutesType result)
+    {
+        throw new NotImplementedException();
+    }
 }
 
+public class VoidType() : IQutesType
+{
+    public TypeSymbol Type { get; } = TypeSymbol.Void();
+    public bool TryConvertTo(TypeSymbol targetType, out IQutesType result)
+    {
+        if (targetType == Type)
+        {
+            result = this;
+            return true;
+        }
+        result = default!;
+        return false;
+    }
+}
 
 public class BoolType(bool value) : IClassicalType
 {
+    public TypeSymbol Type { get; } = TypeSymbol.Bool();
     public bool Value { get; set; } = value;
     public object GetValueAsObject() => Value;
     public void SetValueFromObject(object value) => Value = (bool)value;
@@ -32,10 +52,34 @@ public class BoolType(bool value) : IClassicalType
     public BoolType Or(IClassicalType term) => new (this.Value || GetBoolValue(term));
 
     public BoolType Not() => new (!this.Value);
+
+    public bool TryConvertTo(TypeSymbol targetType, out IQutesType result)
+    {
+        if (targetType.Value == QutesType.boolean)
+        {
+            result = this;
+            return true;
+        }
+        if (targetType.Value == QutesType.integer)
+        {
+            result = new IntType(this.Value ? 1 : 0);
+            return true;
+        }
+        if (targetType.Value == QutesType.qubit)
+        {
+            result = new QubitType(this.Value);
+            return true;
+        }
+        result = default!;
+        return false;
+    }
+
+    public static explicit operator IntType(BoolType v) => new(v.Value ? 1 : 0);
 }
 
 public class IntType(int value) : IClassicalType
 {
+    public TypeSymbol Type { get; } = TypeSymbol.Int();
     public int Value { get; set; } = value;
     public object GetValueAsObject() => Value;
     public void SetValueFromObject(object value) => Value = (int)value;
@@ -63,10 +107,27 @@ public class IntType(int value) : IClassicalType
     public IQutesType InplacePreDecrement() => new IntType(--this.Value);
     public IQutesType InplacePostIncrement() => new IntType(this.Value++);
     public IQutesType InplacePostDecrement() => new IntType(this.Value--);
+
+    public bool TryConvertTo(TypeSymbol targetType, out IQutesType result)
+    {
+        if (targetType.Value == QutesType.integer)
+        {
+            result = this;
+            return true;
+        }
+        if (targetType.Value == QutesType.quinteger)
+        {
+            result = new QuintType(this.Value);
+            return true;
+        }
+        result = default!;
+        return false;
+    }
 }
 
 public class FloatType(float value) : IClassicalType
 {
+    public TypeSymbol Type { get; } = TypeSymbol.Float();
     public float Value { get; set; } = value;
     public object GetValueAsObject() => Value;
     public void SetValueFromObject(object value) => Value = (float)value;
@@ -98,10 +159,22 @@ public class FloatType(float value) : IClassicalType
     public IQutesType InplacePreDecrement() => new FloatType(--this.Value);
     public IQutesType InplacePostIncrement() => new FloatType(this.Value++);
     public IQutesType InplacePostDecrement() => new FloatType(this.Value--);
+
+    public bool TryConvertTo(TypeSymbol targetType, out IQutesType result)
+    {
+        if (targetType.Value == QutesType.floating)
+        {
+            result = this;
+            return true;
+        }
+        result = default!;
+        return false;
+    }
 }
 
 public class StringType(string value) : IClassicalType
 {
+    public TypeSymbol Type { get; } = TypeSymbol.String();
     public string Value { get; set; } = value;
     public object GetValueAsObject() => Value;
     public void SetValueFromObject(object value) => Value = (string)value;
@@ -144,66 +217,125 @@ public class StringType(string value) : IClassicalType
     public BoolType Equals(IClassicalType term) => new (this.Value == GetStringValue(term));
 
     public BoolType NotEquals(IClassicalType term) => new (this.Value != GetStringValue(term));
+
+    public bool TryConvertTo(TypeSymbol targetType, out IQutesType result)
+    {
+        if (targetType.Value == QutesType.@string)
+        {
+            result = this;
+            return true;
+        }
+        result = default!;
+        return false;
+    }
 }
 
-public class ClassicalArrayType(IEnumerable<Symbol> values) : IClassicalType
+public class ClassicalArrayType(IEnumerable<ValueSymbol> values) : IArrayType, IClassicalType
 {
-    public IEnumerable<Symbol> Values { get; private set; } = values;
+    public override IEnumerable<ValueSymbol> Values { get; protected set; } = values;
+
+    public override TypeSymbol Type => new (QutesType.classicalArray, Values.First().Type);
+
     public object GetValueAsObject() => Values;
-    public void SetValueFromObject(object value) => Values = (IEnumerable<Symbol>)value;
-    public static ClassicalArrayType GetDefaultValue() => new([]);
-    private static IEnumerable<Symbol> GetArrayValues(IClassicalType term, [CallerMemberName] string operationName = "") 
-    {
-        if (term is ClassicalArrayType arrayType)
-        {
-            return arrayType.Values;
-        }
-        throw new InvalidOperationException($"Operation {operationName} cannot be applied to {term.GetType().Name} type.");
-    }
+    public void SetValueFromObject(object value) => Values = (IEnumerable<ValueSymbol>)value;
 
     public IQutesType LeftShift(IntType positions)
     {
         var n = positions.Value % Values.Count();
-        var result = GetArrayValues(this).Skip(n).Concat(GetArrayValues(this).Take(n).Reverse());
+        var result = Values.Skip(n).Concat(Values.Take(n).Reverse());
         return new ClassicalArrayType(result);
     }
 
     public IQutesType RightShift(IntType positions)
     {
         var n = positions.Value % Values.Count();
-        var result = GetArrayValues(this).Skip(Values.Count() - n).Concat(GetArrayValues(this).Take(Values.Count() - n));
+        var result = Values.Skip(Values.Count() - n).Concat(Values.Take(Values.Count() - n));
         return new ClassicalArrayType(result);
     }
 
-    public IQutesType Addition(IClassicalType term) => new ClassicalArrayType(GetArrayValues(this).Concat(GetArrayValues(term)));
+    public IQutesType Addition(IClassicalType term) => new ClassicalArrayType(Values.Concat(Values));
 
-    public IQutesType Subtraction(IClassicalType term) => new ClassicalArrayType(GetArrayValues(this).Except(GetArrayValues(term)));
+    public IQutesType Subtraction(IClassicalType term) => new ClassicalArrayType(Values.Except(Values));
 
-    public BoolType Equals(IClassicalType term) => new(!GetArrayValues(term).Any() && !GetArrayValues(term).Except(Values).Any());
+    public BoolType Equals(IClassicalType term) => new(!Values.Any() && !Values.Except(Values).Any());
 
-    public BoolType NotEquals(IClassicalType term) => new(GetArrayValues(term).Any() || GetArrayValues(term).Except(Values).Any());
+    public BoolType NotEquals(IClassicalType term) => new(Values.Any() || Values.Except(Values).Any());
 }
 
-public class QubitType(string initialValue) : IQuantumType
+public class QubitType() : IQuantumType
 {
     public const int DefaultSize = 1;
+
+    public QubitType(StateVector initialStateVector) : this()
+    {
+        InitialStateVector = initialStateVector;
+    }
+
+    public QubitType(bool value) : this()
+    {
+        InitialStateVector = QubitParser.Parse(value ? "1q" : "0q");
+    }
+
+    public TypeSymbol Type { get; } = TypeSymbol.Qubit();
     public int Size { get; } = DefaultSize;
     public QuantumRegister Register { get; } = new(DefaultSize);
+    public StateVector? InitialStateVector { get; private set { field = value; Register.InitialStateVector = value; } }
 
-    public static QubitType GetDefaultValue() => new ("0q");
+    public static QubitType GetDefaultValue() => new();
 
     public CircuitOperation And(IQuantumType term) => new And(this, term, QubitType.GetDefaultValue());
     public CircuitOperation Or(IQuantumType term) => new Or(this, term, QubitType.GetDefaultValue());
     public CircuitOperation Not() => new Not(this);
+
+    public bool TryConvertTo(TypeSymbol targetType, out IQutesType result)
+    {
+        if (targetType.Value == QutesType.qubit)
+        {
+            result = this;
+            return true;
+        }
+        if (targetType.Value == QutesType.quinteger)
+        {
+            result = new QuintType(this);
+            return true;
+        }
+
+        result = default!;
+        return false;
+    }
+
+    public static explicit operator QuintType(QubitType qubit) => new(qubit);
 }
 
-public class QuintType(string initialValue) : IQuantumType
+public class QuintType() : IQuantumType
 {
     public const int DefaultSize = 3;
+
+    public QuintType(StateVector initialStateVector) : this()
+    {
+        InitialStateVector = initialStateVector;
+    }
+
+    public QuintType(QubitType qubit) : this()
+    {
+        this.Register.Qubits.ToList()[0] = qubit.Register.Qubits.First();
+        this.InitialStateVector = StateVector.Default(DefaultSize);
+        this.InitialStateVector.Amplitudes[0] = qubit.InitialStateVector.Amplitudes[0];
+    }
+
+    public QuintType(int value) : this()
+    {
+        InitialStateVector = QuintParser.Parse(value.ToString() + "q");
+    }
+
+    public TypeSymbol Type { get; } = TypeSymbol.Quint();
     public int Size { get; } = DefaultSize;
     public QuantumRegister Register { get; } = new(DefaultSize);
+    public StateVector? InitialStateVector { get; private set { field = value; Register.InitialStateVector = value; }  }
 
-    public static QuintType GetDefaultValue() => new ("0q");
+    //TODO: is getDefaultValue really necessary? can we use an empty constructor instead?
+
+    public static QuintType GetDefaultValue() => new();
 
     public CircuitOperation Addition(IQuantumType term) => new Addition(this, term, QuintType.GetDefaultValue());
     public CircuitOperation Subtraction(IQuantumType term) => new Subtraction(this, term, QuintType.GetDefaultValue());
@@ -221,61 +353,69 @@ public class QuintType(string initialValue) : IQuantumType
     public CircuitOperation InplacePostIncrement() => new Increment(this, this);
     public CircuitOperation InplacePreDecrement() => new Decrement(this, this);
     public CircuitOperation InplacePostDecrement() => new Decrement(this, this);
+
+    public bool TryConvertTo(TypeSymbol targetType, out IQutesType result)
+    {
+        if (targetType.Value == QutesType.quinteger)
+        {
+            result = this;
+            return true;
+        }
+        result = default!;
+        return false;
+    }
 }
 
 public class QustringType : IQuantumType //TODO: this is an array type, should inherit from QuantumArrayType?
 {
     public const int CharSize = 3;
 
-    public QustringType(QuantumRegister register)
-    {
-        Size = register.Qubits.Count();
-        Register = register;
-    }
-
     public QustringType(string initialValue)
     {
+        InitialStateVector = QustringParser.Parse(initialValue);
         Size = initialValue.Length * CharSize;
-        Register = new(Size);
+        Register = new(Size, InitialStateVector);
     }
 
+    public TypeSymbol Type { get; } = TypeSymbol.Qustring();
     public int Size { get; }
     public QuantumRegister Register { get; }
+    public StateVector? InitialStateVector { get; set { field = value; Register.InitialStateVector = value; } }
 
     public static QustringType GetDefaultValue() => new ("0");
 
     public CircuitOperation LeftShift(QuintType positions) => new LeftShift(this, positions);
     public CircuitOperation RightShift(QuintType positions) => new RightShift(this, positions);
 
-    public CircuitOperation Addition(IQuantumType term)
-    {
-        var concatQustring = new QustringType(new QuantumRegister(Register.Qubits.Concat(term.Register.Qubits), Register.Name));
-        return new Empty(concatQustring);
-    }
-
     public CircuitOperation LowerThan(IQuantumType term) => new LowerThan(this, term, QubitType.GetDefaultValue());
     public CircuitOperation LowerEqualThan(IQuantumType term) => new LowerEqualThan(this, term, QubitType.GetDefaultValue());
     public CircuitOperation GreaterThan(IQuantumType term) => new GreaterThan(this, term, QubitType.GetDefaultValue());
     public CircuitOperation GreaterEqualThan(IQuantumType term) => new GreaterEqualThan(this, term, QubitType.GetDefaultValue());
+
+    public bool TryConvertTo(TypeSymbol targetType, out IQutesType result)
+    {
+        if (targetType.Value == QutesType.qustring)
+        {
+            result = this;
+            return true;
+        }
+        result = default!;
+        return false;
+    }
 }
 
-public class QuantumArrayType : IQuantumType
+public class QuantumArrayType : IArrayType, IQuantumType
 {
-    public QuantumArrayType(QuantumRegister register)
-    {
-        Size = register.Qubits.Count();
-        Register = register;
-    }
-
     public QuantumArrayType(IEnumerable<ValueSymbol> values)
     {
-        Size = DefaultSize; //TODO: handle.
-        Register = new(Size);
+        Values = values;
+        Size = Register.Qubits.Count;
     }
 
-    public const int DefaultSize = 1; //TODO: depends on values type size.
-    public int Size { get; } = DefaultSize;
-    public QuantumRegister Register { get; } = new(DefaultSize);
+    public override TypeSymbol Type => new (QutesType.quantumArray, Values.First().Type);
+    public int Size { get; }
+    public QuantumRegister Register => new(Values.Select(v => v.Value).Cast<IQuantumType>().Select(v => v.Register));
+    public override IEnumerable<ValueSymbol> Values { get; protected set; }
 
     public static QuantumArrayType GetDefaultValue() => new([]);
 
@@ -283,7 +423,12 @@ public class QuantumArrayType : IQuantumType
     public CircuitOperation RightShift(QuintType positions) => new RightShift(this, positions);
 
     public CircuitOperation Addition(IQuantumType term){
-        var concatArray = new QuantumArrayType(new QuantumRegister(Register.Qubits.Concat(term.Register.Qubits), Register.Name));
+        if (term is not QuantumArrayType arratToConcat)
+        {
+            throw new InvalidOperationException($"Operation Addition cannot be applied to {term.GetType().Name} type.");
+        }
+
+        var concatArray = new QuantumArrayType(Values.Concat(arratToConcat.Values));
         return new Empty(concatArray);
     }
 }

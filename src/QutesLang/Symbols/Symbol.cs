@@ -19,23 +19,15 @@ public class FunctionSymbol(string qualifiedName, IEnumerable<ValueSymbol> input
     public Scope Scope { get; } = scope;
 }
 
-public class AnonymousValueSymbol : ValueSymbol
+public class AnonymousValueSymbol(IQutesType value, Scope scope, int astTokenIndex) : ValueSymbol(VariableNameGuid.New(), value, scope, astTokenIndex)
 {
-    //TODO: fix the type symbol creation here.
-    public AnonymousValueSymbol(IQutesType value, Scope scope, int astTokenIndex) : base(VariableNameGuid.New(), value, new TypeSymbol(value.GetType().Name, scope, astTokenIndex), scope, astTokenIndex)
-    {
-    }
-
-    public AnonymousValueSymbol(IQutesType value, TypeSymbol type, Scope scope, int astTokenIndex) : base(VariableNameGuid.New(), value, type, scope, astTokenIndex)
-    {
-    }
 }
 
-public class ValueSymbol(string qualifiedName, IQutesType value, TypeSymbol type, Scope scope, int astTokenIndex) : Symbol(scope, astTokenIndex)
+public class ValueSymbol(string qualifiedName, IQutesType value, Scope scope, int astTokenIndex) : Symbol(scope, astTokenIndex)
 {
     public string QualifiedName { get; } = qualifiedName;
     public IQutesType Value { get; set; } = value;
-    public TypeSymbol Type { get; } = type;
+    public TypeSymbol Type { get; set; } = value.Type;
 }
 
 public class QualifiedNameSymbol(string qualifiedName, Scope scope, int astTokenIndex) : Symbol(scope, astTokenIndex)
@@ -43,11 +35,40 @@ public class QualifiedNameSymbol(string qualifiedName, Scope scope, int astToken
     public string QualifiedName { get; } = qualifiedName;
 }
 
-
-public class TypeSymbol(string name, Scope scope, int astTokenIndex) : Symbol(scope, astTokenIndex)
+public class TypeSymbol(QutesType type, TypeSymbol? nestedValue = null) : Symbol(null!, default), IEquatable<TypeSymbol>
 {
-    //TODO: should we handle this with a QutesType instead of symbol?
-    public string Name { get; } = name;
+    public QutesType Value { get; } = type;
+    public TypeSymbol? NestedValue { get; } = nestedValue;
+    public bool Equals(TypeSymbol? other)
+    {
+        if (other is null) return false;
+        if (ReferenceEquals(this, other)) return true;
+        return Value == other.Value && Equals(NestedValue, other.NestedValue);
+    }
+
+    public override bool Equals(object? obj) => Equals(obj as TypeSymbol);
+
+    public override int GetHashCode() => HashCode.Combine(Value, NestedValue);
+
+    public static bool operator ==(TypeSymbol? left, TypeSymbol? right) => Equals(left, right);
+
+    public static bool operator !=(TypeSymbol? left, TypeSymbol? right) => !Equals(left, right);
+
+    public override string ToString()
+    {
+        return NestedValue != null ? $"{NestedValue}[]" : Value.ToString();
+    }
+
+    public static TypeSymbol Bool() => new (QutesType.boolean);
+    public static TypeSymbol Int() => new (QutesType.integer);
+    public static TypeSymbol Float() => new (QutesType.floating);
+    public static TypeSymbol String() => new (QutesType.@string);
+    public static TypeSymbol Qubit() => new (QutesType.qubit);
+    public static TypeSymbol Quint() => new (QutesType.quinteger);
+    public static TypeSymbol Qustring() => new (QutesType.qustring);
+    public static TypeSymbol Array(TypeSymbol elementsType) => new (elementsType.IsQuantum() ? QutesType.quantumArray : QutesType.classicalArray, elementsType);
+    public static TypeSymbol Class() => new (QutesType.@class);
+    public static TypeSymbol Void() => new (QutesType.@void);
 }
 
 /// <summary>
@@ -58,19 +79,5 @@ public class TypeSymbol(string name, Scope scope, int astTokenIndex) : Symbol(sc
 /// <param name="astTokenIndex">The index of the associated abstract syntax tree (AST) token for this symbol.</param>
 public class TupleSymbol(IEnumerable<Symbol> elements, Scope scope, int astTokenIndex) : Symbol(scope, astTokenIndex)
 {
-    public IEnumerable<Symbol> Elements { get; } = elements;
-}
-
-
-/// <summary>
-/// Represent an array symbol, which contains a collection of elements with the same type.
-/// </summary>
-/// <param name="elements">The collection of symbols that make up the elements of the tuple.</param>
-/// <param name="scope">The scope in which the tuple symbol is defined.</param>
-/// <param name="astTokenIndex">The index of the associated abstract syntax tree (AST) token for this symbol.</param>
-public class ArraySymbol(IEnumerable<Symbol> elements, TypeSymbol type, Scope scope, int astTokenIndex) : Symbol(scope, astTokenIndex)
-{
-    //TODO: valutare di rendere questa classe generic e anche valuesymbol, in modo da poter forzare il fatto che 
-    // Elements debba essere una collection di IIQutesType dello stesso tipo.
     public IEnumerable<Symbol> Elements { get; } = elements;
 }

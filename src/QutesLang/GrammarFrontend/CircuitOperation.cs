@@ -40,6 +40,21 @@ public class ComposeCircuit(IQuantumCircuit other) : CircuitOperation
     }
 }
 
+public class StatePreparation(QuantumRegister target, StateVector stateVector) : CircuitOperation
+{
+    public override IQuantumType Destination => null!;
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [target];
+
+    public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
+    {
+        var stateName = target.Name + "_state_prep";
+        stringBuilder.AppendLine($"{stateName} = StatePreparation({stateVector.ToPythonString()}, normalize=True)");
+        stringBuilder.AppendLine($"{circuit.Name}.compose({stateName}, [{target.QubitStringList}], inplace=True)");
+    }
+}
+
+
+
 public class CNOT(IQuantumType control, IQuantumType target) : CircuitOperation
 {
     public override IQuantumType Destination => target;

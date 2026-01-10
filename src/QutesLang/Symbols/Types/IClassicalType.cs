@@ -1,6 +1,4 @@
-﻿using QutesLang.GrammarFrontend;
-
-namespace QutesLang.Symbols.Types;
+﻿namespace QutesLang.Symbols.Types;
 
 public interface IClassicalType : IQutesType
 {

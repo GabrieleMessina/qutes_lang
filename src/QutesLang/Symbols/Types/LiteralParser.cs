@@ -5,18 +5,36 @@ using CommunityToolkit.Diagnostics;
 
 namespace QutesLang.Symbols.Types;
 
-public class StateVector(List<(double Alpha, double Beta)> amplitudes)
+/// <summary>
+/// Array of state amplitudes, for n qubits there are 2^n amplitudes, one for each possible basis state.
+/// </summary>
+/// <param name="amplitudes"></param>
+
+public class StateVector(List<double> amplitudes)
 {
-    public List<(double Alpha, double Beta)> Amplitudes { get; } = amplitudes;
+    public List<double> Amplitudes { get; } = amplitudes;
 
     public static StateVector Default(int nQubit)
     {
-        var amplitudes = new List<(double, double)>();
+        var amplitudes = new List<double>();
         for (int i = 0; i < nQubit; i++)
         {
-            amplitudes.Add((1.0, 0.0)); // |0>
+            amplitudes.Add(0.0); // |0>
         }
+        amplitudes[0] = 1.0; // Set the first amplitude to 1.0 to represent the |0...0> state
         return new StateVector(amplitudes);
+    }
+
+    public string ToPythonString()
+    {
+        var sb = new StringBuilder();
+        sb.Append('[');
+        foreach (var amplitude in Amplitudes)
+        {
+            sb.Append($"complex({amplitude}),");
+        }
+        sb.Append(']');
+        return sb.ToString();
     }
 }
 
@@ -62,7 +80,7 @@ public partial class QubitParser
         {
             var alpha = double.Parse(floatMatch.Groups[1].Value);
             var beta = double.Parse(floatMatch.Groups[2].Value);
-            return new StateVector([(alpha, beta)]);
+            return new StateVector([alpha, beta]);
         }
 
         // Match Bool Vector: [true, false]q or [0]q
@@ -71,9 +89,9 @@ public partial class QubitParser
         {
             var bool1 = BoolParser.Parse(boolMatch.Groups[1].Value);
             var bool2 = BoolParser.Parse(boolMatch.Groups[2].Success ? boolMatch.Groups[2].Value : "0");
-            var alpha= bool1 ? 1.0 : 0.0;
-            var beta = bool2 ? 1.0 : 0.0;
-            return new StateVector([(alpha, beta)]); //normalizzation is handled by the StateVector class
+            var alpha= bool1 ? 1.0d : 0.0d;
+            var beta = bool2 ? 1.0d : 0.0d;
+            return new StateVector([alpha, beta]); //normalizzation is handled by the StateVector class
         }
 
         // Match Single Bool: true q
@@ -81,7 +99,7 @@ public partial class QubitParser
         if (singleBoolMatch.Success)
         {
             var value = BoolParser.Parse(boolMatch.Groups[1].Value);
-            return new StateVector([value ? (0.0, 1.0) : (1.0, 0.0)]);
+            return new StateVector(value ? [0.0d, 1.0d] : [1.0d, 0.0d]);
         }
 
         // Match Canonical: |0>
@@ -90,10 +108,10 @@ public partial class QubitParser
         {
             return canonMatch.Groups[1].Value switch
             {
-                "0" => new StateVector([(1.0, 0.0)]),
-                "1" => new StateVector([(0.0, 1.0)]),
-                "+" => new StateVector([(1.0, 1.0)]),
-                "-" => new StateVector([(1.0, -1.0)]),
+                "0" => new StateVector([1.0d, 0.0d]),
+                "1" => new StateVector([0.0d, 1.0d]),
+                "+" => new StateVector([1.0d, 1.0d]),
+                "-" => new StateVector([1.0d, -1.0d]),
                 _ => throw new ArgumentException($"Invalid canonical state: |{canonMatch.Groups[1].Value}>"),
             };
         }
@@ -127,20 +145,14 @@ public partial class QuintParser
             // If it's not a single qubit, we proceed to Quint-specific rules
         }
 
+        var bitCount = (int)Math.Pow(2, QuintType.DefaultSize);
+
         // Match Integer Literal: 5q
         var intMatch = IntLiteralRegex().Match(input);
         if (intMatch.Success)
         {
             int value = int.Parse(intMatch.Groups[1].Value);
-            string binary = Convert.ToString(value, 2);
-
-            var amplitudes = new List<(double, double)>();
-            foreach (char bit in binary)
-            {
-                // '0' -> (1, 0), '1' -> (0, 1)
-                amplitudes.Add(bit == '1' ? (0.0, 1.0) : (1.0, 0.0));
-            }
-            return new StateVector(amplitudes);
+            input = $"[{value}]q"; // Reuse the integer list parsing logic
         }
 
         // Match Integer List: [0, 2, 7]q
@@ -149,12 +161,11 @@ public partial class QuintParser
         {
             var content = intListMatch.Groups[1].Value;
             var elements = content.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse);
-            var max = elements.Max();
 
-            var amplitudes = new (double, double)[max]; //TODO: Expensive! optimize allocation
+            var amplitudes = new double[bitCount]; //TODO: Expensive! optimize allocation
             foreach (var part in elements)
             {
-                amplitudes[part] = (0.0, 1.0);
+                amplitudes[part] = 1.0d;
             }
             return new StateVector(amplitudes.ToList());
         }
@@ -189,14 +200,14 @@ public partial class QustringParser
             // "A" (65) -> 01000001 -> |0>|1>|0>|0>|0>|0>|0>|1>
             byte[] bytes = Encoding.ASCII.GetBytes(content);
 
-            var amplitudes = new List<(double, double)>();
+            var amplitudes = new List<double>();
 
             foreach (byte b in bytes)
             {
                 string binary = Convert.ToString(b, 2);
                 foreach (char bit in binary)
                 {
-                    amplitudes.Add(bit == '1' ? (0.0, 1.0) : (1.0, 0.0));
+                    //amplitudes.Add(bit == '1' ? (0.0, 1.0) : (1.0, 0.0)); //TODO: migrate qustring to be an array of quchar
                 }
             }
             return new StateVector(amplitudes);
