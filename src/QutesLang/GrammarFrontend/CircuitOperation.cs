@@ -170,7 +170,7 @@ public class BarrierAll() : CircuitOperation
         stringBuilder.AppendLine($"{circuit.Name}.barrier()");
     }
 }
-public class MCP(IEnumerable<IQuantumType> controls, IQuantumType target, FloatType rotationAngle) : CircuitOperation
+public class MCP(IEnumerable<IQuantumType> controls, IQuantumType target, FloatValue rotationAngle) : CircuitOperation
 {
     public override IQuantumType Destination => target;
     public override IEnumerable<QuantumRegister> RegistersInvolved => [..controls.Select(c => c.Register), target.Register];
@@ -329,19 +329,19 @@ public class GreaterEqualThan(IQuantumType a, IQuantumType b, IQuantumType desti
 public class RightShift : CircuitOperation
 {
     private readonly IQuantumType a;
-    private readonly QuintType offset;
+    private readonly QuintValue offset;
 
     public override IQuantumType Destination => a;
     public override IEnumerable<QuantumRegister> RegistersInvolved => [a.Register, offset.Register];
-    public RightShift(IQuantumType a, QuintType offset)
+    public RightShift(IQuantumType a, QuintValue offset)
     {
         this.a = a;
         this.offset = offset;
     }
-    public RightShift(IQuantumType a, IntType offset)
+    public RightShift(IQuantumType a, IntValue offset)
     {
         this.a = a;
-        this.offset = new QuintType(QuintParser.Parse(offset.Value.ToString()));
+        this.offset = new QuintValue(QuintParser.Parse(offset.Value.ToString()));
     }
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
@@ -352,19 +352,19 @@ public class RightShift : CircuitOperation
 public class LeftShift : CircuitOperation
 {
     private readonly IQuantumType a;
-    private readonly QuintType offset;
+    private readonly QuintValue offset;
 
     public override IQuantumType Destination => a;
     public override IEnumerable<QuantumRegister> RegistersInvolved => [ a.Register,  offset.Register];
-    public LeftShift(IQuantumType a, QuintType offset)
+    public LeftShift(IQuantumType a, QuintValue offset)
     {
         this.a = a;
         this.offset = offset;
     }
-    public LeftShift(IQuantumType a, IntType offset)
+    public LeftShift(IQuantumType a, IntValue offset)
     {
         this.a = a;
-        this.offset = new QuintType(QuintParser.Parse(offset.Value.ToString()));
+        this.offset = new QuintValue(QuintParser.Parse(offset.Value.ToString()));
     }
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)

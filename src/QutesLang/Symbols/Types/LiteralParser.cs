@@ -145,7 +145,7 @@ public partial class QuintParser
             // If it's not a single qubit, we proceed to Quint-specific rules
         }
 
-        var bitCount = (int)Math.Pow(2, QuintType.DefaultSize);
+        var bitCount = (int)Math.Pow(2, QuintValue.DefaultSize);
 
         // Match Integer Literal: 5q
         var intMatch = IntLiteralRegex().Match(input);

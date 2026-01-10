@@ -2,15 +2,15 @@
 
 namespace QutesLang.Symbols.Types;
 
-public interface IQuantumType : IQutesType
+public interface IQuantumType : IQutesValue
 {
     public int Size { get; }
     public QuantumRegister Register { get; }
     public string QubitStringList => Register.QubitStringList;
 
     #region Operations
-    CircuitOperation LeftShift(QuintType positions) => throw new InvalidOperationException($"Operator {nameof(LeftShift)} cannot be applied to {this.Type} and {positions.Type}.");
-    CircuitOperation RightShift(QuintType positions) => throw new InvalidOperationException($"Operator {nameof(RightShift)} cannot be applied to {this.Type} and {positions.Type}.");
+    CircuitOperation LeftShift(QuintValue positions) => throw new InvalidOperationException($"Operator {nameof(LeftShift)} cannot be applied to {this.Type} and {positions.Type}.");
+    CircuitOperation RightShift(QuintValue positions) => throw new InvalidOperationException($"Operator {nameof(RightShift)} cannot be applied to {this.Type} and {positions.Type}.");
     CircuitOperation Swap(IQuantumType term)
     {
         return this.Type == term.Type

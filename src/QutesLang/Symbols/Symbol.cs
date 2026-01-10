@@ -19,14 +19,14 @@ public class FunctionSymbol(string qualifiedName, IEnumerable<ValueSymbol> input
     public Scope Scope { get; } = scope;
 }
 
-public class AnonymousValueSymbol(IQutesType value, Scope scope, int astTokenIndex) : ValueSymbol(VariableNameGuid.New(), value, scope, astTokenIndex)
+public class AnonymousValueSymbol(IQutesValue value, Scope scope, int astTokenIndex) : ValueSymbol(VariableNameGuid.New(), value, scope, astTokenIndex)
 {
 }
 
-public class ValueSymbol(string qualifiedName, IQutesType value, Scope scope, int astTokenIndex) : Symbol(scope, astTokenIndex)
+public class ValueSymbol(string qualifiedName, IQutesValue value, Scope scope, int astTokenIndex) : Symbol(scope, astTokenIndex)
 {
     public string QualifiedName { get; } = qualifiedName;
-    public IQutesType Value { get; set; } = value;
+    public IQutesValue Value { get; set; } = value;
     public TypeSymbol Type { get; set; } = value.Type;
 }
 

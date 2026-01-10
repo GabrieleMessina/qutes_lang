@@ -58,7 +58,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                 var mainCircuit = circuitHandler.Current;
                 HandleBranchingVisiting(ifBody, quantumCondition, mainCircuit);
                 break;
-            case BoolType boolCondition:
+            case BoolValue boolCondition:
                 if (boolCondition.Value == true) Visit(ifBody);
                 break;
             default:
@@ -81,7 +81,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                 HandleBranchingVisiting(ifBody, quantumCondition, mainCircuit);
                 HandleBranchingVisiting(elseBody, quantumCondition, mainCircuit, false);
                 break;
-            case BoolType boolCondition:
+            case BoolValue boolCondition:
                 if (boolCondition.Value == true) Visit(ifBody);
                 else Visit(elseBody);
                 break;
@@ -115,11 +115,11 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
             case IQuantumType:
                 //TODO: quantum while loops could be implemented with repeated appended controlled circuits based on all possible combination of the qubits in the condition register.
                 throw new NotImplementedException("Quantum while loops are not yet implemented.");
-            case BoolType classicalCondition:
+            case BoolValue classicalCondition:
                 while (classicalCondition.Value && !handlingBreakStatement)
                 {
                     Visit(whileBody);
-                    classicalCondition = QutesLanguageGuard.IsAssignableToType<BoolType>(QutesLanguageGuard.IsAssignableToType<ValueSymbol>(Visit(context.expr())).Value);
+                    classicalCondition = QutesLanguageGuard.IsAssignableToType<BoolValue>(QutesLanguageGuard.IsAssignableToType<ValueSymbol>(Visit(context.expr())).Value);
                 }
                 handlingBreakStatement = false;
                 break;
@@ -141,7 +141,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
             indexNameSymbol = QutesLanguageGuard.IsAssignableToType<QualifiedNameSymbol>(Visit(context.qualifiedName(1)));
         }
 
-        if(valueSymbol.Value is IArrayType collection)
+        if(valueSymbol.Value is ArrayValue collection)
         {
             for (int i = 0; i < collection.Values.Count() && !handlingBreakStatement; i++)
             {
@@ -150,7 +150,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                 DeclareNewVariable(itemSymbol);
                 if (indexNameSymbol != null)
                 {
-                    var indexSymbol = new ValueSymbol(indexNameSymbol.QualifiedName, new IntType(i), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+                    var indexSymbol = new ValueSymbol(indexNameSymbol.QualifiedName, new IntValue(i), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
                     DeclareNewVariable(indexSymbol);
                 }
                 Visit(context.statement());
@@ -171,11 +171,11 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         {
             case IQuantumType:
                 throw new NotImplementedException("Quantum while loops are not yet implemented.");
-            case BoolType classicalCondition:
+            case BoolValue classicalCondition:
                 do
                 {
                     Visit(whileBody);
-                    classicalCondition = QutesLanguageGuard.IsAssignableToType<BoolType>(QutesLanguageGuard.IsAssignableToType<ValueSymbol>(Visit(context.expr())).Value);
+                    classicalCondition = QutesLanguageGuard.IsAssignableToType<BoolValue>(QutesLanguageGuard.IsAssignableToType<ValueSymbol>(Visit(context.expr())).Value);
                 }
                 while (classicalCondition.Value && !handlingBreakStatement);
                 handlingBreakStatement = false;
@@ -294,7 +294,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         }
         else
         {
-            output = new AnonymousValueSymbol(new VoidType(), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+            output = new AnonymousValueSymbol(new VoidValue(), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
         }
         return output;
     }
@@ -439,11 +439,11 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
         if (arrayType.IsQuantum())
         {
-            return new AnonymousValueSymbol(new QuantumArrayType(elements), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+            return new AnonymousValueSymbol(new QuantumArrayValue(elements), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
         }
         else
         {
-            return new AnonymousValueSymbol(new ClassicalArrayType(elements), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+            return new AnonymousValueSymbol(new ClassicalArrayValue(elements), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
         }
 
         throw new InvalidOperationException("Array elements must be of quantum or classical types.");
@@ -452,10 +452,10 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
     public override Symbol VisitArrayAccessExpression(qutes_parser.ArrayAccessExpressionContext context)
     {
         var arraySymbol = QutesLanguageGuard.IsAssignableToType<ValueSymbol>(Visit(context.expr(0)));
-        if (arraySymbol.Value is IArrayType array)
+        if (arraySymbol.Value is ArrayValue array)
         {
             var indexSymbol = QutesLanguageGuard.IsAssignableToType<ValueSymbol>(Visit(context.expr(1)));
-            var indexValue = QutesLanguageGuard.IsAssignableToType<IntType>(indexSymbol.Value).Value;
+            var indexValue = QutesLanguageGuard.IsAssignableToType<IntValue>(indexSymbol.Value).Value;
             return array.Values.ElementAt(indexValue);
         }
         else
@@ -615,7 +615,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
         switch (leftSymbol.Value)
         {
-            case IQuantumType leftValue when rightSymbol.Value is QuintType rightValue:
+            case IQuantumType leftValue when rightSymbol.Value is QuintValue rightValue:
                 {
                     var operation
                         = context.LSHIFT() != null ? leftValue.LeftShift(rightValue)
@@ -628,7 +628,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                     return destinationSymbol;
                 }
 
-            case IClassicalType leftValue when rightSymbol.Value is IntType rightValue:
+            case IClassicalType leftValue when rightSymbol.Value is IntValue rightValue:
                 {
                     var result
                         = context.LSHIFT() != null ? leftValue.LeftShift(rightValue)
@@ -875,7 +875,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
     public override Symbol VisitMultipleUnaryPhaseOperator(qutes_parser.MultipleUnaryPhaseOperatorContext context)
     {
         var rotationSymbol = QutesLanguageGuard.IsAssignableToType<ValueSymbol>(Visit(context.expr()));
-        var rotationValue = QutesLanguageGuard.IsAssignableToType<FloatType>(rotationSymbol.Value);
+        var rotationValue = QutesLanguageGuard.IsAssignableToType<FloatValue>(rotationSymbol.Value);
         var termListSymbol = QutesLanguageGuard.IsAssignableToType<TupleSymbol>(Visit(context.termList()));
         var termListValues = QutesLanguageGuard.AreAllAssignableToType<IQuantumType>(termListSymbol.Elements.Cast<ValueSymbol>().Select(e => e.Value));
         var controls = termListValues.Take(termListSymbol.Elements.Count() - 1);
@@ -1004,44 +1004,44 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
     public override Symbol VisitString(qutes_parser.StringContext context)
     {
         var value = Convert.ToString(context.STRING_LITERAL().GetText());
-        return new AnonymousValueSymbol(new StringType(value), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+        return new AnonymousValueSymbol(new StringValue(value), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
     }
 
     public override Symbol VisitQubit(qutes_parser.QubitContext context)
     {
         var value = context.QUBIT_LITERAL().GetText();
         var stateVector = QubitParser.Parse(value);
-        return new AnonymousValueSymbol(new QubitType(stateVector), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+        return new AnonymousValueSymbol(new QubitValue(stateVector), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
     }
 
     public override Symbol VisitQuint(qutes_parser.QuintContext context)
     {
         var value = context.QUINT_LITERAL().GetText();
         var stateVector = QuintParser.Parse(value);
-        return new AnonymousValueSymbol(new QuintType(stateVector), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+        return new AnonymousValueSymbol(new QuintValue(stateVector), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
     }
 
     public override Symbol VisitQustring(qutes_parser.QustringContext context)
     {
         var value = context.QUSTRING_LITERAL().GetText();
-        return new AnonymousValueSymbol(new QustringType(value), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+        return new AnonymousValueSymbol(new QustringValue(value), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
     }
 
     public override Symbol VisitFloat(qutes_parser.FloatContext context)
     {
         var value = Convert.ToSingle(context.FLOAT_LITERAL().GetText());
-        return new AnonymousValueSymbol(new FloatType(value), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+        return new AnonymousValueSymbol(new FloatValue(value), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
     }
 
     public override Symbol VisitInteger(qutes_parser.IntegerContext context)
     {
         var value = Convert.ToInt32(context.INT_LITERAL().GetText());
-        return new AnonymousValueSymbol(new IntType(value), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+        return new AnonymousValueSymbol(new IntValue(value), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
     }
 
     public override Symbol VisitBoolean(qutes_parser.BooleanContext context)
     {
         var value = BoolParser.Parse(context.BOOL_LITERAL().GetText());
-        return new AnonymousValueSymbol(new BoolType(value), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+        return new AnonymousValueSymbol(new BoolValue(value), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
     }
 }
