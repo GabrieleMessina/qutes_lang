@@ -61,10 +61,12 @@ public class TypeSymbol(QutesType type, TypeSymbol? nestedValue = null) : Symbol
 
     public static TypeSymbol Bool() => new (QutesType.boolean);
     public static TypeSymbol Int() => new (QutesType.integer);
+    public static TypeSymbol Char() => new (QutesType.character);
     public static TypeSymbol Float() => new (QutesType.floating);
     public static TypeSymbol String() => new (QutesType.@string);
     public static TypeSymbol Qubit() => new (QutesType.qubit);
     public static TypeSymbol Quint() => new (QutesType.quinteger);
+    public static TypeSymbol Quchar() => new (QutesType.qucharacter);
     public static TypeSymbol Qustring() => new (QutesType.qustring);
     public static TypeSymbol Array(TypeSymbol elementsType) => new (elementsType.IsQuantum() ? QutesType.quantumArray : QutesType.classicalArray, elementsType);
     public static TypeSymbol Class() => new (QutesType.@class);

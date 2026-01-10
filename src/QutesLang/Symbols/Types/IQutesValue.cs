@@ -4,10 +4,12 @@ public enum QutesType
 {
     boolean,
     integer,
+    character,
     floating,
     @string,
     qubit,
     quinteger,
+    qucharacter,
     qustring,
     classicalArray,
     quantumArray,
@@ -16,8 +18,11 @@ public enum QutesType
 }
 public interface IQutesValue
 {
-    public TypeSymbol Type { get; }
-    public bool TryConvertTo(TypeSymbol targetType, out IQutesValue result);
+    public abstract TypeSymbol Type { get; }
+    public virtual bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
+    {
+        throw new NotImplementedException();
+    }
 }
 
 public abstract class ArrayValue : IQutesValue

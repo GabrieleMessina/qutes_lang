@@ -78,12 +78,14 @@ variableType
    ;
 
 type
-   : INT_TYPE
-   | BOOL_TYPE
+   : BOOL_TYPE
+   | INT_TYPE
+   | CHAR_TYPE
    | FLOAT_TYPE
    | STRING_TYPE
    | QUBIT_TYPE
    | QUINT_TYPE
+   | QUCHAR_TYPE
    | QUSTRING_TYPE
    | VOID_TYPE
    ;
@@ -95,11 +97,31 @@ qualifiedName
 literal
    : boolean
    | integer
+   | char
    | float
    | qubit
    | quint
+   | quchar
    | qustring
    | string
+   ;
+
+boolean
+   : BOOL_LITERAL
+   ;
+
+integer
+   : INT_LITERAL
+   | BIN_LITERAL
+   | HEX_LITERAL
+   ;
+
+char
+   : CHAR_LITERAL
+   ;
+
+float
+   : FLOAT_LITERAL
    ;
 
 string
@@ -114,20 +136,10 @@ quint
    : QUINT_LITERAL
    ;
 
+quchar
+   : QUCHAR_LITERAL
+   ;
+
 qustring
    : QUSTRING_LITERAL
-   ;
-
-float
-   : FLOAT_LITERAL
-   ;
-
-integer
-   : INT_LITERAL
-   | BIN_LITERAL
-   | HEX_LITERAL
-   ;
-
-boolean
-   : BOOL_LITERAL
    ;

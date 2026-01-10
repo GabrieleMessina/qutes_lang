@@ -119,6 +119,26 @@ public partial class QubitParser
     }
 }
 
+public partial class QucharParser
+{
+    // 'A'q
+    [GeneratedRegex(@"^'(.{1})'q$", RegexOptions.Compiled)]
+    private static partial Regex CharLiteralRegex();
+    public static StateVector Parse(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input)) throw new ArgumentException("Input cannot be null or whitespace.", nameof(input));
+        var match = CharLiteralRegex().Match(input);
+        if (match.Success)
+        {
+            var character = match.Groups[1].Value[0];
+            var qutesEncodedChar = QucharValue.Alphabet.IndexOf(character);
+            if(qutesEncodedChar == -1) throw new ArgumentException($"Invalid quchar literal: {input}, valid characters are: {string.Join(", ", QucharValue.Alphabet)}");
+            return QuintParser.Parse($"{qutesEncodedChar}q");
+        }
+        throw new ArgumentException($"Invalid quchar literal format: {input}");
+    }
+}
+
 public partial class QuintParser
 {
     // Integer Literal: 5q

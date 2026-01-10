@@ -6,8 +6,8 @@ namespace QutesLang.Symbols.Types;
 
 public class ClassValue(string qualifiedClassName) : IQutesValue
 {
-    public TypeSymbol Type { get; } = TypeSymbol.Class();
-    public bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
+    public virtual TypeSymbol Type { get; } = TypeSymbol.Class();
+    public virtual bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
     {
         throw new NotImplementedException();
     }
@@ -15,8 +15,8 @@ public class ClassValue(string qualifiedClassName) : IQutesValue
 
 public class VoidValue() : IQutesValue
 {
-    public TypeSymbol Type { get; } = TypeSymbol.Void();
-    public bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
+    public virtual TypeSymbol Type { get; } = TypeSymbol.Void();
+    public virtual bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
     {
         if (targetType == Type)
         {
@@ -30,7 +30,7 @@ public class VoidValue() : IQutesValue
 
 public class BoolValue(bool value) : IClassicalType
 {
-    public TypeSymbol Type { get; } = TypeSymbol.Bool();
+    public virtual TypeSymbol Type { get; } = TypeSymbol.Bool();
     public bool Value { get; set; } = value;
     public object GetValueAsObject() => Value;
     public void SetValueFromObject(object value) => Value = (bool)value;
@@ -51,7 +51,7 @@ public class BoolValue(bool value) : IClassicalType
 
     public BoolValue Not() => new (!this.Value);
 
-    public bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
+    public virtual bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
     {
         if (targetType.Value == QutesType.boolean)
         {
@@ -75,9 +75,30 @@ public class BoolValue(bool value) : IClassicalType
     public static explicit operator IntValue(BoolValue v) => new(v.Value ? 1 : 0);
 }
 
+public class CharValue(char value) : IntValue(value)
+{
+    public override TypeSymbol Type => TypeSymbol.Char();
+
+    public override bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
+    {
+        if (targetType.Value == QutesType.character)
+        {
+            result = this;
+            return true;
+        }
+        if (targetType.Value == QutesType.qucharacter)
+        {
+            result = new QucharValue(Convert.ToChar(this.Value));
+            return true;
+        }
+        result = default!;
+        return false;
+    }
+}
+
 public class IntValue(int value) : IClassicalType
 {
-    public TypeSymbol Type { get; } = TypeSymbol.Int();
+    public virtual TypeSymbol Type { get; } = TypeSymbol.Int();
     public int Value { get; set; } = value;
     public object GetValueAsObject() => Value;
     public void SetValueFromObject(object value) => Value = (int)value;
@@ -106,7 +127,7 @@ public class IntValue(int value) : IClassicalType
     public IQutesValue InplacePostIncrement() => new IntValue(this.Value++);
     public IQutesValue InplacePostDecrement() => new IntValue(this.Value--);
 
-    public bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
+    public virtual bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
     {
         if (targetType.Value == QutesType.integer)
         {
@@ -125,7 +146,7 @@ public class IntValue(int value) : IClassicalType
 
 public class FloatValue(float value) : IClassicalType
 {
-    public TypeSymbol Type { get; } = TypeSymbol.Float();
+    public virtual TypeSymbol Type { get; } = TypeSymbol.Float();
     public float Value { get; set; } = value;
     public object GetValueAsObject() => Value;
     public void SetValueFromObject(object value) => Value = (float)value;
@@ -158,7 +179,7 @@ public class FloatValue(float value) : IClassicalType
     public IQutesValue InplacePostIncrement() => new FloatValue(this.Value++);
     public IQutesValue InplacePostDecrement() => new FloatValue(this.Value--);
 
-    public bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
+    public virtual bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
     {
         if (targetType.Value == QutesType.floating)
         {
@@ -172,7 +193,7 @@ public class FloatValue(float value) : IClassicalType
 
 public class StringValue(string value) : IClassicalType
 {
-    public TypeSymbol Type { get; } = TypeSymbol.String();
+    public virtual TypeSymbol Type { get; } = TypeSymbol.String();
     public string Value { get; set; } = value;
     public object GetValueAsObject() => Value;
     public void SetValueFromObject(object value) => Value = (string)value;
@@ -216,7 +237,7 @@ public class StringValue(string value) : IClassicalType
 
     public BoolValue NotEquals(IClassicalType term) => new (this.Value != GetStringValue(term));
 
-    public bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
+    public virtual bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
     {
         if (targetType.Value == QutesType.@string)
         {
@@ -274,7 +295,7 @@ public class QubitValue() : IQuantumType
         InitialStateVector = QubitParser.Parse(value ? "1q" : "0q");
     }
 
-    public TypeSymbol Type { get; } = TypeSymbol.Qubit();
+    public virtual TypeSymbol Type { get; } = TypeSymbol.Qubit();
     public int Size { get; } = DefaultSize;
     public QuantumRegister Register { get; } = new(DefaultSize);
     public StateVector? InitialStateVector { get; private set { field = value; Register.InitialStateVector = value; } }
@@ -285,7 +306,7 @@ public class QubitValue() : IQuantumType
     public CircuitOperation Or(IQuantumType term) => new Or(this, term, QubitValue.GetDefaultValue());
     public CircuitOperation Not() => new Not(this);
 
-    public bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
+    public virtual bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
     {
         if (targetType.Value == QutesType.qubit)
         {
@@ -303,6 +324,40 @@ public class QubitValue() : IQuantumType
     }
 
     public static explicit operator QuintValue(QubitValue qubit) => new(qubit);
+}
+
+public class QucharValue : QuintValue
+{
+    public new const int DefaultSize = 2; //TODO: size could be derived from the alphabet length.
+
+    public static readonly char[] Alphabet = ['2', '3'];
+
+    public QucharValue() : base()
+    {
+    }
+
+    public QucharValue(StateVector initialStateVector) : base(initialStateVector)
+    {
+    }
+
+    public QucharValue(char value) : this(QucharParser.Parse($"'{value}'q"))
+    {
+    }
+
+    public override TypeSymbol Type => TypeSymbol.Char();
+
+    public new static QucharValue GetDefaultValue() => new (QustringParser.Parse("0"));
+
+    public override bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
+    {
+        if (targetType.Value == QutesType.quinteger)
+        {
+            result = this;
+            return true;
+        }
+        result = default!;
+        return false;
+    }
 }
 
 public class QuintValue() : IQuantumType
@@ -326,7 +381,7 @@ public class QuintValue() : IQuantumType
         InitialStateVector = QuintParser.Parse(value.ToString() + "q");
     }
 
-    public TypeSymbol Type { get; } = TypeSymbol.Quint();
+    public virtual TypeSymbol Type { get; } = TypeSymbol.Quint();
     public int Size { get; } = DefaultSize;
     public QuantumRegister Register { get; } = new(DefaultSize);
     public StateVector? InitialStateVector { get; private set { field = value; Register.InitialStateVector = value; }  }
@@ -335,7 +390,7 @@ public class QuintValue() : IQuantumType
 
     public static QuintValue GetDefaultValue() => new();
 
-    public CircuitOperation Addition(IQuantumType term) => new Addition(this, term, QuintValue.GetDefaultValue());
+    public CircuitOperation Addition(IQuantumType term) => new Addition(this, term, QuintValue.GetDefaultValue()); //TODO: right now sum of char gives an error because return type of sum is quint and cannot cast quint to quchar.
     public CircuitOperation Subtraction(IQuantumType term) => new Subtraction(this, term, QuintValue.GetDefaultValue());
     public CircuitOperation Multiply(IQuantumType term) => new Multiply(this, term, QuintValue.GetDefaultValue());
     public CircuitOperation Divide(IQuantumType term) => new Divide(this, term, QuintValue.GetDefaultValue());
@@ -352,7 +407,7 @@ public class QuintValue() : IQuantumType
     public CircuitOperation InplacePreDecrement() => new Decrement(this, this);
     public CircuitOperation InplacePostDecrement() => new Decrement(this, this);
 
-    public bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
+    public virtual bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
     {
         if (targetType.Value == QutesType.quinteger)
         {
@@ -375,7 +430,7 @@ public class QustringValue : IQuantumType //TODO: this is an array type, should 
         Register = new(Size, InitialStateVector);
     }
 
-    public TypeSymbol Type { get; } = TypeSymbol.Qustring();
+    public virtual TypeSymbol Type { get; } = TypeSymbol.Qustring();
     public int Size { get; }
     public QuantumRegister Register { get; }
     public StateVector? InitialStateVector { get; set { field = value; Register.InitialStateVector = value; } }
@@ -390,7 +445,7 @@ public class QustringValue : IQuantumType //TODO: this is an array type, should 
     public CircuitOperation GreaterThan(IQuantumType term) => new GreaterThan(this, term, QubitValue.GetDefaultValue());
     public CircuitOperation GreaterEqualThan(IQuantumType term) => new GreaterEqualThan(this, term, QubitValue.GetDefaultValue());
 
-    public bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
+    public virtual bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
     {
         if (targetType.Value == QutesType.qustring)
         {

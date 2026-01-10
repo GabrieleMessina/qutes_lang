@@ -352,6 +352,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                 {
                     switch (valueSymbol.Value)
                     {
+                        //TODO; probably better to implement print operations in qutes values.
                         case IQuantumType quantumType:
                             Console.WriteLine($"{quantumType.Type} '{valueSymbol.QualifiedName}': {quantumType.QubitStringList}");
                             break;
@@ -976,10 +977,12 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         var type
             = context.BOOL_TYPE() != null ? QutesType.boolean
             : context.INT_TYPE() != null ? QutesType.integer
+            : context.CHAR_TYPE() != null ? QutesType.character
             : context.FLOAT_TYPE() != null ? QutesType.floating
             : context.STRING_TYPE() != null ? QutesType.@string
             : context.QUBIT_TYPE() != null ? QutesType.qubit
             : context.QUINT_TYPE() != null ? QutesType.quinteger
+            : context.QUCHAR_TYPE() != null ? QutesType.qucharacter
             : context.QUSTRING_TYPE() != null ? QutesType.qustring
             : context.VOID_TYPE() != null ? QutesType.@void
             : throw new InvalidOperationException($"Unknown type '{context.GetText()}'.");
@@ -1003,7 +1006,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
     public override Symbol VisitString(qutes_parser.StringContext context)
     {
-        var value = Convert.ToString(context.STRING_LITERAL().GetText());
+        var value = Convert.ToString(context.STRING_LITERAL().GetText()[1..^1]);
         return new AnonymousValueSymbol(new StringValue(value), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
     }
 
@@ -1021,6 +1024,13 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         return new AnonymousValueSymbol(new QuintValue(stateVector), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
     }
 
+    public override Symbol VisitQuchar(qutes_parser.QucharContext context)
+    {
+        var value = context.QUCHAR_LITERAL().GetText();
+        var stateVector = QucharParser.Parse(value);
+        return new AnonymousValueSymbol(new QucharValue(stateVector), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+    }
+
     public override Symbol VisitQustring(qutes_parser.QustringContext context)
     {
         var value = context.QUSTRING_LITERAL().GetText();
@@ -1031,6 +1041,12 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
     {
         var value = Convert.ToSingle(context.FLOAT_LITERAL().GetText());
         return new AnonymousValueSymbol(new FloatValue(value), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+    }
+
+    public override Symbol VisitChar(qutes_parser.CharContext context)
+    {
+        var value = Convert.ToChar(context.CHAR_LITERAL().GetText()[1..^1]);
+        return new AnonymousValueSymbol(new CharValue(value), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
     }
 
     public override Symbol VisitInteger(qutes_parser.IntegerContext context)

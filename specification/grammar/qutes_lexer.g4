@@ -1,13 +1,15 @@
 lexer grammar qutes_lexer;
 
 // ----- Reserved keyword ----- 
-INT_TYPE : 'int' ;
 BOOL_TYPE : 'bool' ;
+INT_TYPE : 'int' ;
+CHAR_TYPE : 'char' ;
+FLOAT_TYPE : 'float' ;
 STRING_TYPE : 'string' ;
 QUBIT_TYPE : 'qubit' ;
 QUINT_TYPE : 'quint' ;
 QUSTRING_TYPE : 'qustring' ;
-FLOAT_TYPE : 'float' ;
+QUCHAR_TYPE : 'quchar' ;
 VOID_TYPE : 'void' ;
 RETURN : 'return' ;
 BREAK : 'break' ;
@@ -98,6 +100,11 @@ fragment
       | '|->'
       ;
 
+// Helper fragment for escape sequences (newline, tab, quotes, etc.)
+fragment EscapeSequence
+    : '\\' [btnfr"'\\]
+    ;
+
 BOOL_LITERAL
    : TRUE
    | FALSE
@@ -106,6 +113,10 @@ BOOL_LITERAL
 INT_LITERAL
    : DIGIT+
    ;
+
+CHAR_LITERAL
+    : '\'' ( EscapeSequence | ~['\\\r\n] ) '\''
+    ;
 
 FLOAT_LITERAL
    : DIGIT+ '.' DIGIT*
@@ -133,6 +144,10 @@ QUINT_LITERAL
    | INT_LITERAL [q]
    ;
 
+QUCHAR_LITERAL
+   : CHAR_LITERAL [q]
+   ;
+
 QUSTRING_LITERAL
    : STRING_LITERAL [q]
    ;
@@ -145,6 +160,10 @@ SYMBOL_LITERAL
 STRING_LITERAL
    :  '"' ('\\' . | '""' | ~["\\])* '"'
    ;
+
+//STRING_LITERAL
+//   : '"' ( EscapeSequence | ~["\\\r\n] )* '"'
+//   ;
 
 
 // ----- Whitespace Character Handling -----
