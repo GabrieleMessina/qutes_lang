@@ -2,7 +2,7 @@
 
 namespace QutesLang.Symbols.Types;
 
-public interface IQuantumType : IQutesValue
+public interface IQuantumValue : IQutesValue
 {
     public int Size { get; }
     public QuantumRegister Register { get; }
@@ -11,7 +11,7 @@ public interface IQuantumType : IQutesValue
     #region Operations
     CircuitOperation LeftShift(QuintValue positions) => throw new InvalidOperationException($"Operator {nameof(LeftShift)} cannot be applied to {this.Type} and {positions.Type}.");
     CircuitOperation RightShift(QuintValue positions) => throw new InvalidOperationException($"Operator {nameof(RightShift)} cannot be applied to {this.Type} and {positions.Type}.");
-    CircuitOperation Swap(IQuantumType term)
+    CircuitOperation Swap(IQuantumValue term)
     {
         return this.Type == term.Type
             ? new Swap(this, term)
@@ -19,25 +19,25 @@ public interface IQuantumType : IQutesValue
     }
 
     // Arithmetic operations
-    CircuitOperation Addition(IQuantumType term) => throw new InvalidOperationException($"Operator {nameof(Addition)} cannot be applied to {this.Type} and {term.Type}.");
-    CircuitOperation Subtraction(IQuantumType term) => throw new InvalidOperationException($"Operator {nameof(Subtraction)} cannot be applied to {this.Type} and {term.Type}.");
-    CircuitOperation Multiply(IQuantumType term) => throw new InvalidOperationException($"Operator {nameof(Multiply)} cannot be applied to {this.Type} and {term.Type}.");
-    CircuitOperation Divide(IQuantumType term) => throw new InvalidOperationException($"Operator {nameof(Divide)} cannot be applied to {this.Type} and {term.Type}.");
-    CircuitOperation Module(IQuantumType term) => throw new InvalidOperationException($"Operator {nameof(Module)} cannot be applied to {this.Type} and {term.Type}.");
-    CircuitOperation Exp(IQuantumType term) => throw new InvalidOperationException($"Operator {nameof(Exp)} cannot be applied to {this.Type} and {term.Type}.");
+    CircuitOperation Addition(IQuantumValue term) => throw new InvalidOperationException($"Operator {nameof(Addition)} cannot be applied to {this.Type} and {term.Type}.");
+    CircuitOperation Subtraction(IQuantumValue term) => throw new InvalidOperationException($"Operator {nameof(Subtraction)} cannot be applied to {this.Type} and {term.Type}.");
+    CircuitOperation Multiply(IQuantumValue term) => throw new InvalidOperationException($"Operator {nameof(Multiply)} cannot be applied to {this.Type} and {term.Type}.");
+    CircuitOperation Divide(IQuantumValue term) => throw new InvalidOperationException($"Operator {nameof(Divide)} cannot be applied to {this.Type} and {term.Type}.");
+    CircuitOperation Module(IQuantumValue term) => throw new InvalidOperationException($"Operator {nameof(Module)} cannot be applied to {this.Type} and {term.Type}.");
+    CircuitOperation Exp(IQuantumValue term) => throw new InvalidOperationException($"Operator {nameof(Exp)} cannot be applied to {this.Type} and {term.Type}.");
 
     // Comparison operations
-    CircuitOperation LowerThan(IQuantumType term) => throw new InvalidOperationException($"Operator {nameof(LowerThan)} cannot be applied to {this.Type} and {term.Type}.");
-    CircuitOperation LowerEqualThan(IQuantumType term) => throw new InvalidOperationException($"Operator {nameof(LowerEqualThan)} cannot be applied to {this.Type} and {term.Type}.");
-    CircuitOperation GreaterThan(IQuantumType term) => throw new InvalidOperationException($"Operator {nameof(GreaterThan)} cannot be applied to {this.Type} and {term.Type}.");
-    CircuitOperation GreaterEqualThan(IQuantumType term) => throw new InvalidOperationException($"Operator {nameof(GreaterEqualThan)} cannot be applied to {this.Type} and {term.Type}.");
-    CircuitOperation Equals(IQuantumType term)
+    CircuitOperation LowerThan(IQuantumValue term) => throw new InvalidOperationException($"Operator {nameof(LowerThan)} cannot be applied to {this.Type} and {term.Type}.");
+    CircuitOperation LowerEqualThan(IQuantumValue term) => throw new InvalidOperationException($"Operator {nameof(LowerEqualThan)} cannot be applied to {this.Type} and {term.Type}.");
+    CircuitOperation GreaterThan(IQuantumValue term) => throw new InvalidOperationException($"Operator {nameof(GreaterThan)} cannot be applied to {this.Type} and {term.Type}.");
+    CircuitOperation GreaterEqualThan(IQuantumValue term) => throw new InvalidOperationException($"Operator {nameof(GreaterEqualThan)} cannot be applied to {this.Type} and {term.Type}.");
+    CircuitOperation Equals(IQuantumValue term)
     {
         if (this.Type != term.Type)
             throw new InvalidOperationException($"Operator {nameof(Equals)} cannot be applied to {this.Type} and {term.Type}.");
         return new Equals(this, term, this);
     }
-    CircuitOperation NotEquals(IQuantumType term)
+    CircuitOperation NotEquals(IQuantumValue term)
     {
         if (this.Type != term.Type)
             throw new InvalidOperationException($"Operator {nameof(NotEquals)} cannot be applied to {this.Type} and {term.Type}.");
@@ -45,8 +45,8 @@ public interface IQuantumType : IQutesValue
     }
 
     // Logical operations
-    CircuitOperation And(IQuantumType term) => throw new InvalidOperationException($"Operator {nameof(And)} cannot be applied to {this.Type} and {term.Type}.");
-    CircuitOperation Or(IQuantumType term) => throw new InvalidOperationException($"Operator {nameof(Or)} cannot be applied to {this.Type} and {term.Type}.");
+    CircuitOperation And(IQuantumValue term) => throw new InvalidOperationException($"Operator {nameof(And)} cannot be applied to {this.Type} and {term.Type}.");
+    CircuitOperation Or(IQuantumValue term) => throw new InvalidOperationException($"Operator {nameof(Or)} cannot be applied to {this.Type} and {term.Type}.");
     CircuitOperation Not() => throw new InvalidOperationException($"Operator {nameof(Not)} cannot be applied to {this.Type}.");
 
     // Unary operations

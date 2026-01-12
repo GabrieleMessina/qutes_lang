@@ -28,14 +28,14 @@ public class VoidValue() : IQutesValue
     }
 }
 
-public class BoolValue(bool value) : IClassicalType
+public class BoolValue(bool value) : IClassicalValue
 {
     public virtual TypeSymbol Type { get; } = TypeSymbol.Bool();
     public bool Value { get; set; } = value;
     public object GetValueAsObject() => Value;
     public void SetValueFromObject(object value) => Value = (bool)value;
     public static BoolValue GetDefaultValue() => new(false);
-    private static bool GetBoolValue(IClassicalType term, [CallerMemberName] string operationName = "")
+    private static bool GetBoolValue(IClassicalValue term, [CallerMemberName] string operationName = "")
     {
         if (term is BoolValue boolType)
         {
@@ -43,11 +43,11 @@ public class BoolValue(bool value) : IClassicalType
         }
         throw new InvalidOperationException($"Operation {operationName} cannot be applied to {term.GetType().Name} type.");
     }
-    public BoolValue Equals(IClassicalType term) => new (this.Value == GetBoolValue(term));
-    public BoolValue NotEquals(IClassicalType term) => new (this.Value != GetBoolValue(term));
+    public BoolValue Equals(IClassicalValue term) => new (this.Value == GetBoolValue(term));
+    public BoolValue NotEquals(IClassicalValue term) => new (this.Value != GetBoolValue(term));
 
-    public BoolValue And(IClassicalType term) => new (this.Value && GetBoolValue(term));
-    public BoolValue Or(IClassicalType term) => new (this.Value || GetBoolValue(term));
+    public BoolValue And(IClassicalValue term) => new (this.Value && GetBoolValue(term));
+    public BoolValue Or(IClassicalValue term) => new (this.Value || GetBoolValue(term));
 
     public BoolValue Not() => new (!this.Value);
 
@@ -96,30 +96,30 @@ public class CharValue(char value) : IntValue(value)
     }
 }
 
-public class IntValue(int value) : IClassicalType
+public class IntValue(int value) : IClassicalValue
 {
     public virtual TypeSymbol Type { get; } = TypeSymbol.Int();
     public int Value { get; set; } = value;
     public object GetValueAsObject() => Value;
     public void SetValueFromObject(object value) => Value = (int)value;
     public static IntValue GetDefaultValue() => new(0);
-    private static int GetIntValue(IClassicalType term) => ((IntValue)term).Value;
+    private static int GetIntValue(IClassicalValue term) => ((IntValue)term).Value;
 
     public IQutesValue LeftShift(IntValue positions) => new IntValue(this.Value << GetIntValue(positions));
     public IQutesValue RightShift(IntValue positions) => new IntValue(this.Value >> GetIntValue(positions));
 
-    public IQutesValue Addition(IClassicalType term) => new IntValue(this.Value + GetIntValue(term));
-    public IQutesValue Subtraction(IClassicalType term) => new IntValue(this.Value - GetIntValue(term));
-    public IQutesValue Multiply(IClassicalType term) => new IntValue(this.Value * GetIntValue(term));
-    public IQutesValue Divide(IClassicalType term) => new IntValue(this.Value / GetIntValue(term));
-    public IQutesValue Module(IClassicalType term) => new IntValue(this.Value % GetIntValue(term));
+    public IQutesValue Addition(IClassicalValue term) => new IntValue(this.Value + GetIntValue(term));
+    public IQutesValue Subtraction(IClassicalValue term) => new IntValue(this.Value - GetIntValue(term));
+    public IQutesValue Multiply(IClassicalValue term) => new IntValue(this.Value * GetIntValue(term));
+    public IQutesValue Divide(IClassicalValue term) => new IntValue(this.Value / GetIntValue(term));
+    public IQutesValue Module(IClassicalValue term) => new IntValue(this.Value % GetIntValue(term));
 
-    public BoolValue LowerThan(IClassicalType term) => new(this.Value < GetIntValue(term));
-    public BoolValue LowerEqualThan(IClassicalType term) => new(this.Value <= GetIntValue(term));
-    public BoolValue GreaterThan(IClassicalType term) => new(this.Value > GetIntValue(term));
-    public BoolValue GreaterEqualThan(IClassicalType term) => new(this.Value >= GetIntValue(term));
-    public BoolValue Equals(IClassicalType term) => new(this.Value == GetIntValue(term));
-    public BoolValue NotEquals(IClassicalType term) => new(this.Value != GetIntValue(term));
+    public BoolValue LowerThan(IClassicalValue term) => new(this.Value < GetIntValue(term));
+    public BoolValue LowerEqualThan(IClassicalValue term) => new(this.Value <= GetIntValue(term));
+    public BoolValue GreaterThan(IClassicalValue term) => new(this.Value > GetIntValue(term));
+    public BoolValue GreaterEqualThan(IClassicalValue term) => new(this.Value >= GetIntValue(term));
+    public BoolValue Equals(IClassicalValue term) => new(this.Value == GetIntValue(term));
+    public BoolValue NotEquals(IClassicalValue term) => new(this.Value != GetIntValue(term));
 
     public IQutesValue Minus() => new IntValue(-this.Value);
     public IQutesValue InplacePreIncrement() => new IntValue(++this.Value);
@@ -144,14 +144,14 @@ public class IntValue(int value) : IClassicalType
     }
 }
 
-public class FloatValue(float value) : IClassicalType
+public class FloatValue(float value) : IClassicalValue
 {
     public virtual TypeSymbol Type { get; } = TypeSymbol.Float();
     public float Value { get; set; } = value;
     public object GetValueAsObject() => Value;
     public void SetValueFromObject(object value) => Value = (float)value;
     public static FloatValue GetDefaultValue() => new(0f);
-    private static float GetFloatValue(IClassicalType term, [CallerMemberName] string operationName = "")
+    private static float GetFloatValue(IClassicalValue term, [CallerMemberName] string operationName = "")
     {
         if (term is FloatValue floatType)
         {
@@ -160,18 +160,18 @@ public class FloatValue(float value) : IClassicalType
         throw new InvalidOperationException($"Operation {operationName} cannot be applied to {term.GetType().Name} type.");
     }
 
-    public IQutesValue Addition(IClassicalType term) => new FloatValue(this.Value + GetFloatValue(term));
-    public IQutesValue Subtraction(IClassicalType term) => new FloatValue(this.Value - GetFloatValue(term));
-    public IQutesValue Multiply(IClassicalType term) => new FloatValue(this.Value * GetFloatValue(term));
-    public IQutesValue Divide(IClassicalType term) => new FloatValue(this.Value / GetFloatValue(term));
-    public IQutesValue Module(IClassicalType term) => new FloatValue(this.Value % GetFloatValue(term));
+    public IQutesValue Addition(IClassicalValue term) => new FloatValue(this.Value + GetFloatValue(term));
+    public IQutesValue Subtraction(IClassicalValue term) => new FloatValue(this.Value - GetFloatValue(term));
+    public IQutesValue Multiply(IClassicalValue term) => new FloatValue(this.Value * GetFloatValue(term));
+    public IQutesValue Divide(IClassicalValue term) => new FloatValue(this.Value / GetFloatValue(term));
+    public IQutesValue Module(IClassicalValue term) => new FloatValue(this.Value % GetFloatValue(term));
 
-    public BoolValue LowerThan(IClassicalType term) => new(this.Value < GetFloatValue(term));
-    public BoolValue LowerEqualThan(IClassicalType term) => new(this.Value <= GetFloatValue(term));
-    public BoolValue GreaterThan(IClassicalType term) => new(this.Value > GetFloatValue(term));
-    public BoolValue GreaterEqualThan(IClassicalType term) => new(this.Value >= GetFloatValue(term));
-    public BoolValue Equals(IClassicalType term) => new(this.Value == GetFloatValue(term));
-    public BoolValue NotEquals(IClassicalType term) => new(this.Value != GetFloatValue(term));
+    public BoolValue LowerThan(IClassicalValue term) => new(this.Value < GetFloatValue(term));
+    public BoolValue LowerEqualThan(IClassicalValue term) => new(this.Value <= GetFloatValue(term));
+    public BoolValue GreaterThan(IClassicalValue term) => new(this.Value > GetFloatValue(term));
+    public BoolValue GreaterEqualThan(IClassicalValue term) => new(this.Value >= GetFloatValue(term));
+    public BoolValue Equals(IClassicalValue term) => new(this.Value == GetFloatValue(term));
+    public BoolValue NotEquals(IClassicalValue term) => new(this.Value != GetFloatValue(term));
 
     public IQutesValue Minus() => new FloatValue(-this.Value);
     public IQutesValue InplacePreIncrement() => new FloatValue(++this.Value);
@@ -191,14 +191,14 @@ public class FloatValue(float value) : IClassicalType
     }
 }
 
-public class StringValue(string value) : IClassicalType
+public class StringValue(string value) : IClassicalValue
 {
     public virtual TypeSymbol Type { get; } = TypeSymbol.String();
     public string Value { get; set; } = value;
     public object GetValueAsObject() => Value;
     public void SetValueFromObject(object value) => Value = (string)value;
     public static StringValue GetDefaultValue() => new("");
-    private static string GetStringValue(IClassicalType term, [CallerMemberName] string operationName = "")
+    private static string GetStringValue(IClassicalValue term, [CallerMemberName] string operationName = "")
     {
         if (term is StringValue stringType)
         {
@@ -221,21 +221,21 @@ public class StringValue(string value) : IClassicalType
         return new StringValue(result);
     }
 
-    public IQutesValue Addition(IClassicalType term) => new StringValue(this.Value + GetStringValue(term));
+    public IQutesValue Addition(IClassicalValue term) => new StringValue(this.Value + GetStringValue(term));
 
-    public IQutesValue Subtraction(IClassicalType term) => new StringValue(this.Value.Replace(GetStringValue(term), string.Empty));
+    public IQutesValue Subtraction(IClassicalValue term) => new StringValue(this.Value.Replace(GetStringValue(term), string.Empty));
 
-    public BoolValue LowerThan(IClassicalType term) => new (string.Compare(this.Value, GetStringValue(term)) < 0);
+    public BoolValue LowerThan(IClassicalValue term) => new (string.Compare(this.Value, GetStringValue(term)) < 0);
 
-    public BoolValue LowerEqualThan(IClassicalType term) => new (string.Compare(this.Value, GetStringValue(term)) <= 0);
+    public BoolValue LowerEqualThan(IClassicalValue term) => new (string.Compare(this.Value, GetStringValue(term)) <= 0);
 
-    public BoolValue GreaterThan(IClassicalType term) => new (string.Compare(this.Value, GetStringValue(term)) > 0);
+    public BoolValue GreaterThan(IClassicalValue term) => new (string.Compare(this.Value, GetStringValue(term)) > 0);
 
-    public BoolValue GreaterEqualThan(IClassicalType term) => new (string.Compare(this.Value, GetStringValue(term)) >= 0);
+    public BoolValue GreaterEqualThan(IClassicalValue term) => new (string.Compare(this.Value, GetStringValue(term)) >= 0);
 
-    public BoolValue Equals(IClassicalType term) => new (this.Value == GetStringValue(term));
+    public BoolValue Equals(IClassicalValue term) => new (this.Value == GetStringValue(term));
 
-    public BoolValue NotEquals(IClassicalType term) => new (this.Value != GetStringValue(term));
+    public BoolValue NotEquals(IClassicalValue term) => new (this.Value != GetStringValue(term));
 
     public virtual bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
     {
@@ -249,7 +249,7 @@ public class StringValue(string value) : IClassicalType
     }
 }
 
-public class ClassicalArrayValue(IEnumerable<ValueSymbol> values) : ArrayValue, IClassicalType
+public class ClassicalArrayValue(IEnumerable<ValueSymbol> values) : ArrayValue, IClassicalValue
 {
     public override IEnumerable<ValueSymbol> Values { get; protected set; } = values;
 
@@ -272,16 +272,16 @@ public class ClassicalArrayValue(IEnumerable<ValueSymbol> values) : ArrayValue, 
         return new ClassicalArrayValue(result);
     }
 
-    public IQutesValue Addition(IClassicalType term) => new ClassicalArrayValue(Values.Concat(Values));
+    public IQutesValue Addition(IClassicalValue term) => new ClassicalArrayValue(Values.Concat(Values));
 
-    public IQutesValue Subtraction(IClassicalType term) => new ClassicalArrayValue(Values.Except(Values));
+    public IQutesValue Subtraction(IClassicalValue term) => new ClassicalArrayValue(Values.Except(Values));
 
-    public BoolValue Equals(IClassicalType term) => new(!Values.Any() && !Values.Except(Values).Any());
+    public BoolValue Equals(IClassicalValue term) => new(!Values.Any() && !Values.Except(Values).Any());
 
-    public BoolValue NotEquals(IClassicalType term) => new(Values.Any() || Values.Except(Values).Any());
+    public BoolValue NotEquals(IClassicalValue term) => new(Values.Any() || Values.Except(Values).Any());
 }
 
-public class QubitValue() : IQuantumType
+public class QubitValue() : IQuantumValue
 {
     public const int DefaultSize = 1;
 
@@ -302,8 +302,8 @@ public class QubitValue() : IQuantumType
 
     public static QubitValue GetDefaultValue() => new();
 
-    public CircuitOperation And(IQuantumType term) => new And(this, term, QubitValue.GetDefaultValue());
-    public CircuitOperation Or(IQuantumType term) => new Or(this, term, QubitValue.GetDefaultValue());
+    public CircuitOperation And(IQuantumValue term) => new And(this, term, QubitValue.GetDefaultValue());
+    public CircuitOperation Or(IQuantumValue term) => new Or(this, term, QubitValue.GetDefaultValue());
     public CircuitOperation Not() => new Not(this);
 
     public virtual bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
@@ -328,6 +328,7 @@ public class QubitValue() : IQuantumType
 
 public class QucharValue : QuintValue
 {
+    //public override int DefaultSize { get; } = Convert.ToInt32(Math.Ceiling(Math.Log2(Alphabet.Length)));
     public new const int DefaultSize = 2; //TODO: size could be derived from the alphabet length.
 
     public static readonly char[] Alphabet = ['2', '3'];
@@ -360,7 +361,7 @@ public class QucharValue : QuintValue
     }
 }
 
-public class QuintValue() : IQuantumType
+public class QuintValue() : IQuantumValue
 {
     public const int DefaultSize = 3;
 
@@ -390,16 +391,16 @@ public class QuintValue() : IQuantumType
 
     public static QuintValue GetDefaultValue() => new();
 
-    public CircuitOperation Addition(IQuantumType term) => new Addition(this, term, QuintValue.GetDefaultValue()); //TODO: right now sum of char gives an error because return type of sum is quint and cannot cast quint to quchar.
-    public CircuitOperation Subtraction(IQuantumType term) => new Subtraction(this, term, QuintValue.GetDefaultValue());
-    public CircuitOperation Multiply(IQuantumType term) => new Multiply(this, term, QuintValue.GetDefaultValue());
-    public CircuitOperation Divide(IQuantumType term) => new Divide(this, term, QuintValue.GetDefaultValue());
-    public CircuitOperation Module(IQuantumType term) => new Module(this, term, QuintValue.GetDefaultValue());
+    public CircuitOperation Addition(IQuantumValue term) => new Addition(this, term, QuintValue.GetDefaultValue()); //TODO: right now sum of char gives an error because return type of sum is quint and cannot cast quint to quchar.
+    public CircuitOperation Subtraction(IQuantumValue term) => new Subtraction(this, term, QuintValue.GetDefaultValue());
+    public CircuitOperation Multiply(IQuantumValue term) => new Multiply(this, term, QuintValue.GetDefaultValue());
+    public CircuitOperation Divide(IQuantumValue term) => new Divide(this, term, QuintValue.GetDefaultValue());
+    public CircuitOperation Module(IQuantumValue term) => new Module(this, term, QuintValue.GetDefaultValue());
 
-    public CircuitOperation LowerThan(IQuantumType term) => new LowerThan(this, term, QubitValue.GetDefaultValue());
-    public CircuitOperation LowerEqualThan(IQuantumType term) => new LowerEqualThan(this, term, QubitValue.GetDefaultValue());
-    public CircuitOperation GreaterThan(IQuantumType term) => new GreaterThan(this, term, QubitValue.GetDefaultValue());
-    public CircuitOperation GreaterEqualThan(IQuantumType term) => new GreaterEqualThan(this, term, QubitValue.GetDefaultValue());
+    public CircuitOperation LowerThan(IQuantumValue term) => new LowerThan(this, term, QubitValue.GetDefaultValue());
+    public CircuitOperation LowerEqualThan(IQuantumValue term) => new LowerEqualThan(this, term, QubitValue.GetDefaultValue());
+    public CircuitOperation GreaterThan(IQuantumValue term) => new GreaterThan(this, term, QubitValue.GetDefaultValue());
+    public CircuitOperation GreaterEqualThan(IQuantumValue term) => new GreaterEqualThan(this, term, QubitValue.GetDefaultValue());
 
     public CircuitOperation Minus() => new Opposite(this, QuintValue.GetDefaultValue());
     public CircuitOperation InplacePreIncrement() => new Increment(this, this);
@@ -419,7 +420,7 @@ public class QuintValue() : IQuantumType
     }
 }
 
-public class QustringValue : IQuantumType //TODO: this is an array type, should inherit from QuantumArrayType?
+public class QustringValue : IQuantumValue //TODO: this is an array type, should inherit from QuantumArrayType?
 {
     public const int CharSize = 3;
 
@@ -440,10 +441,10 @@ public class QustringValue : IQuantumType //TODO: this is an array type, should 
     public CircuitOperation LeftShift(QuintValue positions) => new LeftShift(this, positions);
     public CircuitOperation RightShift(QuintValue positions) => new RightShift(this, positions);
 
-    public CircuitOperation LowerThan(IQuantumType term) => new LowerThan(this, term, QubitValue.GetDefaultValue());
-    public CircuitOperation LowerEqualThan(IQuantumType term) => new LowerEqualThan(this, term, QubitValue.GetDefaultValue());
-    public CircuitOperation GreaterThan(IQuantumType term) => new GreaterThan(this, term, QubitValue.GetDefaultValue());
-    public CircuitOperation GreaterEqualThan(IQuantumType term) => new GreaterEqualThan(this, term, QubitValue.GetDefaultValue());
+    public CircuitOperation LowerThan(IQuantumValue term) => new LowerThan(this, term, QubitValue.GetDefaultValue());
+    public CircuitOperation LowerEqualThan(IQuantumValue term) => new LowerEqualThan(this, term, QubitValue.GetDefaultValue());
+    public CircuitOperation GreaterThan(IQuantumValue term) => new GreaterThan(this, term, QubitValue.GetDefaultValue());
+    public CircuitOperation GreaterEqualThan(IQuantumValue term) => new GreaterEqualThan(this, term, QubitValue.GetDefaultValue());
 
     public virtual bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
     {
@@ -457,7 +458,7 @@ public class QustringValue : IQuantumType //TODO: this is an array type, should 
     }
 }
 
-public class QuantumArrayValue : ArrayValue, IQuantumType
+public class QuantumArrayValue : ArrayValue, IQuantumValue
 {
     public QuantumArrayValue(IEnumerable<ValueSymbol> values)
     {
@@ -467,7 +468,7 @@ public class QuantumArrayValue : ArrayValue, IQuantumType
 
     public override TypeSymbol Type => new (QutesType.quantumArray, Values.First().Type);
     public int Size { get; }
-    public QuantumRegister Register => new(Values.Select(v => v.Value).Cast<IQuantumType>().Select(v => v.Register));
+    public QuantumRegister Register => new(Values.Select(v => v.Value).Cast<IQuantumValue>().Select(v => v.Register));
     public override IEnumerable<ValueSymbol> Values { get; protected set; }
 
     public static QuantumArrayValue GetDefaultValue() => new([]);
@@ -475,7 +476,7 @@ public class QuantumArrayValue : ArrayValue, IQuantumType
     public CircuitOperation LeftShift(QuintValue positions) => new LeftShift(this, positions);
     public CircuitOperation RightShift(QuintValue positions) => new RightShift(this, positions);
 
-    public CircuitOperation Addition(IQuantumType term){
+    public CircuitOperation Addition(IQuantumValue term){
         if (term is not QuantumArrayValue arratToConcat)
         {
             throw new InvalidOperationException($"Operation Addition cannot be applied to {term.GetType().Name} type.");

@@ -54,7 +54,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
         switch (condition.Value)
         {
-            case IQuantumType quantumCondition:
+            case IQuantumValue quantumCondition:
                 var mainCircuit = circuitHandler.Current;
                 HandleBranchingVisiting(ifBody, quantumCondition, mainCircuit);
                 break;
@@ -76,7 +76,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
         switch (condition.Value)
         {
-            case IQuantumType quantumCondition:
+            case IQuantumValue quantumCondition:
                 var mainCircuit = circuitHandler.Current;
                 HandleBranchingVisiting(ifBody, quantumCondition, mainCircuit);
                 HandleBranchingVisiting(elseBody, quantumCondition, mainCircuit, false);
@@ -92,7 +92,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         return null!;
     }
 
-    private void HandleBranchingVisiting(qutes_parser.StatementContext branchBody, IQuantumType quantumCondition, IQuantumCircuit mainCircuit, bool onCondition = true)
+    private void HandleBranchingVisiting(qutes_parser.StatementContext branchBody, IQuantumValue quantumCondition, IQuantumCircuit mainCircuit, bool onCondition = true)
     {
         var quantumBodyCircuit = circuitHandler.CreateNewCircuit();
         var controlledCircuit = quantumBodyCircuit.MakeControlledBy(quantumCondition.Register, onCondition);
@@ -112,7 +112,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
         switch (condition.Value)
         {
-            case IQuantumType:
+            case IQuantumValue:
                 //TODO: quantum while loops could be implemented with repeated appended controlled circuits based on all possible combination of the qubits in the condition register.
                 throw new NotImplementedException("Quantum while loops are not yet implemented.");
             case BoolValue classicalCondition:
@@ -169,7 +169,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
         switch (condition.Value)
         {
-            case IQuantumType:
+            case IQuantumValue:
                 throw new NotImplementedException("Quantum while loops are not yet implemented.");
             case BoolValue classicalCondition:
                 do
@@ -320,7 +320,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         variableToUpdateSymbol.Value = CastValueToType(valueToAssignSymbol, variableToUpdateSymbol.Type).Value;
 
         //TODO: check how to handle in case of casting.
-        if (variableToUpdateSymbol.Value is IQuantumType quantumValue)
+        if (variableToUpdateSymbol.Value is IQuantumValue quantumValue)
         {
             circuitHandler.UpdateQuantumVariable(variableToUpdateSymbol.QualifiedName, quantumValue.Register);
         }
@@ -353,10 +353,10 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                     switch (valueSymbol.Value)
                     {
                         //TODO; probably better to implement print operations in qutes values.
-                        case IQuantumType quantumType:
+                        case IQuantumValue quantumType:
                             Console.WriteLine($"{quantumType.Type} '{valueSymbol.QualifiedName}': {quantumType.QubitStringList}");
                             break;
-                        case IClassicalType classicalType:
+                        case IClassicalValue classicalType:
                             Console.WriteLine($"{classicalType.Type} '{valueSymbol.QualifiedName}': {classicalType.GetValueAsObject()}");
                             break;
                     }
@@ -388,7 +388,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
         switch (leftSymbol.Value)
         {
-            case IQuantumType leftValue when rightSymbol.Value is IQuantumType rightValue:
+            case IQuantumValue leftValue when rightSymbol.Value is IQuantumValue rightValue:
                 {
                     var operation
                        = context.EXP() != null ? leftValue.Exp(rightValue)
@@ -398,7 +398,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                     return destinationSymbol;
                 }
 
-            case IClassicalType leftValue when rightSymbol.Value is IClassicalType rightValue:
+            case IClassicalValue leftValue when rightSymbol.Value is IClassicalValue rightValue:
                 {
                     var result
                         = context.EXP() != null ? leftValue.Exp(rightValue)
@@ -471,7 +471,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
         switch (targetSymbol.Value)
         {
-            case IQuantumType leftValue:
+            case IQuantumValue leftValue:
                 {
                     var operation
                        = context.AUTO_INCREMENT() != null ? leftValue.InplacePostIncrement()
@@ -482,7 +482,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                     return destinationSymbol;
                 }
 
-            case IClassicalType leftValue:
+            case IClassicalValue leftValue:
                 {
                     var result
                         = context.AUTO_INCREMENT() != null ? leftValue.InplacePostIncrement()
@@ -502,7 +502,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
         switch (targetSymbol.Value)
         {
-            case IQuantumType leftValue:
+            case IQuantumValue leftValue:
                 {
                     var operation
                        = context.NOT() != null ? leftValue.Not()
@@ -516,7 +516,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                     return destinationSymbol;
                 }
 
-            case IClassicalType leftValue:
+            case IClassicalValue leftValue:
                 {
                     var result
                         = context.NOT() != null ? leftValue.Not()
@@ -545,7 +545,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
         switch (leftSymbol.Value)
         {
-            case IQuantumType leftValue when rightSymbol.Value is IQuantumType rightValue:
+            case IQuantumValue leftValue when rightSymbol.Value is IQuantumValue rightValue:
                 {
                     var operation
                        = context.MULTIPLY() != null ? leftValue.Addition(rightValue)
@@ -557,7 +557,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                     return destinationSymbol;
                 }
 
-            case IClassicalType leftValue when rightSymbol.Value is IClassicalType rightValue:
+            case IClassicalValue leftValue when rightSymbol.Value is IClassicalValue rightValue:
                 {
                     var result
                         = context.MULTIPLY() != null ? leftValue.Addition(rightValue)
@@ -584,7 +584,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
         switch (leftSymbol.Value)
         {
-            case IQuantumType leftValue when rightSymbol.Value is IQuantumType rightValue:
+            case IQuantumValue leftValue when rightSymbol.Value is IQuantumValue rightValue:
                 {
                     var operation
                        = context.ADD() != null ? leftValue.Addition(rightValue)
@@ -595,7 +595,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                     return destinationSymbol;
                 }
 
-            case IClassicalType leftValue when rightSymbol.Value is IClassicalType rightValue:
+            case IClassicalValue leftValue when rightSymbol.Value is IClassicalValue rightValue:
                 {
                     var result
                         = context.ADD() != null ? leftValue.Addition(rightValue)
@@ -616,7 +616,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
         switch (leftSymbol.Value)
         {
-            case IQuantumType leftValue when rightSymbol.Value is QuintValue rightValue:
+            case IQuantumValue leftValue when rightSymbol.Value is QuintValue rightValue:
                 {
                     var operation
                         = context.LSHIFT() != null ? leftValue.LeftShift(rightValue)
@@ -629,7 +629,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                     return destinationSymbol;
                 }
 
-            case IClassicalType leftValue when rightSymbol.Value is IntValue rightValue:
+            case IClassicalValue leftValue when rightSymbol.Value is IntValue rightValue:
                 {
                     var result
                         = context.LSHIFT() != null ? leftValue.LeftShift(rightValue)
@@ -655,7 +655,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
         switch (leftSymbol.Value)
         {
-            case IQuantumType leftValue when rightSymbol.Value is IQuantumType rightValue:
+            case IQuantumValue leftValue when rightSymbol.Value is IQuantumValue rightValue:
                 {
                     var operation
                         = context.LOWER() != null ? leftValue.LowerThan(rightValue)
@@ -668,7 +668,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                     return destinationSymbol;
                 }
 
-            case IClassicalType leftValue when rightSymbol.Value is IClassicalType rightValue:
+            case IClassicalValue leftValue when rightSymbol.Value is IClassicalValue rightValue:
                 {
                     var result
                         = context.LOWER() != null ? leftValue.LowerThan(rightValue)
@@ -696,7 +696,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
         switch (leftSymbol.Value)
         {
-            case IQuantumType leftValue when rightSymbol.Value is IQuantumType rightValue:
+            case IQuantumValue leftValue when rightSymbol.Value is IQuantumValue rightValue:
                 {
                     var operation
                         = context.EQUAL() != null ? leftValue.Equals(rightValue)
@@ -707,7 +707,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                     return destinationSymbol;
                 }
 
-            case IClassicalType leftValue when rightSymbol.Value is IClassicalType rightValue:
+            case IClassicalValue leftValue when rightSymbol.Value is IClassicalValue rightValue:
                 {
                     var result
                         = context.EQUAL() != null ? leftValue.Equals(rightValue)
@@ -728,7 +728,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
         switch (leftSymbol.Value)
         {
-            case IQuantumType leftValue when rightSymbol.Value is IQuantumType rightValue:
+            case IQuantumValue leftValue when rightSymbol.Value is IQuantumValue rightValue:
                 {
                     var operation
                         = context.AND() != null ? leftValue.And(rightValue)
@@ -738,7 +738,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                     return destinationSymbol;
                 }
 
-            case IClassicalType leftValue when rightSymbol.Value is IClassicalType rightValue:
+            case IClassicalValue leftValue when rightSymbol.Value is IClassicalValue rightValue:
                 {
                     var result
                         = context.AND() != null ? leftValue.And(rightValue)
@@ -758,7 +758,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
         switch (leftSymbol.Value)
         {
-            case IQuantumType leftValue when rightSymbol.Value is IQuantumType rightValue:
+            case IQuantumValue leftValue when rightSymbol.Value is IQuantumValue rightValue:
                 {
                     var operation
                         = context.OR() != null ? leftValue.Or(rightValue)
@@ -768,7 +768,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                     return destinationSymbol;
                 }
 
-            case IClassicalType leftValue when rightSymbol.Value is IClassicalType rightValue:
+            case IClassicalValue leftValue when rightSymbol.Value is IClassicalValue rightValue:
                 {
                     var result
                         = context.OR() != null ? leftValue.Or(rightValue)
@@ -784,7 +784,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
     public override Symbol VisitMultipleUnaryOperator(qutes_parser.MultipleUnaryOperatorContext context)
     {
         var termListSymbol = QutesLanguageGuard.IsAssignableToType<TupleSymbol>(Visit(context.termList()));
-        var termListValues = QutesLanguageGuard.AreAllAssignableToType<IQuantumType>(termListSymbol.Elements.Cast<ValueSymbol>().Select(e => e.Value));
+        var termListValues = QutesLanguageGuard.AreAllAssignableToType<IQuantumValue>(termListSymbol.Elements.Cast<ValueSymbol>().Select(e => e.Value));
         var target = termListValues.Last();
         var controls = termListValues.Take(termListSymbol.Elements.Count() - 1);
 
@@ -808,7 +808,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
         switch (firstSymbol.Value)
         {
-            case IQuantumType firstValue when secondSymbol.Value is IQuantumType secondValue:
+            case IQuantumValue firstValue when secondSymbol.Value is IQuantumValue secondValue:
                 {
                     var operation
                         = context.SWAP() != null ? firstValue.Swap(secondValue)
@@ -819,7 +819,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                     return destinationSymbol;
                 }
 
-            case IClassicalType firstValue when secondSymbol.Value is IClassicalType secondValue:
+            case IClassicalValue firstValue when secondSymbol.Value is IClassicalValue secondValue:
                 {
                     var result
                         = context.SWAP() != null ? firstValue.Swap(secondValue)
@@ -839,7 +839,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
         switch (targetSymbol.Value)
         {
-            case IQuantumType targetValue:
+            case IQuantumValue targetValue:
                 {
                     if (context.PRINT() != null)
                     {
@@ -858,7 +858,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                     return destinationSymbol;
                 }
 
-            case IClassicalType targetValue:
+            case IClassicalValue targetValue:
                 {
                     if (context.PRINT() != null)
                     {
@@ -878,7 +878,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         var rotationSymbol = QutesLanguageGuard.IsAssignableToType<ValueSymbol>(Visit(context.expr()));
         var rotationValue = QutesLanguageGuard.IsAssignableToType<FloatValue>(rotationSymbol.Value);
         var termListSymbol = QutesLanguageGuard.IsAssignableToType<TupleSymbol>(Visit(context.termList()));
-        var termListValues = QutesLanguageGuard.AreAllAssignableToType<IQuantumType>(termListSymbol.Elements.Cast<ValueSymbol>().Select(e => e.Value));
+        var termListValues = QutesLanguageGuard.AreAllAssignableToType<IQuantumValue>(termListSymbol.Elements.Cast<ValueSymbol>().Select(e => e.Value));
         var controls = termListValues.Take(termListSymbol.Elements.Count() - 1);
         var target = termListValues.Last();
 
@@ -932,7 +932,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         
         DeclareNewVariable(variableToCreateSymbol);
 
-        if(variableToCreateSymbol.Value is IQuantumType quantumValue)
+        if(variableToCreateSymbol.Value is IQuantumValue quantumValue)
         {
             circuitHandler.DeclareQuantumVariable(variableToCreateSymbol.QualifiedName, quantumValue.Register);
         }
