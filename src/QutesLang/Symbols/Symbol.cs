@@ -21,6 +21,10 @@ public class FunctionSymbol(string qualifiedName, IEnumerable<ValueSymbol> input
 
 public class AnonymousValueSymbol(IQutesValue value, Scope scope, int astTokenIndex) : ValueSymbol(VariableNameGuid.New(), value, scope, astTokenIndex)
 {
+    public static AnonymousValueSymbol Default(IQutesValue value)
+    {
+        return new(value, null!, default);
+    }
 }
 
 public class ValueSymbol(string qualifiedName, IQutesValue value, Scope scope, int astTokenIndex) : Symbol(scope, astTokenIndex)
@@ -59,18 +63,18 @@ public class TypeSymbol(QutesType type, TypeSymbol? nestedValue = null) : Symbol
         return NestedValue != null ? $"{NestedValue}[]" : Value.ToString();
     }
 
-    public static TypeSymbol Bool() => new (QutesType.boolean);
-    public static TypeSymbol Int() => new (QutesType.integer);
-    public static TypeSymbol Char() => new (QutesType.character);
-    public static TypeSymbol Float() => new (QutesType.floating);
-    public static TypeSymbol String() => new (QutesType.@string);
-    public static TypeSymbol Qubit() => new (QutesType.qubit);
-    public static TypeSymbol Quint() => new (QutesType.quinteger);
-    public static TypeSymbol Quchar() => new (QutesType.qucharacter);
-    public static TypeSymbol Qustring() => new (QutesType.qustring);
+    public static TypeSymbol Bool { get; } = new(QutesType.boolean);
+    public static TypeSymbol Int { get; } = new(QutesType.integer);
+    public static TypeSymbol Char { get; } = new(QutesType.character);
+    public static TypeSymbol Float { get; } = new(QutesType.floating);
+    public static TypeSymbol String { get; } = new(QutesType.@string);
+    public static TypeSymbol Qubit { get; } = new(QutesType.qubit);
+    public static TypeSymbol Quint { get; } = new(QutesType.quinteger);
+    public static TypeSymbol Quchar { get; } = new(QutesType.qucharacter);
+    public static TypeSymbol Qustring { get; } = new(QutesType.qustring);
     public static TypeSymbol Array(TypeSymbol elementsType) => new (elementsType.IsQuantum() ? QutesType.quantumArray : QutesType.classicalArray, elementsType);
-    public static TypeSymbol Class() => new (QutesType.@class);
-    public static TypeSymbol Void() => new (QutesType.@void);
+    public static TypeSymbol Class { get; } = new (QutesType.@class);
+    public static TypeSymbol Void { get; } = new (QutesType.@void);
 }
 
 /// <summary>
