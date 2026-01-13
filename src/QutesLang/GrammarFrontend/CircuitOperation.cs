@@ -6,8 +6,19 @@ namespace QutesLang.GrammarFrontend;
 public abstract class CircuitOperation
 {
     public abstract void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder);
+    /// <summary>
+    /// This is called before circuit creation, usefull for creating python instances that you need throughout the execution.
+    /// </summary>
+    /// <param name="stringBuilder"></param>
+    public virtual void ApplyQiskitRequirements(StringBuilder stringBuilder) { }
     public abstract IQuantumValue Destination { get; }
     public abstract IEnumerable<QuantumRegister> RegistersInvolved { get; }
+
+    protected void Compose(IQuantumCircuit circuit, string gateName, IEnumerable<QuantumRegister> registers, StringBuilder stringBuilder)
+    {
+        var qubitStringList = string.Join(',', registers.Select(r => r.QubitStringList));
+        stringBuilder.AppendLine($"{circuit.Name}.compose({gateName}, [{qubitStringList}], inplace=True)");
+    }
 }
 
 public class Empty(IQuantumValue target) : CircuitOperation
@@ -29,14 +40,12 @@ public class ComposeCircuit(IQuantumCircuit other) : CircuitOperation
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
-        var qubitToComposeWithOther = other.QuantumVariables.Values.SelectMany(qr => qr.Qubits).ToList();
+        var registersToCompose = other.QuantumVariables.Values.ToList();
         if(circuit is ControlledCircuit controlledCircuit)
         {
-            qubitToComposeWithOther.AddRange(controlledCircuit.ControlRegister.Qubits);
+            registersToCompose.Add(controlledCircuit.ControlRegister);
         }
-        var qubitStringList = string.Join(",", qubitToComposeWithOther.Select(q => q.Id));
-        string clbitStringList = string.Empty;
-        stringBuilder.AppendLine($"{circuit.Name}.compose({other.Name},[{qubitStringList}], [{clbitStringList}], inplace=True)");
+        Compose(circuit, other.Name, registersToCompose, stringBuilder);
     }
 }
 
@@ -49,7 +58,7 @@ public class StatePreparation(QuantumRegister target, StateVector stateVector) :
     {
         var stateName = target.Name + "_state_prep";
         stringBuilder.AppendLine($"{stateName} = StatePreparation({stateVector.ToPythonString()}, normalize=True)");
-        stringBuilder.AppendLine($"{circuit.Name}.compose({stateName}, [{target.QubitStringList}], inplace=True)");
+        Compose(circuit, stateName, [target], stringBuilder);
     }
 }
 
@@ -113,19 +122,19 @@ public class Measure(IQuantumValue target) : CircuitOperation
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
-        //TODO: we need to define classical bits to measure into. 
-        stringBuilder.AppendLine($"{circuit.Name}.measure([{target.QubitStringList}])");
+        stringBuilder.AppendLine($"{circuit.Name}.measure({target.Register.Name}, {target.Register.ClassicalRegister.Name})");
     }
 }
-public class MultiMeasure(IEnumerable<IQuantumValue> controls) : CircuitOperation
+public class MultiMeasure(IEnumerable<IQuantumValue> targets) : CircuitOperation
 {
     public override IQuantumValue Destination => null!;
-    public override IEnumerable<QuantumRegister> RegistersInvolved => [..controls.Select(c => c.Register)];
+    public override IEnumerable<QuantumRegister> RegistersInvolved => [..targets.Select(c => c.Register)];
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
-        var controlList = string.Join(",", controls.Select(c => c.QubitStringList));
-        stringBuilder.AppendLine($"{circuit.Name}.measure([{controlList}])");
+        var targetList = string.Join(",", targets.Select(c => c.Register.Name));
+        var classicalTargetList = string.Join(",", targets.Select(c => c.Register.ClassicalRegister.Name));
+        stringBuilder.AppendLine($"{circuit.Name}.measure([{targetList}], [{classicalTargetList}])");
     }
 }
 public class MeasureAll() : CircuitOperation
@@ -135,7 +144,10 @@ public class MeasureAll() : CircuitOperation
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
-        stringBuilder.AppendLine($"{circuit.Name}.measure_all()");
+        foreach(var register in circuit.Registers.Elements)
+        {
+            stringBuilder.AppendLine($"{circuit.Name}.measure({register.Name}, {register.ClassicalRegister.Name})");
+        }
     }
 }
 public class Barrier(IEnumerable<IQuantumValue> targets) : CircuitOperation
@@ -377,11 +389,25 @@ public class Addition(IQuantumValue a, IQuantumValue b, IQuantumValue destinatio
     public override IQuantumValue Destination => destination;
     public override IEnumerable<QuantumRegister> RegistersInvolved => [ a.Register,  b.Register,  destination.Register];
 
+    private static bool ReguirementsApplied = false;
+    private static readonly string GateName = "adder";
+
+    public override void ApplyQiskitRequirements(StringBuilder stringBuilder)
+    {
+        if (!ReguirementsApplied)
+        {
+            ReguirementsApplied = true;
+            stringBuilder.AppendLine($"{GateName} = ModularAdderGate({QuintValue.DefaultSize})");
+        }
+    }
+
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
-        //TODO: implemement quantum sum operation.
+        Compose(circuit, GateName, [b.Register, destination.Register], stringBuilder);
+        Compose(circuit, GateName, [a.Register, destination.Register], stringBuilder);
     }
 }
+
 public class Subtraction(IQuantumValue a, IQuantumValue b, IQuantumValue destination) : CircuitOperation
 {
     public override IQuantumValue Destination => destination;

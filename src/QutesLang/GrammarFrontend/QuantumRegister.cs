@@ -2,12 +2,19 @@
 
 namespace QutesLang.GrammarFrontend;
 
+public class ClassicalRegister(int size)
+{
+    public string? Name { get; set; }
+    public int Size { get; set; } = size;
+}
+
 public class QuantumRegister
 {
     public QuantumRegister(int size, StateVector? initialStateVector = null)
     {
         Qubits = Enumerable.Range(0, size).Select(i => new CircuitQubit()).ToList();
         InitialStateVector = initialStateVector;
+        ClassicalRegister = new(Qubits.Count);
     }
 
     public QuantumRegister(IEnumerable<QuantumRegister> registers)
@@ -15,9 +22,11 @@ public class QuantumRegister
         Registers = registers.ToList();
         Qubits = registers.SelectMany(r => r.Qubits).ToList();
         InitialStateVector = null;
+        ClassicalRegister = new (Qubits.Count);
     }
 
-    public string? Name { get; set; }
+    public string? Name { get; set { field = value; ClassicalRegister.Name = $"c_{value}"; } }
+    public ClassicalRegister ClassicalRegister { get; set; }
 
     /// <summary>
     /// Contains all qubits in this quantum register or, if this encodes an array type, all qubits in all sub-registers.

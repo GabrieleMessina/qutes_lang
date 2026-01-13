@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using System.Text;
+﻿using System.Text;
 
 namespace QutesLang.GrammarFrontend;
 
@@ -42,15 +41,36 @@ public class CircuitHandler(BackendProvider backendProvider = BackendProvider.Qi
     private string FinalizeQiskitCircuit()
     {
         var stringBuilder = new StringBuilder();
-        stringBuilder.AppendLine("from qiskit import QuantumCircuit, QuantumRegister");
+
+        AppendPythonCode(stringBuilder);
+
+        stringBuilder.AppendLine("from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister");
         stringBuilder.AppendLine("from qiskit.circuit import Qubit");
         stringBuilder.AppendLine("from qiskit.primitives import StatevectorSampler");
-        stringBuilder.AppendLine("from qiskit.circuit.library import StatePreparation");
+        stringBuilder.AppendLine("from qiskit.circuit.library import StatePreparation, ModularAdderGate");
+
+        foreach (var circuit in circuitsDeclared)
+        {
+            ((QuantumCircuit)circuit).ApplyQiskitRequirements(stringBuilder);
+        }
 
         foreach (var circuit in circuitsDeclared) // Processed in stack order to maintain correct dependencies
         {
             ((QuantumCircuit)circuit).FinalizeQiskitCircuit(stringBuilder);
         }
+
+        var mainCircuit = circuitsStack.Last();
+        var mainCircuitName = mainCircuit.Name;
+        stringBuilder.AppendLine("sampler = StatevectorSampler()");
+        stringBuilder.AppendLine($"result = sampler.run([{mainCircuitName}], shots=1024).result()");
+        
+        string RegNameToSize = string.Join(", ", mainCircuit.QuantumVariables.Select(kv => $"'{kv.Value.ClassicalRegister.Name}': {kv.Value.Qubits.Count}"));
+        string ClregToActualName = string.Join(", ", mainCircuit.QuantumVariables.Select(kv => $"'{kv.Value.ClassicalRegister.Name}': '{kv.Value.Name}'"));
+
+        stringBuilder.AppendLine($"varname_to_register_size = {{{RegNameToSize}}}");
+        stringBuilder.AppendLine($"clreg_name_to_actual_name = {{{ClregToActualName}}}");
+        stringBuilder.AppendLine("print_result_table(result, varname_to_register_size, clreg_name_to_actual_name)");
+
         return stringBuilder.ToString();
     }
 
@@ -67,6 +87,13 @@ public class CircuitHandler(BackendProvider backendProvider = BackendProvider.Qi
     public void UpdateQuantumVariable(string name, QuantumRegister values)
     {
         Current.UpdateQuantumVariable(name, values);
+    }
+
+    private void AppendPythonCode(StringBuilder stringBuilder)
+    {
+        var tabularPrint = File.ReadAllText(Path.Combine(Environment.CurrentDirectory, "PythonCode", "PrintTabularStateVectorResults.py"));
+        stringBuilder.AppendLine(tabularPrint);
+        stringBuilder.AppendLine();
     }
 }
 
@@ -95,7 +122,7 @@ public class ControlledCircuit : QuantumCircuit
     public override void FinalizeQiskitCircuit(StringBuilder stringBuilder)
     {
         base.FinalizeQiskitCircuit(stringBuilder);
-        var controlBitCount = ControlRegister.Qubits.Count();
+        var controlBitCount = ControlRegister.Qubits.Count;
         stringBuilder.AppendLine($"{Name} = {InnerCircuit.Name}.control({controlBitCount}, ctrl_state='{new string(onCondition?'1':'0', controlBitCount)}', label='{Name}')");
     }
 
@@ -154,6 +181,14 @@ public class QuantumCircuit : IQuantumCircuit
         QuantumVariables[name] = registerNewValue;
     }
 
+    public virtual void ApplyQiskitRequirements(StringBuilder stringBuilder)
+    {
+        foreach (var operation in Operations)
+        {
+            operation.ApplyQiskitRequirements(stringBuilder);
+        }
+    }
+
     public virtual void FinalizeQiskitCircuit(StringBuilder stringBuilder)
     {
         // Registers consolidation
@@ -172,9 +207,11 @@ public class QuantumCircuit : IQuantumCircuit
         {
             var qubitRefs = string.Join(',', qreg.Qubits.Select(q => q.Id));
             stringBuilder.AppendLine($"{qreg.Name} = QuantumRegister(name='{qreg.Name}', bits=[{qubitRefs}])");
+            stringBuilder.AppendLine($"{qreg.ClassicalRegister.Name} = ClassicalRegister(size={qreg.ClassicalRegister.Size}, name='{qreg.ClassicalRegister.Name}')");
         }
         var quantumRegisterNames = string.Join(',', QuantumVariables.Select(qr => qr.Value.Name));
-        stringBuilder.AppendLine($"{Name} = QuantumCircuit({quantumRegisterNames})");
+        var classicalRegisterNames = string.Join(',', Registers.Elements.Select(qr => qr.ClassicalRegister.Name).Where(name => name != null));
+        stringBuilder.AppendLine($"{Name} = QuantumCircuit({quantumRegisterNames}, {classicalRegisterNames})");
 
         // Initialize qubits to desired state
         var registersToInitialize = QuantumVariables.Values
