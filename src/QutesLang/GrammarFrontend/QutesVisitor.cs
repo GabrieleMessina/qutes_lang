@@ -1,8 +1,6 @@
 ﻿using Antlr4.Runtime.Misc;
 using Antlr4.Runtime.Tree;
 
-using CommunityToolkit.Diagnostics;
-
 using Qutes.Grammar;
 
 using QutesLang.Symbols;
@@ -18,8 +16,22 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
     private AnonymousValueSymbol GetDefaultValueSymbolForType(TypeSymbol varTypeSymbol)
     {
-        //todo: get default value, even if we decide null is ok for uninitialized variables, it's better to have a function retrieving that.
-        throw new NotImplementedException();
+        return varTypeSymbol.Value switch
+        {
+            QutesType.boolean => new AnonymousValueSymbol(BoolValue.GetDefaultValue(), scopeHandler.GetCurrentScope(), default),
+            QutesType.integer => new AnonymousValueSymbol(IntValue.GetDefaultValue(), scopeHandler.GetCurrentScope(), default),
+            QutesType.character => new AnonymousValueSymbol(CharValue.GetDefaultValue(), scopeHandler.GetCurrentScope(), default),
+            QutesType.floating => new AnonymousValueSymbol(FloatValue.GetDefaultValue(), scopeHandler.GetCurrentScope(), default),
+            QutesType.@string => new AnonymousValueSymbol(StringValue.GetDefaultValue(), scopeHandler.GetCurrentScope(), default),
+            QutesType.qubit => new AnonymousValueSymbol(QubitValue.GetDefaultValue(), scopeHandler.GetCurrentScope(), default),
+            QutesType.quinteger => new AnonymousValueSymbol(QuintValue.GetDefaultValue(), scopeHandler.GetCurrentScope(), default),
+            QutesType.qucharacter => new AnonymousValueSymbol(QucharValue.GetDefaultValue(), scopeHandler.GetCurrentScope(), default),
+            QutesType.qustring => new AnonymousValueSymbol(QustringValue.GetDefaultValue(), scopeHandler.GetCurrentScope(), default),
+            QutesType.classicalArray => new AnonymousValueSymbol(ClassicalArrayValue.GetDefaultValue(), scopeHandler.GetCurrentScope(), default),
+            QutesType.quantumArray => new AnonymousValueSymbol(QuantumArrayValue.GetDefaultValue(), scopeHandler.GetCurrentScope(), default),
+            QutesType.@void => new AnonymousValueSymbol(VoidValue.GetDefaultValue(), scopeHandler.GetCurrentScope(), default),
+            _ => throw new InvalidOperationException($"Cannot get default value for type '{varTypeSymbol}'."),
+        };
     }
 
     private void DeclareNewVariable(ValueSymbol symbol)
@@ -437,6 +449,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
         //TODO: Chefk that all elements are of the same type or can be casted to the same type.
         //Guard.IsTrue(elements.All(e => e.Type == arrayType)); //how should we handle [1q,0,3,1]?
+        //maybe this check should or could be done inside QuantumArrayValue?
 
         if (arrayType.IsQuantum())
         {

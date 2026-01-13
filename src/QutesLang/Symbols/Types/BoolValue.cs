@@ -16,6 +16,7 @@ public class ClassValue(string qualifiedClassName) : IQutesValue
 public class VoidValue() : IQutesValue
 {
     public virtual TypeSymbol Type { get; } = TypeSymbol.Void;
+    public static VoidValue GetDefaultValue() => new();
     public virtual bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
     {
         if (targetType == Type)
@@ -253,10 +254,11 @@ public class ClassicalArrayValue(IEnumerable<ValueSymbol> values) : ArrayValue, 
 {
     public override IEnumerable<ValueSymbol> Values { get; protected set; } = values;
 
-    public override TypeSymbol Type => new (QutesType.classicalArray, Values.First().Type);
+    public override TypeSymbol Type => new (QutesType.classicalArray, Values.FirstOrDefault()?.Type);
 
     public object GetValueAsObject() => Values;
     public void SetValueFromObject(object value) => Values = (IEnumerable<ValueSymbol>)value;
+    public static ClassicalArrayValue GetDefaultValue() => new([]);
 
     public IQutesValue LeftShift(IntValue positions)
     {
@@ -451,7 +453,7 @@ public class QuantumArrayValue : ArrayValue, IQuantumValue
         Size = Register.Qubits.Count;
     }
 
-    public override TypeSymbol Type => new (QutesType.quantumArray, Values.First().Type);
+    public override TypeSymbol Type => new (QutesType.quantumArray, Values.FirstOrDefault()?.Type);
     public int Size { get; }
     public QuantumRegister Register => new(Values.Select(v => v.Value).Cast<IQuantumValue>().Select(v => v.Register));
     public override IEnumerable<ValueSymbol> Values { get; protected set; }
