@@ -16,11 +16,7 @@ public class StateVector(List<double> amplitudes)
 
     public static StateVector Default(int nQubit)
     {
-        var amplitudes = new List<double>();
-        for (int i = 0; i < nQubit; i++)
-        {
-            amplitudes.Add(0.0); // |0>
-        }
+        var amplitudes = Enumerable.Repeat(0.0d, (int)Math.Pow(2, nQubit)).ToList();
         amplitudes[0] = 1.0; // Set the first amplitude to 1.0 to represent the |0...0> state
         return new StateVector(amplitudes);
     }
@@ -185,7 +181,7 @@ public partial class QuintParser
             var amplitudes = new double[bitCount]; //TODO: Expensive! optimize allocation
             foreach (var part in elements)
             {
-                amplitudes[part] = 1.0d;
+                amplitudes[part] += 1.0d;
             }
             return new StateVector(amplitudes.ToList());
         }
