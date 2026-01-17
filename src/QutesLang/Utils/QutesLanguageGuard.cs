@@ -5,9 +5,6 @@ using CommunityToolkit.Diagnostics;
 
 namespace QutesLang.Utils;
 
-//TODO: think about making this a fluent api.
-//Plus, is this the best also for actual qutes casting?
-//or just for guard clauses of staff we expect to be of certain type?
 public static partial class QutesLanguageGuard
 {
     public static IEnumerable<T> AreAllAssignableToType<T>(IEnumerable values, [CallerArgumentExpression(nameof(values))] string name = "") { 
@@ -21,15 +18,6 @@ public static partial class QutesLanguageGuard
     
     public static T IsAssignableToType<T>(object value, [CallerArgumentExpression(nameof(value))] string name = "")
     {
-        //if (value is IClassicalType classicalType)
-        //{
-        //    IsAssignableToType<T>(classicalType.GetValueAsObject()!, name);
-        //    return;
-        //}
-        //if (value is IQuantumType quantumType && quantumType is T)
-        //{
-        //    return;
-        //}
         if (value is T castedValue)
         {
             return castedValue;
