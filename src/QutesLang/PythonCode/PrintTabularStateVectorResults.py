@@ -1,4 +1,22 @@
-﻿def twos_comp_to_int(bin_str):
+﻿def binary(a:int, length:int=None) -> str:
+    if length != None:
+        return '{0:0{1}b}'.format(a, length)
+    else:
+        return bin(a).removeprefix('0b')
+    
+def int_to_twos_comp(val, n_bits):
+    """
+    Converts an integer to its two's complement binary string representation with a specified number of bits.
+    Args:
+        val: The integer value to convert.
+        n_bits: The number of bits for the two's complement representation.
+    """
+    if val < 0:
+        val = (1 << n_bits) + val
+    format_string = '{0:0' + str(n_bits) + 'b}'
+    return format_string.format(val)
+
+def twos_comp_to_int(bin_str):
     """
     Converts a binary string in two's complement to its integer representation.
     Args:
