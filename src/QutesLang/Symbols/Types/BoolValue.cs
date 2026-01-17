@@ -87,7 +87,7 @@ public class CharValue(char value) : IntValue(value)
             result = this;
             return true;
         }
-        if (targetType.Value == QutesType.qucharacter)
+        if (targetType == TypeSymbol.Quchar)
         {
             result = new QucharValue(Convert.ToChar(this.Value));
             return true;
@@ -245,6 +245,11 @@ public class StringValue(string value) : IClassicalValue
             result = this;
             return true;
         }
+        if (targetType == TypeSymbol.Qustring)
+        {
+            result = new QustringValue(this.Value);
+            return true;
+        }
         result = default!;
         return false;
     }
@@ -373,7 +378,7 @@ public class QucharValue : QuintValue
 
 public class QuintValue() : IQuantumValue
 {
-    public const int DefaultSize = 3;
+    public const int DefaultSize = 2;
 
     public QuintValue(StateVector initialStateVector) : this()
     {
@@ -382,9 +387,13 @@ public class QuintValue() : IQuantumValue
 
     public QuintValue(QubitValue qubit) : this()
     {
-        this.Register.Qubits.ToList()[0] = qubit.Register.Qubits.First();
+        this.Register.Qubits[0] = qubit.Register.Qubits.First();
         this.InitialStateVector = StateVector.Default(DefaultSize);
-        this.InitialStateVector.Amplitudes[0] = qubit.InitialStateVector?.Amplitudes[0] ?? StateVector.Default(QubitValue.DefaultSize).Amplitudes[0]; //TODO: this could lead to double initialization of the same qubit?
+
+        //The following could cause double initialization of the first qubit, but each StatePreparation (in Qiskit) overwrites previous ones, so we are good.
+        var qubitStateVector = qubit.InitialStateVector?.Amplitudes[0..2] ?? StateVector.Default(QubitValue.DefaultSize).Amplitudes[0..2];
+        this.InitialStateVector.Amplitudes[0] = qubitStateVector[0];
+        this.InitialStateVector.Amplitudes[1] = qubitStateVector[1];
     }
 
     public QuintValue(int value) : this()
@@ -395,9 +404,7 @@ public class QuintValue() : IQuantumValue
     public virtual TypeSymbol Type { get; } = TypeSymbol.Quint;
     public int Size { get; } = DefaultSize;
     public QuantumRegister Register { get; protected set; } = new(DefaultSize);
-    public StateVector? InitialStateVector { get; private set { field = value; Register.InitialStateVector = value; }  }
-
-    //TODO: is getDefaultValue really necessary? can we use an empty constructor instead?
+    public StateVector? InitialStateVector { get; private set { field = value; Register.InitialStateVector = value; } }
 
     public static QuintValue GetDefaultValue() => new();
 
@@ -412,11 +419,11 @@ public class QuintValue() : IQuantumValue
     public CircuitOperation GreaterThan(IQuantumValue term) => new GreaterThan(this, term, QubitValue.GetDefaultValue());
     public CircuitOperation GreaterEqualThan(IQuantumValue term) => new GreaterEqualThan(this, term, QubitValue.GetDefaultValue());
 
-    public CircuitOperation Minus() => new Opposite(this, GetDefaultValue());
-    public CircuitOperation InplacePreIncrement() => new Increment(this, this);
-    public CircuitOperation InplacePostIncrement() => new Increment(this, this);
-    public CircuitOperation InplacePreDecrement() => new Decrement(this, this);
-    public CircuitOperation InplacePostDecrement() => new Decrement(this, this);
+    public CircuitOperation Minus() => new TwosComplement(this, GetDefaultValue());
+    public CircuitOperation InplacePreIncrement() => new Addition(this, this, new QuintValue(1));
+    public CircuitOperation InplacePostIncrement() => new Addition(this, this, new QuintValue(1));
+    public CircuitOperation InplacePreDecrement() => new Subtraction(this, this, new QuintValue(1));
+    public CircuitOperation InplacePostDecrement() => new Subtraction(this, this, new QuintValue(1));
 
     public virtual bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
     {
@@ -435,10 +442,8 @@ public class QuintValue() : IQuantumValue
     }
 }
 
-public class QustringValue(string initialValue) : QuantumArrayValue(initialValue.Select(c => AnonymousValueSymbol.Default(new QucharValue(c))))
+public class QustringValue(string initialValue) : QuantumArrayValue(initialValue.Select(c => AnonymousValueSymbol.Default(new QucharValue(c))).ToList())
 {
-    public const int CharSize = 3;
-
     public CircuitOperation LowerThan(IQuantumValue term) => new LowerThan(this, term, QubitValue.GetDefaultValue());
     public CircuitOperation LowerEqualThan(IQuantumValue term) => new LowerEqualThan(this, term, QubitValue.GetDefaultValue());
     public CircuitOperation GreaterThan(IQuantumValue term) => new GreaterThan(this, term, QubitValue.GetDefaultValue());
@@ -450,18 +455,37 @@ public class QuantumArrayValue : ArrayValue, IQuantumValue
     public QuantumArrayValue(IEnumerable<ValueSymbol> values)
     {
         Values = values;
+        Register = new(Values.Select(v => v.Value).Cast<IQuantumValue>().Select(v => v.Register));
         Size = Register.Qubits.Count;
+        Count = Values.Count();
+        SingleElementSize = Count > 0 ? Size / Count : 0;
     }
 
     public override TypeSymbol Type => new (QutesType.quantumArray, Values.FirstOrDefault()?.Type);
+
+    /// <summary>
+    /// Total size in qubits of the Quantum Array
+    /// </summary>
     public int Size { get; }
-    public QuantumRegister Register => new(Values.Select(v => v.Value).Cast<IQuantumValue>().Select(v => v.Register));
+
+    /// <summary>
+    /// Number of elements in the Quantum Array
+    /// </summary>
+    public int Count { get; }
+
+    /// <summary>
+    /// Size in qubits of a single element in the Quantum Array
+    /// </summary>
+    public int SingleElementSize { get; }
+    public QuantumRegister Register { get; }
     public override IEnumerable<ValueSymbol> Values { get; protected set; }
 
     public static QuantumArrayValue GetDefaultValue() => new([]);
 
     public CircuitOperation LeftShift(QuintValue positions) => new LeftShift(this, positions);
+    public CircuitOperation LeftShift(IntValue positions) => new LeftShift(this, positions);
     public CircuitOperation RightShift(QuintValue positions) => new RightShift(this, positions);
+    public CircuitOperation RightShift(IntValue positions) => new RightShift(this, positions);
 
     public override bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
     {
