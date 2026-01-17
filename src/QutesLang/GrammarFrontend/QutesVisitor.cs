@@ -331,7 +331,6 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
         variableToUpdateSymbol.Value = CastValueToType(valueToAssignSymbol, variableToUpdateSymbol.Type).Value;
 
-        //TODO: check how to handle in case of casting.
         if (variableToUpdateSymbol.Value is IQuantumValue quantumValue)
         {
             circuitHandler.UpdateQuantumVariable(variableToUpdateSymbol.QualifiedName, quantumValue.Register);
@@ -629,19 +628,17 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
         switch (leftSymbol.Value)
         {
-            case IQuantumValue leftValue when rightSymbol.Value is QuintValue rightValue:
+            case IQuantumValue leftValue:
                 {
+                    var rightValue = (QuintValue)CastValueToType(rightSymbol, TypeSymbol.Quint).Value;
                     var operation
                         = context.LSHIFT() != null ? leftValue.LeftShift(rightValue)
                         : context.RSHIFT() != null ? leftValue.RightShift(rightValue)
                         : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
-                    //TODO: we are assuming that the destination is a new anonymous variable, but in this case the operation happens inplace,
-                    // we should assume to know this detail? or is it ok to create this new anon var?
                     var destinationSymbol = new AnonymousValueSymbol(operation.Destination, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
                     circuitHandler.PushOperation(operation);
                     return destinationSymbol;
                 }
-
             case IClassicalValue leftValue when rightSymbol.Value is IntValue rightValue:
                 {
                     var result
@@ -650,9 +647,8 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                         : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
                     return new AnonymousValueSymbol(result, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
                 }
-
             default:
-                throw new InvalidOperationException($"Cannot apply operator '{context.op.Text}' to type '{leftSymbol.Type}'.");
+                throw new InvalidOperationException($"Cannot apply operator '{context.op.Text}' to type '{leftSymbol.Type}' and offset type '{rightSymbol.Type}'.");
         }
     }
 
@@ -940,7 +936,6 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         var valueToAssignSymbol = context.expr() == null ? GetDefaultValueSymbolForType(varTypeSymbol) : (ValueSymbol)Visit(context.expr());
 
         var variableToCreateSymbol = CastValueToType(valueToAssignSymbol, varTypeSymbol);
-        //TODO: could be a problem directly using the value in the valueSymbol constructor, stuff could share references and mutate each other.
         variableToCreateSymbol = new ValueSymbol(qualifiedName, variableToCreateSymbol.Value, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
         
         DeclareNewVariable(variableToCreateSymbol);
@@ -968,7 +963,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
     public override Symbol VisitTermList(qutes_parser.TermListContext context)
     {
-        var symbols = context.expr().Select(e => Visit(e)) ?? [];
+        var symbols = context.expr().Select(e => Visit(e)).ToList() ?? [];
 
         return new TupleSymbol(symbols, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
     }
