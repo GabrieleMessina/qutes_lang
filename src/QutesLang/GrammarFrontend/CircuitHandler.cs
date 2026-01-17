@@ -67,6 +67,7 @@ public class CircuitHandler(BackendProvider backendProvider = BackendProvider.Qi
         string RegNameToSize = string.Join(", ", mainCircuit.QuantumVariables.Select(kv => $"'{kv.Value.ClassicalRegister.Name}': {kv.Value.Qubits.Count}"));
         string ClregToActualName = string.Join(", ", mainCircuit.QuantumVariables.Select(kv => $"'{kv.Value.ClassicalRegister.Name}': '{kv.Value.Name}'"));
 
+        //TODO: do not print not measured variables
         stringBuilder.AppendLine($"varname_to_register_size = {{{RegNameToSize}}}");
         stringBuilder.AppendLine($"clreg_name_to_actual_name = {{{ClregToActualName}}}");
         stringBuilder.AppendLine("print_result_table(result, varname_to_register_size, clreg_name_to_actual_name)");
@@ -92,7 +93,10 @@ public class CircuitHandler(BackendProvider backendProvider = BackendProvider.Qi
     private void AppendPythonCode(StringBuilder stringBuilder)
     {
         var tabularPrint = File.ReadAllText(Path.Combine(Environment.CurrentDirectory, "PythonCode", "PrintTabularStateVectorResults.py"));
+        var qutesGate = File.ReadAllText(Path.Combine(Environment.CurrentDirectory, "PythonCode", "QutesGates.py"));
         stringBuilder.AppendLine(tabularPrint);
+        stringBuilder.AppendLine();
+        stringBuilder.AppendLine(qutesGate);
         stringBuilder.AppendLine();
     }
 }
@@ -229,6 +233,7 @@ public class QuantumCircuit : IQuantumCircuit
         // Apply operations
         foreach (var operation in Operations)
         {
+            stringBuilder.AppendLine($"# Operation: {operation.GetType().Name}");
             operation.ApplyToQiskitCircuit(this, stringBuilder);
         }
 
@@ -265,7 +270,7 @@ public class QuantumCircuit : IQuantumCircuit
         {
             if (!QuantumVariables.ContainsValue(register))
             {
-                DeclareQuantumVariable(register.Name!, register);
+                DeclareQuantumVariable(register.Name ?? VariableNameGuid.New("ancilla"), register);
             }
         }
     }

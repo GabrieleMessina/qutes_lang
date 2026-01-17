@@ -31,7 +31,7 @@ public class QuantumRegister
     /// <summary>
     /// Contains all qubits in this quantum register or, if this encodes an array type, all qubits in all sub-registers.
     /// </summary>
-    public ICollection<CircuitQubit> Qubits { get; }
+    public List<CircuitQubit> Qubits { get; }
 
     /// <summary>
     /// This is only set if this QuantumRegister instance encodes an array type.
