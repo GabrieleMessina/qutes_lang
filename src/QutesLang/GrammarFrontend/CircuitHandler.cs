@@ -64,13 +64,16 @@ public class CircuitHandler(BackendProvider backendProvider = BackendProvider.Qi
         stringBuilder.AppendLine("sampler = StatevectorSampler()");
         stringBuilder.AppendLine($"result = sampler.run([{mainCircuitName}], shots=1024).result()");
         
-        string RegNameToSize = string.Join(", ", mainCircuit.QuantumVariables.Select(kv => $"'{kv.Value.ClassicalRegister.Name}': {kv.Value.Qubits.Count}"));
-        string ClregToActualName = string.Join(", ", mainCircuit.QuantumVariables.Select(kv => $"'{kv.Value.ClassicalRegister.Name}': '{kv.Value.Name}'"));
+        var measuredVars = circuitsStack.SelectMany(c => c.Operations).Where(o => o is Measure).Select(m => m.Destination);
 
-        //TODO: do not print not measured variables
-        stringBuilder.AppendLine($"varname_to_register_size = {{{RegNameToSize}}}");
-        stringBuilder.AppendLine($"clreg_name_to_actual_name = {{{ClregToActualName}}}");
-        stringBuilder.AppendLine("print_result_table(result, varname_to_register_size, clreg_name_to_actual_name)");
+        string VarNames = string.Join(", ", measuredVars.Select(qv => $"'{qv.Register.Name}'"));
+        string VarSizes = string.Join(", ", measuredVars.Select(qv => $"'{qv.Register.Name}': {qv.Register.Qubits.Count}"));
+        string VarToClreg = string.Join(", ", measuredVars.Select(qv => $"'{qv.Register.Name}': '{qv.Register.ClassicalRegister.Name}'"));
+
+        stringBuilder.AppendLine($"var_names = [{VarNames}]");
+        stringBuilder.AppendLine($"var_sizes = {{{VarSizes}}}");
+        stringBuilder.AppendLine($"var_to_clreg = {{{VarToClreg}}}");
+        stringBuilder.AppendLine("print_pretty_results_mapped(result, var_names, var_sizes, var_to_clreg)");
 
         return stringBuilder.ToString();
     }

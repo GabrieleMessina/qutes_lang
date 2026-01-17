@@ -1,22 +1,4 @@
-﻿def binary(a:int, length:int=None) -> str:
-    if length != None:
-        return '{0:0{1}b}'.format(a, length)
-    else:
-        return bin(a).removeprefix('0b')
-    
-def int_to_twos_comp(val, n_bits):
-    """
-    Converts an integer to its two's complement binary string representation with a specified number of bits.
-    Args:
-        val: The integer value to convert.
-        n_bits: The number of bits for the two's complement representation.
-    """
-    if val < 0:
-        val = (1 << n_bits) + val
-    format_string = '{0:0' + str(n_bits) + 'b}'
-    return format_string.format(val)
-
-def twos_comp_to_int(bin_str):
+﻿def twos_comp_to_int(bin_str):
     """
     Converts a binary string in two's complement to its integer representation.
     Args:
@@ -32,58 +14,84 @@ def twos_comp_to_int(bin_str):
     else:
         return unsigned_val
 
-def get_counts_by_register(result) -> dict[str, dict[str, int]]:
-    # {reg_name: {bitstring: count}}
-    cnt:dict[dict[int]] = {}
-    for i, pub_res in enumerate(result): # For each circuit
-        for reg_name in pub_res.data:
-            reg_name = f'{reg_name}' if i == 0 else f'{reg_name}_circ_{i}'
-            cnt[reg_name] = getattr(pub_res.data,reg_name).get_counts()
-    return cnt
-
-def get_counts_by_run(result) -> dict[str, int]:
-    # {bitstring: count}
-    return result[0].join_data().get_counts()
-
-def print_result_table(result, varname_to_register_size, clreg_name_to_actual_name):
-    from qiskit import QiskitError
-    counts_by_run = {}
-    counts_by_registers = {}
-    try:
-        counts_by_run = get_counts_by_run(result)
-        counts_by_registers = get_counts_by_register(result)
-    except (QiskitError, ValueError):
-        pass
-
+def print_pretty_results_mapped(result, var_names: list, var_sizes: dict, var_to_reg: dict):
+    """
+    Parses V2 results using specific register mappings and slices them into table columns.
+    
+    Args:
+        result: The PrimitiveResult object.
+        var_names: List of strings defining the column order.
+        var_sizes: Dict defining how many bits each variable takes (e.g. {'a': 2}).
+        var_to_reg: Dict mapping variable names to classical register names (e.g. {'a': 'meas'}).
+    """
+    from collections import Counter
     from tabulate import tabulate
-    table = []
-    for index, (result, count) in enumerate(counts_by_run.items()):
-        i = 0
-        while i < len(result):
-            row = []
-            for reg_name in list(counts_by_registers.keys())[::-1]:
-                # reverse the regs list to match the qiskit ordering,
-                # measured variables from right to left based on measuring time
-                reg_size = varname_to_register_size[reg_name]
-                bitstring = result[i:i+reg_size]
-                int_value = twos_comp_to_int(bitstring)
-                row.append(f"{bitstring}₂ | {int_value}⏨")
-                i += reg_size
-            row = row[::-1] # recover ordering to have first measured as first column
-            row.append(count)
-            row.append("Least Significant bit as rightmost") if(index == 0) else row.append("")
-            table.append(row)
+    pub_result = result[0] # Get first experiment data
+    data_bin = pub_result.data
+    
+    # 1. Cache the bitstrings for every register involved
+    #    We extract the full list of shots (e.g., 1024 strings) for each register once.
+    reg_cache = {}
+    unique_regs = set(var_to_reg.values())
+    
+    for reg in unique_regs:
+        try:
+            bit_array = getattr(data_bin, reg)
+            # get_bitstrings() returns a list of strings, one for each shot e.g. ['101', '000', ...]
+            reg_cache[reg] = bit_array.get_bitstrings()
+        except AttributeError:
+            print(f"Error: Register '{reg}' not found in result data.")
+            return
 
-    if len(table) == 0:
-        print("⚠️  ~ No results to show")
-        return
+    # 2. Track our position (cursor) within each register 
+    #    This allows us to slice if multiple variables share one register.
+    #    Assumption: Variables are processed Left-to-Right as they appear in the bitstring.
+    reg_cursors = {reg: 0 for reg in unique_regs}
+    
+    columns = []
+
+    # 3. Build columns
+    for var in var_names:
+        reg_name = var_to_reg[var]
+        num_bits = var_sizes[var]
+        
+        start_idx = reg_cursors[reg_name]
+        end_idx = start_idx + num_bits
+        
+        # Extract this slice for ALL shots at once (List Comprehension)
+        # We assume the user defined var_names in the order they appear in the register string.
+        full_strings = reg_cache[reg_name]
+        column_data = [s[start_idx : end_idx] for s in full_strings]
+        columns.append(column_data)        
+        # Update cursor for this register
+        reg_cursors[reg_name] = end_idx
+
+    # 4. Transpose columns to rows (reconstruct individual shots)
+    #    zip(*columns) turns [[col1_shot1, ...], [col2_shot1, ...]] into [(col1_shot1, col2_shot1), ...]
+    rows = list(zip(*columns))
+    # rows.append("Least Significant bit as rightmost")
+    
+    # 5. Count frequencies
+    #    We count the unique tuples (rows) representing the outcome of a single shot across all vars.
+    counts = Counter(rows)
+    
+    # 6. Format for Table
+    table_data = []
+    for row_tuple, count in counts.items():
+        formatted_row = [f"{bin_str}₂ | {twos_comp_to_int(bin_str)}⏨" for bin_str in row_tuple]
+        formatted_row.append(count)
+        table_data.append(formatted_row)
+
+    # 7. Sort and Print
+    table_data.sort(key=lambda x: x[-1], reverse=True)
+    headers = var_names + ["Count", "Notes"]
+
+    # 8. Add "Notes" column (Only populate first row)
+    for i in range(len(table_data)):
+        if i == 0:
+            table_data[i].append("Least Significant bit as rightmost")
+        else:
+            table_data[i].append("")
 
     print("⚠️  ~ Following results only show the last execution of the circuit, in case of measurements in the middle of the circuit, like the ones needed for casts and Grover search, those results are not shown.")
-    headers = [f"{clreg_name_to_actual_name[reg_name]}" for reg_name in counts_by_registers.keys()]
-    headers.append("Counts")
-    headers.append("Notes")
-    maxcolwidths = [40] * len(headers)
-    maxcolwidths[-1] = 40
-    colalign = ["right"] * len(headers)
-    colalign[-1] = "left"
-    print(tabulate(table, headers=headers, stralign="right", tablefmt="fancy_grid", maxcolwidths=maxcolwidths, colalign=colalign))
+    print(tabulate(table_data, headers=headers, tablefmt="fancy_grid"))
