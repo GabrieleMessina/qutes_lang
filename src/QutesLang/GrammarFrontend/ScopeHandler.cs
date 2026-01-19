@@ -8,10 +8,15 @@ public class ScopeHandler : IScopeHandler
 
     public Scope CreateScope(string id = "")
     {
-        return new Scope(id + VariableNameGuid.New("scope"), GetCurrentScope());
+        return new Scope(id + VariableNameGuid.New("scope"), GetCurrentScopeOrDefault());
     }
 
-    public Scope? GetCurrentScope()
+    public Scope GetCurrentScope()
+    {
+        return GetCurrentScopeOrDefault() ?? throw new InvalidOperationException("No current scope.");
+    }
+
+    private Scope? GetCurrentScopeOrDefault()
     {
         return stack.TryPeek(out var scope) ? scope : null;
     }

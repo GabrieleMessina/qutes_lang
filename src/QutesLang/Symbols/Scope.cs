@@ -5,6 +5,7 @@ namespace QutesLang.Symbols;
 
 public class Scope(string id, Scope? parent)
 {
+    public string Id { get; } = id;
     public Scope? Parent { get; } = parent;
     public readonly Dictionary<string, ValueSymbol> SymbolTable = [];
     public readonly Dictionary<string, FunctionSymbol> FunctionTable  = [];
@@ -72,7 +73,7 @@ public class Scope(string id, Scope? parent)
     public override string ToString()
     {
         var sb = new StringBuilder();
-        sb.AppendLine($"Scope: {id}");
+        sb.AppendLine($"Scope: {Id}");
 
         sb.AppendLine("Variables:");
         if (SymbolTable.Count == 0)

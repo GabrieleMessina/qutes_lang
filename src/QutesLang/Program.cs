@@ -1,5 +1,4 @@
-﻿
-using System.Data;
+﻿using System.Data;
 using Antlr4.Runtime;
 using Qutes.Grammar;
 using QutesLang.GrammarFrontend;
@@ -45,16 +44,16 @@ rootCommand.SetHandler(HandleParams, logSymbolsScope, logAstTree, logQuantumCirc
 
 return rootCommand.InvokeAsync(args).Result;
 
-void HandleParams(bool logSymbolsScopeValue, bool logAstTreeValue, bool logQuantumCircuitValue, bool saveCircuitAsImageValue,
+static void HandleParams(bool logSymbolsScopeValue, bool logAstTreeValue, bool logQuantumCircuitValue, bool saveCircuitAsImageValue,
     bool logVerboseValue, int numberOfIterationsValue, string filePathValue)
 {
-    Console.WriteLine($"logSymbolsScope: {logSymbolsScopeValue}");
-    Console.WriteLine($"logAstTree: {logAstTreeValue}");
-    Console.WriteLine($"logQuantumCircuit: {logQuantumCircuitValue}");
-    Console.WriteLine($"saveCircuitAsImage: {saveCircuitAsImageValue}");
-    Console.WriteLine($"logVerbose: {logVerboseValue}");
-    Console.WriteLine($"numberOfIterations: {numberOfIterationsValue}");
-    Console.WriteLine($"filePath: {filePathValue}");
+    //Console.WriteLine($"logSymbolsScope: {logSymbolsScopeValue}");
+    //Console.WriteLine($"logAstTree: {logAstTreeValue}");
+    //Console.WriteLine($"logQuantumCircuit: {logQuantumCircuitValue}");
+    //Console.WriteLine($"saveCircuitAsImage: {saveCircuitAsImageValue}");
+    //Console.WriteLine($"logVerbose: {logVerboseValue}");
+    //Console.WriteLine($"numberOfIterations: {numberOfIterationsValue}");
+    //Console.WriteLine($"filePath: {filePathValue}");
     
     var source = new FileStream(filePathValue, FileMode.Open);
     var lexer = new qutes_lexer(new AntlrInputStream(source));
@@ -71,12 +70,26 @@ void HandleParams(bool logSymbolsScopeValue, bool logAstTreeValue, bool logQuant
     var scopeHandler = new ScopeHandler();
     var circuitHandler = new CircuitHandler();
     var visitor = new QutesVisitor(scopeHandler, circuitHandler);
-    var result = visitor.Visit(tree);
+    try
+    {
+        var result = visitor.Visit(tree);
+        var pythonCode = circuitHandler.FinalizeCircuit();
 
-    var pythonCode = circuitHandler.FinalizeCircuit();
-
-    Console.WriteLine("Result:");
-    Console.WriteLine(result);
-    Console.WriteLine(pythonCode);
-    File.WriteAllText(Path.Combine(Environment.CurrentDirectory, "output.py"), pythonCode);
+        Console.WriteLine("Result:");
+        Console.WriteLine(result);
+        //Console.WriteLine(pythonCode);
+        File.WriteAllText(Path.Combine(Environment.CurrentDirectory, "output.py"), pythonCode);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[Error] {ex.Message}");
+        return;
+    }
+    finally
+    {
+        if (CompilerFlags.Current.EnableScopeLogging)
+        {
+            Console.WriteLine($"[Program] Scope Tree: {scopeHandler.GetCurrentScope()}");
+        }
+    }
 }

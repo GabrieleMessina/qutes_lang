@@ -13,6 +13,7 @@ public enum QutesType
     qustring,
     classicalArray,
     quantumArray,
+    tuple,
     @class,
     @void,
 }

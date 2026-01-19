@@ -4,19 +4,25 @@ using static Qutes.Grammar.qutes_parser;
 
 namespace QutesLang.Symbols;
 
-//TODO: maybe the scope in here is useless.
+//Scope reference and AST token index could be useful in the future for error reporting and debugging.
+// For instance, we could use the AST token index to point to the exact location in the source code where the symbol was defined or used.
+// or to show a forward reference error or a hiding warning.
+// Scope could be useful to show the symbol fully qualified name including its scope hierarchy.
 public class Symbol(Scope scope, int astTokenIndex)
 {
-    
+    public override string ToString()
+    {
+        return $"[Symbol] Type: {GetType().Name}, Scope: {(scope != null ? scope.Id : "null")}, AST Token Index: {astTokenIndex}";
+    }
 }
 
-public class FunctionSymbol(string qualifiedName, IEnumerable<ValueSymbol> inputParamTypes, TypeSymbol outputType, StatementContext body, Scope scope, int astTokenIndex):Symbol(scope, astTokenIndex)
+public class FunctionSymbol(string qualifiedName, IEnumerable<ValueSymbol> inputParamTypes, TypeSymbol outputType, StatementContext body, Scope innerScope, int astTokenIndex):Symbol(innerScope, astTokenIndex)
 {
     public string QualifiedName { get; } = qualifiedName;
     public IEnumerable<ValueSymbol> InputParamTypes { get; } = inputParamTypes; //symbols already declared for the function to work on.
     public TypeSymbol OutputType { get; } = outputType;
     public StatementContext Body { get; } = body;
-    public Scope Scope { get; } = scope;
+    public Scope InnerScope { get; } = innerScope;
 }
 
 public class AnonymousValueSymbol(IQutesValue value, Scope scope, int astTokenIndex) : ValueSymbol(VariableNameGuid.New(), value, scope, astTokenIndex)
@@ -73,17 +79,7 @@ public class TypeSymbol(QutesType type, TypeSymbol? nestedValue = null) : Symbol
     public static TypeSymbol Quchar { get; } = new(QutesType.qucharacter);
     public static TypeSymbol Qustring { get; } = new(QutesType.qustring);
     public static TypeSymbol Array(TypeSymbol elementsType) => new (elementsType.IsQuantum() ? QutesType.quantumArray : QutesType.classicalArray, elementsType);
+    public static TypeSymbol Tuple { get; } = new (QutesType.tuple);
     public static TypeSymbol Class { get; } = new (QutesType.@class);
     public static TypeSymbol Void { get; } = new (QutesType.@void);
-}
-
-/// <summary>
-/// Represents a tuple symbol composed of multiple element symbols that can have different types.
-/// </summary>
-/// <param name="elements">The collection of symbols that make up the elements of the tuple.</param>
-/// <param name="scope">The scope in which the tuple symbol is defined.</param>
-/// <param name="astTokenIndex">The index of the associated abstract syntax tree (AST) token for this symbol.</param>
-public class TupleSymbol(IEnumerable<Symbol> elements, Scope scope, int astTokenIndex) : Symbol(scope, astTokenIndex)
-{
-    public IEnumerable<Symbol> Elements { get; } = elements;
 }
