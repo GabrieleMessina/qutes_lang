@@ -135,7 +135,7 @@ public class IntValue(int value) : IClassicalValue
             result = this;
             return true;
         }
-        if (targetType == TypeSymbol.Int)
+        if (targetType == TypeSymbol.Quint)
         {
             result = new QuintValue(this.Value);
             return true;
