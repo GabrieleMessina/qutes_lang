@@ -1,6 +1,6 @@
 ﻿namespace QutesLang.GrammarFrontend;
 
-public class CircuitQubit()
+public class CircuitQubit
 {
-    public string Id { get; set; } = VariableNameGuid.New();
+    public string Id { get; set; } = VariableNameGuid.New("qubit");
 }
