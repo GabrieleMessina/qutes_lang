@@ -2,11 +2,15 @@
 
 public static class VariableNameGuid
 {
-    private static int SequenceNumber = 1;
+#if DEBUG
+    private static readonly Dictionary<string, int> CountByPrefix = [];
+#endif
+
     public static string New(string prefix = "var")
     {
 #if DEBUG
-        return $"{prefix}_{SequenceNumber++}";
+        CountByPrefix[prefix] = CountByPrefix.TryGetValue(prefix, out var count) ? count + 1 : 1;
+        return $"{prefix}_{CountByPrefix[prefix]}";
 #else
         return $"{prefix}_{Guid.NewGuid():N}";
 #endif
