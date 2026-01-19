@@ -47,16 +47,18 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
     public override Symbol VisitProgram(qutes_parser.ProgramContext context)
     {
         circuitHandler.PushCircuit(circuitHandler.CreateNewCircuit());
-        scopeHandler.PushScope(scopeHandler.CreateScope());
+        scopeHandler.PushScope(scopeHandler.CreateScope("MainScope"));
         CheckForFunctionHoisting(context);
         return base.VisitProgram(context); //return value doesn't matter no one will use it.
     }
 
     public override Symbol VisitBlockStatement(qutes_parser.BlockStatementContext context)
     {
-        scopeHandler.PushScope(scopeHandler.CreateScope());
+        scopeHandler.PushScope(scopeHandler.CreateScope("BlockScope"));
         CheckForFunctionHoisting(context);
-        return base.VisitBlockStatement(context); //return value doesn't matter no one will use it.
+        base.VisitBlockStatement(context); //return value doesn't matter no one will use it.
+        scopeHandler.PopScope();
+        return null!;
     }
 
     public override Symbol VisitIfStatement(qutes_parser.IfStatementContext context)
@@ -224,7 +226,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         var outputTypeSymbol = QutesLanguageGuard.IsAssignableToType<TypeSymbol>(Visit(context.variableType()));
         var qualifiedNameSymbol = QutesLanguageGuard.IsAssignableToType<QualifiedNameSymbol>(Visit(context.qualifiedName()));
 
-        scopeHandler.PushScope(scopeHandler.CreateScope()); //create function scope for params declaration
+        scopeHandler.PushScope(scopeHandler.CreateScope(qualifiedNameSymbol.QualifiedName+"Scope")); //create function scope for params declaration
 
         var functionParamsSymbol = 
             context.functionDeclarationParams() == null 

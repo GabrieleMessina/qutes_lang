@@ -1,13 +1,14 @@
 ﻿using QutesLang.Symbols;
 
 namespace QutesLang.GrammarFrontend;
+
 public class ScopeHandler : IScopeHandler
 {
     private readonly Stack<Scope> stack = new();
 
-    public Scope CreateScope()
+    public Scope CreateScope(string id = "")
     {
-        return new Scope(VariableNameGuid.New(), GetCurrentScope());
+        return new Scope(id + VariableNameGuid.New("scope"), GetCurrentScope());
     }
 
     public Scope? GetCurrentScope()
