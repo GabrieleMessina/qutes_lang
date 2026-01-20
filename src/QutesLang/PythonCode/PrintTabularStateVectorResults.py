@@ -25,7 +25,7 @@ def print_pretty_results_mapped(result, var_names: list, var_sizes: dict, var_to
         var_to_reg: Dict mapping variable names to classical register names (e.g. {'a': 'meas'}).
     """
     from collections import Counter
-    from tabulate import tabulate
+    from tabulate import tabulate # pyright: ignore[reportMissingModuleSource]
     pub_result = result[0] # Get first experiment data
     data_bin = pub_result.data
     

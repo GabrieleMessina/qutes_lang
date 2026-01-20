@@ -1,6 +1,6 @@
 ﻿using System;
-using System.IO;
 
+[assembly: CLSCompliant(true)]
 namespace Qutes.Grammar
 {
 }

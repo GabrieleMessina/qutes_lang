@@ -4,7 +4,7 @@ using QutesLang.GrammarFrontend;
 
 namespace QutesLang.Symbols.Types;
 
-public class ClassValue(string qualifiedClassName) : IQutesValue
+public class ClassValue : IQutesValue
 {
     public virtual TypeSymbol Type { get; } = TypeSymbol.Class;
     public virtual bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
