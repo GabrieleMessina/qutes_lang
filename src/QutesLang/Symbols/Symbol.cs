@@ -16,13 +16,18 @@ public class Symbol(Scope scope, int astTokenIndex)
     }
 }
 
-public class FunctionSymbol(string qualifiedName, IEnumerable<ValueSymbol> inputParamTypes, TypeSymbol outputType, StatementContext body, Scope innerScope, int astTokenIndex):Symbol(innerScope, astTokenIndex)
+public class FunctionSymbol(string qualifiedName, IEnumerable<ValueSymbol> inputParamTypes, TypeSymbol outputType, StatementContext body, Scope innerScope, int astTokenIndex) : Symbol(innerScope, astTokenIndex)
 {
     public string QualifiedName { get; } = qualifiedName;
     public IEnumerable<ValueSymbol> InputParamTypes { get; } = inputParamTypes; //symbols already declared for the function to work on.
     public TypeSymbol OutputType { get; } = outputType;
     public StatementContext Body { get; } = body;
     public Scope InnerScope { get; } = innerScope;
+
+    public override string ToString()
+    {
+        return $"{OutputType} '{QualifiedName}'({string.Join(", ", InputParamTypes)})";
+    }
 }
 
 public class AnonymousValueSymbol(IQutesValue value, Scope scope, int astTokenIndex) : ValueSymbol(VariableNameGuid.New(), value, scope, astTokenIndex)
@@ -38,6 +43,11 @@ public class ValueSymbol(string qualifiedName, IQutesValue value, Scope scope, i
     public string QualifiedName { get; } = qualifiedName;
     public IQutesValue Value { get; set; } = value;
     public TypeSymbol Type { get; set; } = value.Type;
+
+    public override string ToString()
+    {
+        return $"{Type} '{QualifiedName}' = {Value}";
+    }
 }
 
 public class QualifiedNameSymbol(string qualifiedName, Scope scope, int astTokenIndex) : Symbol(scope, astTokenIndex)
@@ -78,8 +88,8 @@ public class TypeSymbol(QutesType type, TypeSymbol? nestedValue = null) : Symbol
     public static TypeSymbol Quint { get; } = new(QutesType.quinteger);
     public static TypeSymbol Quchar { get; } = new(QutesType.qucharacter);
     public static TypeSymbol Qustring { get; } = new(QutesType.qustring);
-    public static TypeSymbol Array(TypeSymbol elementsType) => new (elementsType.IsQuantum() ? QutesType.quantumArray : QutesType.classicalArray, elementsType);
-    public static TypeSymbol Tuple { get; } = new (QutesType.tuple);
-    public static TypeSymbol Class { get; } = new (QutesType.@class);
-    public static TypeSymbol Void { get; } = new (QutesType.@void);
+    public static TypeSymbol Array(TypeSymbol elementsType) => new(elementsType.IsQuantum() ? QutesType.quantumArray : QutesType.classicalArray, elementsType);
+    public static TypeSymbol Tuple { get; } = new(QutesType.tuple);
+    public static TypeSymbol Class { get; } = new(QutesType.@class);
+    public static TypeSymbol Void { get; } = new(QutesType.@void);
 }

@@ -9,6 +9,13 @@ public interface IQuantumValue : IQutesValue
     public string QubitStringList => Register.QubitStringList;
 
     #region Operations
+    // Print
+    string? ToString()
+    {
+        return $"Reg. '{Register.Name}': [{QubitStringList}]";
+    }
+
+    // Bitwise operations
     CircuitOperation LeftShift(QuintValue positions) => throw new InvalidOperationException($"Operator {nameof(LeftShift)} cannot be applied to {this.Type} and {positions.Type}.");
     CircuitOperation LeftShift(IntValue positions) => throw new InvalidOperationException($"Operator {nameof(LeftShift)} cannot be applied to {this.Type} and {positions.Type}.");
     CircuitOperation RightShift(QuintValue positions) => throw new InvalidOperationException($"Operator {nameof(RightShift)} cannot be applied to {this.Type} and {positions.Type}.");

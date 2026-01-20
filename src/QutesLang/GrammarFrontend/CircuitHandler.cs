@@ -62,7 +62,7 @@ public class CircuitHandler(BackendProvider backendProvider = BackendProvider.Qi
         var mainCircuit = circuitsStack.Last();
         var mainCircuitName = mainCircuit.Name;
         stringBuilder.AppendLine("sampler = StatevectorSampler()");
-        stringBuilder.AppendLine($"result = sampler.run([{mainCircuitName}], shots=1024).result()");
+        stringBuilder.AppendLine($"result = sampler.run([{mainCircuitName}], shots={CompilerFlags.Current.NumberOfIterations}).result()");
         
         var measuredVars = circuitsStack.SelectMany(c => c.Operations).Where(o => o is Measure).Select(m => m.Destination);
 
@@ -242,6 +242,15 @@ public class QuantumCircuit : IQuantumCircuit
 
         // Draw the circuit
         stringBuilder.AppendLine($"print({Name}.draw())");
+
+        // Save circuit image if requested
+        if (CompilerFlags.Current.CreateQuantumCircuitImage)
+        {
+            var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            var filePath = $"{Path.Combine(CompilerFlags.Current.OutputPath, Name)}_{timestamp}.png";
+            stringBuilder.AppendLine($"{Name}.draw(output='mpl', filename='{filePath}', style='iqp', fold=1000)");
+            stringBuilder.AppendLine($"print(Quantum circuit image saved to: {filePath})");
+        }
     }
 
     private HashSet<QuantumRegister> GetUsedRegister()

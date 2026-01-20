@@ -4,6 +4,10 @@
       "commandName": "Project",
       "commandLineArgs": "\"$(SolutionDir)\\..\\specification\\grammar\\grammar_tests.qut\""
     },
+    "QutesLangVerbose": {
+      "commandName": "Project",
+      "commandLineArgs": "-v -image \"$(SolutionDir)\\..\\specification\\grammar\\grammar_tests.qut\""
+    },
     "WSL": {
       "commandName": "WSL2",
       "distributionName": ""

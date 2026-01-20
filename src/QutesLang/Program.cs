@@ -4,58 +4,87 @@ using Qutes.Grammar;
 using QutesLang.GrammarFrontend;
 using System.CommandLine;
 
-
-var logSymbolsScope = new Option<bool>(
-    ["-scope", "--log_symbols_scope"],
+var logSymbolsScope = CommandLine.CreateOption(
+    ["-scopes", "--log-scopes"],
+    () => CompilerFlags.Current.EnableScopeLogging,
     "Toggle symbols scope print on console.");
-var logAstTree = new Option<bool>(
-    ["-tree", "--log_ast_tree"],
+var logAstTree = CommandLine.CreateOption(
+    ["-ast", "--print-ast"],
+    () => CompilerFlags.Current.PrintAst,
     "Toggle syntax tree print on console.");
-var logQuantumCircuit = new Option<bool>(
-    ["-circuit", "--log_quantum_circuit"],
+var logOutput = CommandLine.CreateOption(
+    ["--output-in-console"],
+    () => CompilerFlags.Current.PrintOutputToConsole,
+    "Toggle output print on console.");
+var logQuantumCircuit = CommandLine.CreateOption(
+    ["-circuit", "--print-circuit"],
+    () => CompilerFlags.Current.PrintQuantumCircuit,
     "Toggle quantum circuit print on console.");
-var saveCircuitAsImage = new Option<bool>(
-    ["-image", "--print_circuit_as_image"],
+var saveCircuitAsImage = CommandLine.CreateOption(
+    ["-image", "--print-circuit-image"],
+    () => CompilerFlags.Current.CreateQuantumCircuitImage,
     "Toggle circuit export as image instead of console print as text.");
-var logVerbose = new Option<bool>(
+var logVerbose = CommandLine.CreateOption(
     ["-v", "--verbose"],
+    () => CompilerFlags.Current.VerboseLogging,
     "Print all log as verbose on console.");
-var numberOfIterations = new Option<int>(
-    ["-iter", "--number_of_iterations"],
-    () => 100,
-    "Set number of iteration for quantum circuit run.");
-var filePath = new Argument<string>(
-    "file_path",
-    "The file path of the Qutes source code.");
+var numberOfIterations = CommandLine.CreateOption(
+    ["-runs", "--iterations"],
+    () => CompilerFlags.Current.NumberOfIterations,
+    "Set number of iteration for quantum circuit run.",
+    value => value <= 0 ? (false, "Number of iterations must be positive.") : (true, string.Empty));
+var quintSizeInQubit = CommandLine.CreateOption(
+    ["-quint", "--quint-size"],
+    () => CompilerFlags.Current.QuintSizeInQubit,
+    "Set quint size in qubit.",
+    value => value <= 0 ? (false, "Quint size in qubit must be positive.") : (true, string.Empty));
+var outputPath = CommandLine.CreateOption(
+    ["-o", "--output"],
+    () => CompilerFlags.Current.OutputPath,
+    "Set output file path.")
+    .AcceptLegalFilePathsOnly();
+var filePath = CommandLine.CreateArgument<string>("file-path",
+    "Path to Qutes Lang source file.");
 
-var rootCommand = new RootCommand
+var rootCommand = new RootCommand("Compile Qutes Lang source code.")
 {
-    Description = "Compile Qutes Lang source code."
+    logSymbolsScope,
+    logAstTree,
+    logQuantumCircuit,
+    saveCircuitAsImage,
+    logVerbose,
+    numberOfIterations,
+    quintSizeInQubit,
+    filePath,
+    outputPath
 };
-rootCommand.Add(logSymbolsScope);
-rootCommand.Add(logAstTree);
-rootCommand.Add(logQuantumCircuit);
-rootCommand.Add(saveCircuitAsImage);
-rootCommand.Add(logVerbose);
-rootCommand.Add(numberOfIterations);
-rootCommand.Add(filePath);
 
-rootCommand.SetHandler(HandleParams, logSymbolsScope, logAstTree, logQuantumCircuit, saveCircuitAsImage, logVerbose, numberOfIterations, filePath);
+rootCommand.SetAction(HandleParams);
+return rootCommand.Parse(args).Invoke();
 
-return rootCommand.InvokeAsync(args).Result;
-
-static void HandleParams(bool logSymbolsScopeValue, bool logAstTreeValue, bool logQuantumCircuitValue, bool saveCircuitAsImageValue,
-    bool logVerboseValue, int numberOfIterationsValue, string filePathValue)
+void HandleParams(ParseResult result)
 {
-    //Console.WriteLine($"logSymbolsScope: {logSymbolsScopeValue}");
-    //Console.WriteLine($"logAstTree: {logAstTreeValue}");
-    //Console.WriteLine($"logQuantumCircuit: {logQuantumCircuitValue}");
-    //Console.WriteLine($"saveCircuitAsImage: {saveCircuitAsImageValue}");
-    //Console.WriteLine($"logVerbose: {logVerboseValue}");
-    //Console.WriteLine($"numberOfIterations: {numberOfIterationsValue}");
-    //Console.WriteLine($"filePath: {filePathValue}");
-    
-    var source = new FileStream(filePathValue, FileMode.Open);
+    CompilerFlags.Current.VerboseLogging = result.GetRequiredValue(logSymbolsScope);
+    CompilerFlags.Current.PrintAst = result.GetRequiredValue(logAstTree);
+    CompilerFlags.Current.PrintQuantumCircuit = result.GetRequiredValue(logQuantumCircuit);
+    CompilerFlags.Current.CreateQuantumCircuitImage = result.GetRequiredValue(saveCircuitAsImage);
+    CompilerFlags.Current.VerboseLogging = result.GetRequiredValue(logVerbose);
+    CompilerFlags.Current.NumberOfIterations = result.GetRequiredValue(numberOfIterations);
+    CompilerFlags.Current.QuintSizeInQubit = result.GetRequiredValue(quintSizeInQubit);
+    CompilerFlags.Current.OutputPath = result.GetRequiredValue(outputPath);
+    CompilerFlags.Current.SourceFilePath = result.GetRequiredValue(filePath);
+
+    if (CompilerFlags.Current.VerboseLogging)
+    {
+        CompilerFlags.Current.PrintFlags();
+    }
+
+    RunProgram(CompilerFlags.Current);
+}
+
+static void RunProgram(CompilerFlags flags)
+{
+    var source = new FileStream(flags.SourceFilePath, FileMode.Open);
     var lexer = new qutes_lexer(new AntlrInputStream(source));
     var tokens = new CommonTokenStream(lexer);
     var parser = new qutes_parser(tokens);
@@ -63,7 +92,8 @@ static void HandleParams(bool logSymbolsScopeValue, bool logAstTreeValue, bool l
     parser.AddErrorListener(new QutesErrorListener());
     var tree = parser.program();
 
-    if (parser.NumberOfSyntaxErrors > 0){
+    if (parser.NumberOfSyntaxErrors > 0)
+    {
         throw new SyntaxErrorException(parser.NumberOfSyntaxErrors.ToString());
     }
 
@@ -72,24 +102,39 @@ static void HandleParams(bool logSymbolsScopeValue, bool logAstTreeValue, bool l
     var visitor = new QutesVisitor(scopeHandler, circuitHandler);
     try
     {
+        if (flags.VerboseLogging)
+        {
+            Console.WriteLine("================ Execution ================");
+        }
         var result = visitor.Visit(tree);
         var pythonCode = circuitHandler.FinalizeCircuit();
 
-        Console.WriteLine("Result:");
-        Console.WriteLine(result);
-        //Console.WriteLine(pythonCode);
-        File.WriteAllText(Path.Combine(Environment.CurrentDirectory, "output.py"), pythonCode);
+        if (flags.PrintAst)
+        {
+            Console.WriteLine("================ AST ================");
+            Console.WriteLine(tree.ToStringTree(parser));
+        }
+        if (flags.PrintOutputToConsole)
+        {
+            Console.WriteLine("================ Output ================");
+            Console.WriteLine(pythonCode);
+        }
+        if (!string.IsNullOrWhiteSpace(flags.OutputPath))
+        {
+            File.WriteAllText(Path.Combine(flags.OutputPath, "output.py"), pythonCode);
+        }
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"[Error] {ex.Message}");
+        Console.WriteLine($"[Error] {ex}");
         return;
     }
     finally
     {
-        if (CompilerFlags.Current.EnableScopeLogging)
+        if (flags.EnableScopeLogging)
         {
-            Console.WriteLine($"[Program] Scope Tree: {scopeHandler.GetCurrentScope()}");
+            Console.WriteLine("================ Scope Tree ================");
+            Console.WriteLine(scopeHandler.GetCurrentScope());
         }
     }
 }

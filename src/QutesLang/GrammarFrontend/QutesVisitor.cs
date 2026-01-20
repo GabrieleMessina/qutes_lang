@@ -410,19 +410,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
             //print all variable, both quantum and classics from symbol table
             foreach (var symbol in scopeHandler.GetCurrentScope().SymbolTable.Values)
             {
-                if (symbol is ValueSymbol valueSymbol)
-                {
-                    switch (valueSymbol.Value)
-                    {
-                        //TODO; probably better to implement print operations in qutes values.
-                        case IQuantumValue quantumType:
-                            Console.WriteLine($"{quantumType.Type} '{valueSymbol.QualifiedName}': {quantumType.QubitStringList}");
-                            break;
-                        case IClassicalValue classicalType:
-                            Console.WriteLine($"{classicalType.Type} '{valueSymbol.QualifiedName}': {classicalType.GetValueAsObject()}");
-                            break;
-                    }
-                }
+                Console.WriteLine(symbol);
             }
         }
         else
@@ -895,16 +883,16 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
     {
         var targetSymbol = Visit(context.expr()).As<ValueSymbol>();
 
+        if (context.PRINT() != null)
+        {
+            Console.WriteLine(targetSymbol.ToString());
+            return targetSymbol;
+        }
+
         switch (targetSymbol.Value)
         {
             case IQuantumValue targetValue:
                 {
-                    if (context.PRINT() != null)
-                    {
-                        Console.WriteLine($"{targetValue.Type} '{targetSymbol.QualifiedName}': {targetValue.QubitStringList}");
-                        return targetSymbol;
-                    }
-
                     CircuitOperation operation
                         = context.HADAMARD() != null ? new Hadamard(targetValue)
                         : context.PAULIY() != null ? new PauliY(targetValue)
@@ -916,14 +904,8 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                     return destinationSymbol;
                 }
 
-            case IClassicalValue targetValue:
+            case IClassicalValue:
                 {
-                    if (context.PRINT() != null)
-                    {
-                        Console.WriteLine($"{targetValue.Type} '{targetSymbol.QualifiedName}': {targetValue.GetValueAsObject()}");
-                        return targetSymbol;
-                    }
-
                     throw new InvalidOperationException($"Cannot apply operator '{context.op.Text}' to type '{targetSymbol.Type}'.");
                 }
             default:

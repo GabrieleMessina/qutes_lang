@@ -399,7 +399,7 @@ public class QucharValue : QuintValue
 
 public class QuintValue() : IQuantumValue
 {
-    public const int DefaultSize = 2;
+    public static int DefaultSize => CompilerFlags.Current.QuintSizeInQubit;
 
     public QuintValue(StateVector initialStateVector) : this()
     {

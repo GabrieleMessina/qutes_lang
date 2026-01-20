@@ -6,6 +6,13 @@ public interface IClassicalValue : IQutesValue
     public abstract void SetValueFromObject(object value);
 
     #region Operations
+    // Print
+    string? ToString()
+    {
+        return $"{GetValueAsObject()}";
+    }
+
+    // Bitwise operations
     IQutesValue LeftShift(IntValue positions) => throw new InvalidOperationException($"Operator {nameof(LeftShift)} cannot be applied to {this.GetType().Name} and {positions.GetType().Name}.");
     IQutesValue RightShift(IntValue positions) => throw new InvalidOperationException($"Operator {nameof(RightShift)} cannot be applied to {this.GetType().Name} and {positions.GetType().Name}.");
     IQutesValue Swap(IClassicalValue term)
