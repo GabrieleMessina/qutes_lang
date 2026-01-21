@@ -329,6 +329,9 @@ public class QubitValue() : IQuantumValue
     public StateVector? InitialStateVector { get; private set { field = value; Register.InitialStateVector = value; } }
 
     public static QubitValue GetDefaultValue() => new();
+    public static QubitValue Superposition() => PlusState();
+    public static QubitValue PlusState() => new(QubitParser.Parse("|+>"));
+    public static QubitValue MinusState() => new(QubitParser.Parse("|->"));
 
     public CircuitOperation And(IQuantumValue term) => new And(this, term, QubitValue.GetDefaultValue());
     public CircuitOperation Or(IQuantumValue term) => new Or(this, term, QubitValue.GetDefaultValue());
@@ -422,7 +425,7 @@ public class QuintValue() : IQuantumValue
         InitialStateVector = QuintParser.Parse(value.ToString() + "q");
     }
 
-    public virtual TypeSymbol Type { get; } = TypeSymbol.Quint;
+    public static QuintValue Superposition() => new (StateVector.Superposition(QuintValue.DefaultSize));
     public int Size { get; } = DefaultSize;
     public QuantumRegister Register { get; protected set; } = new(DefaultSize);
     public StateVector? InitialStateVector { get; private set { field = value; Register.InitialStateVector = value; } }

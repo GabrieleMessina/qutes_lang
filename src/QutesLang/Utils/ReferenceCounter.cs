@@ -1,6 +1,8 @@
-﻿namespace QutesLang.Utils;
+﻿using System.Collections;
 
-public class ReferenceCounter<T> where T : notnull
+namespace QutesLang.Utils;
+
+public class ReferenceCounter<T> : IEnumerable<T> where T : notnull
 {
     private readonly Dictionary<T, int> storage; // Key: element, Value: count
 
@@ -13,8 +15,6 @@ public class ReferenceCounter<T> where T : notnull
     {
         storage = new Dictionary<T, int>(counter.storage);
     }
-
-    public IEnumerable<T> Elements => storage.Keys;
 
     /// <summary>
     /// Adds an element. If it exists, increments the counter.
@@ -55,5 +55,15 @@ public class ReferenceCounter<T> where T : notnull
     public bool Contains(T item)
     {
         return storage.ContainsKey(item);
+    }
+
+    public IEnumerator<T> GetEnumerator()
+    {
+        return storage.Keys.GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
     }
 }

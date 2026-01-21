@@ -21,6 +21,12 @@ public class StateVector(List<double> amplitudes)
         return new StateVector(amplitudes);
     }
 
+    public static StateVector Superposition(int nQubit)
+    {
+        var amplitudes = Enumerable.Repeat(1.0d, (int)Math.Pow(2, nQubit)).ToList();
+        return new StateVector(amplitudes);
+    }
+
     public string ToPythonString()
     {
         var sb = new StringBuilder();

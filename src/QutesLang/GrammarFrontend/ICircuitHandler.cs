@@ -18,8 +18,8 @@ public interface IQuantumCircuit
 {
     string Name { get; }
     List<CircuitOperation> Operations { get; }
-    Dictionary<string, QuantumRegister> QuantumVariables { get; }
-    ReferenceCounter<QuantumRegister> Registers { get; }
+    Dictionary<string, QuantumRegister> LocalQuantumVariables { get; }
+    ReferenceCounter<QuantumRegister> LocalRegisters { get; }
 
     void PushOperation(CircuitOperation operation);
     void DeclareQuantumVariable(string name, QuantumRegister values);

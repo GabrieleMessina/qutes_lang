@@ -1,4 +1,7 @@
 ﻿using System.Text;
+
+using CommunityToolkit.Diagnostics;
+
 using QutesLang.Symbols.Types;
 
 namespace QutesLang.GrammarFrontend;
@@ -11,10 +14,10 @@ namespace QutesLang.GrammarFrontend;
 /// </remarks>
 /// <param name="registersInvolved"></param>
 /// <param name="destination"></param>
-public abstract class CircuitOperation(IEnumerable<QuantumRegister> registersInvolved, IQuantumValue destination)
+public abstract class CircuitOperation(ICollection<QuantumRegister> registersInvolved, IQuantumValue destination)
 {
     public virtual IQuantumValue Destination { get; protected set; } = destination;
-    public virtual IEnumerable<QuantumRegister> RegistersInvolved { get; } = registersInvolved;
+    public virtual ICollection<QuantumRegister> RegistersInvolved { get; } = registersInvolved;
     public abstract void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder);
     /// <summary>
     /// This is called before circuit creation, usefull for creating python instances that you need throughout the execution.
@@ -53,34 +56,12 @@ public abstract class CircuitOperation(IEnumerable<QuantumRegister> registersInv
         stringBuilder.AppendLine($"{circuit.Name}.compose({gateName}, [{qubitStringList}], inplace=True)");
     }
 }
-public class Composition(ICollection<CircuitOperation> circuitOperations, IQuantumValue destination) : CircuitOperation(circuitOperations.SelectMany(c => c.RegistersInvolved), destination)
+public class Composition(ICollection<CircuitOperation> circuitOperations, IQuantumValue destination) : CircuitOperation([], null!)
 {
-    /// <summary>
-    /// Only for convenience of use in derived classes.
-    /// </summary>
-    /// <remarks>
-    /// If you use this constructor, <b>you must override</b> <see cref="CircuitOperations"/> and <see cref="Destination"/> properties.
-    /// </remarks>
-    protected Composition() : this([], null!)
-    {
-    }
-
+    public override IQuantumValue Destination { get; protected set; } = destination;
     public virtual ICollection<CircuitOperation> CircuitOperations { get; } = circuitOperations;
-
-    public sealed override void ApplyQiskitRequirements(StringBuilder stringBuilder)
+    public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
-        foreach (var op in CircuitOperations)
-        {
-            op.ApplyQiskitRequirements(stringBuilder);
-        }
-    }
-
-    public sealed override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
-    {
-        foreach (var op in CircuitOperations)
-        {
-            op.ApplyToQiskitCircuit(circuit, stringBuilder);
-        }
     }
 }
 public class Empty(IQuantumValue target) : CircuitOperation([target.Register], target)
@@ -91,11 +72,11 @@ public class Empty(IQuantumValue target) : CircuitOperation([target.Register], t
         return;
     }
 }
-public class ComposeCircuit(IQuantumCircuit other) : CircuitOperation([.. other.QuantumVariables.Values], null!)
+public class ComposeCircuit(IQuantumCircuit other) : CircuitOperation([.. other.LocalQuantumVariables.Values], null!)
 {
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
-        var registersToCompose = other.QuantumVariables.Values.ToList();
+        var registersToCompose = other.LocalQuantumVariables.Values.ToList();
         if(circuit is ControlledCircuit controlledCircuit)
         {
             registersToCompose.Add(controlledCircuit.ControlRegister);
@@ -168,7 +149,7 @@ public class MeasureAll() : CircuitOperation([], null!)
 {
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
-        foreach(var register in circuit.Registers.Elements)
+        foreach(var register in circuit.LocalRegisters)
         {
             stringBuilder.AppendLine($"{circuit.Name}.measure({register.Name}, {register.ClassicalRegister.Name})");
         }
@@ -268,9 +249,28 @@ public class Not(IQuantumValue target) : CircuitOperation([target.Register], tar
 }
 public class Equals(IQuantumValue a, IQuantumValue b, IQuantumValue destination) : CircuitOperation([a.Register, b.Register, destination.Register], destination)
 {
+    private readonly List<QuantumRegister> Ancillae = [];
+    public override void ApplyQiskitRequirements(StringBuilder stringBuilder)
+    {
+        Guard.IsEqualTo(a.Size, b.Size, "Quantum values must have the same size to be compared.");
+        var ancillaPrefix = VariableNameGuid.New("equality");
+        for (int i = 0; i < a.Size; i++)
+        {
+            var reg = new QuantumRegister(size: 1) { Name = $"{ancillaPrefix}_{i}" };
+            Ancillae.Add(reg);
+            RegistersInvolved.Add(reg);
+        }
+    }
+
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
-        //TODO: implemement quantum == operation.
+        for (int i = 0; i < a.Size; i++)
+        {
+            stringBuilder.AppendLine($"{circuit.Name}.ccx({a.Register.Qubits[i].Id}, {b.Register.Qubits[i].Id}, {Ancillae[i].Qubits[0].Id})");
+        }
+        // Now, all ancillae qubits are 1 if corresponding bits are equal, we need to AND them all into destination
+        var ancillaQubitList = string.Join(",", Ancillae.Select(r => r.Qubits[0].Id));
+        stringBuilder.AppendLine($"{circuit.Name}.mcx([{ancillaQubitList}], {Destination.Register.Qubits[0].Id})");
     }
 }
 public class NotEquals(IQuantumValue a, IQuantumValue b, IQuantumValue destination) : CircuitOperation([a.Register, b.Register, destination.Register], destination)
@@ -461,4 +461,33 @@ public class Module(IQuantumValue a, IQuantumValue b, IQuantumValue destination)
     {
         //TODO: implemement quantum Module operation.
     }
+}
+public class Grover(IQuantumValue pattern, QuantumArrayValue array, IQuantumCircuit predicate, IQuantumValue destination) : CircuitOperation([pattern.Register, array.Register, .. predicate.LocalRegisters, destination.Register], destination)
+{
+    public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
+    {
+        var groverId = VariableNameGuid.New("grover");
+        var nIteration = 1;
+        stringBuilder.AppendLine($"{groverId} = GroverOperator({predicate.Name}, reflection_qubits=[{Destination.QubitStringList}], insert_barriers=True, name='{groverId}')");
+        stringBuilder.AppendLine($"{groverId} = {groverId}.power({nIteration})");
+        AddGateInCircuit(circuit, groverId, predicate.LocalRegisters, stringBuilder);
+        
+        QuantumCircuit.PrintCircuit(groverId, stringBuilder, 1);
+        QuantumCircuit.SaveCircuitImage(groverId, stringBuilder, 1);
+    }
+}
+/// <summary>
+/// Exact String Matching quantum algorithm implementation.
+/// Returns the index of the first occurrence of the pattern in the target array, or -1 if the pattern is not found.
+/// </summary
+/// <param name="target"></param>
+/// <param name="pattern"></param>
+/// <param name="destination">A quint value representing the index of the found pattern in the array.</param>
+public class ESM(IQuantumValue pattern, QuantumArrayValue array, QuintValue destination, QubitValue ancilla) : Composition(
+    [//TODO: can i really encode -1 if no match is found?
+        new RightShift(array, destination),
+        new Equals(destination, pattern, ancilla),
+        new LeftShift(array, destination),
+    ], destination)
+{
 }
