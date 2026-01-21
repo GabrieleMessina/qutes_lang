@@ -45,4 +45,9 @@ public class QuantumRegister
     public StateVector? InitialStateVector { get; set; }
 
     public string QubitStringList => $"{string.Join(",", Qubits.Select(c => c!.Id))}";
+
+    public override string ToString()
+    {
+        return $"QReg.{Name}{{{QubitStringList}}}";
+    }
 }

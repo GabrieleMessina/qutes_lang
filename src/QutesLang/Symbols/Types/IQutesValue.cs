@@ -1,4 +1,6 @@
-﻿namespace QutesLang.Symbols.Types;
+﻿using QutesLang.GrammarFrontend;
+
+namespace QutesLang.Symbols.Types;
 
 public enum QutesType
 {
@@ -23,6 +25,30 @@ public interface IQutesValue
     public virtual bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
     {
         throw new NotImplementedException();
+    }
+}
+
+public abstract class ClassicalScalarValue : IClassicalValue
+{
+    public abstract TypeSymbol Type { get; }
+
+    public abstract object GetValueAsObject();
+    public abstract void SetValueFromObject(object value);
+
+    public override string ToString()
+    {
+        return $"{GetValueAsObject()}";
+    }
+}
+public abstract class QuantumScalarValue : IQuantumValue
+{
+    public abstract int Size { get; }
+    public abstract QuantumRegister Register { get; protected set; }
+    public abstract TypeSymbol Type { get; }
+
+    public override string ToString()
+    {
+        return $"({Type}) {Register}";
     }
 }
 

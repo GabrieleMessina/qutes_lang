@@ -930,10 +930,26 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
     public override Symbol VisitGroverOperator(qutes_parser.GroverOperatorContext context)
     {
-        //TODO: implement grover operator
-        return base.VisitGroverOperator(context);
-    }
+        var pattern = Visit(context.expr(0)).Contains<IQuantumValue>(); //TODO: handle casting from classical to quantum if needed both for pattern and array.
+        var array = Visit(context.expr(1)).Contains<QuantumArrayValue>();
 
+        var rotation = QuintValue.Superposition();
+        rotation.Register.Name = VariableNameGuid.New("rotation");
+        var predicateResult = QubitValue.MinusState();
+        predicateResult.Register.Name = VariableNameGuid.New("grover_result");
+        var resultSymbol = new AnonymousValueSymbol(rotation, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+
+        var predicate = circuitHandler.CreateNewCircuit();
+        circuitHandler.PushCircuit(predicate);
+        predicate.PushOperation(new ESM(pattern, array, rotation, predicateResult));
+        circuitHandler.PopCircuit();
+
+        circuitHandler.PushOperation(new Grover(pattern, array, predicate, rotation));
+        circuitHandler.PushOperation(new Measure(rotation));
+        circuitHandler.PushOperation(new Measure(predicateResult));
+        return resultSymbol;
+    }
+    
     public override Symbol VisitFreeGroverOperator(qutes_parser.FreeGroverOperatorContext context)
     {
         //TODO: implement free grover operator

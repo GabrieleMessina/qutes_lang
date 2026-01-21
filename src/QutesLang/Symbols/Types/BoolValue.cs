@@ -50,12 +50,12 @@ public class VoidValue() : IQutesValue
     }
 }
 
-public class BoolValue(bool value) : IClassicalValue
+public class BoolValue(bool value) : ClassicalScalarValue
 {
-    public virtual TypeSymbol Type { get; } = TypeSymbol.Bool;
+    public override TypeSymbol Type { get; } = TypeSymbol.Bool;
     public bool Value { get; set; } = value;
-    public object GetValueAsObject() => Value;
-    public void SetValueFromObject(object value) => Value = (bool)value;
+    public override object GetValueAsObject() => Value;
+    public override void SetValueFromObject(object value) => Value = (bool)value;
     public static BoolValue GetDefaultValue() => new(false);
     private static bool GetBoolValue(IClassicalValue term, [CallerMemberName] string operationName = "")
     {
@@ -118,12 +118,12 @@ public class CharValue(char value) : IntValue(value)
     }
 }
 
-public class IntValue(int value) : IClassicalValue
+public class IntValue(int value) : ClassicalScalarValue
 {
-    public virtual TypeSymbol Type { get; } = TypeSymbol.Int;
+    public override TypeSymbol Type { get; } = TypeSymbol.Int;
     public int Value { get; set; } = value;
-    public object GetValueAsObject() => Value;
-    public void SetValueFromObject(object value) => Value = (int)value;
+    public override object GetValueAsObject() => Value;
+    public override void SetValueFromObject(object value) => Value = (int)value;
     public static IntValue GetDefaultValue() => new(0);
     private static int GetIntValue(IClassicalValue term) => ((IntValue)term).Value;
 
@@ -166,12 +166,12 @@ public class IntValue(int value) : IClassicalValue
     }
 }
 
-public class FloatValue(float value) : IClassicalValue
+public class FloatValue(float value) : ClassicalScalarValue
 {
-    public virtual TypeSymbol Type { get; } = TypeSymbol.Float;
+    public override TypeSymbol Type { get; } = TypeSymbol.Float;
     public float Value { get; set; } = value;
-    public object GetValueAsObject() => Value;
-    public void SetValueFromObject(object value) => Value = (float)value;
+    public override object GetValueAsObject() => Value;
+    public override void SetValueFromObject(object value) => Value = (float)value;
     public static FloatValue GetDefaultValue() => new(0f);
     private static float GetFloatValue(IClassicalValue term, [CallerMemberName] string operationName = "")
     {
@@ -213,12 +213,12 @@ public class FloatValue(float value) : IClassicalValue
     }
 }
 
-public class StringValue(string value) : IClassicalValue
+public class StringValue(string value) : ClassicalScalarValue
 {
-    public virtual TypeSymbol Type { get; } = TypeSymbol.String;
+    public override TypeSymbol Type { get; } = TypeSymbol.String;
     public string Value { get; set; } = value;
-    public object GetValueAsObject() => Value;
-    public void SetValueFromObject(object value) => Value = (string)value;
+    public override object GetValueAsObject() => Value;
+    public override void SetValueFromObject(object value) => Value = (string)value;
     public static StringValue GetDefaultValue() => new("");
     private static string GetStringValue(IClassicalValue term, [CallerMemberName] string operationName = "")
     {
@@ -309,7 +309,7 @@ public class ClassicalArrayValue(IEnumerable<ValueSymbol> values) : ArrayValue, 
     public BoolValue NotEquals(IClassicalValue term) => new(Values.Any() || Values.Except(Values).Any());
 }
 
-public class QubitValue() : IQuantumValue
+public class QubitValue() : QuantumScalarValue
 {
     public const int DefaultSize = 1;
 
@@ -323,9 +323,9 @@ public class QubitValue() : IQuantumValue
         InitialStateVector = QubitParser.Parse(value ? "1q" : "0q");
     }
 
-    public virtual TypeSymbol Type { get; } = TypeSymbol.Qubit;
-    public int Size { get; } = DefaultSize;
-    public QuantumRegister Register { get; } = new(DefaultSize);
+    public override TypeSymbol Type { get; } = TypeSymbol.Qubit;
+    public override int Size { get; } = DefaultSize;
+    public override QuantumRegister Register { get; protected set; } = new(DefaultSize);
     public StateVector? InitialStateVector { get; private set { field = value; Register.InitialStateVector = value; } }
 
     public static QubitValue GetDefaultValue() => new();
@@ -400,7 +400,7 @@ public class QucharValue : QuintValue
     }
 }
 
-public class QuintValue() : IQuantumValue
+public class QuintValue() : QuantumScalarValue
 {
     public static int DefaultSize => CompilerFlags.Current.QuintSizeInQubit;
 
@@ -426,8 +426,10 @@ public class QuintValue() : IQuantumValue
     }
 
     public static QuintValue Superposition() => new (StateVector.Superposition(QuintValue.DefaultSize));
-    public int Size { get; } = DefaultSize;
-    public QuantumRegister Register { get; protected set; } = new(DefaultSize);
+
+    public override TypeSymbol Type { get; } = TypeSymbol.Quint;
+    public override int Size { get; } = DefaultSize;
+    public override QuantumRegister Register { get; protected set; } = new(DefaultSize);
     public StateVector? InitialStateVector { get; private set { field = value; Register.InitialStateVector = value; } }
 
     public static QuintValue GetDefaultValue() => new();
