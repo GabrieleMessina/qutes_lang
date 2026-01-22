@@ -313,6 +313,17 @@ public class QubitValue() : QuantumScalarValue
 {
     public const int DefaultSize = 1;
 
+    public QubitValue(QuintValue quint) : this()
+    {
+        this.Register.Qubits[0] = quint.Register.Qubits.First();
+        this.InitialStateVector = StateVector.Default(DefaultSize);
+
+        //The following could cause double initialization of the first qubit, but each StatePreparation (in Qiskit) overwrites previous ones, so we are good.
+        var qubitStateVector = quint.InitialStateVector?.Amplitudes[0..2] ?? StateVector.Default(QubitValue.DefaultSize).Amplitudes[0..2];
+        this.InitialStateVector.Amplitudes[0] = qubitStateVector[0];
+        this.InitialStateVector.Amplitudes[1] = qubitStateVector[1];
+    }
+    
     public QubitValue(StateVector initialStateVector) : this()
     {
         InitialStateVector = initialStateVector;
@@ -458,6 +469,11 @@ public class QuintValue() : QuantumScalarValue
             result = this;
             return true;
         }
+        if (targetType == TypeSymbol.Qubit)
+        {
+            result = new QubitValue(this);
+            return true;
+        }
         if (targetType == TypeSymbol.Quchar)
         {
             result = new QucharValue(this);
@@ -512,15 +528,4 @@ public class QuantumArrayValue : ArrayValue, IQuantumValue
     public CircuitOperation LeftShift(IntValue positions) => new LeftShift(this, positions);
     public CircuitOperation RightShift(QuintValue positions) => new RightShift(this, positions);
     public CircuitOperation RightShift(IntValue positions) => new RightShift(this, positions);
-
-    public override bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
-    {
-        if (targetType == Type)
-        {
-            result = this;
-            return true;
-        }
-        result = default!;
-        return false;
-    }
 }
