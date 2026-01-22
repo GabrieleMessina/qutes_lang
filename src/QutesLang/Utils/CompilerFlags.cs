@@ -11,7 +11,7 @@ public class CompilerFlags
     public bool CreateQuantumCircuitImage { get; set; } = false;
     public bool VerboseLogging { get; set; } = false;
     public int NumberOfIterations { get; set; } = 1024;
-    public int QuintSizeInQubit { get; set; } = 2;
+    public int QuintSizeInQubit { get; set; } = 3;
     public string OutputPath { get; set; } = "./";
     public string SourceFilePath { get; set; } = string.Empty;
 

@@ -90,7 +90,6 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
     public override Symbol VisitProgram(qutes_parser.ProgramContext context)
     {
-        circuitHandler.PushCircuit(circuitHandler.CreateNewCircuit());
         scopeHandler.PushScope(scopeHandler.CreateScope("MainScope"));
         CheckForFunctionHoisting(context);
         VisitAllChildren(context); //return value doesn't matter no one will use it.
@@ -115,8 +114,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         switch (condition.Value)
         {
             case IQuantumValue quantumCondition:
-                var mainCircuit = circuitHandler.Current;
-                HandleBranchingVisiting(ifBody, quantumCondition, mainCircuit);
+                HandleBranchingVisiting(ifBody, quantumCondition);
                 break;
             case BoolValue boolCondition:
                 if (boolCondition.Value == true) Visit(ifBody);
@@ -137,9 +135,8 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         switch (condition.Value)
         {
             case IQuantumValue quantumCondition:
-                var mainCircuit = circuitHandler.Current;
-                HandleBranchingVisiting(ifBody, quantumCondition, mainCircuit);
-                HandleBranchingVisiting(elseBody, quantumCondition, mainCircuit, false);
+                HandleBranchingVisiting(ifBody, quantumCondition);
+                HandleBranchingVisiting(elseBody, quantumCondition, false);
                 break;
             case BoolValue boolCondition:
                 if (boolCondition.Value == true) Visit(ifBody);
@@ -152,16 +149,17 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         return null!;
     }
 
-    private void HandleBranchingVisiting(qutes_parser.StatementContext branchBody, IQuantumValue quantumCondition, IQuantumCircuit mainCircuit, bool onCondition = true)
+    private void HandleBranchingVisiting(qutes_parser.StatementContext branchBody, IQuantumValue quantumCondition, bool onCondition = true)
     {
-        var quantumBodyCircuit = circuitHandler.CreateNewCircuit();
+        var quantumBodyCircuit = circuitHandler.DeclareNewQuantumGate();
+        using (var context = circuitHandler.SetCurrentContext(quantumBodyCircuit)) //We want operations to be pushed on the body.
+        {
+            Visit(branchBody); //TODO: how to handle classical ops inside quantum if body.
+        }
         var controlledCircuit = quantumBodyCircuit.MakeControlledBy(quantumCondition.Register, onCondition);
-        circuitHandler.PushCircuit(controlledCircuit);
-        circuitHandler.PushCircuit(quantumBodyCircuit);
-        Visit(branchBody); //TODO: how to handle classical ops inside quantum if body.
-        circuitHandler.PopCircuit();
-        circuitHandler.PopCircuit();
-        mainCircuit.PushOperation(new ComposeCircuit(controlledCircuit));
+        circuitHandler.DeclareNewQuantumGate(controlledCircuit);
+        circuitHandler.AddDependentCircuit(controlledCircuit);
+        circuitHandler.PushOperation(new ComposeCircuit(controlledCircuit, controlledCircuit.LocalRegisters));
     }
 
     public override Symbol VisitWhileStatement(qutes_parser.WhileStatementContext context)
@@ -939,14 +937,19 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         predicateResult.Register.Name = VariableNameGuid.New("grover_result");
         var resultSymbol = new AnonymousValueSymbol(rotation, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
 
-        var predicate = circuitHandler.CreateNewCircuit();
-        circuitHandler.PushCircuit(predicate);
-        predicate.PushOperation(new ESM(pattern, array, rotation, predicateResult));
-        circuitHandler.PopCircuit();
+        var predicate = circuitHandler.DeclareNewQuantumGate();
+        using (var circuitContext = circuitHandler.SetCurrentContext(predicate))
+        {
+            predicate.PushOperation(new ESM(pattern, array, rotation, predicateResult));
+        }
 
+        var finalResult = new QubitValue();
+        finalResult.Register.Name = VariableNameGuid.New("esm_result");
+        circuitHandler.AddDependentCircuit(predicate);
         circuitHandler.PushOperation(new Grover(pattern, array, predicate, rotation));
+        circuitHandler.PushOperation(new ESM(pattern, array, rotation, finalResult));
         circuitHandler.PushOperation(new Measure(rotation));
-        circuitHandler.PushOperation(new Measure(predicateResult));
+        circuitHandler.PushOperation(new Measure(finalResult));
         return resultSymbol;
     }
     

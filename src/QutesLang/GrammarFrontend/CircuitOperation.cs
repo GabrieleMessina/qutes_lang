@@ -72,11 +72,10 @@ public class Empty(IQuantumValue target) : CircuitOperation([target.Register], t
         return;
     }
 }
-public class ComposeCircuit(IQuantumCircuit other) : CircuitOperation([.. other.LocalQuantumVariables.Values], null!)
+public class ComposeCircuit(IQuantumCircuit other, ICollection<QuantumRegister> registersToCompose) : CircuitOperation([..other.LocalRegisters, ..registersToCompose], null!)
 {
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
-        var registersToCompose = other.LocalQuantumVariables.Values.ToList();
         if(circuit is ControlledCircuit controlledCircuit)
         {
             registersToCompose.Add(controlledCircuit.ControlRegister);
@@ -131,6 +130,19 @@ public class PauliZ(IQuantumValue target) : CircuitOperation([target.Register], 
 }
 public class Measure(IQuantumValue target) : CircuitOperation([target.Register], target)
 {
+    //public required IQuantumCircuit Gate { get; set; }
+    //public required ICircuitHandler CircuitHandler { get; set; }
+
+    public override void ApplyQiskitRequirements(StringBuilder stringBuilder)
+    {
+        //TODO: WIP, all operations (or the more complex ones), could declare their gates.
+        // This way we can have better circuit printing and also reuse gates (in the future).
+        // Note that the gate reuse is possibile only for input of the same kind,
+        // So we could have for example Measure_qubit and Measure_quinteger gates.
+        //Gate = CircuitHandler.DeclareNewQuantumGate();
+        //Gate.DeclareQuantumVariable(nameof(target), Destination.Register);
+    }
+
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
         stringBuilder.AppendLine($"{circuit.Name}.measure({Destination.Register.Name}, {Destination.Register.ClassicalRegister.Name})");
@@ -250,11 +262,13 @@ public class Not(IQuantumValue target) : CircuitOperation([target.Register], tar
 public class Equals(IQuantumValue a, IQuantumValue b, IQuantumValue destination) : CircuitOperation([a.Register, b.Register, destination.Register], destination)
 {
     private readonly List<QuantumRegister> Ancillae = [];
+    private int nBitToCompare;
+
     public override void ApplyQiskitRequirements(StringBuilder stringBuilder)
     {
-        Guard.IsEqualTo(a.Size, b.Size, "Quantum values must have the same size to be compared.");
+        nBitToCompare = Math.Min(a.Size, b.Size);
         var ancillaPrefix = VariableNameGuid.New("equality");
-        for (int i = 0; i < a.Size; i++)
+        for (int i = 0; i < nBitToCompare; i++)
         {
             var reg = new QuantumRegister(size: 1) { Name = $"{ancillaPrefix}_{i}" };
             Ancillae.Add(reg);
@@ -264,13 +278,23 @@ public class Equals(IQuantumValue a, IQuantumValue b, IQuantumValue destination)
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
-        for (int i = 0; i < a.Size; i++)
+        for (int i = 0; i < nBitToCompare; i++)
         {
-            stringBuilder.AppendLine($"{circuit.Name}.ccx({a.Register.Qubits[i].Id}, {b.Register.Qubits[i].Id}, {Ancillae[i].Qubits[0].Id})");
+            stringBuilder.AppendLine($"{circuit.Name}.cx({a.Register.Qubits[i].Id}, {Ancillae[i].Qubits[0].Id})");
+            stringBuilder.AppendLine($"{circuit.Name}.cx({b.Register.Qubits[i].Id}, {Ancillae[i].Qubits[0].Id})");
         }
-        // Now, all ancillae qubits are 1 if corresponding bits are equal, we need to AND them all into destination
+        // Now, all ancillae qubits are 0 if corresponding bits are equal, we need to AND them all into destination
         var ancillaQubitList = string.Join(",", Ancillae.Select(r => r.Qubits[0].Id));
+        stringBuilder.AppendLine($"{circuit.Name}.x([{ancillaQubitList}])");
         stringBuilder.AppendLine($"{circuit.Name}.mcx([{ancillaQubitList}], {Destination.Register.Qubits[0].Id})");
+        stringBuilder.AppendLine($"{circuit.Name}.x([{ancillaQubitList}])");
+
+        // Uncompute ancillae
+        for (int i = 0; i < nBitToCompare; i++)
+        {
+            stringBuilder.AppendLine($"{circuit.Name}.cx({b.Register.Qubits[i].Id}, {Ancillae[i].Qubits[0].Id})");
+            stringBuilder.AppendLine($"{circuit.Name}.cx({a.Register.Qubits[i].Id}, {Ancillae[i].Qubits[0].Id})");
+        }
     }
 }
 public class NotEquals(IQuantumValue a, IQuantumValue b, IQuantumValue destination) : CircuitOperation([a.Register, b.Register, destination.Register], destination)
@@ -462,18 +486,18 @@ public class Module(IQuantumValue a, IQuantumValue b, IQuantumValue destination)
         //TODO: implemement quantum Module operation.
     }
 }
-public class Grover(IQuantumValue pattern, QuantumArrayValue array, IQuantumCircuit predicate, IQuantumValue destination) : CircuitOperation([pattern.Register, array.Register, .. predicate.LocalRegisters, destination.Register], destination)
+public class Grover(IQuantumValue pattern, QuantumArrayValue array, IQuantumCircuit predicate, IQuantumValue reflection) : CircuitOperation([pattern.Register, array.Register, ..predicate.LocalRegisters, reflection.Register], null!)
 {
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
         var groverId = VariableNameGuid.New("grover");
         var nIteration = 1;
-        stringBuilder.AppendLine($"{groverId} = GroverOperator({predicate.Name}, reflection_qubits=[{Destination.QubitStringList}], insert_barriers=True, name='{groverId}')");
+        stringBuilder.AppendLine($"{groverId} = GroverOperator({predicate.Name}, reflection_qubits=[{reflection.QubitStringList}], insert_barriers=True, name='{groverId}')");
         stringBuilder.AppendLine($"{groverId} = {groverId}.power({nIteration})");
         AddGateInCircuit(circuit, groverId, predicate.LocalRegisters, stringBuilder);
         
-        QuantumCircuit.PrintCircuit(groverId, stringBuilder, 1);
-        QuantumCircuit.SaveCircuitImage(groverId, stringBuilder, 1);
+        QuantumCircuit.PrintCircuit(groverId, stringBuilder, decomposeLevel: 1);
+        QuantumCircuit.SaveCircuitImage(groverId, stringBuilder, decomposeLevel: 1);
     }
 }
 /// <summary>
@@ -482,12 +506,12 @@ public class Grover(IQuantumValue pattern, QuantumArrayValue array, IQuantumCirc
 /// </summary
 /// <param name="target"></param>
 /// <param name="pattern"></param>
-/// <param name="destination">A quint value representing the index of the found pattern in the array.</param>
-public class ESM(IQuantumValue pattern, QuantumArrayValue array, QuintValue destination, QubitValue ancilla) : Composition(
+/// <param name="rotation">A quint value representing the index of the found pattern in the array.</param>
+public class ESM(IQuantumValue pattern, QuantumArrayValue array, QuintValue rotation, QubitValue result) : Composition(
     [//TODO: can i really encode -1 if no match is found?
-        new RightShift(array, destination),
-        new Equals(destination, pattern, ancilla),
-        new LeftShift(array, destination),
-    ], destination)
+        new RightShift(array, rotation),
+        new Equals(array, pattern, result),
+        new LeftShift(array, rotation),
+    ], rotation)
 {
 }

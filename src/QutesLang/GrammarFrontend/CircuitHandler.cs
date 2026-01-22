@@ -2,39 +2,45 @@
 
 namespace QutesLang.GrammarFrontend;
 
-public class CircuitHandler(BackendProvider backendProvider = BackendProvider.Qiskit) : ICircuitHandler
+public interface ICircuitContext : IDisposable
 {
-    public IQuantumCircuit Current => circuitsStack.Peek();
-    private readonly Stack<IQuantumCircuit> circuitsStack = [];
-    private readonly Stack<IQuantumCircuit> circuitsDeclared = [];
+}
 
-    public IQuantumCircuit CreateNewCircuit()
+public class CircuitContext(IQuantumCircuit circuit, IQuantumCircuit parentCircuit) : ICircuitContext
+{
+    public Action<IQuantumCircuit, IQuantumCircuit>? OnDispose { get; set; }
+
+    public void Dispose()
     {
-        return new QuantumCircuit(includeClassicalBits: circuitsStack.Count == 0);  // Include classical bits only in the main circuit
+        OnDispose?.Invoke(circuit, parentCircuit);
+    }
+}
+
+public class CircuitHandler : ICircuitHandler
+{
+    private readonly QuantumCircuit MainCircuit;
+    private readonly Stack<IQuantumCircuit> CircuitsDeclared = [];
+    private readonly BackendProvider BackendProvider;
+    private IQuantumCircuit CurrentCircuit;
+
+    public CircuitHandler(BackendProvider backendProvider = BackendProvider.Qiskit)
+    {
+        this.BackendProvider = backendProvider;
+        MainCircuit = new(backendProvider, includeClassicalBits: true);
+        CurrentCircuit = MainCircuit;
+        CircuitsDeclared.Push(MainCircuit);
     }
 
-    public void PushCircuit(IQuantumCircuit circuit)
+    public string FinalizeProgram()
     {
-        circuitsStack.Push(circuit);
-        circuitsDeclared.Push(circuit);
-    }
-
-    public IQuantumCircuit PopCircuit()
-    {
-        return circuitsStack.Pop();
-    }
-
-    public string FinalizeCircuit()
-    {
-        return backendProvider switch
+        return BackendProvider switch
         {
-            BackendProvider.Qiskit => FinalizeQiskitCircuit(),
-            _ => throw new NotImplementedException($"Backend provider {backendProvider} is not supported."),
+            BackendProvider.Qiskit => FinalizeQiskitProgram(),
+            _ => throw new NotImplementedException($"Backend provider {BackendProvider} is not supported."),
         };
     }
 
-    //TODO: better handle circuit that needs local parameter like user defined quantum functions and quantum oracle (e.g. required for grover).
-    private string FinalizeQiskitCircuit()
+    private string FinalizeQiskitProgram()
     {
         var stringBuilder = new StringBuilder();
 
@@ -46,40 +52,18 @@ public class CircuitHandler(BackendProvider backendProvider = BackendProvider.Qi
         stringBuilder.AppendLine("from qiskit.circuit.library import StatePreparation, ModularAdderGate, grover_operator as GroverOperator");
 
         stringBuilder.AppendLine("# Operation Requirements");
-        foreach (var circuit in circuitsDeclared)
+        foreach (var circuit in CircuitsDeclared)
         {
             ((QuantumCircuit)circuit).ApplyQiskitRequirements(stringBuilder);
         }
-        DeclareRegistersInvolvedInOperations();
 
-        // Declare qubits
-        stringBuilder.AppendLine($"# Qubits declaration");
-        foreach (var qubit in Registers.SelectMany(r => r.Qubits))
-        {
-            stringBuilder.AppendLine($"{qubit.Id} = Qubit()");
-        }
-
-        // Declare quantum registers
-        stringBuilder.AppendLine($"# Quantum registers declaration");
-        foreach (var qreg in Registers)
-        {
-            var qubitRefs = string.Join(',', qreg.Qubits.Select(q => q.Id));
-            stringBuilder.AppendLine($"{qreg.Name} = QuantumRegister(name='{qreg.Name}', bits=[{qubitRefs}])");
-            stringBuilder.AppendLine($"{qreg.ClassicalRegister.Name} = ClassicalRegister(size={qreg.ClassicalRegister.Size}, name='{qreg.ClassicalRegister.Name}')");
-        }
-
-        foreach (var circuit in circuitsDeclared) // Processed in stack order to maintain correct dependencies
-        {
-            ((QuantumCircuit)circuit).FinalizeQiskitCircuit(Registers.ToList(), stringBuilder);
-        }
+        MainCircuit.FinalizeQiskitCircuit([], stringBuilder); // Finalize main circuit
 
         stringBuilder.AppendLine("# Qiskit execution");
-        var mainCircuit = circuitsStack.Last();
-        var mainCircuitName = mainCircuit.Name;
         stringBuilder.AppendLine("sampler = StatevectorSampler()");
-        stringBuilder.AppendLine($"result = sampler.run([{mainCircuitName}], shots={CompilerFlags.Current.NumberOfIterations}).result()");
-        
-        var measuredVars = circuitsStack.SelectMany(c => c.Operations).Where(o => o is Measure).Select(m => m.Destination);
+        stringBuilder.AppendLine($"result = sampler.run([{MainCircuit.Name}], shots={CompilerFlags.Current.NumberOfIterations}).result()");
+
+        var measuredVars = MainCircuit.Operations.Where(o => o is Measure).Select(m => m.Destination);
 
         string VarNames = string.Join(", ", measuredVars.Select(qv => $"'{qv.Register.Name}'"));
         string VarSizes = string.Join(", ", measuredVars.Select(qv => $"'{qv.Register.Name}': {qv.Register.Qubits.Count}"));
@@ -94,49 +78,6 @@ public class CircuitHandler(BackendProvider backendProvider = BackendProvider.Qi
         return stringBuilder.ToString();
     }
 
-    public void PushOperation(CircuitOperation operation)
-    {
-        Current.PushOperation(operation);
-    }
-
-    public virtual Dictionary<string, QuantumRegister> QuantumVariables { get; protected set; } = [];
-    public virtual ReferenceCounter<QuantumRegister> Registers { get; protected set; } = [];
-
-    private void DeclareRegistersInvolvedInOperations()
-    {
-        // Registers consolidation
-        var usedRegister = GetUsedRegister();
-        //FreeUnusedRegister(usedRegister); //TODO: not working because not everything is an operation: e.g. if(a) => a never used because no op is associted.
-        DeclareMissingRegister(usedRegister); //e.g. registers that where declared in parent circuit
-    }
-
-    public void DeclareQuantumVariable(string name, QuantumRegister register)
-    {
-        if (QuantumVariables.ContainsKey(name))
-        {
-            throw new InvalidOperationException($"Quantum variable with name {name} already declared.");
-        }
-
-        register.Name ??= name;
-
-        Registers.Add(register);
-        QuantumVariables[name] = register;
-        Current.DeclareQuantumVariable(name, register);
-    }
-
-    public void UpdateQuantumVariable(string name, QuantumRegister registerNewValue)
-    {
-        if (!QuantumVariables.TryGetValue(name, out QuantumRegister? register))
-        {
-            throw new InvalidOperationException($"Quantum variable with name {name} not declared.");
-        }
-
-        Registers.Remove(register);
-        Registers.Add(registerNewValue);
-        QuantumVariables[name] = registerNewValue;
-        Current.UpdateQuantumVariable(name, register);
-    }
-
     private static void AppendPythonCode(StringBuilder stringBuilder)
     {
         var tabularPrint = File.ReadAllText(Path.Combine(Environment.CurrentDirectory, "PythonCode", "PrintTabularStateVectorResults.py"));
@@ -147,92 +88,62 @@ public class CircuitHandler(BackendProvider backendProvider = BackendProvider.Qi
         stringBuilder.AppendLine();
     }
 
-    private HashSet<QuantumRegister> GetUsedRegister()
+    public ICircuitContext SetCurrentContext(IQuantumCircuit circuit)
     {
-        List<QuantumRegister> registerUsed = [];
-        foreach (var operation in circuitsDeclared.SelectMany(c => c.Operations))
+        return new CircuitContext(circuit, CurrentCircuit)
         {
-            registerUsed.AddRange(operation.RegistersInvolved);
-        }
-
-        return registerUsed.ToHashSet();
-    }
-
-    private void FreeUnusedRegister(HashSet<QuantumRegister> qubitsUsed)
-    {
-        IEnumerable<QuantumRegister> registerDeclared = [.. Registers];
-        foreach (var register in registerDeclared)
-        {
-            if (!qubitsUsed.Contains(register))
+            OnDispose = (disposedCircuit, parentCircuit) =>
             {
-                Registers.Remove(register);
+                CurrentCircuit = parentCircuit;
             }
-        }
-    }
-
-    private void DeclareMissingRegister(HashSet<QuantumRegister> usedRegisters)
-    {
-        foreach (var register in usedRegisters)
-        {
-            if (!QuantumVariables.ContainsValue(register))
-            {
-                DeclareQuantumVariable(register.Name ?? VariableNameGuid.New("ancilla"), register);
-            }
-        }
-    }
-}
-
-public class ControlledCircuit : QuantumCircuit
-{
-    private readonly bool onCondition;
-
-    public IQuantumCircuit InnerCircuit { get; private set; }
-    public QuantumRegister ControlRegister { get; }
-    public override string Name { get; protected set; }
-
-    public override Dictionary<string, QuantumRegister> LocalQuantumVariables => GetQuantumVariables();
-    public override ReferenceCounter<QuantumRegister> LocalRegisters => GetRegisters();
-
-    public ControlledCircuit(IQuantumCircuit innerCircuit, QuantumRegister controlRegister, bool onCondition = true)
-    {
-        InnerCircuit = innerCircuit;
-        ControlRegister = controlRegister;
-        this.onCondition = onCondition;
-        Name = "controlled_" + innerCircuit.Name;
-        LocalQuantumVariables = new(innerCircuit.LocalQuantumVariables);
-        LocalRegisters = [..innerCircuit.LocalRegisters];
-        DeclareQuantumVariable(controlRegister.Name ?? "control", controlRegister);
-    }
-
-    public override void FinalizeQiskitCircuit(ICollection<QuantumRegister> alreadyDeclaredRegisters, StringBuilder stringBuilder)
-    {
-        base.FinalizeQiskitCircuit(alreadyDeclaredRegisters, stringBuilder);
-        var controlBitCount = ControlRegister.Qubits.Count;
-        stringBuilder.AppendLine($"{Name} = {InnerCircuit.Name}.control({controlBitCount}, ctrl_state='{new string(onCondition?'1':'0', controlBitCount)}', label='{Name}')");
-    }
-
-    private Dictionary<string, QuantumRegister> GetQuantumVariables()
-    {
-        return new([..InnerCircuit.LocalQuantumVariables.AsEnumerable(), KeyValuePair.Create("", ControlRegister)]);
-    }
-
-    private ReferenceCounter<QuantumRegister> GetRegisters()
-    {
-        var registers = new ReferenceCounter<QuantumRegister>(InnerCircuit.LocalRegisters)
-        {
-            ControlRegister
         };
-        return registers;
+    }
+
+    public IQuantumCircuit DeclareNewQuantumGate(IQuantumCircuit? circuit = null)
+    {
+        var newCircuit = circuit ?? new QuantumCircuit(BackendProvider);
+        CircuitsDeclared.Push(newCircuit);
+        return newCircuit;
+    }
+
+    public void PushOperation(CircuitOperation operation)
+    {
+        CurrentCircuit.PushOperation(operation);
+    }
+
+    public void DeclareQuantumVariable(string name, QuantumRegister values)
+    {
+        CurrentCircuit.DeclareQuantumVariable(name, values);
+    }
+
+    public void UpdateQuantumVariable(string name, QuantumRegister values)
+    {
+        CurrentCircuit.UpdateQuantumVariable(name, values);
+    }
+
+    public void AddDependentCircuit(IQuantumCircuit circuit)
+    {
+        CurrentCircuit.AddDependentCircuit(circuit);
     }
 }
 
-public class QuantumCircuit(bool includeClassicalBits = false) : IQuantumCircuit
+public class QuantumCircuit(BackendProvider backendProvider, bool includeClassicalBits = false) : IQuantumCircuit
 {
     public virtual string Name { get; protected set; } = VariableNameGuid.New(prefix: "circuit");
+    public virtual List<IQuantumCircuit> DependentCircuits { get; protected set; } = [];
     public virtual List<CircuitOperation> Operations { get; protected set; } = [];
     public virtual Dictionary<string, QuantumRegister> LocalQuantumVariables { get; protected set; } = [];
-    public virtual ReferenceCounter<QuantumRegister> LocalRegisters { get; protected set; } = [];
+    public virtual List<QuantumRegister> LocalRegisters => Operations.SelectMany(op => op.RegistersInvolved).Distinct().ToList();
+    public BackendProvider BackendProvider { get; } = backendProvider;
     public bool IncludeClassicalBits { get; } = includeClassicalBits; //Some circuits (sub-circuits) may not need classical bits, e.g. circuits that should be composed with GroverOperator since GroverOperator doesn't allow coposition with circuit with classical registers.
+
+    public void AddDependentCircuit(IQuantumCircuit circuit)
+    {
+        if (!DependentCircuits.Contains(circuit))
+        {
+            DependentCircuits.Add(circuit);
+        }
+    }
 
     private void DeclareRegistersInvolvedInOperations()
     {
@@ -256,7 +167,7 @@ public class QuantumCircuit(bool includeClassicalBits = false) : IQuantumCircuit
 
     public IQuantumCircuit MakeControlledBy(QuantumRegister controlRegister, bool onCondition = true)
     {
-        return new ControlledCircuit(this, controlRegister, onCondition);
+        return new ControlledCircuit(BackendProvider, this, controlRegister, onCondition, IncludeClassicalBits);
     }
 
     public void DeclareQuantumVariable(string name, QuantumRegister register)
@@ -292,29 +203,48 @@ public class QuantumCircuit(bool includeClassicalBits = false) : IQuantumCircuit
         }
     }
 
-    public virtual void FinalizeQiskitCircuit(ICollection<QuantumRegister> globalRegisters, StringBuilder stringBuilder)
+    public virtual void FinalizeQiskitCircuit(ICollection<QuantumRegister> alreadyDeclaredRegisters, StringBuilder stringBuilder)
     {
         stringBuilder.AppendLine($"# ================ Circuit {Name} =====================");
 
-        DeclareRegistersInvolvedInOperations();
+        //DeclareRegistersInvolvedInOperations();
 
-        // Declare local qubits
+        var Registers = 
+            LocalRegisters
+                .Union(DependentCircuits.SelectMany(c => c.LocalRegisters))
+                .ToList();
+
+        // Declare qubits
         stringBuilder.AppendLine($"# Qubits declaration for {Name}");
-        foreach (var qubit in LocalRegisters.SelectMany(r => r.Qubits))
+        foreach (var qubit in Registers.Except(alreadyDeclaredRegisters).SelectMany(r => r.Qubits))
         {
             stringBuilder.AppendLine($"{qubit.Id} = Qubit()");
         }
 
-        // Declare local quantum registers
+        // Declare quantum registers
         stringBuilder.AppendLine($"# Quantum registers declaration for {Name}");
-        foreach (var qreg in LocalRegisters)
+        foreach (var qreg in Registers.Except(alreadyDeclaredRegisters))
         {
             var qubitRefs = string.Join(',', qreg.Qubits.Select(q => q.Id));
             stringBuilder.AppendLine($"{qreg.Name} = QuantumRegister(name='{qreg.Name}', bits=[{qubitRefs}])");
             stringBuilder.AppendLine($"{qreg.ClassicalRegister.Name} = ClassicalRegister(size={qreg.ClassicalRegister.Size}, name='{qreg.ClassicalRegister.Name}')");
         }
-        var quantumRegisterNames = string.Join(',', globalRegisters.Select(qr => qr.Name));
-        var classicalRegisterNames = string.Join(',', globalRegisters.Select(qr => qr.ClassicalRegister.Name).Where(name => name != null));
+
+        // Declare dependent circuit/gate/oracles
+        foreach (var circuit in DependentCircuits)
+        {
+            switch (BackendProvider)
+            {
+                case BackendProvider.Qiskit:
+                    ((QuantumCircuit)circuit).FinalizeQiskitCircuit(Registers, stringBuilder);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        var quantumRegisterNames = string.Join(',', Registers.Select(qr => qr.Name));
+        var classicalRegisterNames = string.Join(',', Registers.Select(qr => qr.ClassicalRegister.Name).Where(name => name != null));
 
         // Declare circuit
         stringBuilder.AppendLine($"# Circuit declaration: {Name}");
@@ -331,7 +261,7 @@ public class QuantumCircuit(bool includeClassicalBits = false) : IQuantumCircuit
         {
             // Initialize qubits to desired state
             stringBuilder.AppendLine($"# Register initialization for {Name}");
-            var registersToInitialize = LocalRegisters
+            var registersToInitialize = Registers
             .SelectMany(q => q.Registers ?? [q]) // If no sub-registers(qreg is not an array), use the register itself
             .Distinct();
             foreach (var qreg in registersToInitialize)
@@ -375,7 +305,7 @@ public class QuantumCircuit(bool includeClassicalBits = false) : IQuantumCircuit
         }
 
         var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-        var filePath = $"{Path.Combine(CompilerFlags.Current.OutputPath, circuitName)}_{timestamp}.png";
+        var filePath = $"{Path.Combine(CompilerFlags.Current.CircuitImagesPath, circuitName)}_{timestamp}.png";
         stringBuilder.AppendLine($"{circuitName}.decompose(reps={decomposeLevel}).draw(output='mpl', filename='{filePath}', style='iqp', fold=1000)");
         stringBuilder.AppendLine($"print('Quantum circuit image saved to: {filePath}')");
     }
@@ -412,5 +342,48 @@ public class QuantumCircuit(bool includeClassicalBits = false) : IQuantumCircuit
                 DeclareQuantumVariable(register.Name ?? VariableNameGuid.New("ancilla"), register);
             }
         }
+    }
+}
+
+public class ControlledCircuit : QuantumCircuit
+{
+    private readonly bool onCondition;
+
+    public IQuantumCircuit InnerCircuit { get; private set; }
+    public QuantumRegister ControlRegister { get; }
+    public override string Name { get; protected set; }
+
+    public override Dictionary<string, QuantumRegister> LocalQuantumVariables => GetQuantumVariables();
+    public override List<QuantumRegister> LocalRegisters => GetRegisters();
+
+    public ControlledCircuit(BackendProvider backendProvider, IQuantumCircuit innerCircuit, QuantumRegister controlRegister, bool onCondition = true, bool includeClassicalBits = false) : base(backendProvider, includeClassicalBits)
+    {
+        InnerCircuit = innerCircuit;
+        ControlRegister = controlRegister;
+        this.onCondition = onCondition;
+        Name = "controlled_" + innerCircuit.Name;
+        LocalQuantumVariables = new(innerCircuit.LocalQuantumVariables);
+        DeclareQuantumVariable(controlRegister.Name ?? "control", controlRegister);
+    }
+
+    public override void FinalizeQiskitCircuit(ICollection<QuantumRegister> alreadyDeclaredRegisters, StringBuilder stringBuilder)
+    {
+        base.FinalizeQiskitCircuit(alreadyDeclaredRegisters, stringBuilder);
+        var controlBitCount = ControlRegister.Qubits.Count;
+        stringBuilder.AppendLine($"{Name} = {InnerCircuit.Name}.control({controlBitCount}, ctrl_state='{new string(onCondition ? '1' : '0', controlBitCount)}', label='{Name}')");
+    }
+
+    private Dictionary<string, QuantumRegister> GetQuantumVariables()
+    {
+        return new([.. InnerCircuit.LocalQuantumVariables.AsEnumerable(), KeyValuePair.Create("", ControlRegister)]);
+    }
+
+    private List<QuantumRegister> GetRegisters()
+    {
+        var registers = new List<QuantumRegister>(InnerCircuit.LocalRegisters)
+        {
+            ControlRegister
+        };
+        return registers;
     }
 }

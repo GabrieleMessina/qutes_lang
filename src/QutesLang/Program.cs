@@ -107,7 +107,7 @@ static void RunProgram(CompilerFlags flags)
             Console.WriteLine("================ Execution ================");
         }
         var result = visitor.Visit(tree);
-        var pythonCode = circuitHandler.FinalizeCircuit();
+        var pythonCode = circuitHandler.FinalizeProgram();
 
         if (flags.PrintAst)
         {
@@ -126,6 +126,7 @@ static void RunProgram(CompilerFlags flags)
     }
     catch (Exception ex)
     {
+        File.WriteAllText(Path.Combine(flags.OutputPath, "output.py"), string.Empty);
         Console.WriteLine($"[Error] {ex}");
         return;
     }
