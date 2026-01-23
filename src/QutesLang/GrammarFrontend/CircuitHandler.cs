@@ -90,13 +90,15 @@ public class CircuitHandler : ICircuitHandler
 
     public ICircuitContext SetCurrentContext(IQuantumCircuit circuit)
     {
-        return new CircuitContext(circuit, CurrentCircuit)
+        var context = new CircuitContext(circuit, CurrentCircuit)
         {
             OnDispose = (disposedCircuit, parentCircuit) =>
             {
                 CurrentCircuit = parentCircuit;
             }
         };
+        CurrentCircuit = circuit;
+        return context;
     }
 
     public IQuantumCircuit DeclareNewQuantumGate(IQuantumCircuit? circuit = null)
@@ -206,8 +208,6 @@ public class QuantumCircuit(BackendProvider backendProvider, bool includeClassic
     public virtual void FinalizeQiskitCircuit(ICollection<QuantumRegister> alreadyDeclaredRegisters, StringBuilder stringBuilder)
     {
         stringBuilder.AppendLine($"# ================ Circuit {Name} =====================");
-
-        //DeclareRegistersInvolvedInOperations();
 
         var Registers = 
             LocalRegisters

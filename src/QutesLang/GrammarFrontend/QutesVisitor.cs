@@ -158,6 +158,8 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         }
         var controlledCircuit = quantumBodyCircuit.MakeControlledBy(quantumCondition.Register, onCondition);
         circuitHandler.DeclareNewQuantumGate(controlledCircuit);
+        circuitHandler.DeclareNewQuantumGate(quantumBodyCircuit);
+        circuitHandler.AddDependentCircuit(quantumBodyCircuit);
         circuitHandler.AddDependentCircuit(controlledCircuit);
         circuitHandler.PushOperation(new ComposeCircuit(controlledCircuit, controlledCircuit.LocalRegisters));
     }
@@ -935,22 +937,26 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         rotation.Register.Name = VariableNameGuid.New("rotation");
         var predicateResult = QubitValue.MinusState();
         predicateResult.Register.Name = VariableNameGuid.New("grover_result");
-        var resultSymbol = new AnonymousValueSymbol(rotation, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
 
+        // Create oracle
         var predicate = circuitHandler.DeclareNewQuantumGate();
         using (var circuitContext = circuitHandler.SetCurrentContext(predicate))
         {
-            predicate.PushOperation(new ESM(pattern, array, rotation, predicateResult));
+            circuitHandler.PushOperation(new ESM(pattern, array, rotation, predicateResult));
         }
 
-        var finalResult = new QubitValue();
-        finalResult.Register.Name = VariableNameGuid.New("esm_result");
+        // Run Grover on predicate
         circuitHandler.AddDependentCircuit(predicate);
         circuitHandler.PushOperation(new Grover(pattern, array, predicate, rotation));
+        
+        // Run oracle again to check that grover found right rotation
+        var finalResult = new QubitValue();
+        finalResult.Register.Name = VariableNameGuid.New("esm_result");
         circuitHandler.PushOperation(new ESM(pattern, array, rotation, finalResult));
+
+        // Measure rotation and final results
         circuitHandler.PushOperation(new Measure(rotation));
-        circuitHandler.PushOperation(new Measure(finalResult));
-        return resultSymbol;
+        return new AnonymousValueSymbol(finalResult, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
     }
     
     public override Symbol VisitFreeGroverOperator(qutes_parser.FreeGroverOperatorContext context)
