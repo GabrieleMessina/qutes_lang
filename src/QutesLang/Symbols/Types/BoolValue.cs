@@ -346,7 +346,7 @@ public class QubitValue() : QuantumScalarValue
 
     public CircuitOperation And(IQuantumValue term) => new And(this, term, QubitValue.GetDefaultValue());
     public CircuitOperation Or(IQuantumValue term) => new Or(this, term, QubitValue.GetDefaultValue());
-    public CircuitOperation Not() => new Not(this);
+    public virtual CircuitOperation Not() => new Not(this);
 
     public virtual bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
     {
@@ -370,7 +370,7 @@ public class QubitValue() : QuantumScalarValue
 
 public class QucharValue : QuintValue
 {
-    public static readonly char[] Alphabet = ['2', '3']; //TODO: this can't be larger than 2^QuintValue.DefaultSize
+    public override int DefaultSize => CompilerFlags.Current.QustringSizeInQubit;
 
     public QucharValue() : base()
     {
@@ -411,9 +411,14 @@ public class QucharValue : QuintValue
     }
 }
 
-public class QuintValue() : QuantumScalarValue
+public class QuintValue : QuantumScalarValue
 {
-    public static int DefaultSize => CompilerFlags.Current.QuintSizeInQubit;
+    public virtual int DefaultSize => CompilerFlags.Current.QuintSizeInQubit;
+
+    public QuintValue()
+    {
+        Register = new(DefaultSize);
+    }
 
     public QuintValue(StateVector initialStateVector) : this()
     {
@@ -436,11 +441,11 @@ public class QuintValue() : QuantumScalarValue
         InitialStateVector = QuintParser.Parse(value.ToString() + "q");
     }
 
-    public static QuintValue Superposition() => new (StateVector.Superposition(QuintValue.DefaultSize));
+    public static QuintValue Superposition() => new (StateVector.Superposition(CompilerFlags.Current.QuintSizeInQubit));
 
     public override TypeSymbol Type { get; } = TypeSymbol.Quint;
-    public override int Size { get; } = DefaultSize;
-    public override QuantumRegister Register { get; protected set; } = new(DefaultSize);
+    public override int Size => DefaultSize;
+    public override QuantumRegister Register { get; protected set; }
     public StateVector? InitialStateVector { get; private set { field = value; Register.InitialStateVector = value; } }
 
     public static QuintValue GetDefaultValue() => new();

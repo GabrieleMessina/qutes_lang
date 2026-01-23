@@ -44,7 +44,7 @@ public class BoolParser
 {
     public static bool Parse(string input)
     {
-        HashSet<string> allowedValues = ["true", "false"];
+        HashSet<string> allowedValues = ["true", "false", "1", "0"];
         var literal = input.ToLower();
         Guard.IsTrue(allowedValues.Contains(literal), $"Invalid boolean literal '{literal}'. Allowed values are: {string.Join(", ", allowedValues)}");
         var value = literal == "true" || literal == "1";
@@ -96,11 +96,11 @@ public partial class QubitParser
             return new StateVector([alpha, beta]); //normalizzation is handled by the StateVector class
         }
 
-        // Match Single Bool: true q
+        // Match Single Bool: true q or 1q
         var singleBoolMatch = SingleBoolRegex().Match(input);
         if (singleBoolMatch.Success)
         {
-            var value = BoolParser.Parse(boolMatch.Groups[1].Value);
+            var value = BoolParser.Parse(singleBoolMatch.Groups[1].Value);
             return new StateVector(value ? [0.0d, 1.0d] : [1.0d, 0.0d]);
         }
 
@@ -132,10 +132,12 @@ public partial class QucharParser
         var match = CharLiteralRegex().Match(input);
         if (match.Success)
         {
+            var alphabet = CompilerFlags.Current.QustringAlphabet;
+            var size = CompilerFlags.Current.QustringSizeInQubit;
             var character = match.Groups[1].Value[0];
-            var qutesEncodedChar = QucharValue.Alphabet.IndexOf(character);
-            if(qutesEncodedChar == -1) throw new ArgumentException($"Invalid quchar literal: {input}, valid characters are: {string.Join(", ", QucharValue.Alphabet)}");
-            return QuintParser.Parse($"{qutesEncodedChar}q");
+            var qutesEncodedChar = alphabet.IndexOf(character);
+            if(qutesEncodedChar == -1) throw new ArgumentException($"Invalid quchar literal: {input}, valid characters are: {string.Join(", ", alphabet)}");
+            return QuintParser.Parse($"{qutesEncodedChar}q", size);
         }
         throw new ArgumentException($"Invalid quchar literal format: {input}");
     }
@@ -151,7 +153,7 @@ public partial class QuintParser
     [GeneratedRegex(@"^\[\s*((?:\d+\s*,?\s*)+)\]q$", RegexOptions.IgnoreCase | RegexOptions.Compiled)]
     private static partial Regex IntListRegex();
 
-    public static StateVector Parse(string input)
+    public static StateVector Parse(string input, int? sizeInQubit = null)
     {
         if (string.IsNullOrWhiteSpace(input)) throw new ArgumentException("Input cannot be null or whitespace.", nameof(input));
 
@@ -167,7 +169,8 @@ public partial class QuintParser
             // If it's not a single qubit, we proceed to Quint-specific rules
         }
 
-        var bitCount = (int)Math.Pow(2, QuintValue.DefaultSize);
+        var size = sizeInQubit ?? CompilerFlags.Current.QuintSizeInQubit;
+        var bitCount = (int)Math.Pow(2, size);
 
         // Match Integer Literal: 5q
         var intMatch = IntLiteralRegex().Match(input);

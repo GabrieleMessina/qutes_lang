@@ -348,7 +348,7 @@ public class RightShift : LeftShift
             new Copy(target, Destination).ApplyToQiskitCircuit(circuit, stringBuilder);
         }
 
-        for (int i = QuintValue.DefaultSize - 1; i >= 0; i--)
+        for (int i = offset.Size - 1; i >= 0; i--)
         {
             var gateName = $"right_shift_{target.Count}_{target.SingleElementSize}_{i}";
             stringBuilder.AppendLine($"{gateName} = QutesGates.crot({target.Count}, 2**{i}, {target.SingleElementSize}).inverse()");
@@ -389,7 +389,7 @@ public class LeftShift : CircuitOperation
             new Copy(target, Destination).ApplyToQiskitCircuit(circuit, stringBuilder);
         }
 
-        for (int i = 0; i < QuintValue.DefaultSize; i++)
+        for (int i = 0; i < offset.Size; i++)
         {
             var gateName = $"left_shift_{target.Count}_{target.SingleElementSize}_{i}";
             stringBuilder.AppendLine($"{gateName} = QutesGates.crot({target.Count}, 2**{i}, {target.SingleElementSize})");
@@ -399,6 +399,7 @@ public class LeftShift : CircuitOperation
 }
 public class Copy(IQuantumValue target, IQuantumValue destination) : CircuitOperation([target.Register, destination.Register], destination)
 {
+    private readonly int size = Math.Min(target.Size, destination.Size);
     private static bool ReguirementsApplied = false;
     private static readonly string GateName = "copy";
 
@@ -407,13 +408,13 @@ public class Copy(IQuantumValue target, IQuantumValue destination) : CircuitOper
         if (!ReguirementsApplied)
         {
             ReguirementsApplied = true;
-            stringBuilder.AppendLine($"{GateName} = ModularAdderGate({QuintValue.DefaultSize}, label='{GateName}')");
+            stringBuilder.AppendLine($"{GateName} = ModularAdderGate({size}, label='{GateName}')");
         }
     }
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
-        AddGateInCircuit(circuit, GateName, [target.Register, Destination.Register], stringBuilder);
+        AddGateInCircuit(circuit, GateName, [..target.Register.Qubits[..size], ..Destination.Register.Qubits[..size]], stringBuilder);
     }
 }
 
@@ -427,6 +428,7 @@ public class TwosComplement(IQuantumValue target, IQuantumValue destination) : C
 
 public class Addition(IQuantumValue a, IQuantumValue b, IQuantumValue destination) : CircuitOperation([a.Register, b.Register, destination.Register], destination)
 {
+    private readonly int size = Math.Min(a.Size, b.Size);
     private static bool ReguirementsApplied = false;
     private static readonly string GateName = "adder";
 
@@ -435,7 +437,7 @@ public class Addition(IQuantumValue a, IQuantumValue b, IQuantumValue destinatio
         if (!ReguirementsApplied)
         {
             ReguirementsApplied = true;
-            stringBuilder.AppendLine($"{GateName} = ModularAdderGate({QuintValue.DefaultSize})");
+            stringBuilder.AppendLine($"{GateName} = ModularAdderGate({size})");
         }
     }
 
@@ -443,16 +445,16 @@ public class Addition(IQuantumValue a, IQuantumValue b, IQuantumValue destinatio
     {
         if(a != Destination && b != Destination)
         {
-            AddGateInCircuit(circuit, GateName, [b.Register, Destination.Register], stringBuilder);
-            AddGateInCircuit(circuit, GateName, [a.Register, Destination.Register], stringBuilder);
+            AddGateInCircuit(circuit, GateName, [..b.Register.Qubits[..size], ..Destination.Register.Qubits[..size]], stringBuilder);
+            AddGateInCircuit(circuit, GateName, [..a.Register.Qubits[..size], ..Destination.Register.Qubits[..size]], stringBuilder);
         }
         else if(a == Destination)
         {
-            AddGateInCircuit(circuit, GateName, [b.Register, Destination.Register], stringBuilder);
+            AddGateInCircuit(circuit, GateName, [..b.Register.Qubits[..size], ..Destination.Register.Qubits[..size]], stringBuilder);
         }
         else if(b == Destination)
         {
-            AddGateInCircuit(circuit, GateName, [a.Register, Destination.Register], stringBuilder);
+            AddGateInCircuit(circuit, GateName, [..a.Register.Qubits[..size], ..Destination.Register.Qubits[..size]], stringBuilder);
         }
     }
 }
@@ -491,7 +493,7 @@ public class Grover(IQuantumValue pattern, QuantumArrayValue array, IQuantumCirc
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
         var groverId = VariableNameGuid.New("grover");
-        var nIteration = 1;
+        var nIteration = 1; //total search space (rotations = 8) / number of solutions. even if higher accuracy could be achieved with more iterations, it requires a lot more computational power.
         stringBuilder.AppendLine($"{groverId} = GroverOperator({predicate.Name}, reflection_qubits=[{reflection.QubitStringList}], insert_barriers=True, name='{groverId}')");
         stringBuilder.AppendLine($"{groverId} = {groverId}.power({nIteration})");
         AddGateInCircuit(circuit, groverId, predicate.LocalRegisters, stringBuilder);

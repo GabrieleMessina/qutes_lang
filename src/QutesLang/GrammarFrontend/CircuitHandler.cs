@@ -305,7 +305,7 @@ public class QuantumCircuit(BackendProvider backendProvider, bool includeClassic
         }
 
         var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-        var filePath = $"{Path.Combine(CompilerFlags.Current.CircuitImagesPath, circuitName)}_{timestamp}.png";
+        var filePath = $"{Path.Combine(CompilerFlags.Current.CircuitImagesPath, circuitName)}_{timestamp}.png"; //TODO: maybe the timestamp should be taken from python so that same code different runs have different timestamp.
         stringBuilder.AppendLine($"{circuitName}.decompose(reps={decomposeLevel}).draw(output='mpl', filename='{filePath}', style='iqp', fold=1000)");
         stringBuilder.AppendLine($"print('Quantum circuit image saved to: {filePath}')");
     }
