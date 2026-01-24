@@ -38,6 +38,11 @@ var quintSizeInQubit = CommandLine.CreateOption(
     () => CompilerFlags.Current.QuintSizeInQubit,
     "Set quint size in qubit.",
     value => value <= 0 ? (false, "Quint size in qubit must be positive.") : (true, string.Empty));
+var qustringAlphabet = CommandLine.CreateOption(
+    ["-quint", "--quint-size"],
+    () => CompilerFlags.Current.QustringAlphabet,
+    "Set quint size in qubit.",
+    value => value.Length == 0 ? (false, "Qustring alphabet must not be empty.") : (true, string.Empty));
 var outputPath = CommandLine.CreateOption(
     ["-o", "--output"],
     () => CompilerFlags.Current.OutputPath,
@@ -55,6 +60,7 @@ var rootCommand = new RootCommand("Compile Qutes Lang source code.")
     logVerbose,
     numberOfIterations,
     quintSizeInQubit,
+    qustringAlphabet,
     filePath,
     outputPath
 };
@@ -71,6 +77,7 @@ void HandleParams(ParseResult result)
     CompilerFlags.Current.VerboseLogging = result.GetRequiredValue(logVerbose);
     CompilerFlags.Current.NumberOfIterations = result.GetRequiredValue(numberOfIterations);
     CompilerFlags.Current.QuintSizeInQubit = result.GetRequiredValue(quintSizeInQubit);
+    CompilerFlags.Current.QustringAlphabet = result.GetRequiredValue(qustringAlphabet);
     CompilerFlags.Current.OutputPath = result.GetRequiredValue(outputPath);
     CompilerFlags.Current.SourceFilePath = result.GetRequiredValue(filePath);
 
@@ -126,7 +133,7 @@ static void RunProgram(CompilerFlags flags)
     }
     catch (Exception ex)
     {
-        File.WriteAllText(Path.Combine(flags.OutputPath, "output.py"), string.Empty);
+        File.WriteAllText(Path.Combine(flags.OutputPath, "output.py"), $"[Error] {ex}");
         Console.WriteLine($"[Error] {ex}");
         return;
     }
