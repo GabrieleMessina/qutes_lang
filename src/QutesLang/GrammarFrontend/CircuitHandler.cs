@@ -375,15 +375,11 @@ public class ControlledCircuit : QuantumCircuit
 
     private Dictionary<string, QuantumRegister> GetQuantumVariables()
     {
-        return new([.. InnerCircuit.LocalQuantumVariables.AsEnumerable(), KeyValuePair.Create("", ControlRegister)]);
+        return new([KeyValuePair.Create("control_" + InnerCircuit.Name, ControlRegister), ..InnerCircuit.LocalQuantumVariables.AsEnumerable()]);
     }
 
     private List<QuantumRegister> GetRegisters()
     {
-        var registers = new List<QuantumRegister>(InnerCircuit.LocalRegisters)
-        {
-            ControlRegister
-        };
-        return registers;
+        return [ControlRegister, ..InnerCircuit.LocalRegisters]; //order is important for circuit composition, where control register must be first.
     }
 }

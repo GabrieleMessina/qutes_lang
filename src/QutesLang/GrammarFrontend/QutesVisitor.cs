@@ -160,7 +160,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         circuitHandler.DeclareNewQuantumGate(controlledCircuit);
         circuitHandler.DeclareNewQuantumGate(quantumBodyCircuit);
         circuitHandler.AddDependentCircuit(quantumBodyCircuit);
-        circuitHandler.AddDependentCircuit(controlledCircuit);
+        circuitHandler.AddDependentCircuit(controlledCircuit);//control then target
         circuitHandler.PushOperation(new ComposeCircuit(controlledCircuit, controlledCircuit.LocalRegisters));
     }
 
