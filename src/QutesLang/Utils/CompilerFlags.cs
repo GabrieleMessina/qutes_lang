@@ -15,8 +15,7 @@ public class CompilerFlags
     public char[] QustringAlphabet { get; set; } = "01".ToCharArray();
     public int QustringSizeInQubit => (int)Math.Ceiling(Math.Log2(QustringAlphabet.Length));
     public string OutputPath { get; set; } = "./"; //TODO: in python we should check that dir exists.
-    public string CircuitImagesPath => OutputPath;
-    //public string CircuitImagesPath => Path.Combine(OutputPath, "circuit_images");
+    public string CircuitImagesFolder => "./circuit_images";
     public string SourceFilePath { get; set; } = string.Empty;
 
     public void PrintFlags()
@@ -31,7 +30,7 @@ public class CompilerFlags
         Console.WriteLine($"  {nameof(NumberOfIterations)}: {NumberOfIterations}");
         Console.WriteLine($"  {nameof(QuintSizeInQubit)}: {QuintSizeInQubit}");
         Console.WriteLine($"  {nameof(OutputPath)}: {OutputPath}");
-        Console.WriteLine($"  {nameof(CircuitImagesPath)}: {CircuitImagesPath}");
+        Console.WriteLine($"  {nameof(CircuitImagesFolder)}: {CircuitImagesFolder}");
         Console.WriteLine($"  {nameof(SourceFilePath)}: {SourceFilePath}");
     }
 }

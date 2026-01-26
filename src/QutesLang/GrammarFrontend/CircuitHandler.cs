@@ -44,6 +44,12 @@ public class CircuitHandler : ICircuitHandler
     {
         var stringBuilder = new StringBuilder();
 
+        stringBuilder.AppendLine("# Auto-generated Qiskit code from QutesLang");
+
+        // in python, check that image folder exists or create it.
+        stringBuilder.AppendLine("import os");
+        stringBuilder.AppendLine($"os.makedirs(r'{CompilerFlags.Current.CircuitImagesFolder}', exist_ok=True)");
+
         AppendPythonCode(stringBuilder);
 
         stringBuilder.AppendLine("from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister");
@@ -305,7 +311,8 @@ public class QuantumCircuit(BackendProvider backendProvider, bool includeClassic
         }
 
         var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-        var filePath = $"{Path.Combine(CompilerFlags.Current.CircuitImagesPath, circuitName)}_{timestamp}.png"; //TODO: maybe the timestamp should be taken from python so that same code different runs have different timestamp.
+        var filePath = $"{Path.Combine(CompilerFlags.Current.CircuitImagesFolder, circuitName)}_{timestamp}.png"; //TODO: maybe the timestamp should be taken from python so that same code different runs have different timestamp.
+        filePath = filePath.Replace("\\", "/"); // For windows paths in python
         stringBuilder.AppendLine($"{circuitName}.decompose(reps={decomposeLevel}).draw(output='mpl', filename='{filePath}', style='iqp', fold=1000)");
         stringBuilder.AppendLine($"print('Quantum circuit image saved to: {filePath}')");
     }
