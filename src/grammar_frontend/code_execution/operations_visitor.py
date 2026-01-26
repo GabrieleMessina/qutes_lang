@@ -68,20 +68,25 @@ class OperationsVisitor(QutesBaseVisitor):
             if(ctx.ADD()):
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)
                     and second_term_symbol and QutesDataType.is_quantum_type(second_term_symbol.symbol_declaration_static_type)):
-                    result = self.variables_handler.declare_anonymous_variable(QutesDataType.quint, Quint.init_from_size(first_term_symbol.quantum_register.size+1), ctx.start.tokenIndex)
+                    result = self.variables_handler.declare_anonymous_variable(QutesDataType.quint, Quint.get_default_value(), ctx.start.tokenIndex)
                     carry = self.variables_handler.declare_anonymous_variable(QutesDataType.qubit, Qubit.get_default_value(), ctx.start.tokenIndex)
 
-                    self.quantum_circuit_handler.push_sum_operation(first_term_symbol, result, carry) #result var was declared above, so its value is zero, so carry is never used
-                    self.quantum_circuit_handler.push_sum_operation(second_term_symbol, result, carry) #now carry could have value
-                    self.quantum_circuit_handler.push_cnot_operation(carry.quantum_register[0], result.quantum_register[-1]) #taking care of carry.
-
+                    self.quantum_circuit_handler.push_sum_operation(second_term_symbol, result, carry, label="HalfAdder_Duplication") #sum is in place, so we duplicate the value of second term adding it to result register which is zero.
+                    self.quantum_circuit_handler.push_sum_operation(first_term_symbol, result, carry) #then add first term to result register
                     return result
                 else:
                     result = first_term_value + second_term_value
             if(ctx.SUB()):
-                if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
-                    pass
-                result = first_term_value - second_term_value
+                if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)
+                    and second_term_symbol and QutesDataType.is_quantum_type(second_term_symbol.symbol_declaration_static_type)):
+                    result = self.variables_handler.declare_anonymous_variable(QutesDataType.quint,Quint.get_default_value(),ctx.start.tokenIndex)
+                    carry = self.variables_handler.declare_anonymous_variable(QutesDataType.qubit,Qubit.get_default_value(),ctx.start.tokenIndex)                    
+                    
+                    self.quantum_circuit_handler.push_sum_operation(second_term_symbol, result, carry, label="HalfAdder_Duplication") #sum is in place, so we duplicate the value of second term adding it to result register which is zero.
+                    self.quantum_circuit_handler.push_sub_operation(first_term_symbol, result, carry) #then subtract first term to result register
+                    return result
+                else:
+                    result = first_term_value - second_term_value
         if(isinstance(ctx, qutes_parser.ShiftOperatorContext)):
             if(ctx.LSHIFT()):
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
@@ -222,10 +227,16 @@ class OperationsVisitor(QutesBaseVisitor):
                 return result
             if(ctx.SUB()):
                 if (first_term_symbol and QutesDataType.is_quantum_type(first_term_symbol.symbol_declaration_static_type)):
-                    result = self.quantum_circuit_handler.push_pauliz_operation(first_term_symbol.quantum_register)
-                first_term_symbol.value = -first_term_symbol.value 
-                result = first_term_symbol
-                return result
+                    result = self.variables_handler.declare_anonymous_variable(QutesDataType.quint,Quint.get_default_value(),ctx.start.tokenIndex)
+                    carry = self.variables_handler.declare_anonymous_variable(QutesDataType.qubit,Qubit.get_default_value(),ctx.start.tokenIndex)
+                    self.quantum_circuit_handler.push_sum_operation(first_term_symbol, result, carry, label="HalfAdder_Duplication") #sum is in place, so we duplicate the value of first term adding it to result register which is zero.
+                    self.quantum_circuit_handler.push_complement2_operation(result.quantum_register)
+                    result = result
+                    return result
+                else:
+                    first_term_symbol.value = -first_term_symbol.value 
+                    result = first_term_symbol
+                    return result
             if(ctx.AUTO_INCREMENT()):
                 #TODO: handle quantum
                 first_term_symbol.value = first_term_symbol.value + 1 
@@ -422,7 +433,7 @@ class OperationsVisitor(QutesBaseVisitor):
                         phase_kickback_ancilla = self.quantum_circuit_handler.declare_quantum_register(f"phase_kickback_ancilla_{current_grover_count}", Qubit(0,1))
                         oracle_registers.append(phase_kickback_ancilla)
                 if(rotation_register == None):
-                    rotation_register = self.quantum_circuit_handler.declare_quantum_register(f"rotation_grover_{current_grover_count}", Quint.init_from_size(logn,True))
+                    rotation_register = self.quantum_circuit_handler.declare_quantum_register(f"rotation_grover_{current_grover_count}", Quint.get_default_superposition_value())
                     oracle_registers.append(rotation_register)
                     if(self.log_grover_esm_rotation):
                         registers_to_measure.append(rotation_register)

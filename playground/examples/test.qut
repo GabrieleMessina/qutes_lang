@@ -1,7 +1,8 @@
-int a = 1;
-if(a == true){
-    print "è 1";
-}
-else{
-    print "non è 1";
-}
+quint a = 3;
+quint b = -4;
+
+quint c = a - b;
+
+print a;
+print b;
+print c;

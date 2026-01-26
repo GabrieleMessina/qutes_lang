@@ -211,7 +211,6 @@ class QuantumCircuitHandler:
         if print_counts:
             self.print_result_table(result)
 
-
     def print_result_table(self, result):
         counts_by_run = {}
         counts_by_registers = {}
@@ -232,7 +231,8 @@ class QuantumCircuitHandler:
                     # measured variables from right to left based on measuring time
                     reg_size = self._varname_to_register[reg_name].size
                     bitstring = result[i:i+reg_size]
-                    row.append(f"{bitstring}₂ | {int(bitstring, 2)}⏨")
+                    int_value = utils.twos_comp_to_int(bitstring)
+                    row.append(f"{bitstring}₂ | {int_value}⏨")
                     i += reg_size
                 row = row[::-1] # recover ordering to have first measured as first column
                 row.append(count)
@@ -330,19 +330,37 @@ class QuantumCircuitHandler:
     """
     Push sum operation for two quantum registers and a carry register.
     The sum is done using a half adder circuit.
-    We expect symbol_b to have always one qubit more than symbol_a.
     The carry register is used to store the carry of the sum.
     The sum is done in place, so the symbol_b register is modified.
     """
-    def push_sum_operation(self, symbol_a, symbol_b, symbol_carry):
-        quantum_register_a:QuantumRegister = symbol_a.quantum_register
-        quantum_register_b:QuantumRegister = symbol_b.quantum_register
-        quantum_register_carry:QuantumRegister = symbol_carry.quantum_register
-        numbers_len = min(quantum_register_a.size, quantum_register_b.size)
-
-        adder = HalfAdderGate(numbers_len)
-        quantum_registers = unwrap(quantum_register_a[:numbers_len] + quantum_register_b[:numbers_len] + quantum_register_carry[:])
+    def push_sum_operation(self, symbol_a, symbol_b, symbol_carry, label="HalfAdder") -> None:
+        quantum_register_a: QuantumRegister = symbol_a if isinstance(symbol_a, QuantumRegister) else symbol_a.quantum_register
+        quantum_register_b: QuantumRegister = symbol_b if isinstance(symbol_b, QuantumRegister) else symbol_b.quantum_register
+        quantum_register_carry: QuantumRegister = symbol_carry if isinstance(symbol_carry, QuantumRegister) else symbol_carry.quantum_register
+        
+        adder = HalfAdderGate(Quint.size_in_qubit, label)
+        quantum_registers = unwrap(
+            quantum_register_a[:]
+            + quantum_register_b[:]
+            + quantum_register_carry[:]
+        )
         self.push_compose_circuit_operation(adder, quantum_registers)
+
+    """
+    Push subtraction operation for two quantum registers and a carry register.
+    The subtraction is done calculating the 2's complement and using a half adder circuit.
+    The carry register is used to store the carry of the subtraction.
+    The subtraction is done in place, so the symbol_b register is modified.
+    """
+    def push_sub_operation(self, symbol_a, symbol_b, symbol_carry) -> None:
+        self.push_complement2_operation(symbol_b.quantum_register)
+        self.push_sum_operation(symbol_a, symbol_b, symbol_carry, label="HalfAdder_Subtraction")
+        
+    def push_complement2_operation(self, quantum_register: QuantumRegister) -> None:        
+        a = self.declare_quantum_register(f"twos_comp_ancilla_int_{next(QuantumCircuitHandler.anon_counter)}", Quint.init_from_integer(1), is_anonymous=True)
+        b = self.declare_quantum_register(f"twos_comp_ancilla_carry_{next(QuantumCircuitHandler.anon_counter)}", Qubit(), is_anonymous=True)
+        self.push_not_operation(quantum_register)
+        self.push_sum_operation(a, quantum_register, b, label="Complement2_Increment")
 
     def push_compose_circuit_operation(self, circuit_to_compose : QuantumCircuit|Instruction, quantum_registers : list[QuantumRegister] = None, classical_registers=None) -> None:
         if classical_registers is None:
