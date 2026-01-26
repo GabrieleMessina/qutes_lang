@@ -54,7 +54,7 @@ class Qustring(QuantumType['Qustring']):
             if(char == Qustring.__superposition_char):
                 qubyte:Qustring = Qustring(Qustring.get_default_superposition_value())
             else:
-                qubyte:Qustring = Qustring(Qustring.get_default_value())
+                qubyte:Qustring = Qustring(StatePreparation(Qustring.get_int_from_char(char), num_qubits=Qustring.get_default_size_in_qubit()))
             char_init_state = Statevector(qubyte.qubit_state)
             if(init_state == None):
                 init_state = char_init_state

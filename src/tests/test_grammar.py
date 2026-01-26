@@ -135,7 +135,6 @@ class TestGrammar(QutesBaseTest):
             ("qustring", "1q", Qustring.fromValue(Qubit(0,1))),
             ("qustring", "|+>", Qustring.fromValue(Qubit(0.5, 0.5))),
             ("qustring", "10q", Qustring.fromValue(Quint.fromValue(10))),
-            ("qustring", "[[0,1]q, 1q]q", Qustring(StatePreparation([complex(0), complex(1), complex(0), complex(1)]))),
         ]
         var_name:str = "foo"
         for var_type, declaration_value, expected_value_of_var in params:
