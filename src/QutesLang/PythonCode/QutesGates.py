@@ -120,7 +120,7 @@ class QutesGates:
         return qc.to_gate(label=CIRCUIT_NAME)
 
     @staticmethod
-    def carry_look_ahead_increment(n: int):
+    def carry_look_ahead_unitary_increment(n: int):
         """
         Generates a Quantum Gate that performs the increment operation (Input + 1)
         using a Quantum Carry Look-Ahead (QCLA) architecture.
