@@ -18,6 +18,20 @@ public class CompilerFlags
     public string CircuitImagesFolder => "./circuit_images";
     public string SourceFilePath { get; set; } = string.Empty;
 
+    #region FeatureFlags
+    /// <summary>
+    /// At hoisting time we can immediatly create a quantum gate visiting the function body,
+    /// or we can wait until each function call to visit the body and create the gate.
+    /// In the first case we have a single gate but if classic operations are present inside the function
+    /// they are evaluated only once at hoisting time.
+    /// In the second case, we create a new gate at each function call, so classic operations are re-evaluated
+    /// but we create multiple gates for the same function.
+    /// </summary>
+    public bool VisitFunctionBodyAtEachCall { get; set; } = false;
+
+
+    #endregion FeatureFlags
+
     public void PrintFlags()
     {
         Console.WriteLine("========== Compiler Flags ===========");

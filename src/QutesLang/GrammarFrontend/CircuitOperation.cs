@@ -80,7 +80,9 @@ public class ComposeCircuit(IQuantumCircuit other, ICollection<QuantumRegister> 
         {
             registersToCompose.Add(controlledCircuit.ControlRegister);
         }
-        AddGateInCircuit(circuit, other.Name, registersToCompose, stringBuilder);
+        var gateName = $"{other.Name}_gate";
+        stringBuilder.AppendLine($"{gateName} = {other.Name}.to_gate(label='{other.Name}')");
+        AddGateInCircuit(circuit, gateName, registersToCompose, stringBuilder);
     }
 }
 public class StatePreparation(QuantumRegister target, StateVector stateVector) : CircuitOperation([target], null!)

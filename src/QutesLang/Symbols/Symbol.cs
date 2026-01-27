@@ -1,4 +1,5 @@
-﻿using QutesLang.Symbols.Types;
+﻿using QutesLang.GrammarFrontend;
+using QutesLang.Symbols.Types;
 
 using static Qutes.Grammar.qutes_parser;
 
@@ -12,16 +13,19 @@ public class Symbol(Scope scope, int astTokenIndex)
 {
     public override string ToString()
     {
-        return $"[Symbol] Type: {GetType().Name}, Scope: {(scope != null ? scope.Id : "null")}, AST Token Index: {astTokenIndex}";
+        return $"[{GetType().Name}], Scope: {(scope != null ? scope.Id : "null")}, AST Token Index: {astTokenIndex}";
     }
 }
 
-public class FunctionSymbol(string qualifiedName, IEnumerable<ValueSymbol> inputParamTypes, TypeSymbol outputType, StatementContext body, Scope innerScope, int astTokenIndex) : Symbol(innerScope, astTokenIndex)
+public class FunctionSymbol(string qualifiedName, ValueSymbol? outputSymbol, IEnumerable<ValueSymbol> inputParamTypes, TypeSymbol outputType, IQuantumCircuit gate, StatementContext body, FunctionDeclarationParamsContext? variableDeclaration, Scope innerScope, int astTokenIndex) : Symbol(innerScope, astTokenIndex)
 {
     public string QualifiedName { get; } = qualifiedName;
+    public ValueSymbol? OutputSymbol { get; } = outputSymbol; //null for void functions.
     public IEnumerable<ValueSymbol> InputParamTypes { get; } = inputParamTypes; //symbols already declared for the function to work on.
     public TypeSymbol OutputType { get; } = outputType;
     public StatementContext Body { get; } = body;
+    public FunctionDeclarationParamsContext? VariableDeclaration { get; } = variableDeclaration;
+    public IQuantumCircuit Gate { get; } = gate;
     public Scope InnerScope { get; } = innerScope;
 
     public override string ToString()

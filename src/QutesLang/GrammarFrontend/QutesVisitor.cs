@@ -80,12 +80,12 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
     private void DeclareNewVariable(ValueSymbol symbol)
     {
-        scopeHandler.GetCurrentScope()!.DefineVariable(symbol);
+        scopeHandler.GetCurrentScope().DefineVariable(symbol);
     }
 
     private void DeclareNewFunction(FunctionSymbol symbol)
     {
-        scopeHandler.GetCurrentScope()!.DefineFunction(symbol);
+        scopeHandler.GetCurrentScope().DefineFunction(symbol);
     }
 
     public override Symbol VisitProgram(qutes_parser.ProgramContext context)
@@ -157,8 +157,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
             Visit(branchBody); //TODO: how to handle classical ops inside quantum if body.
         }
         var controlledCircuit = quantumBodyCircuit.MakeControlledBy(quantumCondition.Register, onCondition);
-        circuitHandler.DeclareNewQuantumGate(controlledCircuit);
-        circuitHandler.DeclareNewQuantumGate(quantumBodyCircuit);
+        circuitHandler.DeclareNewQuantumGate(circuit: controlledCircuit);
         circuitHandler.AddDependentCircuit(quantumBodyCircuit);
         circuitHandler.AddDependentCircuit(controlledCircuit);//control then target
         circuitHandler.PushOperation(new ComposeCircuit(controlledCircuit, controlledCircuit.LocalRegisters));
@@ -258,7 +257,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         return null!; //this is handled by HandleFunctionsHoisting
     }
 
-    private void CheckForFunctionHoisting(Antlr4.Runtime.ParserRuleContext context)
+    private void CheckForFunctionHoisting(ParserRuleContext context)
     {
         foreach (var node in context.children)
         {
@@ -280,16 +279,29 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
         scopeHandler.PushScope(scopeHandler.CreateScope(qualifiedNameSymbol.QualifiedName+"Scope")); //create function scope for params declaration
 
-        var functionParamsValues = 
-            context.functionDeclarationParams() == null
-            ? []
-            : Visit(context.functionDeclarationParams()).Contains<TupleValue>().Values.As<ValueSymbol>();
         var functionBody = context.statement();
+        var functionParams = context.functionDeclarationParams();
+        ValueSymbol? bodyStatementReturnValue = null;
+        var quantumBodyCircuit = circuitHandler.DeclareNewQuantumGate(qualifiedNameSymbol.QualifiedName);
+        ICollection<ValueSymbol> functionParamsValues = [];
+
+        if (!CompilerFlags.Current.VisitFunctionBodyAtEachCall)
+        {
+            using (var circuitContext = circuitHandler.SetCurrentContext(quantumBodyCircuit)) //We want operations to be pushed on the body.
+            {
+                functionParamsValues =
+                    functionParams == null
+                        ? []
+                        : Visit(context.functionDeclarationParams()).Contains<TupleValue>().Values.As<ValueSymbol>();
+                bodyStatementReturnValue = (ValueSymbol?)Visit(functionBody); //TODO: how to handle classical ops inside quantum body.
+                handlingReturnStatement = false;
+            }
+            circuitHandler.AddDependentCircuit(quantumBodyCircuit);
+        }
 
         var functionScope = scopeHandler.PopScope();
-
         var qualifiedName = qualifiedNameSymbol.QualifiedName;
-        var functionToCreateSymbol = new FunctionSymbol(qualifiedName, functionParamsValues, outputTypeSymbol, functionBody, functionScope, context.Start.TokenIndex);
+        var functionToCreateSymbol = new FunctionSymbol(qualifiedName, bodyStatementReturnValue, functionParamsValues, outputTypeSymbol, quantumBodyCircuit, functionBody, functionParams, functionScope, context.Start.TokenIndex);
         DeclareNewFunction(functionToCreateSymbol);
 
         return functionToCreateSymbol;
@@ -316,19 +328,39 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         //check that the types of the parameters match
         var functionParamTypes = functionSymbol.InputParamTypes.ToList();
 
-        foreach (var (paramType, index) in functionParamTypes.Select((value, i) => (value.GetType(), i)))
+        foreach (var (paramType, index) in functionParamTypes.Select((value, i) => (value.Type, i)))
         {
-            var providedParamType = providedParamsValues[index].Value.GetType();
+            var providedParamType = providedParamsValues[index].Value.Type;
             if (paramType != providedParamType)
             {
-                throw new InvalidOperationException($"Function '{qualifiedName}' expects parameter of type '{paramType.Name}', but '{providedParamType.Name}' was provided.");
+                throw new InvalidOperationException($"Function '{qualifiedName}' expects parameter of type '{paramType}', but '{providedParamType}' was provided.");
             }
         }
 
-        scopeHandler.PushScope(functionSymbol.InnerScope);
-        var bodyStatementReturnValue = Visit(functionSymbol.Body);
-        handlingReturnStatement = false;
-        scopeHandler.PopScope();
+        Symbol? bodyStatementReturnValue = functionSymbol.OutputSymbol;
+        ICollection<ValueSymbol> functionParamsValues = functionSymbol.InputParamTypes.ToList();
+        if (CompilerFlags.Current.VisitFunctionBodyAtEachCall)
+        {
+            scopeHandler.PushScope(functionSymbol.InnerScope);
+
+            var quantumBodyCircuit = circuitHandler.DeclareNewQuantumGate(functionSymbol.QualifiedName);
+            using (var circuitContext = circuitHandler.SetCurrentContext(quantumBodyCircuit)) //We want operations to be pushed on the body.
+            {
+                functionParamsValues =
+                    functionSymbol.VariableDeclaration == null
+                        ? []
+                        : Visit(functionSymbol.VariableDeclaration).Contains<TupleValue>().Values.As<ValueSymbol>();
+                bodyStatementReturnValue = Visit(functionSymbol.Body); //TODO: how to handle classical ops inside quantum body.
+            }
+            circuitHandler.AddDependentCircuit(quantumBodyCircuit);
+            handlingReturnStatement = false;
+            scopeHandler.PopScope();
+        }
+        else
+        {
+            circuitHandler.PushOperation(new ComposeCircuit(functionSymbol.Gate, providedParamsValues.Where(p => p.Value.Type.IsQuantum()).Select(v => ((IQuantumValue)v.Value).Register).ToList()));
+        }
+
         if(bodyStatementReturnValue != null)
         {
             var outputSymbol = bodyStatementReturnValue.As<ValueSymbol>();
@@ -431,7 +463,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         var leftSymbol = Visit(context.expr(0)).As<ValueSymbol>();
         var rightSymbol = Visit(context.expr(1)).As<ValueSymbol>();
 
-        if (leftSymbol.Value.GetType() != rightSymbol.Value.GetType())
+        if (leftSymbol.Value.Type != rightSymbol.Value.Type)
         {
             throw new InvalidOperationException($"Cannot apply logical operator '{context.op.Text}' between different types '{leftSymbol.Type}' and '{rightSymbol.Type}'.");
         }
@@ -588,7 +620,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         var leftSymbol = Visit(context.expr(0)).As<ValueSymbol>();
         var rightSymbol = Visit(context.expr(1)).As<ValueSymbol>();
 
-        if (leftSymbol.Value.GetType() != rightSymbol.Value.GetType())
+        if (leftSymbol.Value.Type != rightSymbol.Value.Type)
         {
             throw new InvalidOperationException($"Cannot apply logical operator '{context.op.Text}' between different types '{leftSymbol.Type}' and '{rightSymbol.Type}'.");
         }
@@ -627,7 +659,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         var leftSymbol = Visit(context.expr(0)).As<ValueSymbol>();
         var rightSymbol = Visit(context.expr(1)).As<ValueSymbol>();
 
-        if (leftSymbol.Value.GetType() != rightSymbol.Value.GetType())
+        if (leftSymbol.Value.Type != rightSymbol.Value.Type)
         {
             throw new InvalidOperationException($"Cannot apply logical operator '{context.op.Text}' between different types '{leftSymbol.Type}' and '{rightSymbol.Type}'.");
         }
@@ -695,7 +727,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         var leftSymbol = Visit(context.expr(0)).As<ValueSymbol>();
         var rightSymbol = Visit(context.expr(1)).As<ValueSymbol>();
 
-        if (leftSymbol.Value.GetType() != rightSymbol.Value.GetType())
+        if (leftSymbol.Value.Type != rightSymbol.Value.Type)
         {
             throw new InvalidOperationException($"Cannot apply operator '{context.op.Text}' between different types '{leftSymbol.Type}' and '{rightSymbol.Type}'.");
         }
@@ -736,7 +768,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         var leftSymbol = Visit(context.expr(0)).As<ValueSymbol>();
         var rightSymbol = Visit(context.expr(1)).As<ValueSymbol>();
 
-        if (leftSymbol.Value.GetType() != rightSymbol.Value.GetType())
+        if (leftSymbol.Value.Type != rightSymbol.Value.Type)
         {
             throw new InvalidOperationException($"Cannot apply operator '{context.op.Text}' between different types '{leftSymbol.Type}' and '{rightSymbol.Type}'.");
         }
@@ -977,7 +1009,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
     public override Symbol VisitFunctionDeclarationParams(qutes_parser.FunctionDeclarationParamsContext context)
     {
-        var symbols = context.variableDeclaration().Select(e => Visit(e)) ?? [];
+        var symbols = context.variableDeclaration().Select(e => Visit(e)).ToList() ?? [];
         return new AnonymousValueSymbol(new TupleValue(symbols), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
     }
 

@@ -63,7 +63,7 @@ public class BoolValue(bool value) : ClassicalScalarValue
         {
             return boolType.Value;
         }
-        throw new InvalidOperationException($"Operation {operationName} cannot be applied to {term.GetType().Name} type.");
+        throw new InvalidOperationException($"Operation {operationName} cannot be applied to {term.Type} type.");
     }
     public BoolValue Equals(IClassicalValue term) => new (this.Value == GetBoolValue(term));
     public BoolValue NotEquals(IClassicalValue term) => new (this.Value != GetBoolValue(term));
@@ -179,7 +179,7 @@ public class FloatValue(float value) : ClassicalScalarValue
         {
             return floatType.Value;
         }
-        throw new InvalidOperationException($"Operation {operationName} cannot be applied to {term.GetType().Name} type.");
+        throw new InvalidOperationException($"Operation {operationName} cannot be applied to {term.Type} type.");
     }
 
     public IQutesValue Addition(IClassicalValue term) => new FloatValue(this.Value + GetFloatValue(term));
@@ -226,7 +226,7 @@ public class StringValue(string value) : ClassicalScalarValue
         {
             return stringType.Value;
         }
-        throw new InvalidOperationException($"Operation {operationName} cannot be applied to {term.GetType().Name} type.");
+        throw new InvalidOperationException($"Operation {operationName} cannot be applied to {term.Type} type.");
     }
 
     public IQutesValue LeftShift(IntValue positions)

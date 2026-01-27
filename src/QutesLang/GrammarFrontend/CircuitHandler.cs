@@ -26,7 +26,7 @@ public class CircuitHandler : ICircuitHandler
     public CircuitHandler(BackendProvider backendProvider = BackendProvider.Qiskit)
     {
         this.BackendProvider = backendProvider;
-        MainCircuit = new(backendProvider, includeClassicalBits: true);
+        MainCircuit = new(backendProvider, name: "main", includeClassicalBits: true);
         CurrentCircuit = MainCircuit;
         CircuitsDeclared.Push(MainCircuit);
     }
@@ -107,9 +107,9 @@ public class CircuitHandler : ICircuitHandler
         return context;
     }
 
-    public IQuantumCircuit DeclareNewQuantumGate(IQuantumCircuit? circuit = null)
+    public IQuantumCircuit DeclareNewQuantumGate(string? name = null, IQuantumCircuit? circuit = null)
     {
-        var newCircuit = circuit ?? new QuantumCircuit(BackendProvider);
+        var newCircuit = circuit ?? new QuantumCircuit(BackendProvider, name);
         CircuitsDeclared.Push(newCircuit);
         return newCircuit;
     }
@@ -135,9 +135,9 @@ public class CircuitHandler : ICircuitHandler
     }
 }
 
-public class QuantumCircuit(BackendProvider backendProvider, bool includeClassicalBits = false) : IQuantumCircuit
+public class QuantumCircuit(BackendProvider backendProvider, string? name = null, bool includeClassicalBits = false) : IQuantumCircuit
 {
-    public virtual string Name { get; protected set; } = VariableNameGuid.New(prefix: "circuit");
+    public virtual string Name { get; protected set; } = name ?? VariableNameGuid.New(prefix: "circuit");
     public virtual List<IQuantumCircuit> DependentCircuits { get; protected set; } = [];
     public virtual List<CircuitOperation> Operations { get; protected set; } = [];
     public virtual Dictionary<string, QuantumRegister> LocalQuantumVariables { get; protected set; } = [];
@@ -186,6 +186,7 @@ public class QuantumCircuit(BackendProvider backendProvider, bool includeClassic
         }
 
         register.Name ??= name;
+        register.Name = Name + "_" + register.Name; //Make sure the register name is unique by prefixing it with circuit name.
 
         LocalRegisters.Add(register);
         LocalQuantumVariables[name] = register;
@@ -218,7 +219,7 @@ public class QuantumCircuit(BackendProvider backendProvider, bool includeClassic
         var Registers = 
             LocalRegisters
                 .Union(DependentCircuits.SelectMany(c => c.LocalRegisters))
-                .ToList();
+                .ToList(); //TODO: right now all registers of dependent circuits are included, with the new implementation composition happens on different registers, so this is useless.
 
         // Declare qubits
         stringBuilder.AppendLine($"# Qubits declaration for {Name}");
@@ -363,7 +364,7 @@ public class ControlledCircuit : QuantumCircuit
     public override Dictionary<string, QuantumRegister> LocalQuantumVariables => GetQuantumVariables();
     public override List<QuantumRegister> LocalRegisters => GetRegisters();
 
-    public ControlledCircuit(BackendProvider backendProvider, IQuantumCircuit innerCircuit, QuantumRegister controlRegister, bool onCondition = true, bool includeClassicalBits = false) : base(backendProvider, includeClassicalBits)
+    public ControlledCircuit(BackendProvider backendProvider, IQuantumCircuit innerCircuit, QuantumRegister controlRegister, bool onCondition = true, bool includeClassicalBits = false) : base(backendProvider, "controlled_"+innerCircuit.Name, includeClassicalBits)
     {
         InnerCircuit = innerCircuit;
         ControlRegister = controlRegister;
