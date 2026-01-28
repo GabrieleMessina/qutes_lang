@@ -45,7 +45,9 @@ public abstract class QuantumScalarValue : IQuantumValue
     public abstract int Size { get; }
     public abstract QuantumRegister Register { get; protected set; }
     public abstract TypeSymbol Type { get; }
+    public virtual CircuitOperation Minus() => throw new InvalidOperationException($"Operator {nameof(Minus)} cannot be applied to {this.Type}.");
 
+    //TODO: implement all operations as virtual.
     public override string ToString()
     {
         return $"({Type}) {Register}";

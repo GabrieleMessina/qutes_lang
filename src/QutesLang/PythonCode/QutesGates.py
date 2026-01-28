@@ -106,17 +106,17 @@ class QutesGates:
 
     @staticmethod
     def qft_unitary_increment(n: int):
-        CIRCUIT_NAME = "QFT +1 increment"
+        CIRCUIT_NAME = "QFT_1_increment"
         qc = QuantumCircuit(n, name=CIRCUIT_NAME)
 
         N = 1 << (n - 1)  # 2^(n-1)
 
-        qc.append(QFT(n), range(n))
+        qc.append(QFT(n).to_gate(label=f'qft_{n}'), range(n))
 
         for i in range(n):
             qc.p(pow(2, i) * math.pi / N, i)
 
-        qc.append(QFT(n, inverse=True), range(n))
+        qc.append(QFT(n, inverse=True).to_gate(label=f'qft_{n}_inverse'), range(n))
         return qc.to_gate(label=CIRCUIT_NAME)
 
     @staticmethod
@@ -149,7 +149,7 @@ class QutesGates:
             num_tree_qubits, "tree_anc"
         )  # Ancilla for intermediate nodes
 
-        CIRCUIT_NAME = f"QCLA_+1_increment"
+        CIRCUIT_NAME = f"QCLA_1_increment"
         qc = QuantumCircuit(a_reg, s_reg, tree_reg, name=CIRCUIT_NAME)
 
         # Dictionary to track where tree nodes are stored
@@ -262,7 +262,7 @@ class QutesGates:
 
     @staticmethod
     def twos_complement(n: int):
-        CIRCUIT_NAME = "complement_2"
+        CIRCUIT_NAME = "twos_complement"
         qc = QuantumCircuit(n, name=CIRCUIT_NAME)
 
         # Step 1: Bitwise NOT

@@ -461,7 +461,7 @@ public class QuintValue : QuantumScalarValue
     public CircuitOperation GreaterThan(IQuantumValue term) => new GreaterThan(this, term, QubitValue.GetDefaultValue());
     public CircuitOperation GreaterEqualThan(IQuantumValue term) => new GreaterEqualThan(this, term, QubitValue.GetDefaultValue());
 
-    public CircuitOperation Minus() => new TwosComplement(this, GetDefaultValue());
+    public override CircuitOperation Minus() => new TwosComplement(this, GetDefaultValue());
     public CircuitOperation InplacePreIncrement() => new Addition(this, this, new QuintValue(1));
     public CircuitOperation InplacePostIncrement() => new Addition(this, this, new QuintValue(1));
     public CircuitOperation InplacePreDecrement() => new Subtraction(this, this, new QuintValue(1));

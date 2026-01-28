@@ -155,8 +155,8 @@ public class MultiMeasure(IEnumerable<IQuantumValue> targets) : CircuitOperation
         var targetList = string.Join(",", targets.Select(c => c.Register.Name));
         var classicalTargetList = string.Join(",", targets.Select(c => c.Register.ClassicalRegister.Name));
         stringBuilder.AppendLine($"{circuit.Name}.measure([{targetList}], [{classicalTargetList}])");
+        }
     }
-}
 public class MeasureAll() : CircuitOperation([], null!)
 {
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
@@ -418,12 +418,23 @@ public class Copy(IQuantumValue target, IQuantumValue destination) : CircuitOper
     }
 }
 
-public class TwosComplement(IQuantumValue target, IQuantumValue destination) : Composition(
-    [
-        new Not(target).Into(destination),
-        new Addition(destination, new QuintValue(1), destination)
-    ], destination)
+//public class TwosComplement(IQuantumValue target, IQuantumValue destination) : Composition(
+//    [
+//        new Not(target).Into(destination),
+//        new Addition(destination, new QuintValue(1), destination)
+//    ], destination)
+//{
+//}
+
+public class TwosComplement(IQuantumValue target, IQuantumValue destination) : CircuitOperation([target.Register, destination.Register], destination)
 {
+    public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
+    {
+        var size = Math.Min(target.Size, Destination.Size);
+        var gateName = $"twos_complement_{size}";
+        stringBuilder.AppendLine($"{gateName} = QutesGates.twos_complement({size})");
+        AddGateInCircuit(circuit, gateName, [..target.Register.Qubits[..size], ..Destination.Register.Qubits[..size]], stringBuilder);
+    }
 }
 
 public class Addition(IQuantumValue a, IQuantumValue b, IQuantumValue destination) : CircuitOperation([a.Register, b.Register, destination.Register], destination)
