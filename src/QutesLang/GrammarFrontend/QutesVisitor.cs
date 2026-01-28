@@ -213,7 +213,6 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
             indexSymbol = new ValueSymbol(indexNameSymbol.QualifiedName, new IntValue(i), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
             DeclareNewVariable(indexSymbol);
         }
-        i++;
         for (; i < array.Values.Count() && !handlingBreakStatement; i++)
         {
             itemSymbol.Value = array.Values.ElementAt(i).Value; //It is ok even for quantum, this variable will just point to the qubit in the array, it's an alias.
