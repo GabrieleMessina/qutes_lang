@@ -3,11 +3,8 @@ namespace QutesLang.GrammarFrontend;
 
 public interface ICircuitHandler
 {
-    IQuantumCircuit DeclareNewQuantumGate(IQuantumCircuit? circuit = null);
-    string FinalizeProgram(string outputPath);
     IQuantumCircuit DeclareNewQuantumGate(string? name = null, IQuantumCircuit? circuit = null);
-    string FinalizeProgram();
-
+    string FinalizeProgram(string outputPath);
     void PushOperation(CircuitOperation operation);
     void DeclareQuantumVariable(string name, QuantumRegister values);
     void UpdateQuantumVariable(string name, QuantumRegister values);
