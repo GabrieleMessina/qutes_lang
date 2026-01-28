@@ -26,7 +26,7 @@ public class CircuitHandler : ICircuitHandler
     public CircuitHandler(BackendProvider backendProvider = BackendProvider.Qiskit)
     {
         this.BackendProvider = backendProvider;
-        MainCircuit = new(backendProvider, name: "main", includeClassicalBits: true);
+        MainCircuit = new(backendProvider, name: "main", includeClassicalBits: true, handleStatePreparation: true);
         CurrentCircuit = MainCircuit;
         CircuitsDeclared.Push(MainCircuit);
     }
@@ -141,7 +141,7 @@ public class CircuitHandler : ICircuitHandler
     }
 }
 
-public class QuantumCircuit(BackendProvider backendProvider, string? name = null, bool includeClassicalBits = false) : IQuantumCircuit
+public class QuantumCircuit(BackendProvider backendProvider, string? name = null, bool includeClassicalBits = false, bool handleStatePreparation = false) : IQuantumCircuit
 {
     public virtual string Name { get; protected set; } = name ?? VariableNameGuid.New(prefix: "circuit");
     public virtual List<IQuantumCircuit> DependentCircuits { get; protected set; } = [];
@@ -150,6 +150,7 @@ public class QuantumCircuit(BackendProvider backendProvider, string? name = null
     public virtual List<QuantumRegister> LocalRegisters => Operations.SelectMany(op => op.RegistersInvolved).Distinct().ToList();
     public BackendProvider BackendProvider { get; } = backendProvider;
     public bool IncludeClassicalBits { get; } = includeClassicalBits; //Some circuits (sub-circuits) may not need classical bits, e.g. circuits that should be composed with GroverOperator since GroverOperator doesn't allow coposition with circuit with classical registers.
+    public bool HandleStatePreparation { get; } = handleStatePreparation;
 
     public void AddDependentCircuit(IQuantumCircuit circuit)
     {
@@ -157,14 +158,6 @@ public class QuantumCircuit(BackendProvider backendProvider, string? name = null
         {
             DependentCircuits.Add(circuit);
         }
-    }
-
-    private void DeclareRegistersInvolvedInOperations()
-    {
-        // Registers consolidation
-        var usedRegister = GetUsedRegister();
-        //FreeUnusedRegister(usedRegister); //TODO: not working because not everything is an operation: e.g. if(a) => a never used because no op is associted. Actually this should be an equality operation so it should work.
-        DeclareMissingRegister(usedRegister); //e.g. registers that where declared in parent circuit
     }
 
     public void PushOperation(CircuitOperation operation)
@@ -186,16 +179,15 @@ public class QuantumCircuit(BackendProvider backendProvider, string? name = null
 
     public void DeclareQuantumVariable(string name, QuantumRegister register)
     {
-        if (LocalQuantumVariables.ContainsKey(name))
+        var registerName = this.Name + "_" + name;
+        if (LocalQuantumVariables.ContainsKey(registerName))
         {
             throw new InvalidOperationException($"Quantum variable with name {name} already declared.");
         }
 
-        register.Name ??= name;
-        register.Name = Name + "_" + register.Name; //Make sure the register name is unique by prefixing it with circuit name.
-
+        register.Name = registerName; //Make sure the register name is unique by prefixing it with circuit name.
         LocalRegisters.Add(register);
-        LocalQuantumVariables[name] = register;
+        LocalQuantumVariables[registerName] = register;
     }
 
     public void UpdateQuantumVariable(string name, QuantumRegister registerNewValue)
@@ -270,7 +262,7 @@ public class QuantumCircuit(BackendProvider backendProvider, string? name = null
             stringBuilder.AppendLine($"{Name} = QuantumCircuit({quantumRegisterNames})");
         }
 
-        if (IncludeClassicalBits)//TODO: add another bool to check whether state preparation must be done for this circuit.
+        if (HandleStatePreparation)
         {
             // Initialize qubits to desired state
             stringBuilder.AppendLine($"# Register initialization for {Name}");
@@ -322,40 +314,6 @@ public class QuantumCircuit(BackendProvider backendProvider, string? name = null
         filePath = filePath.Replace("\\", "/"); // For windows paths in python
         stringBuilder.AppendLine($"{circuitName}.decompose(reps={decomposeLevel}).draw(output='mpl', filename='{filePath}', style='iqp', fold=1000)");
         stringBuilder.AppendLine($"print('Quantum circuit image saved to: {filePath}')");
-    }
-
-    private HashSet<QuantumRegister> GetUsedRegister()
-    {
-        List<QuantumRegister> registerUsed = [];
-        foreach (var operation in Operations)
-        {
-            registerUsed.AddRange(operation.RegistersInvolved);
-        }
-
-        return registerUsed.ToHashSet();
-    }
-
-    private void FreeUnusedRegister(HashSet<QuantumRegister> qubitsUsed)
-    {
-        IEnumerable<QuantumRegister> registerDeclared = [..LocalRegisters];
-        foreach (var register in registerDeclared)
-        {
-            if (!qubitsUsed.Contains(register))
-            {
-                LocalRegisters.Remove(register);
-            }
-        }
-    }
-
-    private void DeclareMissingRegister(HashSet<QuantumRegister> usedRegisters)
-    {
-        foreach (var register in usedRegisters)
-        {
-            if (!LocalQuantumVariables.ContainsValue(register))
-            {
-                DeclareQuantumVariable(register.Name ?? VariableNameGuid.New("ancilla"), register);
-            }
-        }
     }
 }
 

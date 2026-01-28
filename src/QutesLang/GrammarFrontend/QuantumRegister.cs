@@ -2,10 +2,11 @@
 
 namespace QutesLang.GrammarFrontend;
 
-public class ClassicalRegister(int size)
+public class ClassicalRegister(QuantumRegister quantumRegister)
 {
-    public string? Name { get; set; }
-    public int Size { get; set; } = size;
+    public string Name => $"c_{QuantumRegister.Name}";
+    public int Size { get; set; } = quantumRegister.Qubits.Count;
+    public QuantumRegister QuantumRegister { get; } = quantumRegister;
 }
 
 public class QuantumRegister
@@ -14,7 +15,7 @@ public class QuantumRegister
     {
         Qubits = Enumerable.Range(0, size).Select(i => new CircuitQubit()).ToList();
         InitialStateVector = initialStateVector;
-        ClassicalRegister = new(Qubits.Count);
+        ClassicalRegister = new(this);
     }
 
     public QuantumRegister(IEnumerable<QuantumRegister> registers)
@@ -22,10 +23,10 @@ public class QuantumRegister
         Registers = registers.ToList();
         Qubits = registers.SelectMany(r => r.Qubits).ToList();
         InitialStateVector = null;
-        ClassicalRegister = new (Qubits.Count);
+        ClassicalRegister = new(this);
     }
 
-    public string? Name { get; set { field = value; ClassicalRegister.Name = $"c_{value}"; } }
+    public string Name { get; set; } = VariableNameGuid.New("qreg");
     public ClassicalRegister ClassicalRegister { get; set; }
 
     /// <summary>
