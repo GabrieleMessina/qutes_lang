@@ -159,16 +159,6 @@ public partial class QuintParser
 
         input = input.Replace(" ", string.Empty);
 
-        // Try Parsing as a Single Qubit Literal first
-        try
-        {
-            return QubitParser.Parse(input);
-        }
-        catch (ArgumentException)
-        {
-            // If it's not a single qubit, we proceed to Quint-specific rules
-        }
-
         var size = sizeInQubit ?? CompilerFlags.Current.QuintSizeInQubit;
         var bitCount = (int)Math.Pow(2, size);
 
