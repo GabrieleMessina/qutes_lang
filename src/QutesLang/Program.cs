@@ -114,7 +114,7 @@ static void RunProgram(CompilerFlags flags)
             Console.WriteLine("================ Execution ================");
         }
         var result = visitor.Visit(tree);
-        var pythonCode = circuitHandler.FinalizeProgram();
+        var pythonCode = circuitHandler.FinalizeProgram(flags.OutputPath);
 
         if (flags.PrintAst)
         {
@@ -125,10 +125,6 @@ static void RunProgram(CompilerFlags flags)
         {
             Console.WriteLine("================ Output ================");
             Console.WriteLine(pythonCode);
-        }
-        if (!string.IsNullOrWhiteSpace(flags.OutputPath))
-        {
-            File.WriteAllText(Path.Combine(flags.OutputPath, "output.py"), pythonCode);
         }
     }
     catch (Exception ex)

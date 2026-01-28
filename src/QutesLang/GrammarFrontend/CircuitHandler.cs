@@ -31,43 +31,47 @@ public class CircuitHandler : ICircuitHandler
         CircuitsDeclared.Push(MainCircuit);
     }
 
-    public string FinalizeProgram()
+    public string FinalizeProgram(string outputPath)
     {
         return BackendProvider switch
         {
-            BackendProvider.Qiskit => FinalizeQiskitProgram(),
+            BackendProvider.Qiskit => FinalizeQiskitProgram(outputPath),
             _ => throw new NotImplementedException($"Backend provider {BackendProvider} is not supported."),
         };
     }
 
-    private string FinalizeQiskitProgram()
+    private string FinalizeQiskitProgram(string outputPath)
     {
-        var stringBuilder = new StringBuilder();
+        var stringBuilderMain = new StringBuilder();
+        var stringBuilderLib = new StringBuilder();
 
-        stringBuilder.AppendLine("# Auto-generated Qiskit code from QutesLang");
+        // Library code
+        stringBuilderLib.AppendLine("# Auto-generated Qiskit code from QutesLang");
+        AppendPythonCode(stringBuilderLib);
+        File.WriteAllText(Path.Combine(outputPath, "QutesLib.py"), stringBuilderLib.ToString());
+
+        // Main program
+        stringBuilderMain.AppendLine("from QutesLib import *");
+        stringBuilderMain.AppendLine("from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister");
+        stringBuilderMain.AppendLine("from qiskit.circuit import Qubit");
+        stringBuilderMain.AppendLine("from qiskit.primitives import StatevectorSampler");
+        stringBuilderMain.AppendLine("from qiskit.circuit.library import StatePreparation, ModularAdderGate, grover_operator as GroverOperator");
 
         // in python, check that image folder exists or create it.
-        stringBuilder.AppendLine("import os");
-        stringBuilder.AppendLine($"os.makedirs(r'{CompilerFlags.Current.CircuitImagesFolder}', exist_ok=True)");
-
-        AppendPythonCode(stringBuilder);
-
-        stringBuilder.AppendLine("from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister");
-        stringBuilder.AppendLine("from qiskit.circuit import Qubit");
-        stringBuilder.AppendLine("from qiskit.primitives import StatevectorSampler");
-        stringBuilder.AppendLine("from qiskit.circuit.library import StatePreparation, ModularAdderGate, grover_operator as GroverOperator");
-
-        stringBuilder.AppendLine("# Operation Requirements");
+        stringBuilderMain.AppendLine("import os");
+        stringBuilderMain.AppendLine($"os.makedirs(r'{CompilerFlags.Current.CircuitImagesFolder}', exist_ok=True)");
+        
+        stringBuilderMain.AppendLine("# Operation Requirements");
         foreach (var circuit in CircuitsDeclared)
         {
-            ((QuantumCircuit)circuit).ApplyQiskitRequirements(stringBuilder);
+            ((QuantumCircuit)circuit).ApplyQiskitRequirements(stringBuilderMain);
         }
 
-        MainCircuit.FinalizeQiskitCircuit([], stringBuilder); // Finalize main circuit
+        MainCircuit.FinalizeQiskitCircuit([], stringBuilderMain); // Finalize main circuit
 
-        stringBuilder.AppendLine("# Qiskit execution");
-        stringBuilder.AppendLine("sampler = StatevectorSampler()");
-        stringBuilder.AppendLine($"result = sampler.run([{MainCircuit.Name}], shots={CompilerFlags.Current.NumberOfIterations}).result()");
+        stringBuilderMain.AppendLine("# Qiskit execution");
+        stringBuilderMain.AppendLine("sampler = StatevectorSampler()");
+        stringBuilderMain.AppendLine($"result = sampler.run([{MainCircuit.Name}], shots={CompilerFlags.Current.NumberOfIterations}).result()");
 
         var measuredVars = MainCircuit.Operations.Where(o => o is Measure).Select(m => m.Destination);
 
@@ -75,13 +79,15 @@ public class CircuitHandler : ICircuitHandler
         string VarSizes = string.Join(", ", measuredVars.Select(qv => $"'{qv.Register.Name}': {qv.Register.Qubits.Count}"));
         string VarToClreg = string.Join(", ", measuredVars.Select(qv => $"'{qv.Register.Name}': '{qv.Register.ClassicalRegister.Name}'"));
 
-        stringBuilder.AppendLine("# Result pretty print");
-        stringBuilder.AppendLine($"var_names = [{VarNames}]");
-        stringBuilder.AppendLine($"var_sizes = {{{VarSizes}}}");
-        stringBuilder.AppendLine($"var_to_clreg = {{{VarToClreg}}}");
-        stringBuilder.AppendLine("print_pretty_results_mapped(result, var_names, var_sizes, var_to_clreg)");
+        stringBuilderMain.AppendLine("# Result pretty print");
+        stringBuilderMain.AppendLine($"var_names = [{VarNames}]");
+        stringBuilderMain.AppendLine($"var_sizes = {{{VarSizes}}}");
+        stringBuilderMain.AppendLine($"var_to_clreg = {{{VarToClreg}}}");
+        stringBuilderMain.AppendLine("print_pretty_results_mapped(result, var_names, var_sizes, var_to_clreg)");
 
-        return stringBuilder.ToString();
+        var outputCode = stringBuilderMain.ToString();
+        File.WriteAllText(Path.Combine(outputPath, "output.py"), outputCode);
+        return outputCode;
     }
 
     private static void AppendPythonCode(StringBuilder stringBuilder)
