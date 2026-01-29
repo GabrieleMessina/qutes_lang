@@ -65,13 +65,13 @@ public class BoolValue(bool value) : ClassicalScalarValue
         }
         throw new InvalidOperationException($"Operation {operationName} cannot be applied to {term.Type} type.");
     }
-    public BoolValue Equals(IClassicalValue term) => new (this.Value == GetBoolValue(term));
-    public BoolValue NotEquals(IClassicalValue term) => new (this.Value != GetBoolValue(term));
+    public override BoolValue Equals(IClassicalValue term) => new (this.Value == GetBoolValue(term));
+    public override BoolValue NotEquals(IClassicalValue term) => new (this.Value != GetBoolValue(term));
 
-    public BoolValue And(IClassicalValue term) => new (this.Value && GetBoolValue(term));
-    public BoolValue Or(IClassicalValue term) => new (this.Value || GetBoolValue(term));
+    public override BoolValue And(IClassicalValue term) => new (this.Value && GetBoolValue(term));
+    public override BoolValue Or(IClassicalValue term) => new (this.Value || GetBoolValue(term));
 
-    public BoolValue Not() => new (!this.Value);
+    public override BoolValue Not() => new (!this.Value);
 
     public virtual bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
     {
@@ -127,27 +127,27 @@ public class IntValue(int value) : ClassicalScalarValue
     public static IntValue GetDefaultValue() => new(0);
     private static int GetIntValue(IClassicalValue term) => ((IntValue)term).Value;
 
-    public IQutesValue LeftShift(IntValue positions) => new IntValue(this.Value << GetIntValue(positions));
-    public IQutesValue RightShift(IntValue positions) => new IntValue(this.Value >> GetIntValue(positions));
+    public override IQutesValue LeftShift(IntValue positions) => new IntValue(this.Value << GetIntValue(positions));
+    public override IQutesValue RightShift(IntValue positions) => new IntValue(this.Value >> GetIntValue(positions));
 
-    public IQutesValue Addition(IClassicalValue term) => new IntValue(this.Value + GetIntValue(term));
-    public IQutesValue Subtraction(IClassicalValue term) => new IntValue(this.Value - GetIntValue(term));
-    public IQutesValue Multiply(IClassicalValue term) => new IntValue(this.Value * GetIntValue(term));
-    public IQutesValue Divide(IClassicalValue term) => new IntValue(this.Value / GetIntValue(term));
-    public IQutesValue Module(IClassicalValue term) => new IntValue(this.Value % GetIntValue(term));
+    public override IQutesValue Addition(IClassicalValue term) => new IntValue(this.Value + GetIntValue(term));
+    public override IQutesValue Subtraction(IClassicalValue term) => new IntValue(this.Value - GetIntValue(term));
+    public override IQutesValue Multiply(IClassicalValue term) => new IntValue(this.Value * GetIntValue(term));
+    public override IQutesValue Divide(IClassicalValue term) => new IntValue(this.Value / GetIntValue(term));
+    public override IQutesValue Module(IClassicalValue term) => new IntValue(this.Value % GetIntValue(term));
 
-    public BoolValue LowerThan(IClassicalValue term) => new(this.Value < GetIntValue(term));
-    public BoolValue LowerEqualThan(IClassicalValue term) => new(this.Value <= GetIntValue(term));
-    public BoolValue GreaterThan(IClassicalValue term) => new(this.Value > GetIntValue(term));
-    public BoolValue GreaterEqualThan(IClassicalValue term) => new(this.Value >= GetIntValue(term));
-    public BoolValue Equals(IClassicalValue term) => new(this.Value == GetIntValue(term));
-    public BoolValue NotEquals(IClassicalValue term) => new(this.Value != GetIntValue(term));
+    public override BoolValue LowerThan(IClassicalValue term) => new(this.Value < GetIntValue(term));
+    public override BoolValue LowerEqualThan(IClassicalValue term) => new(this.Value <= GetIntValue(term));
+    public override BoolValue GreaterThan(IClassicalValue term) => new(this.Value > GetIntValue(term));
+    public override BoolValue GreaterEqualThan(IClassicalValue term) => new(this.Value >= GetIntValue(term));
+    public override BoolValue Equals(IClassicalValue term) => new(this.Value == GetIntValue(term));
+    public override BoolValue NotEquals(IClassicalValue term) => new(this.Value != GetIntValue(term));
 
-    public IQutesValue Minus() => new IntValue(-this.Value);
-    public IQutesValue InplacePreIncrement() => new IntValue(++this.Value);
-    public IQutesValue InplacePreDecrement() => new IntValue(--this.Value);
-    public IQutesValue InplacePostIncrement() => new IntValue(this.Value++);
-    public IQutesValue InplacePostDecrement() => new IntValue(this.Value--);
+    public override IQutesValue Minus() => new IntValue(-this.Value);
+    public override IQutesValue InplacePreIncrement() => new IntValue(++this.Value);
+    public override IQutesValue InplacePreDecrement() => new IntValue(--this.Value);
+    public override IQutesValue InplacePostIncrement() => new IntValue(this.Value++);
+    public override IQutesValue InplacePostDecrement() => new IntValue(this.Value--);
 
     public virtual bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
     {
@@ -182,24 +182,24 @@ public class FloatValue(float value) : ClassicalScalarValue
         throw new InvalidOperationException($"Operation {operationName} cannot be applied to {term.Type} type.");
     }
 
-    public IQutesValue Addition(IClassicalValue term) => new FloatValue(this.Value + GetFloatValue(term));
-    public IQutesValue Subtraction(IClassicalValue term) => new FloatValue(this.Value - GetFloatValue(term));
-    public IQutesValue Multiply(IClassicalValue term) => new FloatValue(this.Value * GetFloatValue(term));
-    public IQutesValue Divide(IClassicalValue term) => new FloatValue(this.Value / GetFloatValue(term));
-    public IQutesValue Module(IClassicalValue term) => new FloatValue(this.Value % GetFloatValue(term));
+    public override IQutesValue Addition(IClassicalValue term) => new FloatValue(this.Value + GetFloatValue(term));
+    public override IQutesValue Subtraction(IClassicalValue term) => new FloatValue(this.Value - GetFloatValue(term));
+    public override IQutesValue Multiply(IClassicalValue term) => new FloatValue(this.Value * GetFloatValue(term));
+    public override IQutesValue Divide(IClassicalValue term) => new FloatValue(this.Value / GetFloatValue(term));
+    public override IQutesValue Module(IClassicalValue term) => new FloatValue(this.Value % GetFloatValue(term));
 
-    public BoolValue LowerThan(IClassicalValue term) => new(this.Value < GetFloatValue(term));
-    public BoolValue LowerEqualThan(IClassicalValue term) => new(this.Value <= GetFloatValue(term));
-    public BoolValue GreaterThan(IClassicalValue term) => new(this.Value > GetFloatValue(term));
-    public BoolValue GreaterEqualThan(IClassicalValue term) => new(this.Value >= GetFloatValue(term));
-    public BoolValue Equals(IClassicalValue term) => new(this.Value == GetFloatValue(term));
-    public BoolValue NotEquals(IClassicalValue term) => new(this.Value != GetFloatValue(term));
+    public override BoolValue LowerThan(IClassicalValue term) => new(this.Value < GetFloatValue(term));
+    public override BoolValue LowerEqualThan(IClassicalValue term) => new(this.Value <= GetFloatValue(term));
+    public override BoolValue GreaterThan(IClassicalValue term) => new(this.Value > GetFloatValue(term));
+    public override BoolValue GreaterEqualThan(IClassicalValue term) => new(this.Value >= GetFloatValue(term));
+    public override BoolValue Equals(IClassicalValue term) => new(this.Value == GetFloatValue(term));
+    public override BoolValue NotEquals(IClassicalValue term) => new(this.Value != GetFloatValue(term));
 
-    public IQutesValue Minus() => new FloatValue(-this.Value);
-    public IQutesValue InplacePreIncrement() => new FloatValue(++this.Value);
-    public IQutesValue InplacePreDecrement() => new FloatValue(--this.Value);
-    public IQutesValue InplacePostIncrement() => new FloatValue(this.Value++);
-    public IQutesValue InplacePostDecrement() => new FloatValue(this.Value--);
+    public override IQutesValue Minus() => new FloatValue(-this.Value);
+    public override IQutesValue InplacePreIncrement() => new FloatValue(++this.Value);
+    public override IQutesValue InplacePreDecrement() => new FloatValue(--this.Value);
+    public override IQutesValue InplacePostIncrement() => new FloatValue(this.Value++);
+    public override IQutesValue InplacePostDecrement() => new FloatValue(this.Value--);
 
     public virtual bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
     {
@@ -229,35 +229,28 @@ public class StringValue(string value) : ClassicalScalarValue
         throw new InvalidOperationException($"Operation {operationName} cannot be applied to {term.Type} type.");
     }
 
-    public IQutesValue LeftShift(IntValue positions)
+    public override IQutesValue LeftShift(IntValue positions)
     {
         var n = positions.Value % this.Value.Length;
         var result = this.Value[n..] + this.Value[..n].Reverse();
         return new StringValue(result);
     }
 
-    public IQutesValue RightShift(IntValue positions)
+    public override IQutesValue RightShift(IntValue positions)
     {
         var n = positions.Value % this.Value.Length;
         var result = this.Value[^n..] + this.Value[..^n];
         return new StringValue(result);
     }
 
-    public IQutesValue Addition(IClassicalValue term) => new StringValue(this.Value + GetStringValue(term));
-
-    public IQutesValue Subtraction(IClassicalValue term) => new StringValue(this.Value.Replace(GetStringValue(term), string.Empty));
-
-    public BoolValue LowerThan(IClassicalValue term) => new (string.Compare(this.Value, GetStringValue(term)) < 0);
-
-    public BoolValue LowerEqualThan(IClassicalValue term) => new (string.Compare(this.Value, GetStringValue(term)) <= 0);
-
-    public BoolValue GreaterThan(IClassicalValue term) => new (string.Compare(this.Value, GetStringValue(term)) > 0);
-
-    public BoolValue GreaterEqualThan(IClassicalValue term) => new (string.Compare(this.Value, GetStringValue(term)) >= 0);
-
-    public BoolValue Equals(IClassicalValue term) => new (this.Value == GetStringValue(term));
-
-    public BoolValue NotEquals(IClassicalValue term) => new (this.Value != GetStringValue(term));
+    public override IQutesValue Addition(IClassicalValue term) => new StringValue(this.Value + GetStringValue(term));
+    public override IQutesValue Subtraction(IClassicalValue term) => new StringValue(this.Value.Replace(GetStringValue(term), string.Empty));
+    public override BoolValue LowerThan(IClassicalValue term) => new(string.Compare(this.Value, GetStringValue(term)) < 0);
+    public override BoolValue LowerEqualThan(IClassicalValue term) => new(string.Compare(this.Value, GetStringValue(term)) <= 0);
+    public override BoolValue GreaterThan(IClassicalValue term) => new(string.Compare(this.Value, GetStringValue(term)) > 0);
+    public override BoolValue GreaterEqualThan(IClassicalValue term) => new(string.Compare(this.Value, GetStringValue(term)) >= 0);
+    public override BoolValue Equals(IClassicalValue term) => new (this.Value == GetStringValue(term));
+    public override BoolValue NotEquals(IClassicalValue term) => new (this.Value != GetStringValue(term));
 
     public virtual bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
     {
@@ -286,27 +279,117 @@ public class ClassicalArrayValue(IEnumerable<ValueSymbol> values, TypeSymbol ele
     public void SetValueFromObject(object value) => Values = (IEnumerable<ValueSymbol>)value;
     public static ClassicalArrayValue GetDefaultValue(TypeSymbol elementType) => new([], elementType);
 
-    public IQutesValue LeftShift(IntValue positions)
+    public virtual IQutesValue LeftShift(IntValue positions)
     {
         var n = positions.Value % Values.Count();
         var result = Values.Skip(n).Concat(Values.Take(n).Reverse());
-        return new ClassicalArrayValue(result);
+        return new ClassicalArrayValue(result, elementsType);
     }
 
-    public IQutesValue RightShift(IntValue positions)
+    public virtual IQutesValue RightShift(IntValue positions)
     {
         var n = positions.Value % Values.Count();
         var result = Values.Skip(Values.Count() - n).Concat(Values.Take(Values.Count() - n));
-        return new ClassicalArrayValue(result);
+        return new ClassicalArrayValue(result, elementsType);
     }
 
-    public IQutesValue Addition(IClassicalValue term) => new ClassicalArrayValue(Values.Concat(Values));
+    public virtual IQutesValue Addition(IClassicalValue term) => new ClassicalArrayValue(Values.Concat(Values), elementsType);
 
-    public IQutesValue Subtraction(IClassicalValue term) => new ClassicalArrayValue(Values.Except(Values));
+    public virtual IQutesValue Subtraction(IClassicalValue term) => new ClassicalArrayValue(Values.Except(Values), elementsType);
 
-    public BoolValue Equals(IClassicalValue term) => new(!Values.Any() && !Values.Except(Values).Any());
+    public virtual BoolValue Equals(IClassicalValue term) => new(!Values.Any() && !Values.Except(Values).Any());
 
-    public BoolValue NotEquals(IClassicalValue term) => new(Values.Any() || Values.Except(Values).Any());
+    public virtual BoolValue NotEquals(IClassicalValue term) => new(Values.Any() || Values.Except(Values).Any());
+
+    public virtual BoolValue And(IClassicalValue term)
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual IQutesValue Divide(IClassicalValue term)
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual IQutesValue Exp(IClassicalValue term)
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual BoolValue GreaterEqualThan(IClassicalValue term)
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual BoolValue GreaterThan(IClassicalValue term)
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual IQutesValue InplacePostDecrement()
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual IQutesValue InplacePostIncrement()
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual IQutesValue InplacePreDecrement()
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual IQutesValue InplacePreIncrement()
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual BoolValue LowerEqualThan(IClassicalValue term)
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual BoolValue LowerThan(IClassicalValue term)
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual IQutesValue Minus()
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual IQutesValue Module(IClassicalValue term)
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual IQutesValue Multiply(IClassicalValue term)
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual BoolValue Not()
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual BoolValue Or(IClassicalValue term)
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual IQutesValue Plus()
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual IQutesValue Swap(IClassicalValue term)
+    {
+        throw new NotImplementedException();
+    }
 }
 
 public class QubitValue() : QuantumScalarValue
@@ -344,9 +427,9 @@ public class QubitValue() : QuantumScalarValue
     public static QubitValue PlusState() => new(QubitParser.Parse("|+>"));
     public static QubitValue MinusState() => new(QubitParser.Parse("|->"));
 
-    public CircuitOperation And(IQuantumValue term) => new And(this, term, QubitValue.GetDefaultValue());
-    public CircuitOperation Or(IQuantumValue term) => new Or(this, term, QubitValue.GetDefaultValue());
-    public virtual CircuitOperation Not() => new Not(this);
+    public override CircuitOperation And(IQuantumValue term) => new And(this, term, QubitValue.GetDefaultValue());
+    public override CircuitOperation Or(IQuantumValue term) => new Or(this, term, QubitValue.GetDefaultValue());
+    public override CircuitOperation Not() => new Not(this);
 
     public virtual bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
     {
@@ -450,22 +533,22 @@ public class QuintValue : QuantumScalarValue
 
     public static QuintValue GetDefaultValue() => new();
 
-    public CircuitOperation Addition(IQuantumValue term) => new Addition(this, term, GetDefaultValue());
-    public CircuitOperation Subtraction(IQuantumValue term) => new Subtraction(this, term, GetDefaultValue());
-    public CircuitOperation Multiply(IQuantumValue term) => new Multiply(this, term, GetDefaultValue());
-    public CircuitOperation Divide(IQuantumValue term) => new Divide(this, term, GetDefaultValue());
-    public CircuitOperation Module(IQuantumValue term) => new Module(this, term, GetDefaultValue());
-
-    public CircuitOperation LowerThan(IQuantumValue term) => new LowerThan(this, term, QubitValue.GetDefaultValue());
-    public CircuitOperation LowerEqualThan(IQuantumValue term) => new LowerEqualThan(this, term, QubitValue.GetDefaultValue());
-    public CircuitOperation GreaterThan(IQuantumValue term) => new GreaterThan(this, term, QubitValue.GetDefaultValue());
-    public CircuitOperation GreaterEqualThan(IQuantumValue term) => new GreaterEqualThan(this, term, QubitValue.GetDefaultValue());
-
-    public CircuitOperation Minus() => new TwosComplement(this, GetDefaultValue());
-    public CircuitOperation InplacePreIncrement() => new Addition(this, this, new QuintValue(1));
-    public CircuitOperation InplacePostIncrement() => new Addition(this, this, new QuintValue(1));
-    public CircuitOperation InplacePreDecrement() => new Subtraction(this, this, new QuintValue(1));
-    public CircuitOperation InplacePostDecrement() => new Subtraction(this, this, new QuintValue(1));
+    public override CircuitOperation Addition(IQuantumValue term) => new Addition(this, term, GetDefaultValue());
+    public override CircuitOperation Subtraction(IQuantumValue term) => new Subtraction(this, term, GetDefaultValue());
+    public override CircuitOperation Multiply(IQuantumValue term) => new Multiply(this, term, GetDefaultValue());
+    public override CircuitOperation Divide(IQuantumValue term) => new Divide(this, term, GetDefaultValue());
+    public override CircuitOperation Module(IQuantumValue term) => new Module(this, term, GetDefaultValue());
+           
+    public override CircuitOperation LowerThan(IQuantumValue term) => new LowerThan(this, term, QubitValue.GetDefaultValue());
+    public override CircuitOperation LowerEqualThan(IQuantumValue term) => new LowerEqualThan(this, term, QubitValue.GetDefaultValue());
+    public override CircuitOperation GreaterThan(IQuantumValue term) => new GreaterThan(this, term, QubitValue.GetDefaultValue());
+    public override CircuitOperation GreaterEqualThan(IQuantumValue term) => new GreaterEqualThan(this, term, QubitValue.GetDefaultValue());
+           
+    public override CircuitOperation Minus() => new TwosComplement(this, GetDefaultValue());
+    public override CircuitOperation InplacePreIncrement() => new Addition(this, this, new QuintValue(1));
+    public override CircuitOperation InplacePostIncrement() => new Addition(this, this, new QuintValue(1));
+    public override CircuitOperation InplacePreDecrement() => new Subtraction(this, this, new QuintValue(1));
+    public override CircuitOperation InplacePostDecrement() => new Subtraction(this, this, new QuintValue(1));
 
     public virtual bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
     {
@@ -491,25 +574,27 @@ public class QuintValue : QuantumScalarValue
 
 public class QustringValue(string initialValue) : QuantumArrayValue(initialValue.Select(c => AnonymousValueSymbol.Default(new QucharValue(c))).ToList(), TypeSymbol.Quchar)
 {
-    public CircuitOperation LowerThan(IQuantumValue term) => new LowerThan(this, term, QubitValue.GetDefaultValue());
-    public CircuitOperation LowerEqualThan(IQuantumValue term) => new LowerEqualThan(this, term, QubitValue.GetDefaultValue());
-    public CircuitOperation GreaterThan(IQuantumValue term) => new GreaterThan(this, term, QubitValue.GetDefaultValue());
-    public CircuitOperation GreaterEqualThan(IQuantumValue term) => new GreaterEqualThan(this, term, QubitValue.GetDefaultValue());
+    public override CircuitOperation LowerThan(IQuantumValue term) => new LowerThan(this, term, QubitValue.GetDefaultValue());
+    public override CircuitOperation LowerEqualThan(IQuantumValue term) => new LowerEqualThan(this, term, QubitValue.GetDefaultValue());
+    public override CircuitOperation GreaterThan(IQuantumValue term) => new GreaterThan(this, term, QubitValue.GetDefaultValue());
+    public override CircuitOperation GreaterEqualThan(IQuantumValue term) => new GreaterEqualThan(this, term, QubitValue.GetDefaultValue());
+
     public static QustringValue GetDefaultValue() => new(string.Empty);
 }
 
 public class QuantumArrayValue : ArrayValue, IQuantumValue
 {
-    public QuantumArrayValue(IEnumerable<ValueSymbol> values)
+    public QuantumArrayValue(IEnumerable<ValueSymbol> values, TypeSymbol elementType)
     {
         Values = values;
         Register = new(Values.Select(v => v.Value).Cast<IQuantumValue>().Select(v => v.Register));
         Size = Register.Qubits.Count;
         Count = Values.Count();
         SingleElementSize = Count > 0 ? Size / Count : 0;
+        Type = new(QutesType.quantumArray, elementType);
     }
 
-    public override TypeSymbol Type => new (QutesType.quantumArray, Values.FirstOrDefault()?.Type);
+    public override TypeSymbol Type { get; }
 
     /// <summary>
     /// Total size in qubits of the Quantum Array
@@ -528,10 +613,121 @@ public class QuantumArrayValue : ArrayValue, IQuantumValue
     public QuantumRegister Register { get; }
     public override IEnumerable<ValueSymbol> Values { get; protected set; }
 
-    public static QuantumArrayValue GetDefaultValue() => new([]);
+    public static QuantumArrayValue GetDefaultValue(TypeSymbol elementsType) => new([], elementsType);
 
-    public CircuitOperation LeftShift(QuintValue positions) => new LeftShift(this, positions);
-    public CircuitOperation LeftShift(IntValue positions) => new LeftShift(this, positions);
-    public CircuitOperation RightShift(QuintValue positions) => new RightShift(this, positions);
-    public CircuitOperation RightShift(IntValue positions) => new RightShift(this, positions);
+    public virtual CircuitOperation Addition(IQuantumValue term)
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual CircuitOperation And(IQuantumValue term)
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual CircuitOperation Divide(IQuantumValue term)
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual CircuitOperation Exp(IQuantumValue term)
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual CircuitOperation GreaterEqualThan(IQuantumValue term)
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual CircuitOperation GreaterThan(IQuantumValue term)
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual CircuitOperation InplacePostDecrement()
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual CircuitOperation InplacePostIncrement()
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual CircuitOperation InplacePreDecrement()
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual CircuitOperation InplacePreIncrement()
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual CircuitOperation LeftShift(QuintValue positions) => new LeftShift(this, positions);
+    public virtual CircuitOperation LeftShift(IntValue positions) => new LeftShift(this, positions);
+
+    public virtual CircuitOperation LowerEqualThan(IQuantumValue term)
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual CircuitOperation LowerThan(IQuantumValue term)
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual CircuitOperation Minus()
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual CircuitOperation Module(IQuantumValue term)
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual CircuitOperation Multiply(IQuantumValue term)
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual CircuitOperation Not()
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual CircuitOperation NotEquals(IQuantumValue term)
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual CircuitOperation Equals(IQuantumValue term)
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual CircuitOperation Or(IQuantumValue term)
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual CircuitOperation Plus()
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual CircuitOperation RightShift(QuintValue positions) => new RightShift(this, positions);
+    public virtual CircuitOperation RightShift(IntValue positions) => new RightShift(this, positions);
+
+    public virtual CircuitOperation Subtraction(IQuantumValue term)
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual CircuitOperation Swap(IQuantumValue term)
+    {
+        throw new NotImplementedException();
+    }
 }
