@@ -20,8 +20,8 @@ public class Symbol(Scope scope, int astTokenIndex)
 public class FunctionSymbol(string qualifiedName, ValueSymbol? outputSymbol, IEnumerable<ValueSymbol> inputParamTypes, TypeSymbol outputType, IQuantumCircuit gate, StatementContext body, FunctionDeclarationParamsContext? variableDeclaration, Scope innerScope, int astTokenIndex) : Symbol(innerScope, astTokenIndex)
 {
     public string QualifiedName { get; } = qualifiedName;
-    public ValueSymbol? OutputSymbol { get; } = outputSymbol; //null for void functions.
-    public IEnumerable<ValueSymbol> InputParamTypes { get; } = inputParamTypes; //symbols already declared for the function to work on.
+    public ValueSymbol? OutputSymbol { get; set; } = outputSymbol; //null for void functions.
+    public IEnumerable<ValueSymbol> InputParamTypes { get; set; } = inputParamTypes; //symbols already declared for the function to work on.
     public TypeSymbol OutputType { get; } = outputType;
     public StatementContext Body { get; } = body;
     public FunctionDeclarationParamsContext? VariableDeclaration { get; } = variableDeclaration;

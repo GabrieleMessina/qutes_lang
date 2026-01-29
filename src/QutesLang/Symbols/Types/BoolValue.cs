@@ -276,15 +276,15 @@ public class StringValue(string value) : ClassicalScalarValue
     }
 }
 
-public class ClassicalArrayValue(IEnumerable<ValueSymbol> values) : ArrayValue, IClassicalValue
+public class ClassicalArrayValue(IEnumerable<ValueSymbol> values, TypeSymbol elementsType) : ArrayValue, IClassicalValue
 {
     public override IEnumerable<ValueSymbol> Values { get; protected set; } = values;
 
-    public override TypeSymbol Type => new (QutesType.classicalArray, Values.FirstOrDefault()?.Type);
+    public override TypeSymbol Type { get; } = new(QutesType.classicalArray, elementsType);
 
     public object GetValueAsObject() => Values;
     public void SetValueFromObject(object value) => Values = (IEnumerable<ValueSymbol>)value;
-    public static ClassicalArrayValue GetDefaultValue() => new([]);
+    public static ClassicalArrayValue GetDefaultValue(TypeSymbol elementType) => new([], elementType);
 
     public IQutesValue LeftShift(IntValue positions)
     {
@@ -489,12 +489,13 @@ public class QuintValue : QuantumScalarValue
     }
 }
 
-public class QustringValue(string initialValue) : QuantumArrayValue(initialValue.Select(c => AnonymousValueSymbol.Default(new QucharValue(c))).ToList())
+public class QustringValue(string initialValue) : QuantumArrayValue(initialValue.Select(c => AnonymousValueSymbol.Default(new QucharValue(c))).ToList(), TypeSymbol.Quchar)
 {
     public CircuitOperation LowerThan(IQuantumValue term) => new LowerThan(this, term, QubitValue.GetDefaultValue());
     public CircuitOperation LowerEqualThan(IQuantumValue term) => new LowerEqualThan(this, term, QubitValue.GetDefaultValue());
     public CircuitOperation GreaterThan(IQuantumValue term) => new GreaterThan(this, term, QubitValue.GetDefaultValue());
     public CircuitOperation GreaterEqualThan(IQuantumValue term) => new GreaterEqualThan(this, term, QubitValue.GetDefaultValue());
+    public static QustringValue GetDefaultValue() => new(string.Empty);
 }
 
 public class QuantumArrayValue : ArrayValue, IQuantumValue

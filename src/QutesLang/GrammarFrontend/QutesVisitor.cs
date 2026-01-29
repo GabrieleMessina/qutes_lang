@@ -67,8 +67,8 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
             QutesType.quinteger => QuintValue.GetDefaultValue(),
             QutesType.qucharacter => QucharValue.GetDefaultValue(),
             QutesType.qustring => QustringValue.GetDefaultValue(),
-            QutesType.classicalArray => ClassicalArrayValue.GetDefaultValue(),
-            QutesType.quantumArray => QuantumArrayValue.GetDefaultValue(),
+            QutesType.classicalArray => ClassicalArrayValue.GetDefaultValue(varTypeSymbol.NestedValue!),
+            QutesType.quantumArray => QuantumArrayValue.GetDefaultValue(varTypeSymbol.NestedValue!),
             QutesType.@void => VoidValue.GetDefaultValue(),
             QutesType.tuple => throw new NotImplementedException(),
             QutesType.@class => throw new NotImplementedException(),
@@ -291,11 +291,11 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                 functionParamsValues =
                     functionParams == null
                         ? []
-                        : Visit(context.functionDeclarationParams()).Contains<TupleValue>().Values.As<ValueSymbol>();
+                        : Visit(context.functionDeclarationParams()).Contains<TupleValue>().Values.ToList();
                 bodyStatementReturnValue = (ValueSymbol?)Visit(functionBody); //TODO: how to handle classical ops inside quantum body.
-                handlingReturnStatement = false;
             }
             circuitHandler.AddDependentCircuit(quantumBodyCircuit);
+            handlingReturnStatement = false;
         }
 
         var functionScope = scopeHandler.PopScope();
@@ -318,6 +318,24 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
         var functionSymbol = scopeHandler.GetCurrentScope().ResolveFunction(qualifiedName);
 
+        IQuantumCircuit functionCircuit = functionSymbol.Gate; //we cannot re-use the same circuit (e.g. different array as input params want different gate implementation if have different count of elements.)
+        if (CompilerFlags.Current.VisitFunctionBodyAtEachCall)
+        {
+            scopeHandler.PushScope(functionSymbol.InnerScope);
+            functionCircuit = circuitHandler.DeclareNewQuantumGate(qualifiedName);
+            using (var circuitContext = circuitHandler.SetCurrentContext(functionCircuit)) //We want operations to be pushed on the body.
+            {
+                functionSymbol.InputParamTypes =
+                    functionSymbol.VariableDeclaration == null
+                        ? []
+                        : Visit(functionSymbol.VariableDeclaration).Contains<TupleValue>().Values.ToList();
+                functionSymbol.OutputSymbol = (ValueSymbol?)Visit(functionSymbol.Body); //TODO: how to handle classical ops inside quantum body.
+            }
+            circuitHandler.AddDependentCircuit(functionCircuit);
+            handlingReturnStatement = false;
+            scopeHandler.PopScope();
+        }
+
         //check that the number of parameters match
         if (functionSymbol.InputParamTypes.Count() != providedParamsValues.Count)
         {
@@ -336,33 +354,11 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
             }
         }
 
-        Symbol? bodyStatementReturnValue = functionSymbol.OutputSymbol;
-        ICollection<ValueSymbol> functionParamsValues = functionSymbol.InputParamTypes.ToList();
-        if (CompilerFlags.Current.VisitFunctionBodyAtEachCall)
-        {
-            scopeHandler.PushScope(functionSymbol.InnerScope);
+        circuitHandler.PushOperation(new ComposeCircuit(functionCircuit, providedParamsValues.Where(p => p.Value.Type.IsQuantum()).Select(v => ((IQuantumValue)v.Value).Register).ToList()));
 
-            var quantumBodyCircuit = circuitHandler.DeclareNewQuantumGate(functionSymbol.QualifiedName);
-            using (var circuitContext = circuitHandler.SetCurrentContext(quantumBodyCircuit)) //We want operations to be pushed on the body.
-            {
-                functionParamsValues =
-                    functionSymbol.VariableDeclaration == null
-                        ? []
-                        : Visit(functionSymbol.VariableDeclaration).Contains<TupleValue>().Values.As<ValueSymbol>();
-                bodyStatementReturnValue = Visit(functionSymbol.Body); //TODO: how to handle classical ops inside quantum body.
-            }
-            circuitHandler.AddDependentCircuit(quantumBodyCircuit);
-            handlingReturnStatement = false;
-            scopeHandler.PopScope();
-        }
-        else
+        if(functionSymbol.OutputSymbol != null)
         {
-            circuitHandler.PushOperation(new ComposeCircuit(functionSymbol.Gate, providedParamsValues.Where(p => p.Value.Type.IsQuantum()).Select(v => ((IQuantumValue)v.Value).Register).ToList()));
-        }
-
-        if(bodyStatementReturnValue != null)
-        {
-            var outputSymbol = bodyStatementReturnValue.As<ValueSymbol>();
+            var outputSymbol = functionSymbol.OutputSymbol.As<ValueSymbol>();
 
             if(outputSymbol.Type != functionSymbol.OutputType)
             {
@@ -512,21 +508,21 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
     public override Symbol VisitArrayExpression(qutes_parser.ArrayExpressionContext context)
     {
         var elements = Visit(context.termList()).Contains<TupleValue>().Values.As<ValueSymbol>().ToList();
-        var arrayType = elements.First().Type;
+        var elementsType = elements.First().Type;
 
         //ensure all elements are of the same type or can be casted to the same type
         foreach (var (element, index) in elements.Select((value, i) => (value, i)).ToList())
         {
-            elements[index] = CastValueToType(element, arrayType);
+            elements[index] = CastValueToType(element, elementsType);
         }
 
-        if (arrayType.IsQuantum())
+        if (elementsType.IsQuantum())
         {
-            return new AnonymousValueSymbol(new QuantumArrayValue(elements), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+            return new AnonymousValueSymbol(new QuantumArrayValue(elements, elementsType), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
         }
         else
         {
-            return new AnonymousValueSymbol(new ClassicalArrayValue(elements), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+            return new AnonymousValueSymbol(new ClassicalArrayValue(elements, elementsType), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
         }
 
         throw new InvalidOperationException("Array elements must be of quantum or classical types.");

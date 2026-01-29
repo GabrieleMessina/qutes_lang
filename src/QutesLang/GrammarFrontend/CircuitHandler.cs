@@ -148,6 +148,7 @@ public class QuantumCircuit(BackendProvider backendProvider, string? name = null
     public virtual List<CircuitOperation> Operations { get; protected set; } = [];
     public virtual Dictionary<string, QuantumRegister> LocalQuantumVariables { get; protected set; } = [];
     public virtual List<QuantumRegister> LocalRegisters => Operations.SelectMany(op => op.RegistersInvolved).Distinct().ToList();
+    public virtual List<QuantumRegister> FunctionParameters { get; set; } = [];
     public BackendProvider BackendProvider { get; } = backendProvider;
     public bool IncludeClassicalBits { get; } = includeClassicalBits; //Some circuits (sub-circuits) may not need classical bits, e.g. circuits that should be composed with GroverOperator since GroverOperator doesn't allow coposition with circuit with classical registers.
     public bool HandleStatePreparation { get; } = handleStatePreparation;

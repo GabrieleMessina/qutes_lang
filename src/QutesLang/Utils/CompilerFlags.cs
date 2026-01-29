@@ -27,7 +27,12 @@ public class CompilerFlags
     /// In the second case, we create a new gate at each function call, so classic operations are re-evaluated
     /// but we create multiple gates for the same function.
     /// </summary>
-    public bool VisitFunctionBodyAtEachCall { get; set; } = false;
+    /// <remarks>
+    /// if the function tries to acces an input param that is an array, this call throws because the array is empty and we don't have any idea how many elemnts will be in there.
+    /// and we can't create the circuit gate ither, because we don't now how many quantum register there will be inside.
+    /// i thing this 2 considerations will allow me to take a decision about this flag.
+    /// </remarks>
+    public bool VisitFunctionBodyAtEachCall { get; set; } = true;
 
 
     #endregion FeatureFlags
