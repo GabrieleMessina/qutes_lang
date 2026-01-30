@@ -291,7 +291,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                 functionParamsValues =
                     functionParams == null
                         ? []
-                        : Visit(context.functionDeclarationParams()).Contains<TupleValue>().Values.ToList();
+                        : Visit(context.functionDeclarationParams()).Contains<TupleValue>().Values.As<ValueSymbol>().ToList();
                 bodyStatementReturnValue = (ValueSymbol?)Visit(functionBody); //TODO: how to handle classical ops inside quantum body.
             }
             circuitHandler.AddDependentCircuit(quantumBodyCircuit);
@@ -325,10 +325,20 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
             functionCircuit = circuitHandler.DeclareNewQuantumGate(qualifiedName);
             using (var circuitContext = circuitHandler.SetCurrentContext(functionCircuit)) //We want operations to be pushed on the body.
             {
-                functionSymbol.InputParamTypes =
-                    functionSymbol.VariableDeclaration == null
-                        ? []
-                        : Visit(functionSymbol.VariableDeclaration).Contains<TupleValue>().Values.ToList();
+                if (!functionSymbol.InputParamTypes.Any()) //declare quantum registers only once.
+                {
+                    functionSymbol.InputParamTypes =
+                        functionSymbol.VariableDeclaration == null
+                            ? []
+                            : Visit(functionSymbol.VariableDeclaration).Contains<TupleValue>().Values.As<ValueSymbol>().ToList();
+                }
+
+                //TODO: the check on input params number and type should be done here not after.
+                foreach(var (param, index) in functionSymbol.InputParamTypes.Select((param, index) => (param, index)))
+                {
+                    param.Value = providedParamsValues[index].Value;
+                }
+
                 functionSymbol.OutputSymbol = (ValueSymbol?)Visit(functionSymbol.Body); //TODO: how to handle classical ops inside quantum body.
             }
             circuitHandler.AddDependentCircuit(functionCircuit);
