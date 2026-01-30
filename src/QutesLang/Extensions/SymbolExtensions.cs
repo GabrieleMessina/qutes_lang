@@ -26,7 +26,7 @@ public static class SymbolExtensions
     /// <typeparam name="T">The type to which all symbols in the sequence must be assignable. Must derive from Symbol.</typeparam>
     /// <param name="symbols">The sequence of symbols to cast to type T. All elements must be assignable to T.</param>
     /// <returns>An enumerable collection of symbols cast to type T.</returns>
-    public static ICollection<T> As<T>(this IEnumerable<Symbol> symbols) where T : Symbol
+    public static ICollection<T> As<T>(this IEnumerable<Symbol> symbols) where T : Symbol //TODO: interface is not easy to understand, probably a rename could improve.
     {
         return [..QutesLanguageGuard.AreAllAssignableToType<T>(symbols, nameof(symbols))];
     }
