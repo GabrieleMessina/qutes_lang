@@ -244,14 +244,20 @@ public class Or(IQuantumValue a, IQuantumValue b, IQuantumValue destination) : C
 {
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
-        //TODO: implemement quantum OR operation.
+        var size = a.Size + b.Size;
+        var gateName = "or_gate_" + size;
+        stringBuilder.AppendLine($"{gateName} = OrGate({size})");
+        AddGateInCircuit(circuit, gateName, [.. a.Register.Qubits, .. b.Register.Qubits, .. Destination.Register.Qubits], stringBuilder);
     }
 }
 public class And(IQuantumValue a, IQuantumValue b, IQuantumValue destination) : CircuitOperation([a.Register, b.Register, destination.Register], destination)
 {
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
-        //TODO: implemement quantum AND operation.
+        var size = a.Size + b.Size;
+        var gateName = "and_gate_" + size;
+        stringBuilder.AppendLine($"{gateName} = AndGate({size})");
+        AddGateInCircuit(circuit, gateName, [.. a.Register.Qubits, .. b.Register.Qubits, .. Destination.Register.Qubits], stringBuilder);
     }
 }
 public class Not(IQuantumValue target) : CircuitOperation([target.Register], target)
@@ -471,9 +477,28 @@ public class Subtraction(IQuantumValue a, IQuantumValue b, IQuantumValue destina
 
 public class Multiply(IQuantumValue a, IQuantumValue b, IQuantumValue destination) : CircuitOperation([a.Register, b.Register, destination.Register], destination)
 {
+    private readonly int size = Math.Min(a.Size, b.Size);
+    private static bool ReguirementsApplied = false;
+    private static readonly string GateName = "multiplier";
+
+    public override void ApplyQiskitRequirements(StringBuilder stringBuilder)
+    {
+        if (!ReguirementsApplied)
+        {
+            ReguirementsApplied = true;
+            stringBuilder.AppendLine($"{GateName} = MultiplierGate(num_state_qubits = {size}, num_result_qubits = {size})"); //We don't handle overflow
+        }
+    }
+
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
-        //TODO: implemement quantum Multiply operation.
+        if (a == Destination || b == Destination || a == b)
+        {
+            throw new InvalidOperationException("Multiply must be executed on 3 different registers.");
+        }
+
+        //TODO: gate crash if num_result_qubits is not 2*num_state_qubits, we need a way to make the computation and then drop qubits.
+        AddGateInCircuit(circuit, GateName, [.. a.Register.Qubits[..size], .. b.Register.Qubits[..size], .. Destination.Register.Qubits[..size]], stringBuilder);
     }
 }
 public class Divide(IQuantumValue a, IQuantumValue b, IQuantumValue destination) : CircuitOperation([a.Register, b.Register, destination.Register], destination)

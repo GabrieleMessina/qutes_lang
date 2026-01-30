@@ -55,7 +55,7 @@ public class CircuitHandler : ICircuitHandler
         stringBuilderMain.AppendLine("from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister");
         stringBuilderMain.AppendLine("from qiskit.circuit import Qubit");
         stringBuilderMain.AppendLine("from qiskit.primitives import StatevectorSampler");
-        stringBuilderMain.AppendLine("from qiskit.circuit.library import StatePreparation, ModularAdderGate, grover_operator as GroverOperator");
+        stringBuilderMain.AppendLine("from qiskit.circuit.library import StatePreparation, ModularAdderGate, MultiplierGate, OrGate, AndGate, grover_operator as GroverOperator");
 
         // in python, check that image folder exists or create it.
         stringBuilderMain.AppendLine("import os");
@@ -148,7 +148,6 @@ public class QuantumCircuit(BackendProvider backendProvider, string? name = null
     public virtual List<CircuitOperation> Operations { get; protected set; } = [];
     public virtual Dictionary<string, QuantumRegister> LocalQuantumVariables { get; protected set; } = [];
     public virtual List<QuantumRegister> LocalRegisters => Operations.SelectMany(op => op.RegistersInvolved).Distinct().ToList();
-    public virtual List<QuantumRegister> FunctionParameters { get; set; } = [];
     public BackendProvider BackendProvider { get; } = backendProvider;
     public bool IncludeClassicalBits { get; } = includeClassicalBits; //Some circuits (sub-circuits) may not need classical bits, e.g. circuits that should be composed with GroverOperator since GroverOperator doesn't allow coposition with circuit with classical registers.
     public bool HandleStatePreparation { get; } = handleStatePreparation;
