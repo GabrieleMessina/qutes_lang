@@ -625,9 +625,9 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
             case IQuantumValue leftValue when rightSymbol.Value is IQuantumValue rightValue:
                 {
                     var operation
-                       = context.MULTIPLY() != null ? leftValue.Addition(rightValue)
-                       : context.DIVIDE() != null ? leftValue.Subtraction(rightValue)
-                       : context.MODULE() != null ? leftValue.Subtraction(rightValue)
+                       = context.MULTIPLY() != null ? leftValue.Multiply(rightValue)
+                       : context.DIVIDE() != null ? leftValue.Divide(rightValue)
+                       : context.MODULE() != null ? leftValue.Module(rightValue)
                        : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
                     var destinationSymbol = new AnonymousValueSymbol(operation.Destination, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
                     circuitHandler.PushOperation(operation);
@@ -637,9 +637,9 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
             case IClassicalValue leftValue when rightSymbol.Value is IClassicalValue rightValue:
                 {
                     var result
-                        = context.MULTIPLY() != null ? leftValue.Addition(rightValue)
-                        : context.DIVIDE() != null ? leftValue.Subtraction(rightValue)
-                        : context.MODULE() != null ? leftValue.Subtraction(rightValue)
+                        = context.MULTIPLY() != null ? leftValue.Multiply(rightValue)
+                        : context.DIVIDE() != null ? leftValue.Divide(rightValue)
+                        : context.MODULE() != null ? leftValue.Module(rightValue)
                         : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
                     return new AnonymousValueSymbol(result, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
                 }
