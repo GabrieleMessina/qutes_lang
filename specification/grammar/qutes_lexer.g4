@@ -154,14 +154,14 @@ QUSTRING_LITERAL
 
 
 SYMBOL_LITERAL
-   : [a-z_][a-z0-9_]*
+   : [a-zA-Z_][a-zA-Z0-9_]*
    ;
 
-STRING_LITERAL
+STRING_LITERAL //this match "something""somethingelse"
    :  '"' ('\\' . | '""' | ~["\\])* '"'
    ;
 
-//STRING_LITERAL
+//STRING_LITERAL //this doesn't match "something""somethingelse"
 //   : '"' ( EscapeSequence | ~["\\\r\n] )* '"'
 //   ;
 
