@@ -88,6 +88,53 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         scopeHandler.GetCurrentScope().DefineFunction(symbol);
     }
 
+    /// <summary>
+    /// Helper method to handle binary operator patterns, reducing code duplication across operator visitors.
+    /// </summary>
+    /// <param name="context">The parser context for location info</param>
+    /// <param name="leftSymbol">The left operand symbol</param>
+    /// <param name="rightSymbol">The right operand symbol</param>
+    /// <param name="quantumOp">Function to create the quantum circuit operation</param>
+    /// <param name="classicalOp">Function to compute the classical result</param>
+    /// <param name="operatorText">The operator text for error messages</param>
+    /// <param name="requireSameType">Whether to require both operands to have the same type</param>
+    /// <returns>The result symbol</returns>
+    private Symbol HandleBinaryOperator(
+        ParserRuleContext context,
+        ValueSymbol leftSymbol,
+        ValueSymbol rightSymbol,
+        Func<IQuantumValue, IQuantumValue, CircuitOperation> quantumOp,
+        Func<IClassicalValue, IClassicalValue, IQutesValue> classicalOp,
+        string operatorText,
+        bool requireSameType = true)
+    {
+        if (requireSameType && leftSymbol.Value.Type != rightSymbol.Value.Type)
+        {
+            throw new InvalidOperationException($"Cannot apply operator '{operatorText}' between different types '{leftSymbol.Type}' and '{rightSymbol.Type}'.");
+        }
+
+        switch (leftSymbol.Value)
+        {
+            case IQuantumValue leftValue when rightSymbol.Value is IQuantumValue rightValue:
+                {
+                    var operation = quantumOp(leftValue, rightValue);
+                    var destinationSymbol = new AnonymousValueSymbol(operation.Destination, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+                    circuitHandler.PushOperation(operation);
+                    return destinationSymbol;
+                }
+
+            case IClassicalValue leftValue when rightSymbol.Value is IClassicalValue rightValue:
+                {
+                    var result = classicalOp(leftValue, rightValue);
+                    return new AnonymousValueSymbol(result, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+                }
+
+            default:
+                throw new InvalidOperationException($"Cannot apply operator '{operatorText}' to type '{leftSymbol.Type}'.");
+        }
+    }
+
+
     public override Symbol VisitProgram(qutes_parser.ProgramContext context)
     {
         scopeHandler.PushScope(scopeHandler.CreateScope("MainScope"));
@@ -624,76 +671,38 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
     {
         var leftSymbol = Visit(context.expr(0)).As<ValueSymbol>();
         var rightSymbol = Visit(context.expr(1)).As<ValueSymbol>();
-
-        if (leftSymbol.Value.Type != rightSymbol.Value.Type)
-        {
-            throw new InvalidOperationException($"Cannot apply logical operator '{context.op.Text}' between different types '{leftSymbol.Type}' and '{rightSymbol.Type}'.");
-        }
-
-        switch (leftSymbol.Value)
-        {
-            case IQuantumValue leftValue when rightSymbol.Value is IQuantumValue rightValue:
-                {
-                    var operation
-                       = context.MULTIPLY() != null ? leftValue.Multiply(rightValue)
-                       : context.DIVIDE() != null ? leftValue.Divide(rightValue)
-                       : context.MODULE() != null ? leftValue.Module(rightValue)
-                       : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
-                    var destinationSymbol = new AnonymousValueSymbol(operation.Destination, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
-                    circuitHandler.PushOperation(operation);
-                    return destinationSymbol;
-                }
-
-            case IClassicalValue leftValue when rightSymbol.Value is IClassicalValue rightValue:
-                {
-                    var result
-                        = context.MULTIPLY() != null ? leftValue.Multiply(rightValue)
-                        : context.DIVIDE() != null ? leftValue.Divide(rightValue)
-                        : context.MODULE() != null ? leftValue.Module(rightValue)
-                        : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
-                    return new AnonymousValueSymbol(result, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
-                }
-
-            default:
-                throw new InvalidOperationException($"Cannot apply operator '{context.op.Text}' to type '{leftSymbol.Type}'.");
-        }
+        
+        return HandleBinaryOperator(
+            context, leftSymbol, rightSymbol,
+            quantumOp: (left, right) =>
+                context.MULTIPLY() != null ? left.Multiply(right)
+                : context.DIVIDE() != null ? left.Divide(right)
+                : context.MODULE() != null ? left.Module(right)
+                : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'."),
+            classicalOp: (left, right) =>
+                context.MULTIPLY() != null ? left.Multiply(right)
+                : context.DIVIDE() != null ? left.Divide(right)
+                : context.MODULE() != null ? left.Module(right)
+                : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'."),
+            operatorText: context.op.Text);
     }
 
     public override Symbol VisitSumOperator(qutes_parser.SumOperatorContext context)
     {
         var leftSymbol = Visit(context.expr(0)).As<ValueSymbol>();
         var rightSymbol = Visit(context.expr(1)).As<ValueSymbol>();
-
-        if (leftSymbol.Value.Type != rightSymbol.Value.Type)
-        {
-            throw new InvalidOperationException($"Cannot apply logical operator '{context.op.Text}' between different types '{leftSymbol.Type}' and '{rightSymbol.Type}'.");
-        }
-
-        switch (leftSymbol.Value)
-        {
-            case IQuantumValue leftValue when rightSymbol.Value is IQuantumValue rightValue:
-                {
-                    var operation
-                       = context.ADD() != null ? leftValue.Addition(rightValue)
-                       : context.SUB() != null ? leftValue.Subtraction(rightValue)
-                       : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
-                    var destinationSymbol = new AnonymousValueSymbol(operation.Destination, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
-                    circuitHandler.PushOperation(operation);
-                    return destinationSymbol;
-                }
-
-            case IClassicalValue leftValue when rightSymbol.Value is IClassicalValue rightValue:
-                {
-                    var result
-                        = context.ADD() != null ? leftValue.Addition(rightValue)
-                        : context.SUB() != null ? leftValue.Subtraction(rightValue)
-                        : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
-                    return new AnonymousValueSymbol(result, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
-                }
-
-            default:
-                throw new InvalidOperationException($"Cannot apply operator '{context.op.Text}' to type '{leftSymbol.Type}'.");
-        }
+        
+        return HandleBinaryOperator(
+            context, leftSymbol, rightSymbol,
+            quantumOp: (left, right) =>
+                context.ADD() != null ? left.Addition(right)
+                : context.SUB() != null ? left.Subtraction(right)
+                : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'."),
+            classicalOp: (left, right) =>
+                context.ADD() != null ? left.Addition(right)
+                : context.SUB() != null ? left.Subtraction(right)
+                : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'."),
+            operatorText: context.op.Text);
     }
 
     public override Symbol VisitShiftOperator(qutes_parser.ShiftOperatorContext context)
@@ -731,138 +740,66 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
     {
         var leftSymbol = Visit(context.expr(0)).As<ValueSymbol>();
         var rightSymbol = Visit(context.expr(1)).As<ValueSymbol>();
-
-        if (leftSymbol.Value.Type != rightSymbol.Value.Type)
-        {
-            throw new InvalidOperationException($"Cannot apply operator '{context.op.Text}' between different types '{leftSymbol.Type}' and '{rightSymbol.Type}'.");
-        }
-
-        switch (leftSymbol.Value)
-        {
-            case IQuantumValue leftValue when rightSymbol.Value is IQuantumValue rightValue:
-                {
-                    var operation
-                        = context.LOWER() != null ? leftValue.LowerThan(rightValue)
-                        : context.LOWEREQUAL() != null ? leftValue.LowerEqualThan(rightValue)
-                        : context.GREATER() != null ? leftValue.GreaterThan(rightValue)
-                        : context.GREATEREQUAL() != null ? leftValue.GreaterEqualThan(rightValue)
-                        : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
-                    var destinationSymbol = new AnonymousValueSymbol(operation.Destination, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
-                    circuitHandler.PushOperation(operation);
-                    return destinationSymbol;
-                }
-
-            case IClassicalValue leftValue when rightSymbol.Value is IClassicalValue rightValue:
-                {
-                    var result
-                        = context.LOWER() != null ? leftValue.LowerThan(rightValue)
-                        : context.LOWEREQUAL() != null ? leftValue.LowerEqualThan(rightValue)
-                        : context.GREATER() != null ? leftValue.GreaterThan(rightValue)
-                        : context.GREATEREQUAL() != null ? leftValue.GreaterEqualThan(rightValue)
-                        : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
-                    return new AnonymousValueSymbol(result, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
-                }
-
-            default:
-                throw new InvalidOperationException($"Cannot apply operator '{context.op.Text}' to type '{leftSymbol.Type}'.");
-        }
+        
+        return HandleBinaryOperator(
+            context, leftSymbol, rightSymbol,
+            quantumOp: (left, right) =>
+                context.LOWER() != null ? left.LowerThan(right)
+                : context.LOWEREQUAL() != null ? left.LowerEqualThan(right)
+                : context.GREATER() != null ? left.GreaterThan(right)
+                : context.GREATEREQUAL() != null ? left.GreaterEqualThan(right)
+                : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'."),
+            classicalOp: (left, right) =>
+                context.LOWER() != null ? left.LowerThan(right)
+                : context.LOWEREQUAL() != null ? left.LowerEqualThan(right)
+                : context.GREATER() != null ? left.GreaterThan(right)
+                : context.GREATEREQUAL() != null ? left.GreaterEqualThan(right)
+                : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'."),
+            operatorText: context.op.Text);
     }
 
     public override Symbol VisitEqualityOperator(qutes_parser.EqualityOperatorContext context)
     {
         var leftSymbol = Visit(context.expr(0)).As<ValueSymbol>();
         var rightSymbol = Visit(context.expr(1)).As<ValueSymbol>();
-
-        if (leftSymbol.Value.Type != rightSymbol.Value.Type)
-        {
-            throw new InvalidOperationException($"Cannot apply operator '{context.op.Text}' between different types '{leftSymbol.Type}' and '{rightSymbol.Type}'.");
-        }
-
-        switch (leftSymbol.Value)
-        {
-            case IQuantumValue leftValue when rightSymbol.Value is IQuantumValue rightValue:
-                {
-                    var operation
-                        = context.EQUAL() != null ? leftValue.Equals(rightValue)
-                        : context.NOT_EQUAL() != null ? leftValue.NotEquals(rightValue)
-                        : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
-                    var destinationSymbol = new AnonymousValueSymbol(operation.Destination, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
-                    circuitHandler.PushOperation(operation);
-                    return destinationSymbol;
-                }
-
-            case IClassicalValue leftValue when rightSymbol.Value is IClassicalValue rightValue:
-                {
-                    var result
-                        = context.EQUAL() != null ? leftValue.Equals(rightValue)
-                        : context.NOT_EQUAL() != null ? leftValue.NotEquals(rightValue)
-                        : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
-                    return new AnonymousValueSymbol(result, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
-                }
-
-            default:
-                throw new InvalidOperationException($"Cannot apply operator '{context.op.Text}' to type '{leftSymbol.Type}'.");
-        }
+        
+        return HandleBinaryOperator(
+            context, leftSymbol, rightSymbol,
+            quantumOp: (left, right) =>
+                context.EQUAL() != null ? left.Equals(right)
+                : context.NOT_EQUAL() != null ? left.NotEquals(right)
+                : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'."),
+            classicalOp: (left, right) =>
+                context.EQUAL() != null ? left.Equals(right)
+                : context.NOT_EQUAL() != null ? left.NotEquals(right)
+                : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'."),
+            operatorText: context.op.Text);
     }
 
     public override Symbol VisitLogicAndOperator(qutes_parser.LogicAndOperatorContext context)
     {
         var leftSymbol = Visit(context.expr(0)).As<ValueSymbol>();
         var rightSymbol = Visit(context.expr(1)).As<ValueSymbol>();
-
-        switch (leftSymbol.Value)
-        {
-            case IQuantumValue leftValue when rightSymbol.Value is IQuantumValue rightValue:
-                {
-                    var operation
-                        = context.AND() != null ? leftValue.And(rightValue)
-                        : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
-                    var destinationSymbol = new AnonymousValueSymbol(operation.Destination, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
-                    circuitHandler.PushOperation(operation);
-                    return destinationSymbol;
-                }
-
-            case IClassicalValue leftValue when rightSymbol.Value is IClassicalValue rightValue:
-                {
-                    var result
-                        = context.AND() != null ? leftValue.And(rightValue)
-                        : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
-                    return new AnonymousValueSymbol(result, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
-                }
-
-            default:
-                throw new InvalidOperationException($"Cannot apply operator '{context.op.Text}' to type '{leftSymbol.Type}'.");
-        }
+        
+        return HandleBinaryOperator(
+            context, leftSymbol, rightSymbol,
+            quantumOp: (left, right) => left.And(right),
+            classicalOp: (left, right) => left.And(right),
+            operatorText: context.op.Text,
+            requireSameType: false);
     }
 
     public override Symbol VisitLogicOrOperator(qutes_parser.LogicOrOperatorContext context)
     {
         var leftSymbol = Visit(context.expr(0)).As<ValueSymbol>();
         var rightSymbol = Visit(context.expr(1)).As<ValueSymbol>();
-
-        switch (leftSymbol.Value)
-        {
-            case IQuantumValue leftValue when rightSymbol.Value is IQuantumValue rightValue:
-                {
-                    var operation
-                        = context.OR() != null ? leftValue.Or(rightValue)
-                        : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
-                    var destinationSymbol = new AnonymousValueSymbol(operation.Destination, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
-                    circuitHandler.PushOperation(operation);
-                    return destinationSymbol;
-                }
-
-            case IClassicalValue leftValue when rightSymbol.Value is IClassicalValue rightValue:
-                {
-                    var result
-                        = context.OR() != null ? leftValue.Or(rightValue)
-                        : throw new InvalidOperationException($"Unknown operator '{context.op.Text}'.");
-                    return new AnonymousValueSymbol(result, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
-                }
-
-            default:
-                throw new InvalidOperationException($"Cannot apply operator '{context.op.Text}' to type '{leftSymbol.Type}'.");
-        }
+        
+        return HandleBinaryOperator(
+            context, leftSymbol, rightSymbol,
+            quantumOp: (left, right) => left.Or(right),
+            classicalOp: (left, right) => left.Or(right),
+            operatorText: context.op.Text,
+            requireSameType: false);
     }
 
     public override Symbol VisitMultipleUnaryOperator(qutes_parser.MultipleUnaryOperatorContext context)
