@@ -23,7 +23,7 @@ public static class QutesTypeExtensions
         //This also handle the Array case,
         //in that case we still get Classical or Quantum Array Type as Value,
         //so we don't need to check NestedValue here.
-        return type.Value.IsQuantum(); 
+        return type.Value.IsQuantum();
     }
 
     public static bool IsClassical(this TypeSymbol type)

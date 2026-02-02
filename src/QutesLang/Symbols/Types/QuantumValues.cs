@@ -18,7 +18,7 @@ public class QubitValue() : QuantumScalarValue
         this.InitialStateVector.Amplitudes[0] = qubitStateVector[0];
         this.InitialStateVector.Amplitudes[1] = qubitStateVector[1];
     }
-    
+
     public QubitValue(StateVector initialStateVector) : this()
     {
         InitialStateVector = initialStateVector;
@@ -136,7 +136,7 @@ public class QuintValue : QuantumScalarValue
         InitialStateVector = QuintParser.Parse(value.ToString() + "q");
     }
 
-    public static QuintValue Superposition() => new (StateVector.Superposition(CompilerFlags.Current.QuintSizeInQubit));
+    public static QuintValue Superposition() => new(StateVector.Superposition(CompilerFlags.Current.QuintSizeInQubit));
 
     public override TypeSymbol Type { get; } = TypeSymbol.Quint;
     public override int Size => DefaultSize;
@@ -150,12 +150,12 @@ public class QuintValue : QuantumScalarValue
     public override CircuitOperation Multiply(IQuantumValue term) => new Multiply(this, term, GetDefaultValue());
     public override CircuitOperation Divide(IQuantumValue term) => new Divide(this, term, GetDefaultValue());
     public override CircuitOperation Module(IQuantumValue term) => new Module(this, term, GetDefaultValue());
-           
+
     public override CircuitOperation LowerThan(IQuantumValue term) => new LowerThan(this, term, QubitValue.GetDefaultValue());
     public override CircuitOperation LowerEqualThan(IQuantumValue term) => new LowerEqualThan(this, term, QubitValue.GetDefaultValue());
     public override CircuitOperation GreaterThan(IQuantumValue term) => new GreaterThan(this, term, QubitValue.GetDefaultValue());
     public override CircuitOperation GreaterEqualThan(IQuantumValue term) => new GreaterEqualThan(this, term, QubitValue.GetDefaultValue());
-           
+
     public override CircuitOperation Minus() => new TwosComplement(this, GetDefaultValue());
     public override CircuitOperation InplacePreIncrement() => new Addition(this, this, new QuintValue(1));
     public override CircuitOperation InplacePostIncrement() => new Addition(this, this, new QuintValue(1));

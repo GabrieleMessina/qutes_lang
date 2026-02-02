@@ -26,7 +26,7 @@ public class RightShift : LeftShift
         {
             var gateName = $"right_shift_{target.Count}_{target.SingleElementSize}_{i}";
             stringBuilder.AppendLine($"{gateName} = QutesGates.crot({target.Count}, 2**{i}, {target.SingleElementSize}).inverse()");
-            AddGateInCircuit(circuit, gateName, [offset.Register.Qubits.ElementAt(i), ..Destination.Register.Qubits], stringBuilder);
+            AddGateInCircuit(circuit, gateName, [offset.Register.Qubits.ElementAt(i), .. Destination.Register.Qubits], stringBuilder);
         }
     }
 }
@@ -60,7 +60,8 @@ public class LeftShift : CircuitOperation
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
-        if(target != Destination){
+        if (target != Destination)
+        {
             new Copy(target, Destination).ApplyToQiskitCircuit(circuit, stringBuilder);
         }
 
@@ -68,7 +69,7 @@ public class LeftShift : CircuitOperation
         {
             var gateName = $"left_shift_{target.Count}_{target.SingleElementSize}_{i}";
             stringBuilder.AppendLine($"{gateName} = QutesGates.crot({target.Count}, 2**{i}, {target.SingleElementSize})");
-            AddGateInCircuit(circuit, gateName, [offset.Register.Qubits.ElementAt(i), ..Destination.Register.Qubits], stringBuilder);
+            AddGateInCircuit(circuit, gateName, [offset.Register.Qubits.ElementAt(i), .. Destination.Register.Qubits], stringBuilder);
         }
     }
 }
@@ -93,18 +94,18 @@ public class Addition(IQuantumValue a, IQuantumValue b, IQuantumValue destinatio
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
-        if(a != Destination && b != Destination)
+        if (a != Destination && b != Destination)
         {
-            AddGateInCircuit(circuit, GateName, [..b.Register.Qubits[..size], ..Destination.Register.Qubits[..size]], stringBuilder);
-            AddGateInCircuit(circuit, GateName, [..a.Register.Qubits[..size], ..Destination.Register.Qubits[..size]], stringBuilder);
+            AddGateInCircuit(circuit, GateName, [.. b.Register.Qubits[..size], .. Destination.Register.Qubits[..size]], stringBuilder);
+            AddGateInCircuit(circuit, GateName, [.. a.Register.Qubits[..size], .. Destination.Register.Qubits[..size]], stringBuilder);
         }
-        else if(a == Destination)
+        else if (a == Destination)
         {
-            AddGateInCircuit(circuit, GateName, [..b.Register.Qubits[..size], ..Destination.Register.Qubits[..size]], stringBuilder);
+            AddGateInCircuit(circuit, GateName, [.. b.Register.Qubits[..size], .. Destination.Register.Qubits[..size]], stringBuilder);
         }
-        else if(b == Destination)
+        else if (b == Destination)
         {
-            AddGateInCircuit(circuit, GateName, [..a.Register.Qubits[..size], ..Destination.Register.Qubits[..size]], stringBuilder);
+            AddGateInCircuit(circuit, GateName, [.. a.Register.Qubits[..size], .. Destination.Register.Qubits[..size]], stringBuilder);
         }
     }
 }

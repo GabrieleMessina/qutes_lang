@@ -1,7 +1,5 @@
 using System.Text;
 
-using CommunityToolkit.Diagnostics;
-
 using QutesLang.QuantumCircuits.Interfaces;
 using QutesLang.Symbols.Types.Interfaces;
 
@@ -28,7 +26,7 @@ public abstract class CircuitOperation(ICollection<QuantumRegister> registersInv
 
     public CircuitOperation Compose(CircuitOperation other)
     {
-        if(other.Destination != Destination)
+        if (other.Destination != Destination)
         {
             throw new InvalidOperationException("Cannot compose two CircuitOperations with different destinations.");
         }
@@ -37,7 +35,7 @@ public abstract class CircuitOperation(ICollection<QuantumRegister> registersInv
 
     public CircuitOperation Into(IQuantumValue newDestination)
     {
-        if(newDestination != this.Destination)
+        if (newDestination != this.Destination)
         {
             var composition = new Composition([new Copy(this.Destination, newDestination), this], newDestination);
             this.Destination = newDestination;
@@ -76,11 +74,11 @@ public class Empty(IQuantumValue target) : CircuitOperation([target.Register], t
     }
 }
 
-public class ComposeCircuit(IQuantumCircuit other, ICollection<QuantumRegister> registersToCompose) : CircuitOperation([..other.LocalRegisters, ..registersToCompose], null!)
+public class ComposeCircuit(IQuantumCircuit other, ICollection<QuantumRegister> registersToCompose) : CircuitOperation([.. other.LocalRegisters, .. registersToCompose], null!)
 {
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
-        if(circuit is ControlledCircuit controlledCircuit)
+        if (circuit is ControlledCircuit controlledCircuit)
         {
             registersToCompose.Add(controlledCircuit.ControlRegister);
         }
@@ -102,6 +100,6 @@ public class Copy(IQuantumValue target, IQuantumValue destination) : CircuitOper
 
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
-        AddGateInCircuit(circuit, GateName, [..target.Register.Qubits[..size], ..Destination.Register.Qubits[..size]], stringBuilder);
+        AddGateInCircuit(circuit, GateName, [.. target.Register.Qubits[..size], .. Destination.Register.Qubits[..size]], stringBuilder);
     }
 }

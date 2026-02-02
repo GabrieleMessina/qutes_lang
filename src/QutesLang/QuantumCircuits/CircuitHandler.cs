@@ -63,7 +63,7 @@ public class CircuitHandler : ICircuitHandler
         // in python, check that image folder exists or create it.
         stringBuilderMain.AppendLine("import os");
         stringBuilderMain.AppendLine($"os.makedirs(r'{CompilerFlags.Current.CircuitImagesFolder}', exist_ok=True)");
-        
+
         stringBuilderMain.AppendLine("# Operation Requirements");
         foreach (var circuit in CircuitsDeclared)
         {
@@ -217,7 +217,7 @@ public class QuantumCircuit(BackendProvider backendProvider, string? name = null
     {
         stringBuilder.AppendLine($"# ================ Circuit {Name} =====================");
 
-        var Registers = 
+        var Registers =
             LocalRegisters
                 .Union(DependentCircuits.SelectMany(c => c.LocalRegisters))
                 .ToList(); //TODO: right now all registers of dependent circuits are included, with the new implementation composition happens on different registers, so this is useless.
@@ -331,7 +331,7 @@ public class ControlledCircuit : QuantumCircuit
     public override Dictionary<string, QuantumRegister> LocalQuantumVariables => GetQuantumVariables();
     public override List<QuantumRegister> LocalRegisters => GetRegisters();
 
-    public ControlledCircuit(BackendProvider backendProvider, IQuantumCircuit innerCircuit, QuantumRegister controlRegister, bool onCondition = true, bool includeClassicalBits = false) : base(backendProvider, "controlled_"+innerCircuit.Name, includeClassicalBits)
+    public ControlledCircuit(BackendProvider backendProvider, IQuantumCircuit innerCircuit, QuantumRegister controlRegister, bool onCondition = true, bool includeClassicalBits = false) : base(backendProvider, "controlled_" + innerCircuit.Name, includeClassicalBits)
     {
         InnerCircuit = innerCircuit;
         ControlRegister = controlRegister;
@@ -350,11 +350,11 @@ public class ControlledCircuit : QuantumCircuit
 
     private Dictionary<string, QuantumRegister> GetQuantumVariables()
     {
-        return new([KeyValuePair.Create("control_" + InnerCircuit.Name, ControlRegister), ..InnerCircuit.LocalQuantumVariables.AsEnumerable()]);
+        return new([KeyValuePair.Create("control_" + InnerCircuit.Name, ControlRegister), .. InnerCircuit.LocalQuantumVariables.AsEnumerable()]);
     }
 
     private List<QuantumRegister> GetRegisters()
     {
-        return [ControlRegister, ..InnerCircuit.LocalRegisters]; //order is important for circuit composition, where control register must be first.
+        return [ControlRegister, .. InnerCircuit.LocalRegisters]; //order is important for circuit composition, where control register must be first.
     }
 }

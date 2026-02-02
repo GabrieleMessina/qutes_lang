@@ -1,13 +1,15 @@
 ﻿using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+
 using CommunityToolkit.Diagnostics;
 
 namespace QutesLang.Utils;
 
 public static partial class QutesLanguageGuard
 {
-    public static IEnumerable<T> AreAllAssignableToType<T>(IEnumerable values, [CallerArgumentExpression(nameof(values))] string name = "") { 
+    public static IEnumerable<T> AreAllAssignableToType<T>(IEnumerable values, [CallerArgumentExpression(nameof(values))] string name = "")
+    {
         foreach (var value in values)
         {
             IsAssignableToType<T>(value!, name);
@@ -15,7 +17,7 @@ public static partial class QutesLanguageGuard
 
         return values.Cast<T>();
     }
-    
+
     public static T IsAssignableToType<T>(object value, [CallerArgumentExpression(nameof(value))] string name = "")
     {
         if (value is T castedValue)

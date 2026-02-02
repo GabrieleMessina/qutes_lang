@@ -91,7 +91,7 @@ public partial class QubitParser
         {
             var bool1 = BoolParser.Parse(boolMatch.Groups[1].Value);
             var bool2 = BoolParser.Parse(boolMatch.Groups[2].Success ? boolMatch.Groups[2].Value : "0");
-            var alpha= bool1 ? 1.0d : 0.0d;
+            var alpha = bool1 ? 1.0d : 0.0d;
             var beta = bool2 ? 1.0d : 0.0d;
             return new StateVector([alpha, beta]); //normalizzation is handled by the StateVector class
         }
@@ -136,7 +136,7 @@ public partial class QucharParser
             var size = CompilerFlags.Current.QustringSizeInQubit;
             var character = match.Groups[1].Value[0];
             var qutesEncodedChar = alphabet.IndexOf(character);
-            if(qutesEncodedChar == -1) throw new ArgumentException($"Invalid quchar literal: {input}, valid characters are: {string.Join(", ", alphabet)}");
+            if (qutesEncodedChar == -1) throw new ArgumentException($"Invalid quchar literal: {input}, valid characters are: {string.Join(", ", alphabet)}");
             return QuintParser.Parse($"{qutesEncodedChar}q", size);
         }
         throw new ArgumentException($"Invalid quchar literal format: {input}");

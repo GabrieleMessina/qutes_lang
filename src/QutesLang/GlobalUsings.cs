@@ -1,2 +1,2 @@
-﻿global using QutesLang.Utils;
-global using QutesLang.Extensions;
+﻿global using QutesLang.Extensions;
+global using QutesLang.Utils;

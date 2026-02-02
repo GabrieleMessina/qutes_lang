@@ -19,13 +19,13 @@ public class BoolValue(bool value) : ClassicalScalarValue
         }
         throw new InvalidOperationException($"Operation {operationName} cannot be applied to {term.Type} type.");
     }
-    public override BoolValue Equals(IClassicalValue term) => new (this.Value == GetBoolValue(term));
-    public override BoolValue NotEquals(IClassicalValue term) => new (this.Value != GetBoolValue(term));
+    public override BoolValue Equals(IClassicalValue term) => new(this.Value == GetBoolValue(term));
+    public override BoolValue NotEquals(IClassicalValue term) => new(this.Value != GetBoolValue(term));
 
-    public override BoolValue And(IClassicalValue term) => new (this.Value && GetBoolValue(term));
-    public override BoolValue Or(IClassicalValue term) => new (this.Value || GetBoolValue(term));
+    public override BoolValue And(IClassicalValue term) => new(this.Value && GetBoolValue(term));
+    public override BoolValue Or(IClassicalValue term) => new(this.Value || GetBoolValue(term));
 
-    public override BoolValue Not() => new (!this.Value);
+    public override BoolValue Not() => new(!this.Value);
 
     public virtual bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
     {
@@ -204,8 +204,8 @@ public class StringValue(string value) : ClassicalScalarValue
     public override BoolValue LowerEqualThan(IClassicalValue term) => new(string.Compare(this.Value, GetStringValue(term)) <= 0);
     public override BoolValue GreaterThan(IClassicalValue term) => new(string.Compare(this.Value, GetStringValue(term)) > 0);
     public override BoolValue GreaterEqualThan(IClassicalValue term) => new(string.Compare(this.Value, GetStringValue(term)) >= 0);
-    public override BoolValue Equals(IClassicalValue term) => new (this.Value == GetStringValue(term));
-    public override BoolValue NotEquals(IClassicalValue term) => new (this.Value != GetStringValue(term));
+    public override BoolValue Equals(IClassicalValue term) => new(this.Value == GetStringValue(term));
+    public override BoolValue NotEquals(IClassicalValue term) => new(this.Value != GetStringValue(term));
 
     public virtual bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
     {

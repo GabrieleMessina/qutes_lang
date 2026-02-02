@@ -32,7 +32,7 @@ public class Hadamard(IQuantumValue target) : CircuitOperation([target.Register]
     }
 }
 
-public class MultiHadamard(IEnumerable<IQuantumValue> controls) : CircuitOperation([..controls.Select(c => c.Register)], null!)
+public class MultiHadamard(IEnumerable<IQuantumValue> controls) : CircuitOperation([.. controls.Select(c => c.Register)], null!)
 {
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -73,7 +73,7 @@ public class Swap(IQuantumValue a, IQuantumValue b) : CircuitOperation([a.Regist
     }
 }
 
-public class MultiSwap(IEnumerable<IQuantumValue> controls, IQuantumValue target) : CircuitOperation([..controls.Select(c => c.Register), target.Register], target)
+public class MultiSwap(IEnumerable<IQuantumValue> controls, IQuantumValue target) : CircuitOperation([.. controls.Select(c => c.Register), target.Register], target)
 {
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -82,7 +82,7 @@ public class MultiSwap(IEnumerable<IQuantumValue> controls, IQuantumValue target
     }
 }
 
-public class MCP(IEnumerable<IQuantumValue> controls, IQuantumValue target, FloatValue rotationAngle) : CircuitOperation([..controls.Select(c => c.Register), target.Register], target)
+public class MCP(IEnumerable<IQuantumValue> controls, IQuantumValue target, FloatValue rotationAngle) : CircuitOperation([.. controls.Select(c => c.Register), target.Register], target)
 {
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -91,7 +91,7 @@ public class MCP(IEnumerable<IQuantumValue> controls, IQuantumValue target, Floa
     }
 }
 
-public class MCX(IEnumerable<IQuantumValue> controls, IQuantumValue target) : CircuitOperation([..controls.Select(c => c.Register), target.Register], target)
+public class MCX(IEnumerable<IQuantumValue> controls, IQuantumValue target) : CircuitOperation([.. controls.Select(c => c.Register), target.Register], target)
 {
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -101,7 +101,7 @@ public class MCX(IEnumerable<IQuantumValue> controls, IQuantumValue target) : Ci
     }
 }
 
-public class MCY(IEnumerable<IQuantumValue> controls, IQuantumValue target) : CircuitOperation([..controls.Select(c => c.Register), target.Register], target)
+public class MCY(IEnumerable<IQuantumValue> controls, IQuantumValue target) : CircuitOperation([.. controls.Select(c => c.Register), target.Register], target)
 {
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -110,7 +110,7 @@ public class MCY(IEnumerable<IQuantumValue> controls, IQuantumValue target) : Ci
     }
 }
 
-public class MCZ(IEnumerable<IQuantumValue> controls, IQuantumValue target) : CircuitOperation([..controls.Select(c => c.Register), target.Register], target)
+public class MCZ(IEnumerable<IQuantumValue> controls, IQuantumValue target) : CircuitOperation([.. controls.Select(c => c.Register), target.Register], target)
 {
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {

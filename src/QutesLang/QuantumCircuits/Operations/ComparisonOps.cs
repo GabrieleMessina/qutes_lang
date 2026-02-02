@@ -107,7 +107,7 @@ public class GreaterEqualThan(IQuantumValue a, IQuantumValue b, IQuantumValue de
     }
 }
 
-public class Grover(IQuantumValue pattern, QuantumArrayValue array, IQuantumCircuit predicate, IQuantumValue reflection) : CircuitOperation([pattern.Register, array.Register, ..predicate.LocalRegisters, reflection.Register], null!)
+public class Grover(IQuantumValue pattern, QuantumArrayValue array, IQuantumCircuit predicate, IQuantumValue reflection) : CircuitOperation([pattern.Register, array.Register, .. predicate.LocalRegisters, reflection.Register], null!)
 {
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -116,7 +116,7 @@ public class Grover(IQuantumValue pattern, QuantumArrayValue array, IQuantumCirc
         stringBuilder.AppendLine($"{groverId} = GroverOperator({predicate.Name}, reflection_qubits=[{reflection.QubitStringList}], insert_barriers=True, name='{groverId}')");
         stringBuilder.AppendLine($"{groverId} = {groverId}.power({nIteration})");
         AddGateInCircuit(circuit, groverId, predicate.LocalRegisters, stringBuilder);
-        
+
         QuantumCircuit.PrintCircuit(groverId, stringBuilder, decomposeLevel: 1);
         QuantumCircuit.SaveCircuitImage(groverId, stringBuilder, decomposeLevel: 1);
     }

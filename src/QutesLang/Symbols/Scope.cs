@@ -9,7 +9,7 @@ public class Scope(string id, Scope? parent)
     public string Id { get; } = id;
     public Scope? Parent { get; } = parent;
     public readonly Dictionary<string, ValueSymbol> SymbolTable = [];
-    public readonly Dictionary<string, FunctionSymbol> FunctionTable  = [];
+    public readonly Dictionary<string, FunctionSymbol> FunctionTable = [];
 
     public void DefineVariable(ValueSymbol symbol)
     {

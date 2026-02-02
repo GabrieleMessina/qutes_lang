@@ -1,5 +1,4 @@
 ﻿using System.CommandLine;
-using System.Runtime.CompilerServices;
 
 namespace QutesLang.Utils;
 
@@ -22,7 +21,8 @@ public class CommandLine
 
         if (validatorFunc != null)
         {
-            option.Validators.Add(result => {
+            option.Validators.Add(result =>
+            {
                 var value = result.GetRequiredValue(option);
                 var (valid, errorMessage) = validatorFunc(value);
                 if (!valid)
@@ -43,7 +43,8 @@ public class CommandLine
 
         if (validatorFunc != null)
         {
-            argument.Validators.Add(result => {
+            argument.Validators.Add(result =>
+            {
                 var value = result.GetRequiredValue(argument);
                 var (valid, errorMessage) = validatorFunc(value);
                 if (!valid)

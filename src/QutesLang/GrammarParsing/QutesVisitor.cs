@@ -326,7 +326,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         var outputTypeSymbol = Visit(context.variableType()).As<TypeSymbol>();
         var qualifiedNameSymbol = Visit(context.qualifiedName()).As<QualifiedNameSymbol>();
 
-        scopeHandler.PushScope(scopeHandler.CreateScope(qualifiedNameSymbol.QualifiedName+"Scope")); //create function scope for params declaration
+        scopeHandler.PushScope(scopeHandler.CreateScope(qualifiedNameSymbol.QualifiedName + "Scope")); //create function scope for params declaration
 
         var functionBody = context.statement();
         var functionParams = context.functionDeclarationParams();
@@ -384,7 +384,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                 }
 
                 //TODO: the check on input params number and type should be done here not after.
-                foreach(var (param, index) in functionSymbol.InputParamTypes.Select((param, index) => (param, index)))
+                foreach (var (param, index) in functionSymbol.InputParamTypes.Select((param, index) => (param, index)))
                 {
                     param.Value = providedParamsValues[index].Value;
                 }
@@ -416,18 +416,18 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
         circuitHandler.PushOperation(new ComposeCircuit(functionCircuit, providedParamsValues.Where(p => p.Value.Type.IsQuantum()).Select(v => ((IQuantumValue)v.Value).Register).ToList()));
 
-        if(functionSymbol.OutputSymbol != null)
+        if (functionSymbol.OutputSymbol != null)
         {
             var outputSymbol = functionSymbol.OutputSymbol.As<ValueSymbol>();
 
-            if(outputSymbol.Type != functionSymbol.OutputType)
+            if (outputSymbol.Type != functionSymbol.OutputType)
             {
                 throw new InvalidOperationException($"Function '{qualifiedName}' should return type '{functionSymbol.OutputType}', but returned type '{outputSymbol.Type}'.");
             }
 
             return outputSymbol;
         }
-        if(functionSymbol.OutputType.Value != QutesType.@void)
+        if (functionSymbol.OutputType.Value != QutesType.@void)
         {
             throw new InvalidOperationException($"Function '{qualifiedName}' should return type '{functionSymbol.OutputType}', but no value was returned.");
         }
@@ -674,7 +674,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
     {
         var leftSymbol = Visit(context.expr(0)).As<ValueSymbol>();
         var rightSymbol = Visit(context.expr(1)).As<ValueSymbol>();
-        
+
         return HandleBinaryOperator(
             context, leftSymbol, rightSymbol,
             quantumOp: (left, right) =>
@@ -694,7 +694,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
     {
         var leftSymbol = Visit(context.expr(0)).As<ValueSymbol>();
         var rightSymbol = Visit(context.expr(1)).As<ValueSymbol>();
-        
+
         return HandleBinaryOperator(
             context, leftSymbol, rightSymbol,
             quantumOp: (left, right) =>
@@ -743,7 +743,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
     {
         var leftSymbol = Visit(context.expr(0)).As<ValueSymbol>();
         var rightSymbol = Visit(context.expr(1)).As<ValueSymbol>();
-        
+
         return HandleBinaryOperator(
             context, leftSymbol, rightSymbol,
             quantumOp: (left, right) =>
@@ -765,7 +765,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
     {
         var leftSymbol = Visit(context.expr(0)).As<ValueSymbol>();
         var rightSymbol = Visit(context.expr(1)).As<ValueSymbol>();
-        
+
         return HandleBinaryOperator(
             context, leftSymbol, rightSymbol,
             quantumOp: (left, right) =>
@@ -783,7 +783,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
     {
         var leftSymbol = Visit(context.expr(0)).As<ValueSymbol>();
         var rightSymbol = Visit(context.expr(1)).As<ValueSymbol>();
-        
+
         return HandleBinaryOperator(
             context, leftSymbol, rightSymbol,
             quantumOp: (left, right) => left.And(right),
@@ -796,7 +796,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
     {
         var leftSymbol = Visit(context.expr(0)).As<ValueSymbol>();
         var rightSymbol = Visit(context.expr(1)).As<ValueSymbol>();
-        
+
         return HandleBinaryOperator(
             context, leftSymbol, rightSymbol,
             quantumOp: (left, right) => left.Or(right),
@@ -925,7 +925,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         // Run Grover on predicate
         circuitHandler.AddDependentCircuit(predicate);
         circuitHandler.PushOperation(new Grover(pattern, array, predicate, rotation));
-        
+
         // Run oracle again to check that grover found right rotation
         var finalResult = new QubitValue();
         finalResult.Register.Name = VariableNameGuid.New("esm_result");
@@ -935,7 +935,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         circuitHandler.PushOperation(new Measure(rotation));
         return new AnonymousValueSymbol(finalResult, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
     }
-    
+
     public override Symbol VisitFreeGroverOperator(qutes_parser.FreeGroverOperatorContext context)
     {
         //TODO: implement free grover operator
@@ -966,10 +966,10 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
         var variableToCreateSymbol = CastValueToType(valueToAssignSymbol, varTypeSymbol);
         variableToCreateSymbol = new ValueSymbol(qualifiedName, variableToCreateSymbol.Value, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
-        
+
         DeclareNewVariable(variableToCreateSymbol);
 
-        if(variableToCreateSymbol.Value is IQuantumValue quantumValue)
+        if (variableToCreateSymbol.Value is IQuantumValue quantumValue)
         {
             circuitHandler.DeclareQuantumVariable(variableToCreateSymbol.QualifiedName, quantumValue.Register);
         }
@@ -1000,7 +1000,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
     {
         var type = Visit(context.type()).As<TypeSymbol>();
 
-        if(context.GetText().Contains("[]"))
+        if (context.GetText().Contains("[]"))
         {
             type = new TypeSymbol(type.Value.IsQuantum() ? QutesType.quantumArray : QutesType.classicalArray, type);
         }

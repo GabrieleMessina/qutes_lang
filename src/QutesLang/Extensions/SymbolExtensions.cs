@@ -29,7 +29,7 @@ public static class SymbolExtensions
     /// <returns>An enumerable collection of symbols cast to type T.</returns>
     public static ICollection<T> As<T>(this IEnumerable<Symbol> symbols) where T : Symbol //TODO: interface is not easy to understand, probably a rename could improve.
     {
-        return [..QutesLanguageGuard.AreAllAssignableToType<T>(symbols, nameof(symbols))];
+        return [.. QutesLanguageGuard.AreAllAssignableToType<T>(symbols, nameof(symbols))];
     }
 
     /// <summary>
@@ -51,7 +51,7 @@ public static class SymbolExtensions
     /// <returns></returns>
     public static ICollection<T> Of<T>(this TupleValue tuple) where T : IQutesValue
     {
-        return [..tuple.Values.As<ValueSymbol>().Select(s => s.Value.As<T>())];
+        return [.. tuple.Values.As<ValueSymbol>().Select(s => s.Value.As<T>())];
     }
 
     /// <summary>
@@ -62,6 +62,6 @@ public static class SymbolExtensions
     /// <returns></returns>
     public static ICollection<T> Of<T>(this ArrayValue array) where T : IQutesValue
     {
-        return [..array.Values.As<ValueSymbol>().Select(s => s.Value.As<T>())];
+        return [.. array.Values.As<ValueSymbol>().Select(s => s.Value.As<T>())];
     }
 }

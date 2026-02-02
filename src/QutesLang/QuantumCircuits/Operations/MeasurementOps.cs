@@ -21,7 +21,7 @@ public class Measure(IQuantumValue target) : CircuitOperation([target.Register],
     }
 }
 
-public class MultiMeasure(IEnumerable<IQuantumValue> targets) : CircuitOperation([..targets.Select(c => c.Register)], null!)
+public class MultiMeasure(IEnumerable<IQuantumValue> targets) : CircuitOperation([.. targets.Select(c => c.Register)], null!)
 {
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -35,14 +35,14 @@ public class MeasureAll() : CircuitOperation([], null!)
 {
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
-        foreach(var register in circuit.LocalRegisters)
+        foreach (var register in circuit.LocalRegisters)
         {
             stringBuilder.AppendLine($"{circuit.Name}.measure({register.Name}, {register.ClassicalRegister.Name})");
         }
     }
 }
 
-public class Barrier(IEnumerable<IQuantumValue> targets) : CircuitOperation([..targets.Select(t => t.Register)], null!)
+public class Barrier(IEnumerable<IQuantumValue> targets) : CircuitOperation([.. targets.Select(t => t.Register)], null!)
 {
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
@@ -51,7 +51,7 @@ public class Barrier(IEnumerable<IQuantumValue> targets) : CircuitOperation([..t
     }
 }
 
-public class MultiBarrier(IEnumerable<IQuantumValue> controls) : CircuitOperation([..controls.Select(c => c.Register)], null!)
+public class MultiBarrier(IEnumerable<IQuantumValue> controls) : CircuitOperation([.. controls.Select(c => c.Register)], null!)
 {
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {

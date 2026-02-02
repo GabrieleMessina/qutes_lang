@@ -11,7 +11,7 @@ public class QutesErrorListener : BaseErrorListener
     {
         base.SyntaxError(recognizer, offendingSymbol, line, charPositionInLine, msg, e);
         if (offendingSymbol != null)
-        {            
+        {
             throw new SyntaxErrorException($"Syntax error at line {line} position {charPositionInLine}, unexpected symbol: {offendingSymbol.Text}. {msg}");
         }
         throw new SyntaxErrorException($"Syntax error at line {line} position {charPositionInLine}: {msg}");
