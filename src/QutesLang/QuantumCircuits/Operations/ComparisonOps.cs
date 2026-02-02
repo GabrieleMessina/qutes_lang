@@ -1,8 +1,10 @@
 using System.Text;
 
+using QutesLang.QuantumCircuits.Interfaces;
 using QutesLang.Symbols.Types;
+using QutesLang.Symbols.Types.Interfaces;
 
-namespace QutesLang.GrammarFrontend;
+namespace QutesLang.GrammarFrontend.Operations;
 
 public class Or(IQuantumValue a, IQuantumValue b, IQuantumValue destination) : CircuitOperation([a.Register, b.Register, destination.Register], destination)
 {

@@ -2,9 +2,10 @@ using System.Text;
 
 using CommunityToolkit.Diagnostics;
 
-using QutesLang.Symbols.Types;
+using QutesLang.QuantumCircuits.Interfaces;
+using QutesLang.Symbols.Types.Interfaces;
 
-namespace QutesLang.GrammarFrontend;
+namespace QutesLang.GrammarFrontend.Operations;
 
 /// <summary>
 /// Base class for all quantum circuit operations

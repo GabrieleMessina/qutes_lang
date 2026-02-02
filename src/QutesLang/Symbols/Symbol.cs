@@ -1,5 +1,6 @@
-﻿using QutesLang.GrammarFrontend;
+﻿using QutesLang.QuantumCircuits.Interfaces;
 using QutesLang.Symbols.Types;
+using QutesLang.Symbols.Types.Interfaces;
 
 using static Qutes.Grammar.qutes_parser;
 

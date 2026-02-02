@@ -1,7 +1,10 @@
 using Antlr4.Runtime;
+
 using Qutes.Grammar;
+
+using QutesLang;
 using QutesLang.GrammarFrontend;
-using QutesLang.Utils;
+
 using Xunit;
 
 namespace Qutes.Tests;

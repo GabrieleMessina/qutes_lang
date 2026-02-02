@@ -1,4 +1,4 @@
-﻿using QutesLang.Symbols.Types;
+﻿using QutesLang.Symbols.Types.Interfaces;
 
 namespace QutesLang.Extensions;
 

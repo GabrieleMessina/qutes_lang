@@ -3,6 +3,9 @@ using Antlr4.Runtime;
 using Qutes.Grammar;
 using QutesLang.GrammarFrontend;
 using System.CommandLine;
+using QutesLang;
+using QutesLang.GrammarParsing;
+using QutesLang.Symbols;
 
 var logSymbolsScope = CommandLine.CreateOption(
     ["-scopes", "--log-scopes"],

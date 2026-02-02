@@ -1,3 +1,5 @@
+using QutesLang.Symbols.Types.Interfaces;
+
 namespace QutesLang.Symbols.Types;
 
 public class ClassValue : IQutesValue

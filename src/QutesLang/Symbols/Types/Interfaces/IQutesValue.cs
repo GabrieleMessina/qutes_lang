@@ -1,4 +1,4 @@
-﻿namespace QutesLang.Symbols.Types;
+﻿namespace QutesLang.Symbols.Types.Interfaces;
 
 public interface IQutesValue
 {

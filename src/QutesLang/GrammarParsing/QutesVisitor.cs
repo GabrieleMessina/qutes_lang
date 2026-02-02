@@ -4,9 +4,12 @@ using Antlr4.Runtime.Tree;
 
 using Qutes.Grammar;
 
+using QutesLang.GrammarFrontend.Operations;
+using QutesLang.QuantumCircuits.Interfaces;
 using QutesLang.Symbols;
 using QutesLang.Symbols.Types;
-namespace QutesLang.GrammarFrontend;
+using QutesLang.Symbols.Types.Interfaces;
+namespace QutesLang.GrammarParsing;
 
 public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHandler) : qutes_parserBaseVisitor<Symbol>
 {

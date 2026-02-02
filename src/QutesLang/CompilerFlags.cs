@@ -1,4 +1,4 @@
-﻿namespace QutesLang.Utils;
+﻿namespace QutesLang;
 
 public class CompilerFlags
 {

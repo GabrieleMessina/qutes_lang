@@ -1,5 +1,7 @@
-﻿
-namespace QutesLang.GrammarFrontend;
+﻿using QutesLang.GrammarFrontend;
+using QutesLang.GrammarFrontend.Operations;
+
+namespace QutesLang.QuantumCircuits.Interfaces;
 
 public interface ICircuitHandler
 {

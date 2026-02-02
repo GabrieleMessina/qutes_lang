@@ -1,6 +1,7 @@
 ﻿using QutesLang.GrammarFrontend;
+using QutesLang.GrammarFrontend.Operations;
 
-namespace QutesLang.Symbols.Types;
+namespace QutesLang.Symbols.Types.Interfaces;
 
 public interface IQuantumValue : IQutesValue
 {

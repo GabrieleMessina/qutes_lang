@@ -1,7 +1,8 @@
 ﻿using System.Data;
+
 using Antlr4.Runtime;
 
-namespace QutesLang.GrammarFrontend;
+namespace QutesLang.GrammarParsing;
 
 public class QutesErrorListener : BaseErrorListener
 {

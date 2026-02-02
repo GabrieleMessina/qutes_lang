@@ -1,5 +1,8 @@
 ﻿using System.Text;
 
+using QutesLang.GrammarFrontend.Operations;
+using QutesLang.QuantumCircuits.Interfaces;
+
 namespace QutesLang.GrammarFrontend;
 
 public interface ICircuitContext : IDisposable

@@ -1,5 +1,7 @@
 using System.Runtime.CompilerServices;
 
+using QutesLang.Symbols.Types.Interfaces;
+
 namespace QutesLang.Symbols.Types;
 
 public class BoolValue(bool value) : ClassicalScalarValue

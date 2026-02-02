@@ -1,6 +1,6 @@
-﻿using QutesLang.Symbols;
+﻿using QutesLang.QuantumCircuits.Interfaces;
 
-namespace QutesLang.GrammarFrontend;
+namespace QutesLang.Symbols;
 
 public class ScopeHandler : IScopeHandler
 {

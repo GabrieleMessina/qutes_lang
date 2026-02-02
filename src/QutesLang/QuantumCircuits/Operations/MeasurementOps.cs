@@ -1,8 +1,9 @@
 using System.Text;
 
-using QutesLang.Symbols.Types;
+using QutesLang.QuantumCircuits.Interfaces;
+using QutesLang.Symbols.Types.Interfaces;
 
-namespace QutesLang.GrammarFrontend;
+namespace QutesLang.GrammarFrontend.Operations;
 
 public class Measure(IQuantumValue target) : CircuitOperation([target.Register], target)
 {

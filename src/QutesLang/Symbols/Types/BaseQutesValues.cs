@@ -1,4 +1,6 @@
 ﻿using QutesLang.GrammarFrontend;
+using QutesLang.GrammarFrontend.Operations;
+using QutesLang.Symbols.Types.Interfaces;
 
 namespace QutesLang.Symbols.Types;
 
