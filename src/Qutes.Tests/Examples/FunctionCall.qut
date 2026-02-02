@@ -1,0 +1,9 @@
+qubit[] a = [|+>,|+>,|+>];
+qubit d = 0q;
+qubit e = 0q;
+void foo(qubit[] b, qubit c){
+    hadamard b;
+    mcx b, c;
+}
+foo(a,d);
+measure e;

@@ -1,0 +1,10 @@
+qustring array = "1110111";
+qustring pattern = "00";
+qubit found = 0q;
+if(pattern in array){
+	not found;
+}
+else{
+	hadamard found;
+}
+measure found;

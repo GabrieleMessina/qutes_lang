@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35527.113 d17.12
+VisualStudioVersion = 17.12.35527.113
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QutesLang", "QutesLang\QutesLang.csproj", "{8B2C2E7F-DB26-4BA2-A539-53950376BCE9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Qutes.Grammar", "Qutes.Grammar\Qutes.Grammar.csproj", "{9EB2D4BA-F233-496F-830B-21DAEE5D633F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Qutes.Tests", "Qutes.Tests\Qutes.Tests.csproj", "{20EF031A-0CD1-4A95-B08D-C54E579E2399}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{9EB2D4BA-F233-496F-830B-21DAEE5D633F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9EB2D4BA-F233-496F-830B-21DAEE5D633F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9EB2D4BA-F233-496F-830B-21DAEE5D633F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20EF031A-0CD1-4A95-B08D-C54E579E2399}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20EF031A-0CD1-4A95-B08D-C54E579E2399}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20EF031A-0CD1-4A95-B08D-C54E579E2399}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20EF031A-0CD1-4A95-B08D-C54E579E2399}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

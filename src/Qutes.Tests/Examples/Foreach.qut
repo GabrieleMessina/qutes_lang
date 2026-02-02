@@ -1,0 +1,8 @@
+qubit[] bitmask = [1q, 0q, 1q];
+quint[] vector = [1q, 2q, 3q];
+foreach q,i in vector{
+    if(bitmask[i]){
+        hadamard q;
+    }
+}
+measure vector;
