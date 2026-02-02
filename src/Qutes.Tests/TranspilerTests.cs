@@ -4,6 +4,8 @@ using Qutes.Grammar;
 
 using QutesLang;
 using QutesLang.GrammarFrontend;
+using QutesLang.GrammarParsing;
+using QutesLang.Symbols;
 
 using Xunit;
 
