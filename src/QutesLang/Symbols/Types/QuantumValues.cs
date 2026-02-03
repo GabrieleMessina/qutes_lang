@@ -109,6 +109,8 @@ public class QucharValue : QuintValue
 public class QuintValue : QuantumScalarValue
 {
     public virtual int DefaultSize => CompilerFlags.Current.QuintSizeInQubit;
+    public int MinValue => -(int)(Math.Ceiling(Math.Pow(2, DefaultSize))/2);
+    public int MaxValue => (int)(Math.Floor(Math.Pow(2, DefaultSize))/2) - 1;
 
     public QuintValue()
     {
@@ -134,6 +136,20 @@ public class QuintValue : QuantumScalarValue
     public QuintValue(int value) : this()
     {
         InitialStateVector = QuintParser.Parse(value.ToString() + "q");
+    }
+    
+    public QuintValue(FullyQualifiedRange range) : this()
+    {
+        var termList = new List<int>();
+        for(var i = range.Start.Value; i < range.End.Value; i++)
+        {
+            if (i < MinValue || i > MaxValue)
+            {
+                throw new ArgumentException("RangeValue exceeds the bounds of the QuintValue size.");
+            }
+            termList.Add(i);
+        }
+        InitialStateVector = QuintParser.Parse($"[{string.Join(',', termList)}]q");
     }
 
     public static QuintValue Superposition() => new(StateVector.Superposition(CompilerFlags.Current.QuintSizeInQubit));

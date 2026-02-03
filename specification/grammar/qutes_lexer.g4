@@ -11,6 +11,7 @@ QUINT_TYPE : 'quint' ;
 QUSTRING_TYPE : 'qustring' ;
 QUCHAR_TYPE : 'quchar' ;
 VOID_TYPE : 'void' ;
+RANGE_TYPE : 'range' ;
 RETURN : 'return' ;
 BREAK : 'break' ;
 EXP : '^' ;
@@ -45,6 +46,7 @@ LOWEREQUAL : '<=' ;
 LSHIFT : '<<' ;
 RSHIFT : '>>' ;
 ASSIGN : '=' ;
+RANGE_OPERATOR : '..' ;
 AUTO_INCREMENT : '++' ;
 AUTO_DECREMENT : '--' ;
 AUTO_SUM : '+=' ;
@@ -119,7 +121,7 @@ CHAR_LITERAL
     ;
 
 FLOAT_LITERAL
-   : DIGIT+ '.' DIGIT*
+   : DIGIT+ '.' DIGIT+
    | '.' DIGIT+
    ;
 

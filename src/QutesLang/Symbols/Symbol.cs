@@ -97,4 +97,5 @@ public class TypeSymbol(QutesType type, TypeSymbol? nestedValue = null) : Symbol
     public static TypeSymbol Tuple { get; } = new(QutesType.tuple);
     public static TypeSymbol Class { get; } = new(QutesType.@class);
     public static TypeSymbol Void { get; } = new(QutesType.@void);
+    public static TypeSymbol Range { get; } = new(QutesType.range);
 }

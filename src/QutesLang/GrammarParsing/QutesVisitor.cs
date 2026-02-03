@@ -59,25 +59,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
     private AnonymousValueSymbol GetDefaultValueSymbolForType(TypeSymbol varTypeSymbol, int astTokenIndex)
     {
-        IQutesValue defaultValue = varTypeSymbol.Value switch
-        {
-            QutesType.boolean => BoolValue.GetDefaultValue(),
-            QutesType.integer => IntValue.GetDefaultValue(),
-            QutesType.character => CharValue.GetDefaultValue(),
-            QutesType.floating => FloatValue.GetDefaultValue(),
-            QutesType.@string => StringValue.GetDefaultValue(),
-            QutesType.qubit => QubitValue.GetDefaultValue(),
-            QutesType.quinteger => QuintValue.GetDefaultValue(),
-            QutesType.qucharacter => QucharValue.GetDefaultValue(),
-            QutesType.qustring => QustringValue.GetDefaultValue(),
-            QutesType.classicalArray => ClassicalArrayValue.GetDefaultValue(varTypeSymbol.NestedValue!),
-            QutesType.quantumArray => QuantumArrayValue.GetDefaultValue(varTypeSymbol.NestedValue!),
-            QutesType.@void => VoidValue.GetDefaultValue(),
-            QutesType.tuple => throw new NotImplementedException(),
-            QutesType.@class => throw new NotImplementedException(),
-            _ => throw new InvalidOperationException($"Cannot get default value for type '{varTypeSymbol}'."),
-        };
-
+        var defaultValue = varTypeSymbol.GetDefaultValueFromType();
         return new AnonymousValueSymbol(defaultValue, scopeHandler.GetCurrentScope(), astTokenIndex);
     }
 
@@ -598,14 +580,49 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                     circuitHandler.PushOperation(new QramAccess(quantumArray, quintValue, (IQuantumValue)destinationSymbol.Value));
                     return destinationSymbol;
                 }
+                case RangeValue rangeValue:
+                {
+                    // Slice the array using the range
+                    var indices = rangeValue.Enumerate(array.Values.Count()).ToList();
+                    var slicedElements = indices.Select(i => array.Values.ElementAt(i)).ToList();
+                    var elementsType = array.Type.NestedValue!;
+                    ArrayValue slicedArray = elementsType.IsQuantum()
+                        ? new QuantumArrayValue(slicedElements, elementsType)
+                        : new ClassicalArrayValue(slicedElements, elementsType);
+                    return new AnonymousValueSymbol(slicedArray, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+                }
                 default:
-                    throw new InvalidOperationException($"Array index must be of type '{TypeSymbol.Int}' or '{TypeSymbol.Quint}', but '{indexSymbol.Type}' was provided.");
+                    throw new InvalidOperationException($"Array index must be of type '{TypeSymbol.Int}', '{TypeSymbol.Quint}', or '{TypeSymbol.Range}', but '{indexSymbol.Type}' was provided.");
             }
         }
         else
         {
             throw new InvalidOperationException($"Cannot access index of non-array type '{arraySymbol.Type}'.");
         }
+    }
+
+    public override Symbol VisitRangeExpression(qutes_parser.RangeExpressionContext context)
+    {
+        var start = Visit(context.expr(0)).Contains<IntValue>();
+        var end = Visit(context.expr(1)).Contains<IntValue>();
+        return new AnonymousValueSymbol(new RangeValue(start, end), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+    }
+
+    public override Symbol VisitRangeFromExpression(qutes_parser.RangeFromExpressionContext context)
+    {
+        var start = Visit(context.expr()).Contains<IntValue>();
+        return new AnonymousValueSymbol(new RangeValue(start, end:null), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+    }
+
+    public override Symbol VisitRangeToExpression(qutes_parser.RangeToExpressionContext context)
+    {
+        var end = Visit(context.expr()).Contains<IntValue>();
+        return new AnonymousValueSymbol(new RangeValue(start: null, end), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+    }
+
+    public override Symbol VisitRangeFullExpression(qutes_parser.RangeFullExpressionContext context)
+    {
+        return new AnonymousValueSymbol(new RangeValue(start: null, end: null), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
     }
 
     public override Symbol VisitPostfixOperator(qutes_parser.PostfixOperatorContext context)
@@ -1016,20 +1033,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
     public override Symbol VisitType(qutes_parser.TypeContext context)
     {
-        var type
-            = context.BOOL_TYPE() != null ? QutesType.boolean
-            : context.INT_TYPE() != null ? QutesType.integer
-            : context.CHAR_TYPE() != null ? QutesType.character
-            : context.FLOAT_TYPE() != null ? QutesType.floating
-            : context.STRING_TYPE() != null ? QutesType.@string
-            : context.QUBIT_TYPE() != null ? QutesType.qubit
-            : context.QUINT_TYPE() != null ? QutesType.quinteger
-            : context.QUCHAR_TYPE() != null ? QutesType.qucharacter
-            : context.QUSTRING_TYPE() != null ? QutesType.qustring
-            : context.VOID_TYPE() != null ? QutesType.@void
-            : throw new InvalidOperationException($"Unknown type '{context.GetText()}'.");
-
-        return new TypeSymbol(type);
+        return new TypeSymbol(context.GetQutesType());
     }
 
     public override Symbol VisitQualifiedName(qutes_parser.QualifiedNameContext context)

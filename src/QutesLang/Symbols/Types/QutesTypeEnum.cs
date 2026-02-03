@@ -16,4 +16,5 @@ public enum QutesType
     tuple,
     @class,
     @void,
+    range,
 }

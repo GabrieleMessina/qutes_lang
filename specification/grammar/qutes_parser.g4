@@ -2,8 +2,7 @@ parser grammar qutes_parser;
 
 options {
    tokenVocab = qutes_lexer;
-   language = Python3;
-
+   language = Csharp;
 }
 
 // ----- Entrypoint -----
@@ -44,6 +43,11 @@ expr // Order: https://en.wikipedia.org/wiki/Order_of_operations#Programming_lan
    // Function call, scope, array/member access
    | qualifiedName ROUND_PARENTHESIS_OPEN termList? ROUND_PARENTHESIS_CLOSE #FunctionCallExpression
    | expr SQUARE_PARENTHESIS_OPEN expr SQUARE_PARENTHESIS_CLOSE #ArrayAccessExpression
+   // Range operator (start..end, start.., ..end, ..)
+   | expr RANGE_OPERATOR expr #RangeExpression
+   | expr RANGE_OPERATOR #RangeFromExpression
+   | RANGE_OPERATOR expr #RangeToExpression
+   | RANGE_OPERATOR #RangeFullExpression
    // Unary operators, sizeof and type casts
    | expr op=(AUTO_INCREMENT | AUTO_DECREMENT) #PostfixOperator
    | expr op=EXP expr #ExpOperator
@@ -88,6 +92,7 @@ type
    | QUCHAR_TYPE
    | QUSTRING_TYPE
    | VOID_TYPE
+   | RANGE_TYPE
    ;
 
 qualifiedName 
