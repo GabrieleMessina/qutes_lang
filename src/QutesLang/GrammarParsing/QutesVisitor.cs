@@ -568,24 +568,18 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
     public override Symbol VisitArrayExpression(qutes_parser.ArrayExpressionContext context)
     {
         var elements = Visit(context.termList()).Contains<TupleValue>().Values.As<ValueSymbol>().ToList();
-        var elementsType = elements.First().Type;
+        var elementsType = elements.First().Type; //TODO: we should check for the least restrictive common type.
 
-        //ensure all elements are of the same type or can be casted to the same type
+        //ensure all elements are of the same type or can be cast to the same type
         foreach (var (element, index) in elements.Select((value, i) => (value, i)).ToList())
         {
             elements[index] = CastValueToType(element, elementsType);
         }
 
-        if (elementsType.IsQuantum())
-        {
-            return new AnonymousValueSymbol(new QuantumArrayValue(elements, elementsType), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
-        }
-        else
-        {
-            return new AnonymousValueSymbol(new ClassicalArrayValue(elements, elementsType), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
-        }
-
-        throw new InvalidOperationException("Array elements must be of quantum or classical types.");
+        ArrayValue array = elementsType.IsQuantum()
+            ? new QuantumArrayValue(elements, elementsType)
+            : new ClassicalArrayValue(elements, elementsType);
+        return new AnonymousValueSymbol(array, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
     }
 
     public override Symbol VisitArrayAccessExpression(qutes_parser.ArrayAccessExpressionContext context)
@@ -593,8 +587,20 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         var arraySymbol = Visit(context.expr(0)).As<ValueSymbol>();
         if (arraySymbol.Value is ArrayValue array)
         {
-            var indexValue = Visit(context.expr(1)).Contains<IntValue>().Value;
-            return array.Values.ElementAt(indexValue);
+            var indexSymbol = Visit(context.expr(1)).As<ValueSymbol>();
+            switch (indexSymbol.Value)
+            {
+                case IntValue intValue:
+                    return array.Values.ElementAt(intValue.Value);
+                case QuintValue quintValue when arraySymbol.Value is QuantumArrayValue quantumArray:
+                {
+                    var destinationSymbol = GetDefaultValueSymbolForType(quantumArray.Type.NestedValue!, context.Start.TokenIndex);
+                    circuitHandler.PushOperation(new QramAccess(quantumArray, quintValue, (IQuantumValue)destinationSymbol.Value));
+                    return destinationSymbol;
+                }
+                default:
+                    throw new InvalidOperationException($"Array index must be of type '{TypeSymbol.Int}' or '{TypeSymbol.Quint}', but '{indexSymbol.Type}' was provided.");
+            }
         }
         else
         {

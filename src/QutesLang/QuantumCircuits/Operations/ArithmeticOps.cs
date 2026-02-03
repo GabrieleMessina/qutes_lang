@@ -6,6 +6,13 @@ using QutesLang.Symbols.Types.Interfaces;
 
 namespace QutesLang.GrammarFrontend.Operations;
 
+public class QramAccess(QuantumArrayValue array, QuintValue address, IQuantumValue destination) : Composition(
+[
+    new LeftShift(array, address),
+    new Copy(array, destination),
+    new RightShift(array, address)
+], destination);
+
 public class RightShift : LeftShift
 {
     public RightShift(QuantumArrayValue target, QuintValue offset) : base(target, offset)
