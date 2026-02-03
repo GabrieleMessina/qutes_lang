@@ -112,7 +112,7 @@ public class IntValue(int value) : ClassicalScalarValue
         }
         if (targetType == TypeSymbol.Quint)
         {
-            result = new QuintValue(this.Value);
+            result = new QuintValue(this);
             return true;
         }
         result = default!;

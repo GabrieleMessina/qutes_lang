@@ -138,6 +138,10 @@ public class QuintValue : QuantumScalarValue
         InitialStateVector = QuintParser.Parse(value.ToString() + "q");
     }
     
+    public QuintValue(IntValue value) : this(value.Value)
+    {
+    }
+    
     public QuintValue(FullyQualifiedRange range) : this()
     {
         var termList = new List<int>();

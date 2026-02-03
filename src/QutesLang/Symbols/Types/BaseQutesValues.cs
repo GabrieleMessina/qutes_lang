@@ -147,6 +147,10 @@ public abstract class QuantumScalarValue : IQuantumValue
 
 public abstract class ArrayValue : IQutesValue
 {
+    /// <summary>
+    /// Array elements, this cannot be a list of IQutesValue because we need to store also the symbol information,
+    /// otherwise, we wouldn't be able to return a unique symbol when array is accessed.
+    /// </summary>
     public abstract IEnumerable<ValueSymbol> Values { get; protected set; }
     public abstract TypeSymbol Type { get; }
 
@@ -189,5 +193,10 @@ public abstract class ArrayValue : IQutesValue
         {
             return new ClassicalArrayValue(castedValues, elementsType);
         }
+    }
+
+    public override string ToString()
+    {
+        return "[" + string.Join(", ", Values) + "]";
     }
 }

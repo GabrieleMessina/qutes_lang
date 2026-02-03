@@ -47,7 +47,7 @@ public class ValueSymbol(string qualifiedName, IQutesValue value, Scope scope, i
 {
     public string QualifiedName { get; } = qualifiedName;
     public IQutesValue Value { get; set; } = value;
-    public TypeSymbol Type { get; set; } = value.Type;
+    public TypeSymbol Type => Value.Type;
 
     public override string ToString()
     {
