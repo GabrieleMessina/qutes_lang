@@ -549,18 +549,26 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
     public override Symbol VisitArrayExpression(qutes_parser.ArrayExpressionContext context)
     {
-        var elements = Visit(context.termList()).Contains<TupleValue>().Values.As<ValueSymbol>().ToList();
-        var elementsType = elements.First().Type; //TODO: we should check for the least restrictive common type.
+        var rawSymbolList = Visit(context.termList()).Contains<TupleValue>().Values.As<ValueSymbol>().ToList();
+        var arrayElements = new List<ValueSymbol>();
 
-        //ensure all elements are of the same type or can be cast to the same type
-        foreach (var (element, index) in elements.Select((value, i) => (value, i)).ToList())
+        //expand range values into individual elements
+        foreach (var element in rawSymbolList)
         {
-            elements[index] = CastValueToType(element, elementsType);
+            if (element.Value is RangeValue)
+        {
+                var innerArray = (ArrayValue)CastValueToType(element, TypeSymbol.Array(TypeSymbol.Int)).Value;
+                arrayElements.AddRange(innerArray.Values);
+            }
         }
 
+        //ensure all elements are of the same type or can be cast to the same type
+        var elementsType = arrayElements.First().Type; //TODO: we should check for the least restrictive common type.
+        var castedElements = arrayElements.Select(element => CastValueToType(element, elementsType)).ToList();
+
         ArrayValue array = elementsType.IsQuantum()
-            ? new QuantumArrayValue(elements, elementsType)
-            : new ClassicalArrayValue(elements, elementsType);
+            ? new QuantumArrayValue(castedElements, elementsType)
+            : new ClassicalArrayValue(castedElements, elementsType);
         return new AnonymousValueSymbol(array, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
     }
 
@@ -584,7 +592,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                 {
                     // Slice the array using the range
                     var indices = rangeValue.Enumerate(array.Values.Count()).ToList();
-                    var slicedElements = indices.Select(i => array.Values.ElementAt(i)).ToList();
+                    var slicedElements = indices.Select(i => array.Values.ElementAt(i.Value)).ToList();
                     var elementsType = array.Type.NestedValue!;
                     ArrayValue slicedArray = elementsType.IsQuantum()
                         ? new QuantumArrayValue(slicedElements, elementsType)
@@ -605,7 +613,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
     {
         var start = Visit(context.expr(0)).Contains<IntValue>();
         var end = Visit(context.expr(1)).Contains<IntValue>();
-        return new AnonymousValueSymbol(new RangeValue(start, end), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+        return new AnonymousValueSymbol(new FullyQualifiedRange(start, end), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
     }
 
     public override Symbol VisitRangeFromExpression(qutes_parser.RangeFromExpressionContext context)

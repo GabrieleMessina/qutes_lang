@@ -73,12 +73,12 @@ public class RangeValue(IntValue? start, IntValue? end) : IQutesValue
     /// </summary>
     /// <param name="length">The length of the collection being accessed.</param>
     /// <returns>An enumerable of indices.</returns>
-    public IEnumerable<int> Enumerate(int length)
+    public IEnumerable<IntValue> Enumerate(int length)
     {
         var actualStart = Start?.Value ?? 0;
         var actualEnd = End?.Value ?? length;
         for (var i = actualStart; i < actualEnd; i++)
-            yield return i;
+            yield return new IntValue(i);
     }
 
     public bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
@@ -93,11 +93,16 @@ public class RangeValue(IntValue? start, IntValue? end) : IQutesValue
             result = new QuintValue(new FullyQualifiedRange(this));
             return true;
         }
-        // if (targetType == TypeSymbol.Array(TypeSymbol.Quint))
-        // {
-        //     result = new QuantumArrayValue(Enumerate(End?.Value ?? 0).Select(i=>new QuintValue(i)), TypeSymbol.Quint);
-        //     return true;
-        // }
+        if (targetType == TypeSymbol.Array(TypeSymbol.Quint))
+        {
+            result = new QuantumArrayValue(Enumerate(End?.Value ?? 0).Select(intValue => AnonymousValueSymbol.Default(new QuintValue(intValue))).ToList(), TypeSymbol.Quint);
+            return true;
+        }
+        if (targetType == TypeSymbol.Array(TypeSymbol.Int))
+        {
+            result = new ClassicalArrayValue(Enumerate(End?.Value ?? 0).Select(intValue => AnonymousValueSymbol.Default(intValue)).ToList(), TypeSymbol.Int);
+            return true;
+        }
         result = default!;
         return false;
     }
@@ -132,5 +137,14 @@ public class FullyQualifiedRange : RangeValue
     /// <param name="end">The end index (exclusive).</param>
     public FullyQualifiedRange(IntValue start, IntValue end) : base(start, end)
     {
+    }
+    
+    /// <summary>
+    /// Enumerates the indices represented by this range.
+    /// </summary>
+    /// <returns>An enumerable of indices.</returns>
+    public IEnumerable<IntValue> Enumerate()
+    {
+        return base.Enumerate(End.Value);
     }
 }
