@@ -54,16 +54,16 @@ public class BoolParser
 
 public partial class QubitParser
 {
-    // [float, float]q
-    [GeneratedRegex(@"^\[\s*([-+]?[0-9]*\.?[0-9]+)\s*,\s*([-+]?[0-9]*\.?[0-9]+)\s*\]q$", RegexOptions.IgnoreCase | RegexOptions.Compiled)]
+    // {float, float?}q
+    [GeneratedRegex(@"^\{\s*([-+]?[0-9]*\.?[0-9]+)(?:\s*,\s*([-+]?[0-9]*\.?[0-9]+))?\s*\}$", RegexOptions.IgnoreCase | RegexOptions.Compiled)]
     private static partial Regex AmplitudeVectorRegex();
 
-    // [bool, bool?]q
-    [GeneratedRegex(@"^\[\s*(true|false|0|1)(?:\s*,\s*(true|false|0|1))?\s*\]q$", RegexOptions.IgnoreCase | RegexOptions.Compiled)]
+    // {bool, bool?}q
+    [GeneratedRegex(@"^\{\s*(true|false|0|1)(?:\s*,\s*(true|false|0|1))?\s*\}$", RegexOptions.IgnoreCase | RegexOptions.Compiled)]
     private static partial Regex BoolVectorRegex();
 
-    // bool q
-    [GeneratedRegex(@"^(true|false|0|1)q$", RegexOptions.IgnoreCase | RegexOptions.Compiled)]
+    // bool
+    [GeneratedRegex(@"^(true|false|0|1)$", RegexOptions.IgnoreCase | RegexOptions.Compiled)]
     private static partial Regex SingleBoolRegex();
 
     // |0>, |1>, |+>, |->
@@ -76,27 +76,27 @@ public partial class QubitParser
 
         input = input.Replace(" ", string.Empty);
 
-        // Match Float Amplitude Vector: [0.7, 0.3]q
+        // Match Float Amplitude Vector: {0.7, 0.3}
         var floatMatch = AmplitudeVectorRegex().Match(input);
         if (floatMatch.Success)
         {
             var alpha = double.Parse(floatMatch.Groups[1].Value);
-            var beta = double.Parse(floatMatch.Groups[2].Value);
+            var beta = floatMatch.Groups[2].Success ? double.Parse(floatMatch.Groups[2].Value) : 1d-double.Parse(floatMatch.Groups[1].Value);
             return new StateVector([alpha, beta]);
         }
 
-        // Match Bool Vector: [true, false]q or [0]q
+        // Match Bool Vector: {true, false} or {0}
         var boolMatch = BoolVectorRegex().Match(input);
         if (boolMatch.Success)
         {
             var bool1 = BoolParser.Parse(boolMatch.Groups[1].Value);
-            var bool2 = BoolParser.Parse(boolMatch.Groups[2].Success ? boolMatch.Groups[2].Value : "0");
-            var alpha = bool1 ? 1.0d : 0.0d;
-            var beta = bool2 ? 1.0d : 0.0d;
+            var bool2 = BoolParser.Parse(boolMatch.Groups[2].Success ? boolMatch.Groups[2].Value : boolMatch.Groups[1].Value); // If second value is missing, duplicate the first so that [true]q becomes [true, true]q that is idempotent.
+            var alpha = bool1 == false || bool2 == false ? 1.0d : 0.0d;
+            var beta = bool1 == true || bool2 == true ? 1.0d : 0.0d;
             return new StateVector([alpha, beta]); //normalizzation is handled by the StateVector class
         }
 
-        // Match Single Bool: true q or 1q
+        // Match Single Bool: true or 1
         var singleBoolMatch = SingleBoolRegex().Match(input);
         if (singleBoolMatch.Success)
         {
@@ -123,8 +123,8 @@ public partial class QubitParser
 
 public partial class QucharParser
 {
-    // 'A'q
-    [GeneratedRegex(@"^'(.{1})'q$", RegexOptions.Compiled)]
+    // 'A'
+    [GeneratedRegex(@"^'(.{1})'$", RegexOptions.Compiled)]
     private static partial Regex CharLiteralRegex();
     public static StateVector Parse(string input)
     {
@@ -137,7 +137,7 @@ public partial class QucharParser
             var character = match.Groups[1].Value[0];
             var qutesEncodedChar = alphabet.IndexOf(character);
             if (qutesEncodedChar == -1) throw new ArgumentException($"Invalid quchar literal: {input}, valid characters are: {string.Join(", ", alphabet)}");
-            return QuintParser.Parse($"{qutesEncodedChar}q", size);
+            return QuintParser.Parse($"{qutesEncodedChar}", size);
         }
         throw new ArgumentException($"Invalid quchar literal format: {input}");
     }
@@ -145,12 +145,12 @@ public partial class QucharParser
 
 public partial class QuintParser
 {
-    // Integer Literal: 5q
-    [GeneratedRegex(@"^(\d+)q$", RegexOptions.IgnoreCase | RegexOptions.Compiled)]
+    // Integer Literal: 5
+    [GeneratedRegex(@"^(\d+)$", RegexOptions.IgnoreCase | RegexOptions.Compiled)]
     private static partial Regex IntLiteralRegex();
 
-    // Integer List: [0, 1, 0, 1]q
-    [GeneratedRegex(@"^\[\s*((?:\d+\s*,?\s*)+)\]q$", RegexOptions.IgnoreCase | RegexOptions.Compiled)]
+    // Integer List: {0, 1, 0, 1}
+    [GeneratedRegex(@"^\{\s*((?:\d+\s*,?\s*)+)\}$", RegexOptions.IgnoreCase | RegexOptions.Compiled)]
     private static partial Regex IntListRegex();
 
     public static StateVector Parse(string input, int? sizeInQubit = null)
@@ -162,15 +162,15 @@ public partial class QuintParser
         var size = sizeInQubit ?? CompilerFlags.Current.QuintSizeInQubit;
         var bitCount = (int)Math.Pow(2, size);
 
-        // Match Integer Literal: 5q
+        // Match Integer Literal: 5
         var intMatch = IntLiteralRegex().Match(input);
         if (intMatch.Success)
         {
             int value = int.Parse(intMatch.Groups[1].Value);
-            input = $"[{value}]q"; // Reuse the integer list parsing logic
+            input = $"{{{value}}}"; // Reuse the integer list parsing logic
         }
 
-        // Match Integer List: [0, 2, 7]q
+        // Match Integer List: {0, 2, 7}
         var intListMatch = IntListRegex().Match(input);
         if (intListMatch.Success)
         {
@@ -191,7 +191,7 @@ public partial class QuintParser
 public partial class QustringParser
 {
     // This pattern identifies escaped quotes
-    [GeneratedRegex(@"^""((?:[^""\\]|\\.)*)""\s*q$", RegexOptions.Compiled)]
+    [GeneratedRegex(@"^""((?:[^""\\]|\\.)*)""\s*$", RegexOptions.Compiled)]
     private static partial Regex StringLiteralRegex();
 
     public static StateVector Parse(string input)

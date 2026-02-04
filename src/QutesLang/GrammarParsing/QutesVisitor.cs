@@ -13,6 +13,8 @@ namespace QutesLang.GrammarParsing;
 
 public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHandler) : qutes_parserBaseVisitor<Symbol>
 {
+    private readonly string QuantumSuffix = qutes_parser.DefaultVocabulary.GetLiteralName(qutes_parser.QUANTUM_SUFFIX);
+
     protected override bool ShouldVisitNextChild([NotNull] IRuleNode node, Symbol currentResult)
     {
         return !handlingReturnStatement;
@@ -226,7 +228,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         var itemNameSymbol = Visit(context.qualifiedName(0)).As<QualifiedNameSymbol>();
         QualifiedNameSymbol? indexNameSymbol = null;
         ValueSymbol? indexSymbol = null;
-
+        
         if (context.qualifiedName(1) != null)
         {
             indexNameSymbol = Visit(context.qualifiedName(1)).As<QualifiedNameSymbol>();
@@ -340,6 +342,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
     private bool handlingReturnStatement = false;
     private bool handlingBreakStatement = false;
+
     public override Symbol VisitFunctionCallExpression(qutes_parser.FunctionCallExpressionContext context)
     {
         var qualifiedName = Visit(context.qualifiedName()).As<QualifiedNameSymbol>().QualifiedName;
@@ -551,12 +554,12 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
     {
         var rawSymbolList = Visit(context.termList()).Contains<TupleValue>().Values.As<ValueSymbol>().ToList();
         var arrayElements = new List<ValueSymbol>();
-
+        
         //expand range values into individual elements
         foreach (var element in rawSymbolList)
         {
             if (element.Value is RangeValue)
-        {
+            {
                 var innerArray = (ArrayValue)CastValueToType(element, TypeSymbol.Array(TypeSymbol.Int)).Value;
                 arrayElements.AddRange(innerArray.Values);
             }
@@ -1065,28 +1068,28 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
     public override Symbol VisitQubit(qutes_parser.QubitContext context)
     {
-        var value = context.QUBIT_LITERAL().GetText();
+        var value = context.GetText().TrimEnd(QuantumSuffix).ToString();
         var stateVector = QubitParser.Parse(value);
         return new AnonymousValueSymbol(new QubitValue(stateVector), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
     }
 
     public override Symbol VisitQuint(qutes_parser.QuintContext context)
     {
-        var value = context.QUINT_LITERAL().GetText();
+        var value = context.GetText().TrimEnd(QuantumSuffix).ToString();
         var stateVector = QuintParser.Parse(value);
         return new AnonymousValueSymbol(new QuintValue(stateVector), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
     }
 
     public override Symbol VisitQuchar(qutes_parser.QucharContext context)
     {
-        var value = context.QUCHAR_LITERAL().GetText();
+        var value = context.GetText().TrimEnd(QuantumSuffix).ToString();
         var stateVector = QucharParser.Parse(value);
         return new AnonymousValueSymbol(new QucharValue(stateVector), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
     }
 
     public override Symbol VisitQustring(qutes_parser.QustringContext context)
     {
-        var value = context.QUSTRING_LITERAL().GetText();
+        var value = context.GetText().TrimEnd(QuantumSuffix).ToString();
         return new AnonymousValueSymbol(new QustringValue(value), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
     }
 

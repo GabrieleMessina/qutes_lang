@@ -2,7 +2,6 @@ parser grammar qutes_parser;
 
 options {
    tokenVocab = qutes_lexer;
-   language = Csharp;
 }
 
 // ----- Entrypoint -----
@@ -134,17 +133,21 @@ string
    ;
 
 qubit
-   : QUBIT_LITERAL
+   : CANON_QUBIT
+   | boolean QUANTUM_SUFFIX
+   | CURLY_PARENTHESIS_OPEN boolean (COMMA boolean)? CURLY_PARENTHESIS_CLOSE QUANTUM_SUFFIX
+   | CURLY_PARENTHESIS_OPEN float (COMMA float)? CURLY_PARENTHESIS_CLOSE QUANTUM_SUFFIX
    ;
 
 quint
-   : QUINT_LITERAL
+   : integer QUANTUM_SUFFIX
+   | CURLY_PARENTHESIS_OPEN integer (COMMA integer)* CURLY_PARENTHESIS_CLOSE QUANTUM_SUFFIX
    ;
 
 quchar
-   : QUCHAR_LITERAL
+   : char QUANTUM_SUFFIX
    ;
 
 qustring
-   : QUSTRING_LITERAL
+   : string QUANTUM_SUFFIX
    ;

@@ -1,5 +1,6 @@
 ﻿using System.CommandLine;
 using System.Data;
+using System.Globalization;
 
 using Antlr4.Runtime;
 
@@ -9,6 +10,9 @@ using QutesLang;
 using QutesLang.GrammarFrontend;
 using QutesLang.GrammarParsing;
 using QutesLang.Symbols;
+
+CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 
 var logSymbolsScope = CommandLine.CreateOption(
     ["-scopes", "--log-scopes"],

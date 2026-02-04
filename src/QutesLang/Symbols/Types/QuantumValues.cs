@@ -26,7 +26,7 @@ public class QubitValue() : QuantumScalarValue
 
     public QubitValue(bool value) : this()
     {
-        InitialStateVector = QubitParser.Parse(value ? "1q" : "0q");
+        InitialStateVector = QubitParser.Parse(value ? "1" : "0");
     }
 
     public override TypeSymbol Type { get; } = TypeSymbol.Qubit;
@@ -75,7 +75,7 @@ public class QucharValue : QuintValue
     {
     }
 
-    public QucharValue(char value) : this(QucharParser.Parse($"'{value}'q"))
+    public QucharValue(char value) : this(QucharParser.Parse($"'{value}'"))
     {
     }
 
@@ -135,7 +135,7 @@ public class QuintValue : QuantumScalarValue
 
     public QuintValue(int value) : this()
     {
-        InitialStateVector = QuintParser.Parse(value.ToString() + "q");
+        InitialStateVector = QuintParser.Parse(value.ToString());
     }
     
     public QuintValue(IntValue value) : this(value.Value)
@@ -153,7 +153,7 @@ public class QuintValue : QuantumScalarValue
             }
             termList.Add(i);
         }
-        InitialStateVector = QuintParser.Parse($"[{string.Join(',', termList)}]q");
+        InitialStateVector = QuintParser.Parse($"{{{string.Join(',', termList)}}}");
     }
 
     public static QuintValue Superposition() => new(StateVector.Superposition(CompilerFlags.Current.QuintSizeInQubit));

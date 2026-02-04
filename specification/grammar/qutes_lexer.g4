@@ -94,16 +94,17 @@ fragment
       : [0-9]
       ;
 
-fragment
-   CANON_QUBIT
-      : '|0>'
-      | '|1>'
-      | '|+>'
-      | '|->'
-      ;
+CANON_QUBIT
+   : '|0>'
+   | '|1>'
+   | '|+>'
+   | '|->'
+   ;
+
+QUANTUM_SUFFIX : 'q' ;
 
 // Helper fragment for escape sequences (newline, tab, quotes, etc.)
-fragment EscapeSequence
+fragment ESCAPE_SEQUENCE
     : '\\' [btnfr"'\\]
     ;
 
@@ -117,7 +118,7 @@ INT_LITERAL
    ;
 
 CHAR_LITERAL
-    : '\'' ( EscapeSequence | ~['\\\r\n] ) '\''
+    : '\'' ( ESCAPE_SEQUENCE | ~['\\\r\n] ) '\''
     ;
 
 FLOAT_LITERAL
@@ -133,28 +134,6 @@ BIN_LITERAL
    : '0' [b] [01]+ 
    ;
 
-QUBIT_LITERAL
-   : SQUARE_PARENTHESIS_OPEN BOOL_LITERAL (COMMA BOOL_LITERAL)? SQUARE_PARENTHESIS_CLOSE [q]
-   | SQUARE_PARENTHESIS_OPEN FLOAT_LITERAL COMMA FLOAT_LITERAL SQUARE_PARENTHESIS_OPEN [q]
-   | CANON_QUBIT
-   | BOOL_LITERAL [q]
-   ;
-
-QUINT_LITERAL
-   : QUBIT_LITERAL
-   | SQUARE_PARENTHESIS_OPEN INT_LITERAL (COMMA INT_LITERAL)* SQUARE_PARENTHESIS_CLOSE [q]
-   | INT_LITERAL [q]
-   ;
-
-QUCHAR_LITERAL
-   : CHAR_LITERAL [q]
-   ;
-
-QUSTRING_LITERAL
-   : STRING_LITERAL [q]
-   ;
-
-
 SYMBOL_LITERAL
    : [a-zA-Z_][a-zA-Z0-9_]*
    ;
@@ -164,7 +143,7 @@ STRING_LITERAL //this match "something""somethingelse"
    ;
 
 //STRING_LITERAL //this doesn't match "something""somethingelse"
-//   : '"' ( EscapeSequence | ~["\\\r\n] )* '"'
+//   : '"' ( ESCAPE_SEQUENCE | ~["\\\r\n] )* '"'
 //   ;
 
 
