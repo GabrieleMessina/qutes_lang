@@ -563,6 +563,10 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                 var innerArray = (ArrayValue)CastValueToType(element, TypeSymbol.Array(TypeSymbol.Int)).Value;
                 arrayElements.AddRange(innerArray.Values);
             }
+            else
+            {
+                arrayElements.AddRange(element);
+            }
         }
 
         //ensure all elements are of the same type or can be cast to the same type
