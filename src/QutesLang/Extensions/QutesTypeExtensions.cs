@@ -71,4 +71,31 @@ public static class QutesTypeExtensions
             _ => throw new InvalidOperationException($"Cannot get default value for type '{type}'."),
         };
     }
+
+    public static IQutesValue GetValueFromType(this TypeSymbol type, object? value)
+    {
+        if (value == null)
+        {
+            return type.GetDefaultValueFromType();
+        }
+        return type.Value switch
+        {
+            QutesType.boolean => QutesConvert.ToBoolValue(value),
+            QutesType.integer => QutesConvert.ToIntValue(value),
+            QutesType.character => QutesConvert.ToCharValue(value),
+            QutesType.floating => QutesConvert.ToFloatValue(value),
+            QutesType.@string => QutesConvert.ToStringValue(value),
+            QutesType.qubit => QutesConvert.ToQubitValue(value),
+            QutesType.quinteger => QutesConvert.ToQuintValue(value),
+            QutesType.qucharacter => QutesConvert.ToQucharValue(value),
+            QutesType.qustring => QutesConvert.ToQustringValue(value),
+            QutesType.classicalArray => throw new NotImplementedException(),
+            QutesType.quantumArray => throw new NotImplementedException(),
+            QutesType.@void => throw new NotImplementedException(),
+            QutesType.range => throw new NotImplementedException(),
+            QutesType.tuple => throw new NotImplementedException(),
+            QutesType.@class => throw new NotImplementedException(),
+            _ => throw new InvalidOperationException($"Cannot get default value for type '{type}'."),
+        };
+    }
 }

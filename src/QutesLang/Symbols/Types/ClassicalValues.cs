@@ -118,6 +118,11 @@ public class IntValue(int value) : ClassicalScalarValue
         result = default!;
         return false;
     }
+
+    public static IntValue Parse(string v)
+    {
+        return new IntValue(int.Parse(v));
+    }
 }
 
 public class FloatValue(float value) : ClassicalScalarValue

@@ -68,6 +68,16 @@ public class RangeValue(IntValue? start, IntValue? end) : IQutesValue
 
     public static RangeValue GetDefaultValue() => new(null, null);
 
+    public static RangeValue Parse(string input)
+    {
+        var parts = input.Split("..");
+        if (parts.Length != 2)
+            throw new FormatException($"Invalid range format: '{input}'");
+        IntValue? start = string.IsNullOrEmpty(parts[0]) ? null : IntValue.Parse(parts[0]);
+        IntValue? end = string.IsNullOrEmpty(parts[1]) ? null : IntValue.Parse(parts[1]);
+        return new RangeValue(start, end);
+    }
+
     /// <summary>
     /// Enumerates the indices represented by this range, given the length of a collection.
     /// </summary>
@@ -117,6 +127,17 @@ public class FullyQualifiedRange : RangeValue
 {
     public new IntValue Start => base.Start!;
     public new IntValue End => base.End!;
+
+    public new static FullyQualifiedRange GetDefaultValue() => new(IntValue.GetDefaultValue(), IntValue.GetDefaultValue());
+    public new static FullyQualifiedRange Parse(string input)
+    {
+        var parts = input.Split("..");
+        if (parts.Length != 2)
+            throw new FormatException($"Invalid range format: {input}");
+        IntValue start = string.IsNullOrEmpty(parts[0]) ? throw new FormatException($"Invalid start value: '{parts[0]}'") : IntValue.Parse(parts[0]);
+        IntValue end = string.IsNullOrEmpty(parts[1]) ? throw new FormatException($"Invalid end value: '{parts[1]}'") : IntValue.Parse(parts[1]);
+        return new FullyQualifiedRange(start, end);
+    }
 
     /// <summary>
     /// Constructs a FullyQualifiedRange from a RangeValue, ensuring both bounds are defined.
