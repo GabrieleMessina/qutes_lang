@@ -2,7 +2,7 @@
 
 namespace QutesLang.Extensions;
 
-public static partial class QutesConvert
+public static class QutesConvert
 {
     public static BoolValue ToBoolValue(object value)
     {
