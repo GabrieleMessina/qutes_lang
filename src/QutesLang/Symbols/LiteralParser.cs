@@ -152,6 +152,8 @@ public partial class QuintParser
     // Integer List: {0, 1, 0, 1}
     [GeneratedRegex(@"^\{\s*((?:\d+\s*,?\s*)+)\}$", RegexOptions.IgnoreCase | RegexOptions.Compiled)]
     private static partial Regex IntListRegex();
+    [GeneratedRegex(@"^\{\s*(\d+\s*\.\.\s*\d+)\}$", RegexOptions.IgnoreCase | RegexOptions.Compiled)]
+    private static partial Regex IntRangeRegex();
 
     public static StateVector Parse(string input, int? sizeInQubit = null)
     {
@@ -168,6 +170,16 @@ public partial class QuintParser
         {
             int value = int.Parse(intMatch.Groups[1].Value);
             input = $"{{{value}}}"; // Reuse the integer list parsing logic
+        }
+
+        // Match Range List: {0..2}
+        var intRangeMatch = IntRangeRegex().Match(input);
+        if (intRangeMatch.Success)
+        {
+            var range = FullyQualifiedRange.Parse(intRangeMatch.Groups[1].Value);
+            var elements = string.Join(',', range.Enumerate().Select(iv => iv.Value));
+
+            return Parse($"{{{elements}}}", size); // Reuse the integer list parsing logic
         }
 
         // Match Integer List: {0, 2, 7}
