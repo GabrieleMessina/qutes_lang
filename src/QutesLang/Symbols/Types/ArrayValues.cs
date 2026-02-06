@@ -32,6 +32,20 @@ public class ClassicalArrayValue(IEnumerable<ValueSymbol> values, TypeSymbol ele
 
     public virtual IQutesValue Subtraction(IClassicalValue term) => new ClassicalArrayValue(Values.Except(Values), elementsType);
 
+    public virtual IQutesValue Multiply(IClassicalValue term)
+    {
+        if(term is not IntValue intTerm)
+            throw new InvalidOperationException($"Can only multiply {nameof(ClassicalArrayValue)} by an {nameof(IntValue)}.");
+
+        var values = 
+            Enumerable.Range(0, intTerm.Value).SelectMany(_ => Values)
+            .Select(v => AnonymousValueSymbol.Default(
+                Type.NestedValue!.GetValueFromType(
+                    ((IClassicalValue)v.Value).GetValueAsObject())))
+            .ToList();
+        return new ClassicalArrayValue(values, elementsType);
+    }
+
     public virtual BoolValue Equals(IClassicalValue term) => new(!Values.Any() && !Values.Except(Values).Any());
 
     public virtual BoolValue NotEquals(IClassicalValue term) => new(Values.Any() || Values.Except(Values).Any());
@@ -97,11 +111,6 @@ public class ClassicalArrayValue(IEnumerable<ValueSymbol> values, TypeSymbol ele
     }
 
     public virtual IQutesValue Module(IClassicalValue term)
-    {
-        throw new NotImplementedException();
-    }
-
-    public virtual IQutesValue Multiply(IClassicalValue term)
     {
         throw new NotImplementedException();
     }
