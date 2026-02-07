@@ -37,13 +37,14 @@ public class ClassicalArrayValue(IEnumerable<ValueSymbol> values, TypeSymbol ele
         if(term is not IntValue intTerm)
             throw new InvalidOperationException($"Can only multiply {nameof(ClassicalArrayValue)} by an {nameof(IntValue)}.");
 
+        //Create new symbols starting from original array values.
         var values = 
-            Enumerable.Range(0, intTerm.Value).SelectMany(_ => Values)
+            Enumerable.Range(0, intTerm.Value-1).SelectMany(_ => Values) //only create new registers for the multiplied(missing) part
             .Select(v => AnonymousValueSymbol.Default(
                 Type.NestedValue!.GetValueFromType(
-                    ((IClassicalValue)v.Value).GetValueAsObject())))
+                    ((IClassicalValue)v.Value).GetValueAsObject()))) //TODO: is it better to create new instances or is it better to reuse the same instances?
             .ToList();
-        return new ClassicalArrayValue(values, elementsType);
+        return new ClassicalArrayValue([..Values, ..values], elementsType); //prepend original values
     }
 
     public virtual BoolValue Equals(IClassicalValue term) => new(!Values.Any() && !Values.Except(Values).Any());
@@ -242,9 +243,28 @@ public class QuantumArrayValue : ArrayValue, IQuantumValue
         throw new NotImplementedException();
     }
 
-    public virtual CircuitOperation Multiply(IQuantumValue term)
+    public virtual CircuitOperation Multiply(IQutesValue term)
     {
-        throw new NotImplementedException();
+        if (term is not IntValue intTerm)
+            throw new InvalidOperationException($"Can only multiply {nameof(QuantumArrayValue)} by an {nameof(IntValue)}.");
+
+        //Create new quantum registers in |0> state
+        var finalValues =
+            Enumerable.Range(0, intTerm.Value-1).SelectMany(_ => Values) //only create new registers for the multiplied(missing) part
+            .Select(v => AnonymousValueSymbol.Default(
+                Type.NestedValue!.GetDefaultValueFromType()))
+            .ToList();
+
+        //Copy corresponding original values to newly created registers.
+        var originalValues = this.Values.ToList();
+        var originalCount = originalValues.Count;
+        List<CircuitOperation> operations = [];
+        for (int i = 0; i < finalValues.Count; i++) //Act on new values only
+        {
+            operations.Add(new Copy((IQuantumValue)originalValues[i % originalCount].Value, (IQuantumValue)finalValues[i].Value));
+        }
+
+        return new Composition(operations, new QuantumArrayValue([..Values, ..finalValues], Type.NestedValue!));
     }
 
     public virtual CircuitOperation Not()
