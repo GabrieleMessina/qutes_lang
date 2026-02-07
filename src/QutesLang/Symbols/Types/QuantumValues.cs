@@ -39,8 +39,8 @@ public class QubitValue() : QuantumScalarValue
     public static QubitValue PlusState() => new(QubitParser.Parse("|+>"));
     public static QubitValue MinusState() => new(QubitParser.Parse("|->"));
 
-    public override CircuitOperation And(IQuantumValue term) => new And(this, term, QubitValue.GetDefaultValue());
-    public override CircuitOperation Or(IQuantumValue term) => new Or(this, term, QubitValue.GetDefaultValue());
+    public override CircuitOperation And(IQutesValue term) => new And(this, GetQuantumValue(term), QubitValue.GetDefaultValue());
+    public override CircuitOperation Or(IQutesValue term) => new Or(this, GetQuantumValue(term), QubitValue.GetDefaultValue());
     public override CircuitOperation Not() => new Not(this);
 
     public virtual bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
@@ -165,16 +165,16 @@ public class QuintValue : QuantumScalarValue
 
     public static QuintValue GetDefaultValue() => new();
 
-    public override CircuitOperation Addition(IQuantumValue term) => new Addition(this, term, GetDefaultValue());
-    public override CircuitOperation Subtraction(IQuantumValue term) => new Subtraction(this, term, GetDefaultValue());
-    public override CircuitOperation Multiply(IQuantumValue term) => new Multiply(this, term, GetDefaultValue());
-    public override CircuitOperation Divide(IQuantumValue term) => new Divide(this, term, GetDefaultValue());
-    public override CircuitOperation Module(IQuantumValue term) => new Module(this, term, GetDefaultValue());
+    public override CircuitOperation Addition(IQutesValue term) => new Addition(this, GetQuantumValue(term), GetDefaultValue());
+    public override CircuitOperation Subtraction(IQutesValue term) => new Subtraction(this, GetQuantumValue(term), GetDefaultValue());
+    public override CircuitOperation Multiply(IQutesValue term) => new Multiply(this, GetQuantumValue(term), GetDefaultValue());
+    public override CircuitOperation Divide(IQutesValue term) => new Divide(this, GetQuantumValue(term), GetDefaultValue());
+    public override CircuitOperation Module(IQutesValue term) => new Module(this, GetQuantumValue(term), GetDefaultValue());
 
-    public override CircuitOperation LowerThan(IQuantumValue term) => new LowerThan(this, term, QubitValue.GetDefaultValue());
-    public override CircuitOperation LowerEqualThan(IQuantumValue term) => new LowerEqualThan(this, term, QubitValue.GetDefaultValue());
-    public override CircuitOperation GreaterThan(IQuantumValue term) => new GreaterThan(this, term, QubitValue.GetDefaultValue());
-    public override CircuitOperation GreaterEqualThan(IQuantumValue term) => new GreaterEqualThan(this, term, QubitValue.GetDefaultValue());
+    public override CircuitOperation LowerThan(IQutesValue term) => new LowerThan(this, GetQuantumValue(term), QubitValue.GetDefaultValue());
+    public override CircuitOperation LowerEqualThan(IQutesValue term) => new LowerEqualThan(this, GetQuantumValue(term), QubitValue.GetDefaultValue());
+    public override CircuitOperation GreaterThan(IQutesValue term) => new GreaterThan(this, GetQuantumValue(term), QubitValue.GetDefaultValue());
+    public override CircuitOperation GreaterEqualThan(IQutesValue term) => new GreaterEqualThan(this, GetQuantumValue(term), QubitValue.GetDefaultValue());
 
     public override CircuitOperation Minus() => new TwosComplement(this, GetDefaultValue());
     public override CircuitOperation InplacePreIncrement() => new Addition(this, this, new QuintValue(1));
@@ -206,10 +206,10 @@ public class QuintValue : QuantumScalarValue
 
 public class QustringValue(string initialValue) : QuantumArrayValue(initialValue.Select(c => AnonymousValueSymbol.Default(new QucharValue(c))).ToList(), TypeSymbol.Quchar)
 {
-    public override CircuitOperation LowerThan(IQuantumValue term) => new LowerThan(this, term, QubitValue.GetDefaultValue());
-    public override CircuitOperation LowerEqualThan(IQuantumValue term) => new LowerEqualThan(this, term, QubitValue.GetDefaultValue());
-    public override CircuitOperation GreaterThan(IQuantumValue term) => new GreaterThan(this, term, QubitValue.GetDefaultValue());
-    public override CircuitOperation GreaterEqualThan(IQuantumValue term) => new GreaterEqualThan(this, term, QubitValue.GetDefaultValue());
+    public override CircuitOperation LowerThan(IQutesValue term) => new LowerThan(this, QuantumScalarValue.GetQuantumValue(term), QubitValue.GetDefaultValue());
+    public override CircuitOperation LowerEqualThan(IQutesValue term) => new LowerEqualThan(this, QuantumScalarValue.GetQuantumValue(term), QubitValue.GetDefaultValue());
+    public override CircuitOperation GreaterThan(IQutesValue term) => new GreaterThan(this, QuantumScalarValue.GetQuantumValue(term), QubitValue.GetDefaultValue());
+    public override CircuitOperation GreaterEqualThan(IQutesValue term) => new GreaterEqualThan(this, QuantumScalarValue.GetQuantumValue(term), QubitValue.GetDefaultValue());
 
     public static QustringValue GetDefaultValue() => new(string.Empty);
 }

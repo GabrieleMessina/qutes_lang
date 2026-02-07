@@ -1,4 +1,6 @@
-﻿using QutesLang.GrammarFrontend;
+﻿using System.Runtime.CompilerServices;
+
+using QutesLang.GrammarFrontend;
 using QutesLang.GrammarFrontend.Operations;
 using QutesLang.Symbols.Types.Interfaces;
 
@@ -18,56 +20,58 @@ public abstract class ClassicalScalarValue : IClassicalValue
 
     #region Operations
     // Bitwise operations
-    public virtual IQutesValue LeftShift(IntValue positions) => throw new InvalidOperationException($"Operator {nameof(LeftShift)} cannot be applied to {this.Type} and {positions.Type}.");
-    public virtual IQutesValue RightShift(IntValue positions) => throw new InvalidOperationException($"Operator {nameof(RightShift)} cannot be applied to {this.Type} and {positions.Type}.");
-    public virtual IQutesValue Swap(IClassicalValue term)
+    public virtual IQutesValue LeftShift(IQutesValue positions) => throw new InvalidOperationException($"Operator {nameof(LeftShift)} cannot be applied to {this.Type} and {positions.Type}.");
+    public virtual IQutesValue RightShift(IQutesValue positions) => throw new InvalidOperationException($"Operator {nameof(RightShift)} cannot be applied to {this.Type} and {positions.Type}.");
+    public virtual IQutesValue Swap(IQutesValue term)
     {
         if (this.Type != term.Type)
-        {
             throw new InvalidOperationException($"Cannot swap different types: {this.Type} and {term.Type}");
-        }
+
+        var classicalValue = term.As<IClassicalValue>();
         var temp = this.GetValueAsObject();
-        this.SetValueFromObject(term.GetValueAsObject());
-        term.SetValueFromObject(temp);
+        this.SetValueFromObject(classicalValue.GetValueAsObject());
+        classicalValue.SetValueFromObject(temp);
         return this;
     }
 
     // Arithmetic operations
-    public virtual IQutesValue Addition(IClassicalValue term) => throw new InvalidOperationException($"Operator {nameof(Addition)} cannot be applied to {this.Type} and {term.Type}.");
-    public virtual IQutesValue Subtraction(IClassicalValue term) => throw new InvalidOperationException($"Operator {nameof(Subtraction)} cannot be applied to {this.Type} and {term.Type}.");
-    public virtual IQutesValue Multiply(IClassicalValue term) => throw new InvalidOperationException($"Operator {nameof(Multiply)} cannot be applied to {this.Type} and {term.Type}.");
-    public virtual IQutesValue Divide(IClassicalValue term) => throw new InvalidOperationException($"Operator {nameof(Divide)} cannot be applied to {this.Type} and {term.Type}.");
-    public virtual IQutesValue Module(IClassicalValue term) => throw new InvalidOperationException($"Operator {nameof(Module)} cannot be applied to {this.Type} and {term.Type}.");
-    public virtual IQutesValue Exp(IClassicalValue term) => throw new InvalidOperationException($"Operator {nameof(Exp)} cannot be applied to {this.Type} and {term.Type}.");
+    public virtual IQutesValue Addition(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(Addition)} cannot be applied to {this.Type} and {term.Type}.");
+    public virtual IQutesValue Subtraction(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(Subtraction)} cannot be applied to {this.Type} and {term.Type}.");
+    public virtual IQutesValue Multiply(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(Multiply)} cannot be applied to {this.Type} and {term.Type}.");
+    public virtual IQutesValue Divide(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(Divide)} cannot be applied to {this.Type} and {term.Type}.");
+    public virtual IQutesValue Module(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(Module)} cannot be applied to {this.Type} and {term.Type}.");
+    public virtual IQutesValue Exp(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(Exp)} cannot be applied to {this.Type} and {term.Type}.");
 
     // Comparison operations
-    public virtual BoolValue LowerThan(IClassicalValue term) => throw new InvalidOperationException($"Operator {nameof(LowerThan)} cannot be applied to {this.Type} and {term.Type}.");
-    public virtual BoolValue LowerEqualThan(IClassicalValue term) => throw new InvalidOperationException($"Operator {nameof(LowerEqualThan)} cannot be applied to {this.Type} and {term.Type}.");
-    public virtual BoolValue GreaterThan(IClassicalValue term) => throw new InvalidOperationException($"Operator {nameof(GreaterThan)} cannot be applied to {this.Type} and {term.Type}.");
-    public virtual BoolValue GreaterEqualThan(IClassicalValue term) => throw new InvalidOperationException($"Operator {nameof(GreaterEqualThan)} cannot be applied to {this.Type} and {term.Type}.");
+    public virtual BoolValue LowerThan(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(LowerThan)} cannot be applied to {this.Type} and {term.Type}.");
+    public virtual BoolValue LowerEqualThan(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(LowerEqualThan)} cannot be applied to {this.Type} and {term.Type}.");
+    public virtual BoolValue GreaterThan(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(GreaterThan)} cannot be applied to {this.Type} and {term.Type}.");
+    public virtual BoolValue GreaterEqualThan(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(GreaterEqualThan)} cannot be applied to {this.Type} and {term.Type}.");
 
-    public virtual BoolValue Equals(IClassicalValue term)
+    public virtual BoolValue Equals(IQutesValue term)
     {
         if (this.Type != term.Type)
             throw new InvalidOperationException($"Operator {nameof(Equals)} cannot be applied to {this.Type} and {term.Type}.");
 
+        var classicalValue = term.As<IClassicalValue>();
         var a = this.GetValueAsObject();
-        var b = term.GetValueAsObject();
+        var b = classicalValue.GetValueAsObject();
         return new BoolValue(a.Equals(b));
     }
-    public virtual BoolValue NotEquals(IClassicalValue term)
+    public virtual BoolValue NotEquals(IQutesValue term)
     {
         if (this.Type != term.Type)
             throw new InvalidOperationException($"Operator {nameof(NotEquals)} cannot be applied to {this.Type} and {term.Type}.");
 
+        var classicalValue = term.As<IClassicalValue>();
         var a = this.GetValueAsObject();
-        var b = term.GetValueAsObject();
+        var b = classicalValue.GetValueAsObject();
         return new BoolValue(a.Equals(b) == false);
     }
 
     // Logical operations
-    public virtual BoolValue And(IClassicalValue term) => throw new InvalidOperationException($"Operator {nameof(And)} cannot be applied to {this.Type} and {term.Type}.");
-    public virtual BoolValue Or(IClassicalValue term) => throw new InvalidOperationException($"Operator {nameof(Or)} cannot be applied to {this.Type} and {term.Type}.");
+    public virtual BoolValue And(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(And)} cannot be applied to {this.Type} and {term.Type}.");
+    public virtual BoolValue Or(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(Or)} cannot be applied to {this.Type} and {term.Type}.");
     public virtual BoolValue Not() => throw new InvalidOperationException($"Operator {nameof(Not)} cannot be applied to {this.Type}.");
 
     // Unary operations
@@ -91,48 +95,60 @@ public abstract class QuantumScalarValue : IQuantumValue
         return $"({Type}) {Register}";
     }
 
+    public static IQuantumValue GetQuantumValue(IQutesValue term, [CallerMemberName] string operationName = "")
+    {
+        if (term is not IQuantumValue quantumValue)
+            throw new InvalidOperationException($"Operation {operationName} cannot be applied to {term.Type} type.");
+
+        return quantumValue;
+    }
+
     #region Operations
     // Bitwise operations
-    public virtual CircuitOperation LeftShift(QuintValue positions) => throw new InvalidOperationException($"Operator {nameof(LeftShift)} cannot be applied to {this.Type} and {positions.Type}.");
-    public virtual CircuitOperation LeftShift(IntValue positions) => throw new InvalidOperationException($"Operator {nameof(LeftShift)} cannot be applied to {this.Type} and {positions.Type}.");
-    public virtual CircuitOperation RightShift(QuintValue positions) => throw new InvalidOperationException($"Operator {nameof(RightShift)} cannot be applied to {this.Type} and {positions.Type}.");
-    public virtual CircuitOperation RightShift(IntValue positions) => throw new InvalidOperationException($"Operator {nameof(RightShift)} cannot be applied to {this.Type} and {positions.Type}.");
-    public virtual CircuitOperation Swap(IQuantumValue term)
+    public virtual CircuitOperation LeftShift(IQutesValue positions) => throw new InvalidOperationException($"Operator {nameof(LeftShift)} cannot be applied to {this.Type} and {positions.Type}.");
+    public virtual CircuitOperation RightShift(IQutesValue positions) => throw new InvalidOperationException($"Operator {nameof(RightShift)} cannot be applied to {this.Type} and {positions.Type}.");
+    public virtual CircuitOperation Swap(IQutesValue term)
     {
-        return this.Type == term.Type
-            ? new Swap(this, term)
-            : throw new InvalidOperationException($"Operator {nameof(Swap)} cannot be applied to {this.Type} and {term.Type}.");
+        if (this.Type != term.Type)
+            throw new InvalidOperationException($"Operator {nameof(Swap)} cannot be applied to {this.Type} and {term.Type}.");
+
+        var quantumValue = term.As<IQuantumValue>();
+        return new Swap(this, quantumValue);
     }
 
     // Arithmetic operations
-    public virtual CircuitOperation Addition(IQuantumValue term) => throw new InvalidOperationException($"Operator {nameof(Addition)} cannot be applied to {this.Type} and {term.Type}.");
-    public virtual CircuitOperation Subtraction(IQuantumValue term) => throw new InvalidOperationException($"Operator {nameof(Subtraction)} cannot be applied to {this.Type} and {term.Type}.");
-    public virtual CircuitOperation Multiply(IQuantumValue term) => throw new InvalidOperationException($"Operator {nameof(Multiply)} cannot be applied to {this.Type} and {term.Type}.");
-    public virtual CircuitOperation Divide(IQuantumValue term) => throw new InvalidOperationException($"Operator {nameof(Divide)} cannot be applied to {this.Type} and {term.Type}.");
-    public virtual CircuitOperation Module(IQuantumValue term) => throw new InvalidOperationException($"Operator {nameof(Module)} cannot be applied to {this.Type} and {term.Type}.");
-    public virtual CircuitOperation Exp(IQuantumValue term) => throw new InvalidOperationException($"Operator {nameof(Exp)} cannot be applied to {this.Type} and {term.Type}.");
+    public virtual CircuitOperation Addition(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(Addition)} cannot be applied to {this.Type} and {term.Type}.");
+    public virtual CircuitOperation Subtraction(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(Subtraction)} cannot be applied to {this.Type} and {term.Type}.");
+    public virtual CircuitOperation Multiply(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(Multiply)} cannot be applied to {this.Type} and {term.Type}.");
+    public virtual CircuitOperation Divide(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(Divide)} cannot be applied to {this.Type} and {term.Type}.");
+    public virtual CircuitOperation Module(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(Module)} cannot be applied to {this.Type} and {term.Type}.");
+    public virtual CircuitOperation Exp(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(Exp)} cannot be applied to {this.Type} and {term.Type}.");
 
     // Comparison operations
-    public virtual CircuitOperation LowerThan(IQuantumValue term) => throw new InvalidOperationException($"Operator {nameof(LowerThan)} cannot be applied to {this.Type} and {term.Type}.");
-    public virtual CircuitOperation LowerEqualThan(IQuantumValue term) => throw new InvalidOperationException($"Operator {nameof(LowerEqualThan)} cannot be applied to {this.Type} and {term.Type}.");
-    public virtual CircuitOperation GreaterThan(IQuantumValue term) => throw new InvalidOperationException($"Operator {nameof(GreaterThan)} cannot be applied to {this.Type} and {term.Type}.");
-    public virtual CircuitOperation GreaterEqualThan(IQuantumValue term) => throw new InvalidOperationException($"Operator {nameof(GreaterEqualThan)} cannot be applied to {this.Type} and {term.Type}.");
-    public virtual CircuitOperation Equals(IQuantumValue term)
+    public virtual CircuitOperation LowerThan(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(LowerThan)} cannot be applied to {this.Type} and {term.Type}.");
+    public virtual CircuitOperation LowerEqualThan(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(LowerEqualThan)} cannot be applied to {this.Type} and {term.Type}.");
+    public virtual CircuitOperation GreaterThan(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(GreaterThan)} cannot be applied to {this.Type} and {term.Type}.");
+    public virtual CircuitOperation GreaterEqualThan(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(GreaterEqualThan)} cannot be applied to {this.Type} and {term.Type}.");
+    public virtual CircuitOperation Equals(IQutesValue term)
     {
         if (this.Type != term.Type)
             throw new InvalidOperationException($"Operator {nameof(Equals)} cannot be applied to {this.Type} and {term.Type}.");
-        return new Equals(this, term, this);
+
+        var quantumValue = term.As<IQuantumValue>();
+        return new Equals(this, quantumValue, this);
     }
-    public virtual CircuitOperation NotEquals(IQuantumValue term)
+    public virtual CircuitOperation NotEquals(IQutesValue term)
     {
         if (this.Type != term.Type)
             throw new InvalidOperationException($"Operator {nameof(NotEquals)} cannot be applied to {this.Type} and {term.Type}.");
-        return new NotEquals(this, term, this);
+
+        var quantumValue = term.As<IQuantumValue>();
+        return new NotEquals(this, quantumValue, this);
     }
 
     // Logical operations
-    public virtual CircuitOperation And(IQuantumValue term) => throw new InvalidOperationException($"Operator {nameof(And)} cannot be applied to {this.Type} and {term.Type}.");
-    public virtual CircuitOperation Or(IQuantumValue term) => throw new InvalidOperationException($"Operator {nameof(Or)} cannot be applied to {this.Type} and {term.Type}.");
+    public virtual CircuitOperation And(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(And)} cannot be applied to {this.Type} and {term.Type}.");
+    public virtual CircuitOperation Or(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(Or)} cannot be applied to {this.Type} and {term.Type}.");
     public virtual CircuitOperation Not() => throw new InvalidOperationException($"Operator {nameof(Not)} cannot be applied to {this.Type}.");
 
     // Unary operations

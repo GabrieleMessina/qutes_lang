@@ -8,30 +8,28 @@ public interface IQuantumValue : IQutesValue
     public int Size { get; }
     public QuantumRegister Register { get; }
     public string QubitStringList => Register.QubitStringList;
-    CircuitOperation Addition(IQuantumValue term);
-    CircuitOperation And(IQuantumValue term);
-    CircuitOperation Divide(IQuantumValue term);
-    CircuitOperation Exp(IQuantumValue term);
-    CircuitOperation GreaterEqualThan(IQuantumValue term);
-    CircuitOperation GreaterThan(IQuantumValue term);
+    CircuitOperation Addition(IQutesValue term);
+    CircuitOperation And(IQutesValue term);
+    CircuitOperation Divide(IQutesValue term);
+    CircuitOperation Exp(IQutesValue term);
+    CircuitOperation GreaterEqualThan(IQutesValue term);
+    CircuitOperation GreaterThan(IQutesValue term);
     CircuitOperation InplacePostDecrement();
     CircuitOperation InplacePostIncrement();
     CircuitOperation InplacePreDecrement();
     CircuitOperation InplacePreIncrement();
-    CircuitOperation LeftShift(IntValue positions);
-    CircuitOperation LeftShift(QuintValue positions);
-    CircuitOperation LowerEqualThan(IQuantumValue term);
-    CircuitOperation LowerThan(IQuantumValue term);
+    CircuitOperation LeftShift(IQutesValue positions);
+    CircuitOperation LowerEqualThan(IQutesValue term);
+    CircuitOperation LowerThan(IQutesValue term);
     CircuitOperation Minus();
-    CircuitOperation Module(IQuantumValue term);
-    CircuitOperation Multiply(IQuantumValue term);
+    CircuitOperation Module(IQutesValue term);
+    CircuitOperation Multiply(IQutesValue term);
     CircuitOperation Not();
-    CircuitOperation Equals(IQuantumValue term);
-    CircuitOperation NotEquals(IQuantumValue term);
-    CircuitOperation Or(IQuantumValue term);
+    CircuitOperation Equals(IQutesValue term);
+    CircuitOperation NotEquals(IQutesValue term);
+    CircuitOperation Or(IQutesValue term);
     CircuitOperation Plus();
-    CircuitOperation RightShift(IntValue positions);
-    CircuitOperation RightShift(QuintValue positions);
-    CircuitOperation Subtraction(IQuantumValue term);
-    CircuitOperation Swap(IQuantumValue term);
+    CircuitOperation RightShift(IQutesValue positions);
+    CircuitOperation Subtraction(IQutesValue term);
+    CircuitOperation Swap(IQutesValue term);
 }

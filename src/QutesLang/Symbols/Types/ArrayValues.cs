@@ -14,25 +14,29 @@ public class ClassicalArrayValue(IEnumerable<ValueSymbol> values, TypeSymbol ele
     public void SetValueFromObject(object value) => Values = (IEnumerable<ValueSymbol>)value;
     public static ClassicalArrayValue GetDefaultValue(TypeSymbol elementType) => new([], elementType);
 
-    public virtual IQutesValue LeftShift(IntValue positions)
+    public virtual IQutesValue LeftShift(IQutesValue positions)
     {
-        var n = positions.Value % Values.Count();
+        if(positions is not IntValue intValue)
+            throw new InvalidOperationException($"Can only left shift {nameof(ClassicalArrayValue)} by an {nameof(IntValue)}.");
+        var n = intValue.Value % Values.Count();
         var result = Values.Skip(n).Concat(Values.Take(n).Reverse());
         return new ClassicalArrayValue(result, elementsType);
     }
 
-    public virtual IQutesValue RightShift(IntValue positions)
+    public virtual IQutesValue RightShift(IQutesValue positions)
     {
-        var n = positions.Value % Values.Count();
+        if (positions is not IntValue intValue)
+            throw new InvalidOperationException($"Can only right shift {nameof(ClassicalArrayValue)} by an {nameof(IntValue)}.");
+        var n = intValue.Value % Values.Count();
         var result = Values.Skip(Values.Count() - n).Concat(Values.Take(Values.Count() - n));
         return new ClassicalArrayValue(result, elementsType);
     }
 
-    public virtual IQutesValue Addition(IClassicalValue term) => new ClassicalArrayValue(Values.Concat(Values), elementsType);
+    public virtual IQutesValue Addition(IQutesValue term) => new ClassicalArrayValue(Values.Concat(Values), elementsType);
 
-    public virtual IQutesValue Subtraction(IClassicalValue term) => new ClassicalArrayValue(Values.Except(Values), elementsType);
+    public virtual IQutesValue Subtraction(IQutesValue term) => new ClassicalArrayValue(Values.Except(Values), elementsType);
 
-    public virtual IQutesValue Multiply(IClassicalValue term)
+    public virtual IQutesValue Multiply(IQutesValue term)
     {
         if(term is not IntValue intTerm)
             throw new InvalidOperationException($"Can only multiply {nameof(ClassicalArrayValue)} by an {nameof(IntValue)}.");
@@ -47,31 +51,31 @@ public class ClassicalArrayValue(IEnumerable<ValueSymbol> values, TypeSymbol ele
         return new ClassicalArrayValue([..Values, ..values], elementsType); //prepend original values
     }
 
-    public virtual BoolValue Equals(IClassicalValue term) => new(!Values.Any() && !Values.Except(Values).Any());
+    public virtual BoolValue Equals(IQutesValue term) => new(!Values.Any() && !Values.Except(Values).Any());
 
-    public virtual BoolValue NotEquals(IClassicalValue term) => new(Values.Any() || Values.Except(Values).Any());
+    public virtual BoolValue NotEquals(IQutesValue term) => new(Values.Any() || Values.Except(Values).Any());
 
-    public virtual BoolValue And(IClassicalValue term)
+    public virtual BoolValue And(IQutesValue term)
     {
         throw new NotImplementedException();
     }
 
-    public virtual IQutesValue Divide(IClassicalValue term)
+    public virtual IQutesValue Divide(IQutesValue term)
     {
         throw new NotImplementedException();
     }
 
-    public virtual IQutesValue Exp(IClassicalValue term)
+    public virtual IQutesValue Exp(IQutesValue term)
     {
         throw new NotImplementedException();
     }
 
-    public virtual BoolValue GreaterEqualThan(IClassicalValue term)
+    public virtual BoolValue GreaterEqualThan(IQutesValue term)
     {
         throw new NotImplementedException();
     }
 
-    public virtual BoolValue GreaterThan(IClassicalValue term)
+    public virtual BoolValue GreaterThan(IQutesValue term)
     {
         throw new NotImplementedException();
     }
@@ -96,12 +100,12 @@ public class ClassicalArrayValue(IEnumerable<ValueSymbol> values, TypeSymbol ele
         throw new NotImplementedException();
     }
 
-    public virtual BoolValue LowerEqualThan(IClassicalValue term)
+    public virtual BoolValue LowerEqualThan(IQutesValue term)
     {
         throw new NotImplementedException();
     }
 
-    public virtual BoolValue LowerThan(IClassicalValue term)
+    public virtual BoolValue LowerThan(IQutesValue term)
     {
         throw new NotImplementedException();
     }
@@ -111,7 +115,7 @@ public class ClassicalArrayValue(IEnumerable<ValueSymbol> values, TypeSymbol ele
         throw new NotImplementedException();
     }
 
-    public virtual IQutesValue Module(IClassicalValue term)
+    public virtual IQutesValue Module(IQutesValue term)
     {
         throw new NotImplementedException();
     }
@@ -121,7 +125,7 @@ public class ClassicalArrayValue(IEnumerable<ValueSymbol> values, TypeSymbol ele
         throw new NotImplementedException();
     }
 
-    public virtual BoolValue Or(IClassicalValue term)
+    public virtual BoolValue Or(IQutesValue term)
     {
         throw new NotImplementedException();
     }
@@ -131,7 +135,7 @@ public class ClassicalArrayValue(IEnumerable<ValueSymbol> values, TypeSymbol ele
         throw new NotImplementedException();
     }
 
-    public virtual IQutesValue Swap(IClassicalValue term)
+    public virtual IQutesValue Swap(IQutesValue term)
     {
         throw new NotImplementedException();
     }
@@ -170,32 +174,32 @@ public class QuantumArrayValue : ArrayValue, IQuantumValue
 
     public static QuantumArrayValue GetDefaultValue(TypeSymbol elementsType) => new([], elementsType);
 
-    public virtual CircuitOperation Addition(IQuantumValue term)
+    public virtual CircuitOperation Addition(IQutesValue term)
     {
         throw new NotImplementedException();
     }
 
-    public virtual CircuitOperation And(IQuantumValue term)
+    public virtual CircuitOperation And(IQutesValue term)
     {
         throw new NotImplementedException();
     }
 
-    public virtual CircuitOperation Divide(IQuantumValue term)
+    public virtual CircuitOperation Divide(IQutesValue term)
     {
         throw new NotImplementedException();
     }
 
-    public virtual CircuitOperation Exp(IQuantumValue term)
+    public virtual CircuitOperation Exp(IQutesValue term)
     {
         throw new NotImplementedException();
     }
 
-    public virtual CircuitOperation GreaterEqualThan(IQuantumValue term)
+    public virtual CircuitOperation GreaterEqualThan(IQutesValue term)
     {
         throw new NotImplementedException();
     }
 
-    public virtual CircuitOperation GreaterThan(IQuantumValue term)
+    public virtual CircuitOperation GreaterThan(IQutesValue term)
     {
         throw new NotImplementedException();
     }
@@ -220,15 +224,21 @@ public class QuantumArrayValue : ArrayValue, IQuantumValue
         throw new NotImplementedException();
     }
 
-    public virtual CircuitOperation LeftShift(QuintValue positions) => new LeftShift(this, positions);
-    public virtual CircuitOperation LeftShift(IntValue positions) => new LeftShift(this, positions);
+    public virtual CircuitOperation LeftShift(IQutesValue positions)
+    {
+        if (positions is IntValue intValue)
+            return new LeftShift(this, intValue);
+        if (positions is QuintValue quintValue)
+            return new LeftShift(this, quintValue);
+        throw new InvalidOperationException($"Can only left shift {nameof(QuantumArrayValue)} by an {nameof(IntValue)} or {nameof(QuintValue)}.");
+    }
 
-    public virtual CircuitOperation LowerEqualThan(IQuantumValue term)
+    public virtual CircuitOperation LowerEqualThan(IQutesValue term)
     {
         throw new NotImplementedException();
     }
 
-    public virtual CircuitOperation LowerThan(IQuantumValue term)
+    public virtual CircuitOperation LowerThan(IQutesValue term)
     {
         throw new NotImplementedException();
     }
@@ -238,7 +248,7 @@ public class QuantumArrayValue : ArrayValue, IQuantumValue
         throw new NotImplementedException();
     }
 
-    public virtual CircuitOperation Module(IQuantumValue term)
+    public virtual CircuitOperation Module(IQutesValue term)
     {
         throw new NotImplementedException();
     }
@@ -272,17 +282,17 @@ public class QuantumArrayValue : ArrayValue, IQuantumValue
         throw new NotImplementedException();
     }
 
-    public virtual CircuitOperation NotEquals(IQuantumValue term)
+    public virtual CircuitOperation NotEquals(IQutesValue term)
     {
         throw new NotImplementedException();
     }
 
-    public virtual CircuitOperation Equals(IQuantumValue term)
+    public virtual CircuitOperation Equals(IQutesValue term)
     {
         throw new NotImplementedException();
     }
 
-    public virtual CircuitOperation Or(IQuantumValue term)
+    public virtual CircuitOperation Or(IQutesValue term)
     {
         throw new NotImplementedException();
     }
@@ -292,15 +302,21 @@ public class QuantumArrayValue : ArrayValue, IQuantumValue
         throw new NotImplementedException();
     }
 
-    public virtual CircuitOperation RightShift(QuintValue positions) => new RightShift(this, positions);
-    public virtual CircuitOperation RightShift(IntValue positions) => new RightShift(this, positions);
+    public virtual CircuitOperation RightShift(IQutesValue positions)
+    {
+        if (positions is IntValue intValue)
+            return new RightShift(this, intValue);
+        if (positions is QuintValue quintValue)
+            return new RightShift(this, quintValue);
+        throw new InvalidOperationException($"Can only right shift {nameof(QuantumArrayValue)} by an {nameof(IntValue)} or {nameof(QuintValue)}.");
+    }
 
-    public virtual CircuitOperation Subtraction(IQuantumValue term)
+    public virtual CircuitOperation Subtraction(IQutesValue term)
     {
         throw new NotImplementedException();
     }
 
-    public virtual CircuitOperation Swap(IQuantumValue term)
+    public virtual CircuitOperation Swap(IQutesValue term)
     {
         throw new NotImplementedException();
     }

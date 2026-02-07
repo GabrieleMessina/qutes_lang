@@ -86,23 +86,17 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
     /// <param name="operatorText">The operator text for error messages</param>
     /// <param name="requireSameType">Whether to require both operands to have the same type</param>
     /// <returns>The result symbol</returns>
-    private Symbol HandleBinaryOperator(
+    private AnonymousValueSymbol HandleBinaryOperator(
         ParserRuleContext context,
         ValueSymbol leftSymbol,
         ValueSymbol rightSymbol,
-        Func<IQuantumValue, IQuantumValue, CircuitOperation> quantumOp,
-        Func<IClassicalValue, IClassicalValue, IQutesValue> classicalOp,
-        string operatorText,
-        bool requireSameType = true)
+        Func<IQuantumValue, IQutesValue, CircuitOperation> quantumOp,
+        Func<IClassicalValue, IQutesValue, IQutesValue> classicalOp,
+        string operatorText)
     {
-        if (requireSameType && leftSymbol.Value.Type != rightSymbol.Value.Type)
-        {
-            throw new InvalidOperationException($"Cannot apply operator '{operatorText}' between different types '{leftSymbol.Type}' and '{rightSymbol.Type}'.");
-        }
-
         switch (leftSymbol.Value)
         {
-            case IQuantumValue leftValue when rightSymbol.Value is IQuantumValue rightValue:
+            case IQuantumValue leftValue when rightSymbol.Value is IQutesValue rightValue:
                 {
                     var operation = quantumOp(leftValue, rightValue);
                     var destinationSymbol = new AnonymousValueSymbol(operation.Destination, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
@@ -110,7 +104,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                     return destinationSymbol;
                 }
 
-            case IClassicalValue leftValue when rightSymbol.Value is IClassicalValue rightValue:
+            case IClassicalValue leftValue when rightSymbol.Value is IQutesValue rightValue:
                 {
                     var result = classicalOp(leftValue, rightValue);
                     return new AnonymousValueSymbol(result, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
@@ -554,7 +548,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
     {
         var rawSymbolList = Visit(context.termList()).Contains<TupleValue>().Values.As<ValueSymbol>().ToList();
         var arrayElements = new List<ValueSymbol>();
-        
+
         //expand range values into individual elements
         foreach (var element in rawSymbolList)
         {
@@ -826,8 +820,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
             context, leftSymbol, rightSymbol,
             quantumOp: (left, right) => left.And(right),
             classicalOp: (left, right) => left.And(right),
-            operatorText: context.op.Text,
-            requireSameType: false);
+            operatorText: context.op.Text);
     }
 
     public override Symbol VisitLogicOrOperator(qutes_parser.LogicOrOperatorContext context)
@@ -839,8 +832,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
             context, leftSymbol, rightSymbol,
             quantumOp: (left, right) => left.Or(right),
             classicalOp: (left, right) => left.Or(right),
-            operatorText: context.op.Text,
-            requireSameType: false);
+            operatorText: context.op.Text);
     }
 
     public override Symbol VisitMultipleUnaryOperator(qutes_parser.MultipleUnaryOperatorContext context)
