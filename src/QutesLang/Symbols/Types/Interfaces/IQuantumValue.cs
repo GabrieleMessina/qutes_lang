@@ -1,4 +1,4 @@
-﻿using QutesLang.GrammarFrontend;
+﻿using QutesLang.QuantumCircuits;
 
 namespace QutesLang.Symbols.Types.Interfaces;
 

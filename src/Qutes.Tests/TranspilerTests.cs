@@ -3,7 +3,7 @@ using Antlr4.Runtime;
 using Qutes.Grammar;
 
 using QutesLang;
-using QutesLang.GrammarFrontend;
+using QutesLang.QuantumCircuits;
 using QutesLang.GrammarParsing;
 using QutesLang.Symbols;
 

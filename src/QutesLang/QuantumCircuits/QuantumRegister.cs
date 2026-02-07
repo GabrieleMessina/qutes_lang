@@ -1,6 +1,6 @@
 ﻿using QutesLang.Symbols.Types;
 
-namespace QutesLang.GrammarFrontend; //TODO: rename namespace.
+namespace QutesLang.QuantumCircuits;
 
 public class ClassicalRegister(QuantumRegister quantumRegister)
 {

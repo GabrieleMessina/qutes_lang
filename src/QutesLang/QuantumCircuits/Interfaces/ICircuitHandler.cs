@@ -1,5 +1,5 @@
-﻿using QutesLang.GrammarFrontend;
-using QutesLang.GrammarFrontend.Operations;
+﻿using QutesLang.QuantumCircuits;
+using QutesLang.QuantumCircuits.Operations;
 
 namespace QutesLang.QuantumCircuits.Interfaces;
 

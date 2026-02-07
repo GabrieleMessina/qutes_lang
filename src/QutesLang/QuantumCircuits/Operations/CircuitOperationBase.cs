@@ -3,7 +3,7 @@ using System.Text;
 using QutesLang.QuantumCircuits.Interfaces;
 using QutesLang.Symbols.Types.Interfaces;
 
-namespace QutesLang.GrammarFrontend.Operations;
+namespace QutesLang.QuantumCircuits.Operations;
 
 /// <summary>
 /// Base class for all quantum circuit operations

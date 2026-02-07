@@ -1,4 +1,4 @@
-﻿namespace QutesLang.GrammarFrontend;
+﻿namespace QutesLang.QuantumCircuits;
 
 public class CircuitQubit
 {

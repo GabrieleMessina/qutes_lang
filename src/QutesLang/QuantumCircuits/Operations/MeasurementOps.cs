@@ -3,7 +3,7 @@ using System.Text;
 using QutesLang.QuantumCircuits.Interfaces;
 using QutesLang.Symbols.Types.Interfaces;
 
-namespace QutesLang.GrammarFrontend.Operations;
+namespace QutesLang.QuantumCircuits.Operations;
 
 public class Measure(IQuantumValue target) : CircuitOperation([target.Register], target)
 {

@@ -4,7 +4,7 @@ using QutesLang.QuantumCircuits.Interfaces;
 using QutesLang.Symbols.Types;
 using QutesLang.Symbols.Types.Interfaces;
 
-namespace QutesLang.GrammarFrontend.Operations;
+namespace QutesLang.QuantumCircuits.Operations;
 
 public class StatePreparation(QuantumRegister target, StateVector stateVector) : CircuitOperation([target], null!)
 {

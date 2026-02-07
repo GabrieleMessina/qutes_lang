@@ -4,7 +4,7 @@ using Antlr4.Runtime.Tree;
 
 using Qutes.Grammar;
 
-using QutesLang.GrammarFrontend.Operations;
+using QutesLang.QuantumCircuits.Operations;
 using QutesLang.QuantumCircuits.Interfaces;
 using QutesLang.Symbols;
 using QutesLang.Symbols.Types;

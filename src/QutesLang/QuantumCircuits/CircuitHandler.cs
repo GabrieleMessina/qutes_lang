@@ -1,9 +1,9 @@
 ﻿using System.Text;
 
-using QutesLang.GrammarFrontend.Operations;
+using QutesLang.QuantumCircuits.Operations;
 using QutesLang.QuantumCircuits.Interfaces;
 
-namespace QutesLang.GrammarFrontend;
+namespace QutesLang.QuantumCircuits;
 
 public interface ICircuitContext : IDisposable
 {

@@ -4,7 +4,7 @@ using QutesLang.QuantumCircuits.Interfaces;
 using QutesLang.Symbols.Types;
 using QutesLang.Symbols.Types.Interfaces;
 
-namespace QutesLang.GrammarFrontend.Operations;
+namespace QutesLang.QuantumCircuits.Operations;
 
 public class QramAccess(QuantumArrayValue array, QuintValue address, IQuantumValue destination) : Composition(
 [
