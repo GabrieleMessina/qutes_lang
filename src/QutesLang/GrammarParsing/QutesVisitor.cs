@@ -17,8 +17,9 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
     protected override bool ShouldVisitNextChild([NotNull] IRuleNode node, Symbol currentResult)
     {
-        return !handlingReturnStatement;
+        return !IsReturning();
     }
+    private bool IsReturning() => handlingReturnStatement > 0 || handlingYieldStatement > 0;
 
     public override Symbol Visit(IParseTree tree)
     {
@@ -49,11 +50,11 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         Symbol result = default!;
         if (context.children != null)
         {
-            foreach (var child in context.children)
+            foreach (var child in context.children.Where(c => c is not TerminalNodeImpl))
             {
                 if (!ShouldVisitNextChild(context, null!)) break;
                 Symbol childResult = Visit(child);
-                result = AggregateResult(result, childResult);
+                result = AggregateResult(result, childResult); //this just return last visited node's result. Override if needed.
             }
         }
         return result;
@@ -79,18 +80,20 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
     {
         scopeHandler.PushScope(scopeHandler.CreateScope("MainScope"));
         CheckForFunctionHoisting(context);
-        VisitAllChildren(context); //return value doesn't matter no one will use it.
+        var res = VisitAllChildren(context); //return value doesn't matter no one will use it.
+        res = IsReturning() ? res : null!;
         //scope intentionally not popped to keep the main scope available after visiting.
-        return null!;
+        return res;
     }
 
     public override Symbol VisitBlockStatement(qutes_parser.BlockStatementContext context)
     {
         scopeHandler.PushScope(scopeHandler.CreateScope("BlockScope"));
         CheckForFunctionHoisting(context);
-        VisitAllChildren(context);//return value doesn't matter no one will use it.
+        var res = VisitAllChildren(context);
+        res = IsReturning() ? res : null!;
         scopeHandler.PopScope();
-        return null!;
+        return res;
     }
 
     public override Symbol VisitIfStatement(qutes_parser.IfStatementContext context)
@@ -161,12 +164,12 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                 //TODO: quantum while loops could be implemented with repeated appended controlled circuits based on all possible combination of the qubits in the condition register.
                 throw new NotImplementedException("Quantum while loops are not yet implemented.");
             case BoolValue classicalCondition:
-                while (classicalCondition.Value && !handlingBreakStatement)
+                while (classicalCondition.Value && handlingBreakStatement == 0)
                 {
                     Visit(whileBody);
                     classicalCondition = Visit(context.expr()).Contains<BoolValue>();
                 }
-                handlingBreakStatement = false;
+                handlingBreakStatement--;
                 break;
             default:
                 throw new InvalidOperationException("While loop condition must be of type 'bool' or a quantum type.");
@@ -200,13 +203,13 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
             indexSymbol = new ValueSymbol(indexNameSymbol.QualifiedName, new IntValue(i), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
             DeclareNewVariable(indexSymbol);
         }
-        for (; i < array.Values.Count() && !handlingBreakStatement; i++)
+        for (; i < array.Values.Count() && handlingBreakStatement == 0; i++)
         {
             itemSymbol.Value = array.Values.ElementAt(i).Value; //It is ok even for quantum, this variable will just point to the qubit in the array, it's an alias.
             indexSymbol?.Value = new IntValue(i);
             Visit(context.statement());
         }
-        handlingBreakStatement = false;
+        handlingBreakStatement--;
         return null!;
 
         //throw new InvalidOperationException("Foreach loop can only iterate over array types."); //TODO: pass this message to contains extension methods in first line of this method.
@@ -228,8 +231,8 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                     Visit(whileBody);
                     classicalCondition = Visit(context.expr()).Contains<BoolValue>();
                 }
-                while (classicalCondition.Value && !handlingBreakStatement);
-                handlingBreakStatement = false;
+                while (classicalCondition.Value && handlingBreakStatement == 0);
+                handlingBreakStatement--;
                 break;
             default:
                 throw new InvalidOperationException("While loop condition must be of type 'bool' or a quantum type.");
@@ -282,7 +285,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                 bodyStatementReturnValue = (ValueSymbol?)Visit(functionBody); //TODO: how to handle classical ops inside quantum body.
             }
             circuitHandler.AddDependentCircuit(quantumBodyCircuit);
-            handlingReturnStatement = false;
+            handlingReturnStatement--;
         }
 
         var functionScope = scopeHandler.PopScope();
@@ -293,8 +296,9 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         return functionToCreateSymbol;
     }
 
-    private bool handlingReturnStatement = false;
-    private bool handlingBreakStatement = false;
+    private int handlingReturnStatement = 0;
+    private int handlingYieldStatement = 0;
+    private int handlingBreakStatement = 0;
 
     public override Symbol VisitFunctionCallExpression(qutes_parser.FunctionCallExpressionContext context)
     {
@@ -330,7 +334,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                 functionSymbol.OutputSymbol = (ValueSymbol?)Visit(functionSymbol.Body); //TODO: how to handle classical ops inside quantum body.
             }
             circuitHandler.AddDependentCircuit(functionCircuit);
-            handlingReturnStatement = false;
+            handlingReturnStatement--;
             scopeHandler.PopScope();
         }
 
@@ -375,21 +379,29 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
     public override Symbol VisitReturnStatement(qutes_parser.ReturnStatementContext context)
     {
         ValueSymbol output;
-        handlingReturnStatement = true;
         if (context.expr() != null)
         {
-            output = Visit(context.expr()).As<ValueSymbol>();
+            var temp = Visit(context.expr());
+            output = temp.As<ValueSymbol>();
         }
         else
         {
             output = new AnonymousValueSymbol(new VoidValue(), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
         }
+        handlingReturnStatement++; //this must be done after visiting ReturnStatementContext children.
         return output;
+    }
+
+    public override Symbol VisitYieldStatement([NotNull] qutes_parser.YieldStatementContext context)
+    {
+        var res = Visit(context.expr()).As<ValueSymbol>();
+        handlingYieldStatement++; //this must be done after visiting YieldStatementContext children.
+        return res;
     }
 
     public override Symbol VisitBreakStatement([NotNull] qutes_parser.BreakStatementContext context)
     {
-        handlingBreakStatement = true;
+        handlingBreakStatement++;
         return null!; //TODO: is it better to return an errorSymbol?
     }
 
