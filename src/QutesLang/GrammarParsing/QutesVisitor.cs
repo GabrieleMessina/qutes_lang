@@ -296,6 +296,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         return functionToCreateSymbol;
     }
 
+    //TODO: the statement related to this could be used outside of their original context (e.g. return statement in a function could be used in a lambda inside the same function), we should find a better way to handle this instead of using these counters, maybe with a stack of contexts or something like that.
     private int handlingReturnStatement = 0;
     private int handlingYieldStatement = 0;
     private int handlingBreakStatement = 0;
