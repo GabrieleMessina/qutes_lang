@@ -133,7 +133,7 @@ public partial class QucharParser
         if (match.Success)
         {
             var alphabet = CompilerFlags.Current.QustringAlphabet;
-            var size = CompilerFlags.Current.QustringSizeInQubit;
+            var size = CompilerFlags.Current.QucharSizeInQubit;
             var character = match.Groups[1].Value[0];
             var qutesEncodedChar = alphabet.IndexOf(character);
             if (qutesEncodedChar == -1) throw new ArgumentException($"Invalid quchar literal: {input}, valid characters are: {string.Join(", ", alphabet)}");

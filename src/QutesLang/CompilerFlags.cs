@@ -13,7 +13,7 @@ public class CompilerFlags
     public int NumberOfIterations { get; set; } = 1024;
     public int QuintSizeInQubit { get; set; } = 3;
     public char[] QustringAlphabet { get; set; } = "01".ToCharArray();
-    public int QustringSizeInQubit => (int)Math.Ceiling(Math.Log2(QustringAlphabet.Length));
+    public int QucharSizeInQubit => (int)Math.Ceiling(Math.Log2(QustringAlphabet.Length));
     public string OutputPath { get; set; } = "./"; //TODO: in python we should check that dir exists.
     public string CircuitImagesFolder => "./circuit_images";
     public string SourceFilePath { get; set; } = string.Empty;
