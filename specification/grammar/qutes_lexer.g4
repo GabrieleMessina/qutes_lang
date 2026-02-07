@@ -13,6 +13,7 @@ QUCHAR_TYPE : 'quchar' ;
 VOID_TYPE : 'void' ;
 RANGE_TYPE : 'range' ;
 RETURN : 'return' ;
+YIELD : 'yield' ;
 BREAK : 'break' ;
 EXP : '^' ;
 MULTIPLY : '*' ;

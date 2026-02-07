@@ -66,6 +66,12 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         return new AnonymousValueSymbol(defaultValue, scopeHandler.GetCurrentScope(), astTokenIndex);
     }
 
+    private AnonymousValueSymbol GetValueSymbolForType(TypeSymbol varTypeSymbol, object? value, int astTokenIndex)
+    {
+        var typedValue = varTypeSymbol.GetValueFromType(value);
+        return new AnonymousValueSymbol(typedValue, scopeHandler.GetCurrentScope(), astTokenIndex);
+    }
+
     private void DeclareNewVariable(ValueSymbol symbol)
     {
         scopeHandler.GetCurrentScope().DefineVariable(symbol);
@@ -203,15 +209,32 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
             indexSymbol = new ValueSymbol(indexNameSymbol.QualifiedName, new IntValue(i), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
             DeclareNewVariable(indexSymbol);
         }
+
+        bool hasYielded = false;
+        TypeSymbol yieldedTypes = null!;
+        List<ValueSymbol> yieldedSymbols = [];
         for (; i < array.Values.Count() && handlingBreakStatement == 0; i++)
         {
             itemSymbol.Value = array.Values.ElementAt(i).Value; //It is ok even for quantum, this variable will just point to the qubit in the array, it's an alias.
             indexSymbol?.Value = new IntValue(i);
-            Visit(context.statement());
+            var innerRes = Visit(context.statement());
+            if (innerRes is ValueSymbol yieldedValue && handlingYieldStatement > 0) {
+                hasYielded = true;
+                handlingYieldStatement--;
+                if (yieldedTypes == null)
+                {
+                    yieldedTypes = yieldedValue.Type;
+                }
+                else if (yieldedTypes != yieldedValue.Type)
+                {
+                    throw new InvalidOperationException($"All yield statements in a foreach loop must return the same type, but found both '{yieldedTypes}' and '{yieldedValue.Type}'.");
+                }
+                yieldedSymbols.Add(AnonymousValueSymbol.Default(yieldedValue.Value));
+            }
         }
+        ValueSymbol res = hasYielded ? GetValueSymbolForType(TypeSymbol.Array(yieldedTypes), yieldedSymbols, context.Start.TokenIndex) : null!;
         handlingBreakStatement--;
-        return null!;
-
+        return res;
         //throw new InvalidOperationException("Foreach loop can only iterate over array types."); //TODO: pass this message to contains extension methods in first line of this method.
     }
 
@@ -413,8 +436,8 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
     public override Symbol VisitAssignmentStatement(qutes_parser.AssignmentStatementContext context)
     {
-        var qualifiedName = Visit(context.expr(0)).As<ValueSymbol>().QualifiedName;
-        var valueToAssignSymbol = Visit(context.expr(1)).As<ValueSymbol>();
+        var qualifiedName = Visit(context.expr()).As<ValueSymbol>().QualifiedName;
+        var valueToAssignSymbol = Visit(context.statement()).As<ValueSymbol>();
 
         var variableToUpdateSymbol = scopeHandler.GetCurrentScope().ResolveVariable(qualifiedName);
 
@@ -804,7 +827,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
     {
         var varTypeSymbol = Visit(context.variableType()).As<TypeSymbol>();
         var qualifiedName = Visit(context.qualifiedName()).As<QualifiedNameSymbol>().QualifiedName;
-        var valueToAssignSymbol = context.expr() == null ? GetDefaultValueSymbolForType(varTypeSymbol, context.Start.TokenIndex) : (ValueSymbol)Visit(context.expr());
+        var valueToAssignSymbol = context.statement() == null ? GetDefaultValueSymbolForType(varTypeSymbol, context.Start.TokenIndex) : (ValueSymbol)Visit(context.statement());
 
         var variableToCreateSymbol = CastValueToType(valueToAssignSymbol, varTypeSymbol);
         variableToCreateSymbol = new ValueSymbol(qualifiedName, variableToCreateSymbol.Value, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);

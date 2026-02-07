@@ -17,9 +17,13 @@ statement
    | DO_STATEMENT statement WHILE_STATEMENT expr #DoWhileStatement
    | CURLY_PARENTHESIS_OPEN statement* CURLY_PARENTHESIS_CLOSE #BlockStatement
    | variableType qualifiedName ROUND_PARENTHESIS_OPEN functionDeclarationParams? ROUND_PARENTHESIS_CLOSE statement #FunctionDeclarationStatement
-   | variableDeclaration END_OF_STATEMENT #DeclarationStatement
-   | expr ASSIGN expr END_OF_STATEMENT #AssignmentStatement
+   | variableDeclaration #DeclarationStatement
+   //TODO: now that this return a statement we can have something that return null.
+   // plus we should understand (for uniformity) if we want to move AssignmentStatement to expre
+   // or if we want to handle statement instead of expr even in other statements.
+   | expr ASSIGN statement END_OF_STATEMENT #AssignmentStatement
    | RETURN expr? END_OF_STATEMENT #ReturnStatement
+   | YIELD expr END_OF_STATEMENT #YieldStatement
    | BREAK END_OF_STATEMENT #BreakStatement
    | expr END_OF_STATEMENT #ExpressionStatement
    | (MEASURE | BARRIER | PRINT) #FactStatement
@@ -31,7 +35,7 @@ functionDeclarationParams
    ;
 
 variableDeclaration
-   : variableType qualifiedName (ASSIGN expr)?
+   : variableType qualifiedName (ASSIGN statement)?
    ;
 
 expr // Order: https://en.wikipedia.org/wiki/Order_of_operations#Programming_languages
