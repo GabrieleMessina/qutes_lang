@@ -10,7 +10,7 @@ public class Or(IQuantumValue a, IQuantumValue b, IQuantumValue destination) : C
 {
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
-        var size = a.Size + b.Size;
+        var size = a.QubitCount + b.QubitCount;
         var gateName = "or_gate_" + size;
         stringBuilder.AppendLine($"{gateName} = OrGate({size})");
         AddGateInCircuit(circuit, gateName, [.. a.Register.Qubits, .. b.Register.Qubits, .. Destination.Register.Qubits], stringBuilder);
@@ -21,7 +21,7 @@ public class And(IQuantumValue a, IQuantumValue b, IQuantumValue destination) : 
 {
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
-        var size = a.Size + b.Size;
+        var size = a.QubitCount + b.QubitCount;
         var gateName = "and_gate_" + size;
         stringBuilder.AppendLine($"{gateName} = AndGate({size})");
         AddGateInCircuit(circuit, gateName, [.. a.Register.Qubits, .. b.Register.Qubits, .. Destination.Register.Qubits], stringBuilder);
@@ -35,7 +35,7 @@ public class Equals(IQuantumValue a, IQuantumValue b, IQuantumValue destination)
 
     public override void ApplyQiskitRequirements(StringBuilder stringBuilder)
     {
-        nBitToCompare = Math.Min(a.Size, b.Size);
+        nBitToCompare = Math.Min(a.QubitCount, b.QubitCount);
         var ancillaPrefix = VariableNameGuid.New("equality");
         for (int i = 0; i < nBitToCompare; i++)
         {

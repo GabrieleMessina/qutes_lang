@@ -4,7 +4,7 @@ using QutesLang.Symbols.Types.Interfaces;
 
 namespace QutesLang.Symbols.Types;
 
-public class QubitValue() : QuantumScalarValue
+public class QubitValue() : QuantumValue
 {
     public const int DefaultSize = 1;
 
@@ -30,7 +30,6 @@ public class QubitValue() : QuantumScalarValue
     }
 
     public override TypeSymbol Type { get; } = TypeSymbol.Qubit;
-    public override int Size { get; } = DefaultSize;
     public override QuantumRegister Register { get; protected set; } = new(DefaultSize);
     public StateVector? InitialStateVector { get; private set { field = value; Register.InitialStateVector = value; } }
 
@@ -39,11 +38,11 @@ public class QubitValue() : QuantumScalarValue
     public static QubitValue PlusState() => new(QubitParser.Parse("|+>"));
     public static QubitValue MinusState() => new(QubitParser.Parse("|->"));
 
-    public override CircuitOperation And(IQutesValue term) => new And(this, GetQuantumValue(term), QubitValue.GetDefaultValue());
-    public override CircuitOperation Or(IQutesValue term) => new Or(this, GetQuantumValue(term), QubitValue.GetDefaultValue());
-    public override CircuitOperation Not() => new Not(this);
+    public override QutesResult And(IQutesValue term) => new And(this, GetQuantumValue(term), QubitValue.GetDefaultValue());
+    public override QutesResult Or(IQutesValue term) => new Or(this, GetQuantumValue(term), QubitValue.GetDefaultValue());
+    public override QutesResult Not() => new Not(this);
 
-    public virtual bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
+    public override bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
     {
         if (targetType == Type)
         {
@@ -65,7 +64,7 @@ public class QubitValue() : QuantumScalarValue
 
 public class QucharValue : QuintValue
 {
-    public override int DefaultSize => CompilerFlags.Current.QustringSizeInQubit;
+    public override int DefaultSize => CompilerFlags.Current.QucharSizeInQubit;
 
     public QucharValue() : base()
     {
@@ -106,7 +105,7 @@ public class QucharValue : QuintValue
     }
 }
 
-public class QuintValue : QuantumScalarValue
+public class QuintValue : QuantumValue
 {
     public virtual int DefaultSize => CompilerFlags.Current.QuintSizeInQubit;
     public int MinValue => -(int)(Math.Ceiling(Math.Pow(2, DefaultSize))/2);
@@ -159,30 +158,29 @@ public class QuintValue : QuantumScalarValue
     public static QuintValue Superposition() => new(StateVector.Superposition(CompilerFlags.Current.QuintSizeInQubit));
 
     public override TypeSymbol Type { get; } = TypeSymbol.Quint;
-    public override int Size => DefaultSize;
     public override QuantumRegister Register { get; protected set; }
     public StateVector? InitialStateVector { get; private set { field = value; Register.InitialStateVector = value; } }
 
     public static QuintValue GetDefaultValue() => new();
 
-    public override CircuitOperation Addition(IQutesValue term) => new Addition(this, GetQuantumValue(term), GetDefaultValue());
-    public override CircuitOperation Subtraction(IQutesValue term) => new Subtraction(this, GetQuantumValue(term), GetDefaultValue());
-    public override CircuitOperation Multiply(IQutesValue term) => new Multiply(this, GetQuantumValue(term), GetDefaultValue());
-    public override CircuitOperation Divide(IQutesValue term) => new Divide(this, GetQuantumValue(term), GetDefaultValue());
-    public override CircuitOperation Module(IQutesValue term) => new Module(this, GetQuantumValue(term), GetDefaultValue());
+    public override QutesResult Addition(IQutesValue term) => new Addition(this, GetQuantumValue(term), GetDefaultValue());
+    public override QutesResult Subtraction(IQutesValue term) => new Subtraction(this, GetQuantumValue(term), GetDefaultValue());
+    public override QutesResult Multiply(IQutesValue term) => new Multiply(this, GetQuantumValue(term), GetDefaultValue());
+    public override QutesResult Divide(IQutesValue term) => new Divide(this, GetQuantumValue(term), GetDefaultValue());
+    public override QutesResult Module(IQutesValue term) => new Module(this, GetQuantumValue(term), GetDefaultValue());
 
-    public override CircuitOperation LowerThan(IQutesValue term) => new LowerThan(this, GetQuantumValue(term), QubitValue.GetDefaultValue());
-    public override CircuitOperation LowerEqualThan(IQutesValue term) => new LowerEqualThan(this, GetQuantumValue(term), QubitValue.GetDefaultValue());
-    public override CircuitOperation GreaterThan(IQutesValue term) => new GreaterThan(this, GetQuantumValue(term), QubitValue.GetDefaultValue());
-    public override CircuitOperation GreaterEqualThan(IQutesValue term) => new GreaterEqualThan(this, GetQuantumValue(term), QubitValue.GetDefaultValue());
+    public override QutesResult LowerThan(IQutesValue term) => new LowerThan(this, GetQuantumValue(term), QubitValue.GetDefaultValue());
+    public override QutesResult LowerEqualThan(IQutesValue term) => new LowerEqualThan(this, GetQuantumValue(term), QubitValue.GetDefaultValue());
+    public override QutesResult GreaterThan(IQutesValue term) => new GreaterThan(this, GetQuantumValue(term), QubitValue.GetDefaultValue());
+    public override QutesResult GreaterEqualThan(IQutesValue term) => new GreaterEqualThan(this, GetQuantumValue(term), QubitValue.GetDefaultValue());
 
-    public override CircuitOperation Minus() => new TwosComplement(this, GetDefaultValue());
-    public override CircuitOperation InplacePreIncrement() => new Addition(this, this, new QuintValue(1));
-    public override CircuitOperation InplacePostIncrement() => new Addition(this, this, new QuintValue(1));
-    public override CircuitOperation InplacePreDecrement() => new Subtraction(this, this, new QuintValue(1));
-    public override CircuitOperation InplacePostDecrement() => new Subtraction(this, this, new QuintValue(1));
+    public override QutesResult Minus() => new TwosComplement(this, GetDefaultValue());
+    public override QutesResult InplacePreIncrement() => new Addition(this, this, new QuintValue(1));
+    public override QutesResult InplacePostIncrement() => new Addition(this, this, new QuintValue(1));
+    public override QutesResult InplacePreDecrement() => new Subtraction(this, this, new QuintValue(1));
+    public override QutesResult InplacePostDecrement() => new Subtraction(this, this, new QuintValue(1));
 
-    public virtual bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
+    public override bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
     {
         if (targetType == Type)
         {
@@ -206,10 +204,10 @@ public class QuintValue : QuantumScalarValue
 
 public class QustringValue(string initialValue) : QuantumArrayValue(initialValue.Select(c => AnonymousValueSymbol.Default(new QucharValue(c))).ToList(), TypeSymbol.Quchar)
 {
-    public override CircuitOperation LowerThan(IQutesValue term) => new LowerThan(this, QuantumScalarValue.GetQuantumValue(term), QubitValue.GetDefaultValue());
-    public override CircuitOperation LowerEqualThan(IQutesValue term) => new LowerEqualThan(this, QuantumScalarValue.GetQuantumValue(term), QubitValue.GetDefaultValue());
-    public override CircuitOperation GreaterThan(IQutesValue term) => new GreaterThan(this, QuantumScalarValue.GetQuantumValue(term), QubitValue.GetDefaultValue());
-    public override CircuitOperation GreaterEqualThan(IQutesValue term) => new GreaterEqualThan(this, QuantumScalarValue.GetQuantumValue(term), QubitValue.GetDefaultValue());
+    public override QutesResult LowerThan(IQutesValue term) => new LowerThan(this, QuantumValue.GetQuantumValue(term), QubitValue.GetDefaultValue());
+    public override QutesResult LowerEqualThan(IQutesValue term) => new LowerEqualThan(this, QuantumValue.GetQuantumValue(term), QubitValue.GetDefaultValue());
+    public override QutesResult GreaterThan(IQutesValue term) => new GreaterThan(this, QuantumValue.GetQuantumValue(term), QubitValue.GetDefaultValue());
+    public override QutesResult GreaterEqualThan(IQutesValue term) => new GreaterEqualThan(this, QuantumValue.GetQuantumValue(term), QubitValue.GetDefaultValue());
 
     public static QustringValue GetDefaultValue() => new(string.Empty);
 }

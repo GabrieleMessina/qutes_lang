@@ -90,7 +90,7 @@ public class ComposeCircuit(IQuantumCircuit other, ICollection<QuantumRegister> 
 
 public class Copy(IQuantumValue target, IQuantumValue destination) : CircuitOperation([target.Register, destination.Register], destination)
 {
-    private readonly int size = Math.Min(target.Size, destination.Size);
+    private readonly int size = Math.Min(target.QubitCount, destination.QubitCount);
     private string GateName => $"copy_{size}";
 
     public override void ApplyQiskitRequirements(StringBuilder stringBuilder)

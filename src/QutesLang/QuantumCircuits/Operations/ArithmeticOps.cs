@@ -29,7 +29,7 @@ public class RightShift : LeftShift
             new Copy(target, Destination).ApplyToQiskitCircuit(circuit, stringBuilder);
         }
 
-        for (int i = offset.Size - 1; i >= 0; i--)
+        for (int i = offset.QubitCount - 1; i >= 0; i--)
         {
             var gateName = $"right_shift_{target.Count}_{target.SingleElementSize}_{i}";
             stringBuilder.AppendLine($"{gateName} = QutesGates.crot({target.Count}, 2**{i}, {target.SingleElementSize}).inverse()");
@@ -72,7 +72,7 @@ public class LeftShift : CircuitOperation
             new Copy(target, Destination).ApplyToQiskitCircuit(circuit, stringBuilder);
         }
 
-        for (int i = 0; i < offset.Size; i++)
+        for (int i = 0; i < offset.QubitCount; i++)
         {
             var gateName = $"left_shift_{target.Count}_{target.SingleElementSize}_{i}";
             stringBuilder.AppendLine($"{gateName} = QutesGates.crot({target.Count}, 2**{i}, {target.SingleElementSize})");
@@ -91,7 +91,7 @@ public class TwosComplement(IQuantumValue target, IQuantumValue destination) : C
 
 public class Addition(IQuantumValue a, IQuantumValue b, IQuantumValue destination) : CircuitOperation([a.Register, b.Register, destination.Register], destination)
 {
-    private readonly int size = Math.Min(a.Size, b.Size);
+    private readonly int size = Math.Min(a.QubitCount, b.QubitCount);
     private string GateName => $"adder_{size}";
 
     public override void ApplyQiskitRequirements(StringBuilder stringBuilder)
@@ -127,7 +127,7 @@ public class Subtraction(IQuantumValue a, IQuantumValue b, IQuantumValue destina
 
 public class Multiply(IQuantumValue a, IQuantumValue b, IQuantumValue destination) : CircuitOperation([a.Register, b.Register, destination.Register], destination)
 {
-    private readonly int size = Math.Min(a.Size, b.Size);
+    private readonly int size = Math.Min(a.QubitCount, b.QubitCount);
 
     public override void ApplyQiskitRequirements(StringBuilder stringBuilder)
     {

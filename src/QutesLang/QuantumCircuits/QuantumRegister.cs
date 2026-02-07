@@ -1,6 +1,6 @@
 ﻿using QutesLang.Symbols.Types;
 
-namespace QutesLang.GrammarFrontend;
+namespace QutesLang.GrammarFrontend; //TODO: rename namespace.
 
 public class ClassicalRegister(QuantumRegister quantumRegister)
 {
@@ -27,6 +27,15 @@ public class QuantumRegister
     }
 
     public string Name { get; set; } = VariableNameGuid.New("qreg");
+
+    /// <summary>
+    /// The size of the quantum register, in qubits. If this QuantumRegister encodes an array type, this is the total size of all qubits in all sub-registers.
+    /// </summary>
+    public int Size => Qubits.Count;
+
+    /// <summary>
+    /// The classical register associated with this quantum register, used to store measurement results. If this QuantumRegister encodes an array type, this is the classical register associated with the entire array.
+    /// </summary>
     public ClassicalRegister ClassicalRegister { get; set; }
 
     /// <summary>
