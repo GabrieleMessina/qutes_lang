@@ -84,6 +84,22 @@ public class TypeSymbol(QutesType type, TypeSymbol? nestedValue = null) : Symbol
         return NestedValue != null ? $"{NestedValue}[]" : Value.ToString();
     }
 
+    public int GetSize()
+    {
+        return Value switch
+        {
+            QutesType.boolean => sizeof(bool),
+            QutesType.integer => sizeof(int),
+            QutesType.character => sizeof(char),
+            QutesType.floating => sizeof(float),
+            QutesType.qubit => 1,
+            QutesType.quinteger => CompilerFlags.Current.QuintSizeInQubit,
+            QutesType.qucharacter => CompilerFlags.Current.QucharSizeInQubit,
+            QutesType.qustring => CompilerFlags.Current.QucharSizeInQubit,
+            _ => throw new InvalidOperationException($"Cannot get size in qubits of type {Value}.")
+        };
+    }
+
     public static TypeSymbol Bool { get; } = new(QutesType.boolean);
     public static TypeSymbol Int { get; } = new(QutesType.integer);
     public static TypeSymbol Char { get; } = new(QutesType.character);
