@@ -100,6 +100,28 @@ public class TypeSymbol(QutesType type, TypeSymbol? nestedValue = null) : Symbol
         };
     }
 
+    public static TypeSymbol FromType(Type value)
+    {
+        return value switch
+        {
+            Type t when t == typeof(BoolValue) => Bool,
+            Type t when t == typeof(IntValue) => Int,
+            Type t when t == typeof(CharValue) => Char,
+            Type t when t == typeof(FloatValue) => Float,
+            Type t when t == typeof(StringValue) => String,
+            Type t when t == typeof(QubitValue) => Qubit,
+            Type t when t == typeof(QuintValue) => Quint,
+            Type t when t == typeof(QucharValue) => Quchar,
+            Type t when t == typeof(QustringValue) => Qustring,
+            //Type t when t == typeof(ArrayValue) => Array(),
+            Type t when t == typeof(TupleValue) => Tuple,
+            Type t when t == typeof(ClassValue) => Class,
+            Type t when t == typeof(VoidValue) => Void,
+            Type t when t == typeof(RangeValue) => Range,
+            _ => throw new ArgumentException($"Unsupported type: {value}"),
+        };
+    }
+
     public static TypeSymbol Bool { get; } = new(QutesType.boolean);
     public static TypeSymbol Int { get; } = new(QutesType.integer);
     public static TypeSymbol Char { get; } = new(QutesType.character);

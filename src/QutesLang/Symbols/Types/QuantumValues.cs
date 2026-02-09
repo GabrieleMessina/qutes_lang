@@ -111,6 +111,11 @@ public class QuintValue : QuantumValue
     public int MinValue => -(int)(Math.Ceiling(Math.Pow(2, DefaultSize))/2);
     public int MaxValue => (int)(Math.Floor(Math.Pow(2, DefaultSize))/2) - 1;
 
+    //TODO: temporary solution to allow using DefaultSize in static contexts, but we should consider a better design for this.
+    public static int Size => new QuintValue().DefaultSize;
+    public static int Min => new QuintValue().MinValue;
+    public static int Max => new QuintValue().MaxValue;
+
     public QuintValue()
     {
         Register = new(DefaultSize);
@@ -132,27 +137,27 @@ public class QuintValue : QuantumValue
         this.InitialStateVector.Amplitudes[1] = qubitStateVector[1];
     }
 
-    public QuintValue(int value) : this()
-    {
-        InitialStateVector = QuintParser.Parse(value.ToString());
-    }
-    
-    public QuintValue(IntValue value) : this(value.Value)
+    public QuintValue(IEnumerable<IntValue> value) : this(value.Select(v => v.Value))
     {
     }
-    
-    public QuintValue(FullyQualifiedRange range) : this()
+
+    public QuintValue(IEnumerable<int> value) : this()
     {
-        var termList = new List<int>();
-        for(var i = range.Start.Value; i < range.End.Value; i++)
-        {
-            if (i < MinValue || i > MaxValue)
-            {
-                throw new ArgumentException("RangeValue exceeds the bounds of the QuintValue size.");
-            }
-            termList.Add(i);
-        }
+        var termList = value.Select(v => v).ToList();
         InitialStateVector = QuintParser.Parse($"{{{string.Join(',', termList)}}}");
+    }
+
+    public QuintValue(int value) : this([value])
+    {
+    }
+    
+    public QuintValue(IntValue value) : this([value.Value])
+    {
+    }
+    
+    public QuintValue(FullyQualifiedRangeValue range) : this()
+    {
+        InitialStateVector = QuintParser.Parse($"{{{range}}}");
     }
 
     public static QuintValue Superposition() => new(StateVector.Superposition(CompilerFlags.Current.QuintSizeInQubit));

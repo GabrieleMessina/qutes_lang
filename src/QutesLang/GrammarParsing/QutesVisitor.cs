@@ -441,7 +441,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
         var variableToUpdateSymbol = scopeHandler.GetCurrentScope().ResolveVariable(qualifiedName);
 
-        variableToUpdateSymbol.Value = CastValueToType(valueToAssignSymbol, variableToUpdateSymbol.Type).Value;
+        variableToUpdateSymbol.Value = CastSymbolToType(valueToAssignSymbol, variableToUpdateSymbol.Type).Value;
 
         if (variableToUpdateSymbol.Value is IQuantumValue quantumValue)
         {
@@ -522,7 +522,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         {
             if (element.Value is RangeValue)
             {
-                var innerArray = (ArrayValue)CastValueToType(element, TypeSymbol.Array(TypeSymbol.Int)).Value;
+                var innerArray = (ArrayValue)CastSymbolToType(element, TypeSymbol.Array(TypeSymbol.Int)).Value;
                 arrayElements.AddRange(innerArray.Values);
             }
             else
@@ -533,7 +533,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
         //ensure all elements are of the same type or can be cast to the same type
         var elementsType = arrayElements.First().Type; //TODO: we should check for the least restrictive common type.
-        var castedElements = arrayElements.Select(element => CastValueToType(element, elementsType)).ToList();
+        var castedElements = arrayElements.Select(element => CastSymbolToType(element, elementsType)).ToList();
 
         ArrayValue array = elementsType.IsQuantum()
             ? new QuantumArrayValue(castedElements, elementsType)
@@ -578,28 +578,32 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         }
     }
 
-    public override Symbol VisitRangeExpression(qutes_parser.RangeExpressionContext context)
+    public override Symbol VisitRangeFullExpression(qutes_parser.RangeFullExpressionContext context)
     {
         var start = Visit(context.expr(0)).Contains<IntValue>();
         var end = Visit(context.expr(1)).Contains<IntValue>();
-        return new AnonymousValueSymbol(new FullyQualifiedRange(start, end), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+        var step = context.expr(2) != null ? Visit(context.expr(2)).Contains<IntValue>() : null;
+        return new AnonymousValueSymbol(new FullyQualifiedRangeValue(start, end, step), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
     }
 
     public override Symbol VisitRangeFromExpression(qutes_parser.RangeFromExpressionContext context)
     {
-        var start = Visit(context.expr()).Contains<IntValue>();
-        return new AnonymousValueSymbol(new RangeValue(start, end:null), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+        var start = Visit(context.expr(0)).Contains<IntValue>();
+        var step = context.expr(1) != null ? Visit(context.expr(1)).Contains<IntValue>() : null;
+        return new AnonymousValueSymbol(new RangeValue(start, end:null, step), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
     }
 
     public override Symbol VisitRangeToExpression(qutes_parser.RangeToExpressionContext context)
     {
-        var end = Visit(context.expr()).Contains<IntValue>();
-        return new AnonymousValueSymbol(new RangeValue(start: null, end), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+        var end = Visit(context.expr(0)).Contains<IntValue>();
+        var step = context.expr(1) != null ? Visit(context.expr(1)).Contains<IntValue>() : null;
+        return new AnonymousValueSymbol(new RangeValue(start: null, end, step), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
     }
 
-    public override Symbol VisitRangeFullExpression(qutes_parser.RangeFullExpressionContext context)
+    public override Symbol VisitRangeExpression(qutes_parser.RangeExpressionContext context)
     {
-        return new AnonymousValueSymbol(new RangeValue(start: null, end: null), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+        var step = context.expr() != null ? Visit(context.expr()).Contains<IntValue>() : null;
+        return new AnonymousValueSymbol(new RangeValue(start: null, end: null, step), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
     }
 
     public override Symbol VisitPostfixOperator(qutes_parser.PostfixOperatorContext context)
@@ -829,7 +833,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         var qualifiedName = Visit(context.qualifiedName()).As<QualifiedNameSymbol>().QualifiedName;
         var valueToAssignSymbol = context.statement() == null ? GetDefaultValueSymbolForType(varTypeSymbol, context.Start.TokenIndex) : (ValueSymbol)Visit(context.statement());
 
-        var variableToCreateSymbol = CastValueToType(valueToAssignSymbol, varTypeSymbol);
+        var variableToCreateSymbol = CastSymbolToType(valueToAssignSymbol, varTypeSymbol);
         variableToCreateSymbol = new ValueSymbol(qualifiedName, variableToCreateSymbol.Value, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
 
         DeclareNewVariable(variableToCreateSymbol);
@@ -842,17 +846,54 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         return variableToCreateSymbol;
     }
 
-    private static ValueSymbol CastValueToType(ValueSymbol symbolToCast, TypeSymbol targetType)
+    /// <summary>
+    /// Attempts to cast the specified value symbol to the given target type, returning a new value symbol if the cast
+    /// is successful.
+    /// </summary>
+    /// <remarks>If the value is already of the target type, no casting is performed and the original symbol
+    /// is returned. Otherwise, the method attempts to convert the value; if conversion fails, an exception is
+    /// thrown.</remarks>
+    /// <param name="symbolToCast">The value symbol to be cast to the target type. Must not be null.</param>
+    /// <param name="targetType">The type to which the value symbol should be cast. Must not be null.</param>
+    /// <returns>A value symbol representing the original value cast to the target type. If the value is already of the target
+    /// type, the original symbol is returned.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the value cannot be cast to the specified target type.</exception>
+    private static ValueSymbol CastSymbolToType(ValueSymbol symbolToCast, TypeSymbol targetType)
     {
         if (symbolToCast.Type == targetType)
         {
-            return symbolToCast;
+            return symbolToCast; //TODO: should we return the same symbol or create a new one with the same value and the target type? the first option is more efficient but the second one alignes with least surprise principle.
         }
-        else if (symbolToCast.Value.TryConvertTo(targetType, out var casted))
+        else
         {
-            return new AnonymousValueSymbol(casted, null!, default); //TODO: check scope and asttokenindex
+            return new AnonymousValueSymbol(CastValueToType(symbolToCast.Value, targetType), null!, default); //TODO: check scope and asttokenindex
         }
-        throw new InvalidOperationException($"Cannot cast value of type '{symbolToCast.Type}' to '{targetType}'.");
+    }
+
+    /// <summary>
+    /// Attempts to cast the specified value to the given target type, returning a new value if the cast is successful.
+    /// </summary>
+    /// <param name="valueToCast">The value to cast.</param>
+    /// <param name="targetType">The target type to cast the value to.</param>
+    /// <returns>A new value representing the original value cast to the target type.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the value cannot be cast to the specified target type.</exception>
+    private static IQutesValue CastValueToType(IQutesValue valueToCast, TypeSymbol targetType)
+    {
+        if (valueToCast.Type == targetType)
+        {
+            return valueToCast;
+        }
+        else if (valueToCast.TryConvertTo(targetType, out var casted))
+        {
+            return casted;
+        }
+        throw new InvalidOperationException($"Cannot cast value of type '{valueToCast.Type}' to '{targetType}'.");
+    }
+
+    private static TargetType CastValueToType<TargetType>(IQutesValue valueToCast) where TargetType : IQutesValue
+    {
+        var targetType = TypeSymbol.FromType(typeof(TargetType));
+        return (TargetType)CastValueToType(valueToCast, targetType);
     }
 
     public override Symbol VisitTermList(qutes_parser.TermListContext context)
