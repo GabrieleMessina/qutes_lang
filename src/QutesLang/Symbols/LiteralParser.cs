@@ -121,27 +121,6 @@ public partial class QubitParser
     }
 }
 
-public partial class QucharParser
-{
-    // 'A'
-    [GeneratedRegex(@"^'(.{1})'$", RegexOptions.Compiled)]
-    private static partial Regex CharLiteralRegex();
-    public static StateVector Parse(string input)
-    {
-        if (string.IsNullOrWhiteSpace(input)) throw new ArgumentException("Input cannot be null or whitespace.", nameof(input));
-        var match = CharLiteralRegex().Match(input);
-        if (match.Success)
-        {
-            var alphabet = CompilerFlags.Current.QustringAlphabet;
-            var size = CompilerFlags.Current.QucharSizeInQubit;
-            var character = match.Groups[1].Value[0];
-            var qutesEncodedChar = alphabet.IndexOf(character);
-            if (qutesEncodedChar == -1) throw new ArgumentException($"Invalid quchar literal: {input}, valid characters are: {string.Join(", ", alphabet)}");
-            return QuintParser.Parse($"{qutesEncodedChar}", size);
-        }
-        throw new ArgumentException($"Invalid quchar literal format: {input}");
-    }
-}
 
 public partial class QuintParser
 {
@@ -152,7 +131,9 @@ public partial class QuintParser
     // Integer List: {0, 1, 0, 1}
     [GeneratedRegex(@"^\{\s*((?:\d+\s*,?\s*)+)\}$", RegexOptions.IgnoreCase | RegexOptions.Compiled)]
     private static partial Regex IntListRegex();
-    [GeneratedRegex(@"^\{\s*(\d+\s*\.\.\s*\d+)\}$", RegexOptions.IgnoreCase | RegexOptions.Compiled)]
+
+    // Integer Range: {0..2(:2)?}
+    [GeneratedRegex(@"^\{\s*(\d+\s*\.\.\s*\d+(?:\:\s*\d+)?)\s*\}$", RegexOptions.IgnoreCase | RegexOptions.Compiled)]
     private static partial Regex IntRangeRegex();
 
     public static StateVector Parse(string input, int? sizeInQubit = null)
@@ -172,11 +153,11 @@ public partial class QuintParser
             input = $"{{{value}}}"; // Reuse the integer list parsing logic
         }
 
-        // Match Range List: {0..2}
+        // Match Range List: {0..2(:2)?}
         var intRangeMatch = IntRangeRegex().Match(input);
         if (intRangeMatch.Success)
         {
-            var range = FullyQualifiedRange.Parse(intRangeMatch.Groups[1].Value);
+            var range = FullyQualifiedRangeValue.Parse(intRangeMatch.Groups[1].Value);
             var elements = string.Join(',', range.Enumerate().Select(iv => iv.Value));
 
             return Parse($"{{{elements}}}", size); // Reuse the integer list parsing logic
@@ -192,11 +173,37 @@ public partial class QuintParser
             var amplitudes = new double[bitCount]; //TODO: Expensive! optimize allocation
             foreach (var part in elements)
             {
+                if (part < QuintValue.Min || part > QuintValue.Max)
+                {
+                    throw new ArgumentException("RangeValue exceeds the bounds of the QuintValue size.");
+                }
                 amplitudes[part] += 1.0d;
             }
             return new StateVector(amplitudes.ToList());
         }
         throw new ArgumentException($"Invalid quint literal format: {input}");
+    }
+}
+
+public partial class QucharParser
+{
+    // 'A'
+    [GeneratedRegex(@"^'(.{1})'$", RegexOptions.Compiled)]
+    private static partial Regex CharLiteralRegex();
+    public static StateVector Parse(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input)) throw new ArgumentException("Input cannot be null or whitespace.", nameof(input));
+        var match = CharLiteralRegex().Match(input);
+        if (match.Success)
+        {
+            var alphabet = CompilerFlags.Current.QustringAlphabet;
+            var size = CompilerFlags.Current.QucharSizeInQubit;
+            var character = match.Groups[1].Value[0];
+            var qutesEncodedChar = alphabet.IndexOf(character);
+            if (qutesEncodedChar == -1) throw new ArgumentException($"Invalid quchar literal: {input}, valid characters are: {string.Join(", ", alphabet)}");
+            return QuintParser.Parse($"{qutesEncodedChar}", size);
+        }
+        throw new ArgumentException($"Invalid quchar literal format: {input}");
     }
 }
 

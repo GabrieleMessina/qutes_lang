@@ -13,7 +13,7 @@ statement
    : IF_STATEMENT expr statement #IfStatement
    | IF_STATEMENT expr statement ELSE_STATEMENT statement #IfElseStatement
    | WHILE_STATEMENT expr statement #WhileStatement
-   | FOREACH_STATEMENT qualifiedName (COMMA qualifiedName)? IN_STATEMENT expr statement #ForeachStatement
+   | FOR_STATEMENT qualifiedName (COMMA qualifiedName)? IN_STATEMENT expr statement #ForeachStatement
    | DO_STATEMENT statement WHILE_STATEMENT expr #DoWhileStatement
    | CURLY_PARENTHESIS_OPEN statement* CURLY_PARENTHESIS_CLOSE #BlockStatement
    | variableType qualifiedName ROUND_PARENTHESIS_OPEN functionDeclarationParams? ROUND_PARENTHESIS_CLOSE statement #FunctionDeclarationStatement
@@ -47,10 +47,10 @@ expr // Order: https://en.wikipedia.org/wiki/Order_of_operations#Programming_lan
    | qualifiedName ROUND_PARENTHESIS_OPEN termList? ROUND_PARENTHESIS_CLOSE #FunctionCallExpression
    | expr SQUARE_PARENTHESIS_OPEN expr SQUARE_PARENTHESIS_CLOSE #ArrayAccessExpression
    // Range operator (start..end, start.., ..end, ..)
-   | expr RANGE_OPERATOR expr #RangeExpression
-   | expr RANGE_OPERATOR #RangeFromExpression
-   | RANGE_OPERATOR expr #RangeToExpression
-   | RANGE_OPERATOR #RangeFullExpression
+   | expr RANGE_OPERATOR expr (COLON expr)? #RangeFullExpression
+   | expr RANGE_OPERATOR (COLON expr)? #RangeFromExpression
+   | RANGE_OPERATOR expr (COLON expr)? #RangeToExpression
+   | RANGE_OPERATOR (COLON expr)? #RangeExpression
    // Unary operators, sizeof and type casts
    | expr op=(AUTO_INCREMENT | AUTO_DECREMENT) #PostfixOperator
    | expr op=EXP expr #ExpOperator
@@ -146,7 +146,7 @@ qubit
 quint
    : integer QUANTUM_SUFFIX
    | CURLY_PARENTHESIS_OPEN integer (COMMA integer)* CURLY_PARENTHESIS_CLOSE QUANTUM_SUFFIX
-   | CURLY_PARENTHESIS_OPEN integer RANGE_OPERATOR integer CURLY_PARENTHESIS_CLOSE QUANTUM_SUFFIX
+   | CURLY_PARENTHESIS_OPEN integer RANGE_OPERATOR integer (COLON integer)? CURLY_PARENTHESIS_CLOSE QUANTUM_SUFFIX
    ;
 
 quchar

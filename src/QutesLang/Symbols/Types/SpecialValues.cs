@@ -59,11 +59,13 @@ public class VoidValue() : IQutesValue
 /// Used for slicing arrays and iterating in foreach loops.
 /// </summary>
 /// <param name="start">The start index (inclusive), or null for "from beginning".</param>
-/// <param name="end">The end index (exclusive), or null for "to end".</param>
-public class RangeValue(IntValue? start, IntValue? end) : IQutesValue
+/// <param name="end">The end index (exclusive), or null for "to end".</param>\
+/// <param name="step">The step size for enumeration, default is 1.</param>
+public class RangeValue(IntValue? start, IntValue? end, IntValue? step = null) : IQutesValue
 {
     public IntValue? Start { get; } = start;
     public IntValue? End { get; } = end;
+    public IntValue Step { get; } = step ?? new(1);
     public TypeSymbol Type { get; } = TypeSymbol.Range;
 
     public static RangeValue GetDefaultValue() => new(null, null);
@@ -71,11 +73,23 @@ public class RangeValue(IntValue? start, IntValue? end) : IQutesValue
     public static RangeValue Parse(string input)
     {
         var parts = input.Split("..");
-        if (parts.Length != 2)
-            throw new FormatException($"Invalid range format: '{input}'");
-        IntValue? start = string.IsNullOrEmpty(parts[0]) ? null : IntValue.Parse(parts[0]);
-        IntValue? end = string.IsNullOrEmpty(parts[1]) ? null : IntValue.Parse(parts[1]);
-        return new RangeValue(start, end);
+        var startString = string.IsNullOrEmpty(parts[0]) ? null : parts[0];
+        var endString = string.IsNullOrEmpty(parts[1]) ? null : parts[1];
+        string? stepString = null;
+
+        if(parts.Length > 3) throw new FormatException($"Invalid range format: '{input}'");
+
+        if (endString?.Contains(':') ?? false)
+        {
+            var stepParts = endString.Split(':');
+            endString = stepParts[0];
+            stepString = stepParts.Length == 1 ? null : stepParts[1];
+        }
+
+        IntValue? start = string.IsNullOrWhiteSpace(startString) ? null : IntValue.Parse(startString);
+        IntValue? end = string.IsNullOrWhiteSpace(endString) ? null : IntValue.Parse(endString);
+        IntValue? step = string.IsNullOrWhiteSpace(stepString) ? null : IntValue.Parse(stepString);
+        return new RangeValue(start, end, step);
     }
 
     /// <summary>
@@ -87,7 +101,7 @@ public class RangeValue(IntValue? start, IntValue? end) : IQutesValue
     {
         var actualStart = Start?.Value ?? 0;
         var actualEnd = End?.Value ?? length;
-        for (var i = actualStart; i < actualEnd; i++)
+        for (var i = actualStart; i < actualEnd; i+=Step.Value)
             yield return new IntValue(i);
     }
 
@@ -100,7 +114,7 @@ public class RangeValue(IntValue? start, IntValue? end) : IQutesValue
         }
         if (targetType == TypeSymbol.Quint)
         {
-            result = new QuintValue(new FullyQualifiedRange(this));
+            result = new QuintValue(new FullyQualifiedRangeValue(this));
             return true;
         }
         if (targetType == TypeSymbol.Array(TypeSymbol.Quint))
@@ -117,33 +131,33 @@ public class RangeValue(IntValue? start, IntValue? end) : IQutesValue
         return false;
     }
 
-    public override string ToString() => $"{Start?.ToString() ?? ""}..{End?.ToString() ?? ""}";
+    public override string ToString() => $"{Start?.ToString() ?? ""}..{End?.ToString() ?? ""}:{Step}";
 }
 
 /// <summary>
 /// Represents a range value with fully specified start and end bounds.
 /// </summary>
-public class FullyQualifiedRange : RangeValue
+public class FullyQualifiedRangeValue : RangeValue
 {
     public new IntValue Start => base.Start!;
     public new IntValue End => base.End!;
 
-    public new static FullyQualifiedRange GetDefaultValue() => new(IntValue.GetDefaultValue(), IntValue.GetDefaultValue());
-    public new static FullyQualifiedRange Parse(string input)
+    public new static FullyQualifiedRangeValue GetDefaultValue() => new(IntValue.GetDefaultValue(), IntValue.GetDefaultValue());
+    public new static FullyQualifiedRangeValue Parse(string input)
     {
-        var parts = input.Split("..");
-        if (parts.Length != 2)
-            throw new FormatException($"Invalid range format: {input}");
-        IntValue start = string.IsNullOrEmpty(parts[0]) ? throw new FormatException($"Invalid start value: '{parts[0]}'") : IntValue.Parse(parts[0]);
-        IntValue end = string.IsNullOrEmpty(parts[1]) ? throw new FormatException($"Invalid end value: '{parts[1]}'") : IntValue.Parse(parts[1]);
-        return new FullyQualifiedRange(start, end);
+        RangeValue range = RangeValue.Parse(input);
+        if(range.Start == null || range.End == null)
+        {
+            throw new FormatException($"Invalid full qualified range format: '{input}'");
+        }
+        return new FullyQualifiedRangeValue(range);
     }
 
     /// <summary>
     /// Constructs a FullyQualifiedRange from a RangeValue, ensuring both bounds are defined.
     /// </summary>
     /// <param name="range">The RangeValue to convert.</param>
-    public FullyQualifiedRange(RangeValue range) : base(range.Start, range.End)
+    public FullyQualifiedRangeValue(RangeValue range) : base(range.Start, range.End, range.Step)
     {
         if(range.Start == null || range.End == null)
         {
@@ -156,7 +170,7 @@ public class FullyQualifiedRange : RangeValue
     /// </summary>
     /// <param name="start">The start index (inclusive).</param>
     /// <param name="end">The end index (exclusive).</param>
-    public FullyQualifiedRange(IntValue start, IntValue end) : base(start, end)
+    public FullyQualifiedRangeValue(IntValue start, IntValue end, IntValue? step = null) : base(start, end, step)
     {
     }
     
