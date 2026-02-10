@@ -123,8 +123,17 @@ public class RangeValue(IntValue? start, IntValue? end, IntValue? step = null) :
     {
         var actualStart = Start?.Value ?? 0;
         var actualEnd = End?.Value ?? length;
-        for (var i = actualStart; i < actualEnd; i+=Step.Value)
-            yield return new IntValue(i);
+
+        if(actualStart >= actualEnd)
+        {
+            for (var i = actualStart-1; i >= actualEnd; i+=Step.Value)
+                yield return new IntValue(i);
+        }
+        else
+        {
+            for (var i = actualStart; i < actualEnd; i+=Step.Value)
+                yield return new IntValue(i);
+        }
     }
 
     public bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
