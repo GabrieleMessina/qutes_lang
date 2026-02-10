@@ -6,9 +6,8 @@ namespace QutesLang.Symbols.Types;
 
 public class ClassicalArrayValue(IEnumerable<ValueSymbol> values, TypeSymbol elementsType) : ArrayValue, IClassicalValue
 {
-    public override IEnumerable<ValueSymbol> Values { get; protected set; } = values;
-
     public override TypeSymbol Type { get; } = new(QutesType.classicalArray, elementsType);
+    public override IEnumerable<ValueSymbol> Values { get; protected set; } = values;
 
     public object GetValueAsObject() => Values;
     public void SetValueFromObject(object value) => Values = (IEnumerable<ValueSymbol>)value;
@@ -61,12 +60,17 @@ public class QuantumArrayValue : ArrayValue, IQuantumValue
     public QuantumArrayValue(IEnumerable<ValueSymbol> values, TypeSymbol elementType)
     {
         Values = values;
-        Register = new(Values.Select(v => v.Value).Cast<IQuantumValue>().Select(v => v.Register));
         SingleElementSize = Count > 0 ? QubitCount / Count : elementType.GetSize();
         Type = new(QutesType.quantumArray, elementType);
     }
 
     public override TypeSymbol Type { get; }
+    public override IEnumerable<ValueSymbol> Values { get; protected set; }
+    private string Guid { get; } = VariableNameGuid.New("qarray");
+    public QuantumRegister Register => new(
+        Values.Select(v => v.Value).Cast<IQuantumValue>()
+        .Select(v => v.Register).Reverse() //Reverse to match Qiskit LSB ordering.
+    ) { Name = Guid }; //Values register can change over time, we need to retrieve it every time from the current values.
 
     /// <summary>
     /// Total size in qubits of the Quantum Array
@@ -77,8 +81,6 @@ public class QuantumArrayValue : ArrayValue, IQuantumValue
     /// Size in qubits of a single element in the Quantum Array
     /// </summary>
     public int SingleElementSize { get; }
-    public QuantumRegister Register { get; }
-    public override IEnumerable<ValueSymbol> Values { get; protected set; }
 
     public string QubitStringList => Register.QubitStringList;
 

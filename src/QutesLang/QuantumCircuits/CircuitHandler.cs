@@ -220,6 +220,7 @@ public class QuantumCircuit(BackendProvider backendProvider, string? name = null
         var Registers =
             LocalRegisters
                 .Union(DependentCircuits.SelectMany(c => c.LocalRegisters))
+                .DistinctBy(r => r.Name)
                 .ToList(); //TODO: right now all registers of dependent circuits are included, with the new implementation composition happens on different registers, so this is useless.
 
         // Declare qubits
