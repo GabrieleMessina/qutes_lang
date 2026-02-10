@@ -202,11 +202,11 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         }
 
         int i = 0;
-        var itemSymbol = new ValueSymbol(itemNameSymbol.QualifiedName, array.Values.ElementAt(i).Value, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+        var itemSymbol = new ValueSymbol(itemNameSymbol, array.Values.ElementAt(i).Value, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
         DeclareNewVariable(itemSymbol);
         if (indexNameSymbol != null)
         {
-            indexSymbol = new ValueSymbol(indexNameSymbol.QualifiedName, new IntValue(i), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+            indexSymbol = new ValueSymbol(indexNameSymbol, new IntValue(i), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
             DeclareNewVariable(indexSymbol);
         }
 
@@ -289,12 +289,12 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         var outputTypeSymbol = Visit(context.variableType()).As<TypeSymbol>();
         var qualifiedNameSymbol = Visit(context.qualifiedName()).As<QualifiedNameSymbol>();
 
-        scopeHandler.PushScope(scopeHandler.CreateScope(qualifiedNameSymbol.QualifiedName + "Scope")); //create function scope for params declaration
+        scopeHandler.PushScope(scopeHandler.CreateScope(qualifiedNameSymbol.RawStringName + "Scope")); //create function scope for params declaration
 
         var functionBody = context.statement();
         var functionParams = context.functionDeclarationParams();
         ValueSymbol? bodyStatementReturnValue = null;
-        var quantumBodyCircuit = circuitHandler.DeclareNewQuantumGate(qualifiedNameSymbol.QualifiedName);
+        var quantumBodyCircuit = circuitHandler.DeclareNewQuantumGate(qualifiedNameSymbol.RawStringName);
         ICollection<ValueSymbol> functionParamsValues = [];
 
         if (!CompilerFlags.Current.VisitFunctionBodyAtEachCall)
@@ -312,7 +312,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         }
 
         var functionScope = scopeHandler.PopScope();
-        var qualifiedName = qualifiedNameSymbol.QualifiedName;
+        var qualifiedName = qualifiedNameSymbol.RawStringName;
         var functionToCreateSymbol = new FunctionSymbol(qualifiedName, bodyStatementReturnValue, functionParamsValues, outputTypeSymbol, quantumBodyCircuit, functionBody, functionParams, functionScope, context.Start.TokenIndex);
         DeclareNewFunction(functionToCreateSymbol);
 
@@ -326,14 +326,22 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
     public override Symbol VisitFunctionCallExpression(qutes_parser.FunctionCallExpressionContext context)
     {
-        var qualifiedName = Visit(context.qualifiedName()).As<QualifiedNameSymbol>().QualifiedName;
+        var qualifiedNameSymbol = Visit(context.qualifiedName()).As<QualifiedNameSymbol>();
+        var qualifiedName = qualifiedNameSymbol.RawStringName;
         var providedParamsValues =
             context.termList() == null
             ? []
             : Visit(context.termList()).Contains<TupleValue>().Values.As<ValueSymbol>().ToList();
 
-        var functionSymbol = scopeHandler.GetCurrentScope().ResolveFunction(qualifiedName);
+        //Check for functionValue (member access and variable of function type) call first.
+        if (scopeHandler.GetCurrentScope().TryResolveVariable(qualifiedNameSymbol, out var memberFunction))
+        {
+            var result = memberFunction.Contains<FunctionValue>().Func(providedParamsValues.Select(s => s.Value));
+            return new AnonymousValueSymbol(result, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+        }
 
+        //Then check for user defined function call.
+        var functionSymbol = scopeHandler.GetCurrentScope().ResolveFunction(qualifiedName);
         IQuantumCircuit functionCircuit = functionSymbol.Gate; //we cannot re-use the same circuit (e.g. different array as input params want different gate implementation if have different count of elements.)
         if (CompilerFlags.Current.VisitFunctionBodyAtEachCall)
         {
@@ -397,7 +405,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         {
             throw new InvalidOperationException($"Function '{qualifiedName}' should return type '{functionSymbol.OutputType}', but no value was returned.");
         }
-        return null!;
+        return AnonymousValueSymbol.Default(new VoidValue());
     }
 
     public override Symbol VisitReturnStatement(qutes_parser.ReturnStatementContext context)
@@ -436,16 +444,21 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
     public override Symbol VisitAssignmentStatement(qutes_parser.AssignmentStatementContext context)
     {
-        var qualifiedName = Visit(context.expr()).As<ValueSymbol>().QualifiedName;
+        var variableToUpdateSymbol = Visit(context.expr()).As<ValueSymbol>();
         var valueToAssignSymbol = Visit(context.statement()).As<ValueSymbol>();
-
-        var variableToUpdateSymbol = scopeHandler.GetCurrentScope().ResolveVariable(qualifiedName);
 
         variableToUpdateSymbol.Value = CastSymbolToType(valueToAssignSymbol, variableToUpdateSymbol.Type).Value;
 
         if (variableToUpdateSymbol.Value is IQuantumValue quantumValue)
         {
-            circuitHandler.UpdateQuantumVariable(variableToUpdateSymbol.QualifiedName, quantumValue.Register);
+            try
+            {
+                circuitHandler.UpdateQuantumVariable(variableToUpdateSymbol.QualifiedName.RawStringName, quantumValue.Register);
+            }
+            catch
+            {
+                //Quantum variable was not explicitly declare, nothing to update (e.g. array elements).
+            }
         }
 
         return variableToUpdateSymbol;
@@ -507,7 +520,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
     public override Symbol VisitQualifiedNameExpression(qutes_parser.QualifiedNameExpressionContext context)
     {
-        var qualifiedName = Visit(context.qualifiedName()).As<QualifiedNameSymbol>().QualifiedName;
+        var qualifiedName = Visit(context.qualifiedName()).As<QualifiedNameSymbol>();
         var symbol = scopeHandler.GetCurrentScope().ResolveVariable(qualifiedName);
         return symbol;
     }
@@ -550,7 +563,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
             switch (indexSymbol.Value)
             {
                 case IntValue intValue:
-                    return array.Values.ElementAt(intValue.Value);
+                    return array.Values.ElementAtOrDefault(intValue.Value) ?? throw new IndexOutOfRangeException($"Trying to access array index '{intValue.Value}' but array length is '{array.Count}'");
                 case QuintValue quintValue when arraySymbol.Value is QuantumArrayValue quantumArray:
                 {
                     var destinationSymbol = GetDefaultValueSymbolForType(quantumArray.Type.NestedValue!, context.Start.TokenIndex);
@@ -560,7 +573,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                 case RangeValue rangeValue:
                 {
                     // Slice the array using the range
-                    var indices = rangeValue.Enumerate(array.Values.Count()).ToList();
+                    var indices = rangeValue.Enumerate(length: array.Count).ToList();
                     var slicedElements = indices.Select(i => array.Values.ElementAt(i.Value)).ToList();
                     var elementsType = array.Type.NestedValue!;
                     ArrayValue slicedArray = elementsType.IsQuantum()
@@ -830,7 +843,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
     public override Symbol VisitVariableDeclaration(qutes_parser.VariableDeclarationContext context)
     {
         var varTypeSymbol = Visit(context.variableType()).As<TypeSymbol>();
-        var qualifiedName = Visit(context.qualifiedName()).As<QualifiedNameSymbol>().QualifiedName;
+        var qualifiedName = Visit(context.qualifiedName()).As<QualifiedNameSymbol>();
         var valueToAssignSymbol = context.statement() == null ? GetDefaultValueSymbolForType(varTypeSymbol, context.Start.TokenIndex) : (ValueSymbol)Visit(context.statement());
 
         var variableToCreateSymbol = CastSymbolToType(valueToAssignSymbol, varTypeSymbol);
@@ -840,7 +853,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
         if (variableToCreateSymbol.Value is IQuantumValue quantumValue)
         {
-            circuitHandler.DeclareQuantumVariable(variableToCreateSymbol.QualifiedName, quantumValue.Register);
+            circuitHandler.DeclareQuantumVariable(variableToCreateSymbol.QualifiedName.RawStringName, quantumValue.Register);
         }
 
         return variableToCreateSymbol;

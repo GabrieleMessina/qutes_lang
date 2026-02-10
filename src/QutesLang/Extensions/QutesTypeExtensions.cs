@@ -46,6 +46,7 @@ public static class QutesTypeExtensions
             : context.QUSTRING_TYPE() != null ? QutesType.qustring
             : context.VOID_TYPE() != null ? QutesType.@void
             : context.RANGE_TYPE() != null ? QutesType.range
+            : context.FUNCTION_TYPE() != null ? QutesType.function
             : throw new InvalidOperationException($"Unknown type '{context.GetText()}'.");
     }
 
@@ -66,8 +67,6 @@ public static class QutesTypeExtensions
             QutesType.quantumArray => QuantumArrayValue.GetDefaultValue(type.NestedValue!),
             QutesType.@void => VoidValue.GetDefaultValue(),
             QutesType.range => RangeValue.GetDefaultValue(),
-            QutesType.tuple => throw new NotImplementedException(),
-            QutesType.@class => throw new NotImplementedException(),
             _ => throw new InvalidOperationException($"Cannot get default value for type '{type}'."),
         };
     }
@@ -91,10 +90,6 @@ public static class QutesTypeExtensions
             QutesType.qustring => QutesConvert.ToQustringValue(value),
             QutesType.classicalArray => new ClassicalArrayValue((IEnumerable<ValueSymbol>)value, type.NestedValue!),
             QutesType.quantumArray => new QuantumArrayValue((IEnumerable<ValueSymbol>)value, type.NestedValue!),
-            QutesType.@void => throw new NotImplementedException(),
-            QutesType.range => throw new NotImplementedException(),
-            QutesType.tuple => throw new NotImplementedException(),
-            QutesType.@class => throw new NotImplementedException(),
             _ => throw new InvalidOperationException($"Cannot get default value for type '{type}'."),
         };
     }

@@ -21,7 +21,7 @@ statement
    //TODO: now that this return a statement we can have something that return null.
    // plus we should understand (for uniformity) if we want to move AssignmentStatement to expre
    // or if we want to handle statement instead of expr even in other statements.
-   | expr ASSIGN statement END_OF_STATEMENT #AssignmentStatement
+   | expr ASSIGN statement #AssignmentStatement
    | RETURN expr? END_OF_STATEMENT #ReturnStatement
    | YIELD expr END_OF_STATEMENT #YieldStatement
    | BREAK END_OF_STATEMENT #BreakStatement
@@ -96,6 +96,7 @@ type
    | QUSTRING_TYPE
    | VOID_TYPE
    | RANGE_TYPE
+   | FUNCTION_TYPE
    ;
 
 qualifiedName 

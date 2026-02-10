@@ -12,6 +12,7 @@ QUSTRING_TYPE : 'qustring' ;
 QUCHAR_TYPE : 'quchar' ;
 VOID_TYPE : 'void' ;
 RANGE_TYPE : 'range' ;
+FUNCTION_TYPE : 'function' ;
 RETURN : 'return' ;
 YIELD : 'yield' ;
 BREAK : 'break' ;

@@ -3,11 +3,31 @@ using QutesLang.Symbols.Types.Interfaces;
 namespace QutesLang.Symbols.Types;
 
 /// <summary>
+/// Represents a function value, which encapsulates a delegate that takes an array of IQutesValue as input and returns an IQutesValue as output.
+/// </summary>
+/// <param name="func">
+/// The delegate that implements the function logic.
+/// </param>
+public class FunctionValue(Func<IEnumerable<IQutesValue>, IQutesValue> func) : IQutesValue
+{
+    public TypeSymbol Type { get; } = TypeSymbol.Function;
+    public Func<IEnumerable<IQutesValue>, IQutesValue> Func { get; } = func;
+    public bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
+    {
+        result = default!;
+        return false;
+    }
+    public Dictionary<string, FunctionValue> Functions { get; } = [];
+}
+
+/// <summary>
 /// Represents a class value.
 /// </summary>
 public class ClassValue : IQutesValue
 {
     public virtual TypeSymbol Type { get; } = TypeSymbol.Class;
+    public Dictionary<string, FunctionValue> Functions { get; } = [];
+
     public virtual bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
     {
         throw new NotImplementedException();
@@ -22,6 +42,7 @@ public class ClassValue : IQutesValue
 public class TupleValue(IEnumerable<Symbol> values) : IQutesValue
 {
     public IEnumerable<Symbol> Values { get; } = values;
+    public Dictionary<string, FunctionValue> Functions { get; } = [];
     public TypeSymbol Type { get; } = new(QutesType.tuple);
     public bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
     {
@@ -41,6 +62,7 @@ public class TupleValue(IEnumerable<Symbol> values) : IQutesValue
 public class VoidValue() : IQutesValue
 {
     public TypeSymbol Type { get; } = TypeSymbol.Void;
+    public Dictionary<string, FunctionValue> Functions { get; } = [];
     public static VoidValue GetDefaultValue() => new();
     public bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
     {
@@ -67,7 +89,7 @@ public class RangeValue(IntValue? start, IntValue? end, IntValue? step = null) :
     public IntValue? End { get; } = end;
     public IntValue Step { get; } = step ?? new(1);
     public TypeSymbol Type { get; } = TypeSymbol.Range;
-
+    public Dictionary<string, FunctionValue> Functions { get; } = [];
     public static RangeValue GetDefaultValue() => new(null, null);
 
     public static RangeValue Parse(string input)

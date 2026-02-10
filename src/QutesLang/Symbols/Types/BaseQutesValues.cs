@@ -8,7 +8,14 @@ namespace QutesLang.Symbols.Types;
 
 public abstract class OperableValue : IOperableValue
 {
+    protected OperableValue()
+    {
+        RegisterFunctions();
+    }
+
     public abstract TypeSymbol Type { get; }
+    public virtual Dictionary<string, FunctionValue> Functions { get; } = [];
+    protected virtual void RegisterFunctions(){}
     public abstract bool TryConvertTo(TypeSymbol targetType, out IQutesValue result);
 
     public virtual QutesResult Addition(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(Addition)} cannot be applied to {Type} and {term.Type}.");
@@ -166,6 +173,12 @@ public abstract class ArrayValue : OperableValue
     public abstract IEnumerable<ValueSymbol> Values { get; protected set; }
 
     public int Count => Values.Count();
+
+    protected override void RegisterFunctions()
+    {
+        base.RegisterFunctions();
+        Functions["length"] = new FunctionValue(args => new IntValue(Values.Count()));
+    }
 
     public override bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
     {

@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text;
 
 using QutesLang.Exceptions;
 
@@ -13,11 +14,11 @@ public class Scope(string id, Scope? parent)
 
     public void DefineVariable(ValueSymbol symbol)
     {
-        if (SymbolTable.ContainsKey(symbol.QualifiedName))
+        if (SymbolTable.ContainsKey(symbol.QualifiedName.RawStringName))
         {
             throw new VariableAlreadyDeclaredException($"Variable with name '{symbol.QualifiedName}' already declared.");
         }
-        SymbolTable[symbol.QualifiedName] = symbol;
+        SymbolTable[symbol.QualifiedName.RawStringName] = symbol;
     }
 
     public void DefineFunction(FunctionSymbol symbol)
@@ -29,24 +30,48 @@ public class Scope(string id, Scope? parent)
         FunctionTable[symbol.QualifiedName] = symbol;
     }
 
-    public ValueSymbol ResolveVariable(string name)
+    public bool TryResolveVariable(QualifiedNameSymbol qualifiedName, [MaybeNullWhen(false)] out ValueSymbol symbol)
     {
         if (CompilerFlags.Current.EnableScopeLogging)
         {
-            Console.WriteLine($"[Scope] Trying to resolve variable '{name}' in scope:\n{this}");
+            Console.WriteLine($"[Scope] Trying to resolve variable '{qualifiedName}' in scope:\n{this}");
         }
+        // Recursively resolve member access (e.g. 'a.b.c').
+        if (qualifiedName.IsMemberAccess)
+        {
+            if (TryResolveVariable(qualifiedName.EnclosingName, out var parentSymbol))
+            {
+                if (parentSymbol.Value.Functions.TryGetValue(qualifiedName.MemberName.RawStringName, out var value))
+                {
+                    symbol = AnonymousValueSymbol.Default(value);
+                    return true;
+                }
+            }
+        }
+        else // Handle base case, simple variable name (e.g. 'a').
+        {
+            if (SymbolTable.TryGetValue(qualifiedName.RawStringName, out symbol))
+            {
+                return true;
+            }
+            else if (Parent != null)
+            {
+                return Parent.TryResolveVariable(qualifiedName, out symbol);
+            }
+        }
+        symbol = null!;
+        return false;
+    }
 
-        if (SymbolTable.TryGetValue(name, out ValueSymbol? symbol))
+    public ValueSymbol ResolveVariable(QualifiedNameSymbol qualifiedName)
+    {
+        if(TryResolveVariable(qualifiedName, out var symbol))
         {
-            return symbol;
-        }
-        else if (Parent != null)
-        {
-            return Parent.ResolveVariable(name);
+            return symbol!;
         }
         else
         {
-            throw new VariableNotDeclaredException($"Variable with name '{name}' not declared.");
+            throw new VariableNotDeclaredException($"Variable with name '{qualifiedName}' not declared.");
         }
     }
 

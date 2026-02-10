@@ -17,4 +17,5 @@ public enum QutesType
     @class,
     @void,
     range,
+    function,
 }

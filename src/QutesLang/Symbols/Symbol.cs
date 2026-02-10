@@ -12,16 +12,20 @@ namespace QutesLang.Symbols;
 // Scope could be useful to show the symbol fully qualified name including its scope hierarchy.
 public class Symbol(Scope scope, int astTokenIndex)
 {
+    public Scope Scope { get; } = scope;
+    public int AstTokenIndex { get; } = astTokenIndex;
+
     public override string ToString()
     {
-        return $"[{GetType().Name}], Scope: {(scope != null ? scope.Id : "null")}, AST Token Index: {astTokenIndex}";
+        return $"[{GetType().Name}], Scope: {(Scope != null ? Scope.Id : "null")}, AST Token Index: {AstTokenIndex}";
     }
 }
 
+//TODO: is it better to join FunctionSymbol and FunctionValue into a single class?
 public class FunctionSymbol(string qualifiedName, ValueSymbol? outputSymbol, IEnumerable<ValueSymbol> inputParamTypes, TypeSymbol outputType, IQuantumCircuit gate, StatementContext body, FunctionDeclarationParamsContext? variableDeclaration, Scope innerScope, int astTokenIndex) : Symbol(innerScope, astTokenIndex)
 {
     public string QualifiedName { get; } = qualifiedName;
-    public ValueSymbol? OutputSymbol { get; set; } = outputSymbol; //null for void functions.
+    public ValueSymbol? OutputSymbol { get; set; } = outputSymbol; //null for void functions. Why not voidValue?
     public IEnumerable<ValueSymbol> InputParamTypes { get; set; } = inputParamTypes; //symbols already declared for the function to work on.
     public TypeSymbol OutputType { get; } = outputType;
     public StatementContext Body { get; } = body;
@@ -35,7 +39,7 @@ public class FunctionSymbol(string qualifiedName, ValueSymbol? outputSymbol, IEn
     }
 }
 
-public class AnonymousValueSymbol(IQutesValue value, Scope scope, int astTokenIndex) : ValueSymbol(VariableNameGuid.New(), value, scope, astTokenIndex)
+public class AnonymousValueSymbol(IQutesValue value, Scope scope, int astTokenIndex) : ValueSymbol(new QualifiedNameSymbol(VariableNameGuid.New(), scope, astTokenIndex), value, scope, astTokenIndex)
 {
     public static AnonymousValueSymbol Default(IQutesValue value)
     {
@@ -43,9 +47,9 @@ public class AnonymousValueSymbol(IQutesValue value, Scope scope, int astTokenIn
     }
 }
 
-public class ValueSymbol(string qualifiedName, IQutesValue value, Scope scope, int astTokenIndex) : Symbol(scope, astTokenIndex)
+public class ValueSymbol(QualifiedNameSymbol qualifiedName, IQutesValue value, Scope scope, int astTokenIndex) : Symbol(scope, astTokenIndex)
 {
-    public string QualifiedName { get; } = qualifiedName;
+    public QualifiedNameSymbol QualifiedName { get; } = qualifiedName;
     public IQutesValue Value { get; set; } = value;
     public TypeSymbol Type => Value.Type;
 
@@ -57,7 +61,17 @@ public class ValueSymbol(string qualifiedName, IQutesValue value, Scope scope, i
 
 public class QualifiedNameSymbol(string qualifiedName, Scope scope, int astTokenIndex) : Symbol(scope, astTokenIndex)
 {
-    public string QualifiedName { get; } = qualifiedName;
+    public string RawStringName { get; } = qualifiedName;
+    public string[] NameParts => RawStringName.Split('.');
+    public bool IsMemberAccess => NameParts.Length > 1;
+
+    public QualifiedNameSymbol EnclosingName => new (string.Join(".", NameParts[..^1]), Scope, AstTokenIndex);
+    public QualifiedNameSymbol MemberName => new (NameParts[^1], Scope, AstTokenIndex);
+
+    override public string ToString()
+    {
+        return RawStringName;
+    }
 }
 
 public class TypeSymbol(QutesType type, TypeSymbol? nestedValue = null) : Symbol(null!, default), IEquatable<TypeSymbol>
@@ -118,6 +132,7 @@ public class TypeSymbol(QutesType type, TypeSymbol? nestedValue = null) : Symbol
             Type t when t == typeof(ClassValue) => Class,
             Type t when t == typeof(VoidValue) => Void,
             Type t when t == typeof(RangeValue) => Range,
+            Type t when t == typeof(FunctionValue) => Function,
             _ => throw new ArgumentException($"Unsupported type: {value}"),
         };
     }
@@ -136,4 +151,5 @@ public class TypeSymbol(QutesType type, TypeSymbol? nestedValue = null) : Symbol
     public static TypeSymbol Class { get; } = new(QutesType.@class);
     public static TypeSymbol Void { get; } = new(QutesType.@void);
     public static TypeSymbol Range { get; } = new(QutesType.range);
+    public static TypeSymbol Function { get; } = new(QutesType.function);
 }
