@@ -19,7 +19,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
     {
         return !IsReturning();
     }
-    private bool IsReturning() => handlingReturnStatement > 0 || handlingYieldStatement > 0;
+    private bool IsReturning() => handlingReturnStatement || handlingYieldStatement;
 
     public override Symbol Visit(IParseTree tree)
     {
@@ -170,12 +170,12 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                 //TODO: quantum while loops could be implemented with repeated appended controlled circuits based on all possible combination of the qubits in the condition register.
                 throw new NotImplementedException("Quantum while loops are not yet implemented.");
             case BoolValue classicalCondition:
-                while (classicalCondition.Value && handlingBreakStatement == 0)
+                while (classicalCondition.Value && !handlingBreakStatement)
                 {
                     Visit(whileBody);
                     classicalCondition = Visit(context.expr()).Contains<BoolValue>();
                 }
-                handlingBreakStatement--;
+                if (handlingBreakStatement) handlingBreakStatement.Decrement();
                 break;
             default:
                 throw new InvalidOperationException("While loop condition must be of type 'bool' or a quantum type.");
@@ -201,6 +201,8 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
             return null!;
         }
 
+        scopeHandler.PushScope(scopeHandler.CreateScope(VariableNameGuid.New("ForStatement")));
+
         int i = 0;
         var itemSymbol = new ValueSymbol(itemNameSymbol, array.Values.ElementAt(i).Value, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
         DeclareNewVariable(itemSymbol);
@@ -213,14 +215,14 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         bool hasYielded = false;
         TypeSymbol yieldedTypes = null!;
         List<ValueSymbol> yieldedSymbols = [];
-        for (; i < array.Values.Count() && handlingBreakStatement == 0; i++)
+        for (; i < array.Values.Count() && !handlingBreakStatement; i++)
         {
             itemSymbol.Value = array.Values.ElementAt(i).Value; //It is ok even for quantum, this variable will just point to the qubit in the array, it's an alias.
             indexSymbol?.Value = new IntValue(i);
             var innerRes = Visit(context.statement());
-            if (innerRes is ValueSymbol yieldedValue && handlingYieldStatement > 0) {
+            if (innerRes is ValueSymbol yieldedValue && handlingYieldStatement) {
+                handlingYieldStatement.Decrement();
                 hasYielded = true;
-                handlingYieldStatement--;
                 if (yieldedTypes == null)
                 {
                     yieldedTypes = yieldedValue.Type;
@@ -233,7 +235,8 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
             }
         }
         ValueSymbol res = hasYielded ? GetValueSymbolForType(TypeSymbol.Array(yieldedTypes), yieldedSymbols, context.Start.TokenIndex) : null!;
-        handlingBreakStatement--;
+        scopeHandler.PopScope();
+        if(handlingBreakStatement) handlingBreakStatement.Decrement();
         return res;
         //throw new InvalidOperationException("Foreach loop can only iterate over array types."); //TODO: pass this message to contains extension methods in first line of this method.
     }
@@ -254,8 +257,8 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                     Visit(whileBody);
                     classicalCondition = Visit(context.expr()).Contains<BoolValue>();
                 }
-                while (classicalCondition.Value && handlingBreakStatement == 0);
-                handlingBreakStatement--;
+                while (classicalCondition.Value && !handlingBreakStatement);
+                if (handlingBreakStatement) handlingBreakStatement.Decrement();
                 break;
             default:
                 throw new InvalidOperationException("While loop condition must be of type 'bool' or a quantum type.");
@@ -308,7 +311,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                 bodyStatementReturnValue = (ValueSymbol?)Visit(functionBody); //TODO: how to handle classical ops inside quantum body.
             }
             circuitHandler.AddDependentCircuit(quantumBodyCircuit);
-            handlingReturnStatement--;
+            if(handlingReturnStatement) handlingReturnStatement.Decrement();
         }
 
         var functionScope = scopeHandler.PopScope();
@@ -320,9 +323,9 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
     }
 
     //TODO: the statement related to this could be used outside of their original context (e.g. return statement in a function could be used in a lambda inside the same function), we should find a better way to handle this instead of using these counters, maybe with a stack of contexts or something like that.
-    private int handlingReturnStatement = 0;
-    private int handlingYieldStatement = 0;
-    private int handlingBreakStatement = 0;
+    private AccessCounter handlingReturnStatement = new();
+    private AccessCounter handlingYieldStatement = new();
+    private AccessCounter handlingBreakStatement = new();
 
     public override Symbol VisitFunctionCallExpression(qutes_parser.FunctionCallExpressionContext context)
     {
@@ -366,7 +369,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                 functionSymbol.OutputSymbol = (ValueSymbol?)Visit(functionSymbol.Body); //TODO: how to handle classical ops inside quantum body.
             }
             circuitHandler.AddDependentCircuit(functionCircuit);
-            handlingReturnStatement--;
+            if(handlingReturnStatement) handlingReturnStatement.Decrement();
             scopeHandler.PopScope();
         }
 
@@ -420,20 +423,20 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         {
             output = new AnonymousValueSymbol(new VoidValue(), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
         }
-        handlingReturnStatement++; //this must be done after visiting ReturnStatementContext children.
+        handlingReturnStatement.Increment(); //this must be done after visiting ReturnStatementContext children.
         return output;
     }
 
     public override Symbol VisitYieldStatement([NotNull] qutes_parser.YieldStatementContext context)
     {
         var res = Visit(context.expr()).As<ValueSymbol>();
-        handlingYieldStatement++; //this must be done after visiting YieldStatementContext children.
+        handlingYieldStatement.Increment(); //this must be done after visiting YieldStatementContext children.
         return res;
     }
 
     public override Symbol VisitBreakStatement([NotNull] qutes_parser.BreakStatementContext context)
     {
-        handlingBreakStatement++;
+        handlingBreakStatement.Increment();
         return null!; //TODO: is it better to return an errorSymbol?
     }
 
