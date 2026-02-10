@@ -32,7 +32,7 @@ public class RightShift : LeftShift
         for (int i = offset.QubitCount - 1; i >= 0; i--)
         {
             var gateName = $"right_shift_{target.Count}_{target.SingleElementSize}_{i}";
-            stringBuilder.AppendLine($"{gateName} = QutesGates.crot({target.Count}, 2**{i}, {target.SingleElementSize}).inverse()");
+            stringBuilder.AppendLine($"{gateName} = QutesGates.crot({target.Count}, 2**{i}, {target.SingleElementSize})");
             AddGateInCircuit(circuit, gateName, [offset.Register.Qubits.ElementAt(i), .. Destination.Register.Qubits], stringBuilder);
         }
     }
@@ -75,7 +75,7 @@ public class LeftShift : CircuitOperation
         for (int i = 0; i < offset.QubitCount; i++)
         {
             var gateName = $"left_shift_{target.Count}_{target.SingleElementSize}_{i}";
-            stringBuilder.AppendLine($"{gateName} = QutesGates.crot({target.Count}, 2**{i}, {target.SingleElementSize})");
+            stringBuilder.AppendLine($"{gateName} = QutesGates.crot({target.Count}, 2**{i}, {target.SingleElementSize}).inverse()");
             AddGateInCircuit(circuit, gateName, [offset.Register.Qubits.ElementAt(i), .. Destination.Register.Qubits], stringBuilder);
         }
     }

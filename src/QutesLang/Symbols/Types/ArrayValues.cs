@@ -69,7 +69,7 @@ public class QuantumArrayValue : ArrayValue, IQuantumValue
     private string Guid { get; } = VariableNameGuid.New("qarray");
     public QuantumRegister Register => new(
         Values.Select(v => v.Value).Cast<IQuantumValue>()
-        .Select(v => v.Register).Reverse() //Reverse to match Qiskit LSB ordering.
+        .Select(v => v.Register)
     ) { Name = Guid }; //Values register can change over time, we need to retrieve it every time from the current values.
 
     /// <summary>
