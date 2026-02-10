@@ -46,11 +46,6 @@ expr // Order: https://en.wikipedia.org/wiki/Order_of_operations#Programming_lan
    // Function call, scope, array/member access
    | qualifiedName ROUND_PARENTHESIS_OPEN termList? ROUND_PARENTHESIS_CLOSE #FunctionCallExpression
    | expr SQUARE_PARENTHESIS_OPEN expr SQUARE_PARENTHESIS_CLOSE #ArrayAccessExpression
-   // Range operator (start..end, start.., ..end, ..)
-   | expr RANGE_OPERATOR expr (COLON expr)? #RangeFullExpression
-   | expr RANGE_OPERATOR (COLON expr)? #RangeFromExpression
-   | RANGE_OPERATOR expr (COLON expr)? #RangeToExpression
-   | RANGE_OPERATOR (COLON expr)? #RangeExpression
    // Unary operators, sizeof and type casts
    | expr op=(AUTO_INCREMENT | AUTO_DECREMENT) #PostfixOperator
    | expr op=EXP expr #ExpOperator
@@ -68,10 +63,17 @@ expr // Order: https://en.wikipedia.org/wiki/Order_of_operations#Programming_lan
    | expr op=AND expr #LogicAndOperator
    | expr op=OR expr #LogicOrOperator
    // Assignment and auto assignment operators | <assoc = right> expr op=(AUTO_SUM | AUTO_DECREMENT | AUTO_MODULE | AUTO_DIVIDE | AUTO_MODULE) expr #AutoAssignmentOperator
+   // Unary and Multiple quantum operators
    | op=(PRINT | PAULIY | PAULIZ | HADAMARD | MEASURE) expr #UnaryOperator
    | op=(SWAP | CNOT) expr COMMA expr #DoubleUnaryOperator
    | op=(MCX | MCZ | MCY | HADAMARD | MEASURE | BARRIER | SWAP) termList #MultipleUnaryOperator
    | op=MCP termList BY expr #MultipleUnaryPhaseOperator
+   // Range operator (start..end, start.., ..end, ..)
+   | expr RANGE_OPERATOR expr (COLON expr)? #RangeFullExpression
+   | expr RANGE_OPERATOR (COLON expr)? #RangeFromExpression
+   | RANGE_OPERATOR expr (COLON expr)? #RangeToExpression
+   | RANGE_OPERATOR (COLON expr)? #RangeExpression
+   // Search and Grover operators
    | expr op=IN_STATEMENT expr #GroverOperator
    | op=GROVER expr ROUND_PARENTHESIS_OPEN termList? ROUND_PARENTHESIS_CLOSE #FreeGroverOperator
    ;
