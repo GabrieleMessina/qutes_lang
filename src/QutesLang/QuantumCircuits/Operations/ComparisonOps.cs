@@ -67,11 +67,12 @@ public class Equals(IQuantumValue a, IQuantumValue b, IQuantumValue destination)
     }
 }
 
-public class NotEquals(IQuantumValue a, IQuantumValue b, IQuantumValue destination) : CircuitOperation([a.Register, b.Register, destination.Register], destination)
+public class NotEquals(IQuantumValue a, IQuantumValue b, IQuantumValue destination) : Equals(a,b,destination)
 {
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
-        //TODO: implemement quantum != operation.
+        base.ApplyToQiskitCircuit(circuit, stringBuilder);
+        stringBuilder.AppendLine($"{circuit.Name}.x({Destination.Register.Qubits[0].Id})");
     }
 }
 
@@ -79,7 +80,10 @@ public class LowerThan(IQuantumValue a, IQuantumValue b, IQuantumValue destinati
 {
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
-        //TODO: implemement quantum < operation.
+        var size = Math.Min(a.QubitCount, b.QubitCount);
+        var gateName = $"less_than_{size}";
+        stringBuilder.AppendLine($"{gateName} = QutesGates.less_than({size})");
+        AddGateInCircuit(circuit, gateName, [a.Register, b.Register, Destination.Register], stringBuilder);
     }
 }
 
@@ -87,7 +91,10 @@ public class LowerEqualThan(IQuantumValue a, IQuantumValue b, IQuantumValue dest
 {
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
-        //TODO: implemement quantum <= operation.
+        var size = Math.Min(a.QubitCount, b.QubitCount);
+        var gateName = $"less_equal_{size}";
+        stringBuilder.AppendLine($"{gateName} = QutesGates.less_equal({size})");
+        AddGateInCircuit(circuit, gateName, [a.Register, b.Register, Destination.Register], stringBuilder);
     }
 }
 
@@ -95,7 +102,10 @@ public class GreaterThan(IQuantumValue a, IQuantumValue b, IQuantumValue destina
 {
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
-        //TODO: implemement quantum > operation.
+        var size = Math.Min(a.QubitCount, b.QubitCount);
+        var gateName = $"greater_than_{size}";
+        stringBuilder.AppendLine($"{gateName} = QutesGates.greater_than({size})");
+        AddGateInCircuit(circuit, gateName, [a.Register, b.Register, Destination.Register], stringBuilder);
     }
 }
 
@@ -103,7 +113,10 @@ public class GreaterEqualThan(IQuantumValue a, IQuantumValue b, IQuantumValue de
 {
     public override void ApplyToQiskitCircuit(IQuantumCircuit circuit, StringBuilder stringBuilder)
     {
-        //TODO: implemement quantum >= operation.
+        var size = Math.Min(a.QubitCount, b.QubitCount);
+        var gateName = $"greater_equal_{size}";
+        stringBuilder.AppendLine($"{gateName} = QutesGates.greater_equal({size})");
+        AddGateInCircuit(circuit, gateName, [a.Register, b.Register, Destination.Register], stringBuilder);
     }
 }
 

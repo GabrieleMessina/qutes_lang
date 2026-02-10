@@ -1,14 +1,19 @@
-﻿from qiskit import QuantumCircuit
+﻿from qiskit import QuantumCircuit, QuantumRegister
 import math
 
 def is_power_of_two(n):
     return (n != 0) and (n & (n-1) == 0)
 
 class QutesGates:
-    #Rotation gate (not controlled), k=2^p
     @staticmethod
     def left_rot_power_2(n:int, k:int, block_size:int=1):
+        """
+        Left rotation by k element-positions using a butterfly swap network.
+        Requires both (n * block_size) and k to be powers of 2.
+        """
         n = n*block_size
+        assert k == 0 or is_power_of_two(k), f"k={k} must be a power of 2"
+        assert n == 0 or is_power_of_two(n), f"Total qubit count n*block_size={n} must be a power of 2"
         qc = QuantumCircuit(n, name=f'rot_power_2_of_{k}')
         if(k > 0):
             stop = (int(math.log2(n)) - int(math.log2(k*block_size)) + 2)
@@ -19,27 +24,13 @@ class QutesGates:
                             inizio_swap = x + k*offset
                             fine_swap = x + 2**(i-1)*k + k*offset
                             qc.swap(inizio_swap, fine_swap)
-        # print(qc.draw(output='text'))
         rot_gate = qc.to_gate(label=f'rot_power_2_of_{k}')
         return rot_gate  
     
-    #Rotation gate (not controlled), k=any
-    # @staticmethod
-    # def right_rot_generic(n:int, k:int, block_size:int=1):
-    #     n = n*block_size
-    #     qc = QuantumCircuit(n, name=f'rot_generic_of_{k}')
-    #     if(k > 0):
-    #         for w in range(k):
-    #             for i in range(0, n-1, block_size):
-    #                 for j in range(block_size):
-    #                     qc.swap((i+j)%n, (i+j+1)%n)
-    #     # print(qc.draw(output='text'))
-    #     rot_gate = qc.to_gate(label=f'rot_generic_of_{k}')
-    #     return rot_gate
     @staticmethod
-    def right_rot_generic(num_blocks: int, k: int, block_size: int = 3):
+    def left_rot_generic(num_blocks: int, k: int, block_size: int = 3):
         """
-        Rotates 'num_blocks' of size 'block_size' to the right 'k' times.
+        Rotates 'num_blocks' of size 'block_size' to the left 'k' times.
         Total qubits = num_blocks * block_size.
         """
         total_qubits = num_blocks * block_size
@@ -64,40 +55,99 @@ class QutesGates:
                     for j in range(block_size):
                         qc.swap(start_left + j, start_right + j)
 
-        return qc.to_gate(label=f'block_rot_{k}')
+        rot_gate = qc.to_gate(label=f'block_rot_{k}')
+        return rot_gate
 
-    #Controlled Rotation gate
     @staticmethod
     def crot(n:int, k:int, block_size:int=1):
         rot_gate = QutesGates.left_rot(n, k, block_size)
         c_rot_gate = rot_gate.control(1)
         return c_rot_gate
     
-    #Right Rotation gate
     @staticmethod
     def right_rot(n:int, k:int, block_size:int=1):
-        # rot_gate = QutesGates.identity(n)
-        if(is_power_of_two(n)):
-            if(is_power_of_two(k)):
-                rot_gate = QutesGates.left_rot_power_2(n, k, block_size).inverse()
-            else:
-                # TODO: if k is not power of 2, but n is, then we need to compose multiple left_rot_power_2
-                rot_gate = QutesGates.right_rot_generic(n, k, block_size)
+        if(is_power_of_two(n * block_size)):
+            rot_gate = QutesGates._compose_left_rot_power_2(n, k, block_size).inverse()
         else:
-            rot_gate = QutesGates.right_rot_generic(n, k, block_size)
+            rot_gate = QutesGates.left_rot_generic(n, k, block_size).inverse()
         return rot_gate
     
-    #Left Rotation gate
     @staticmethod
     def left_rot(n:int, k:int, block_size:int=1):
-        # rot_gate = QutesGates.identity(n)
-        if(is_power_of_two(n)):
-            if(is_power_of_two(k)):
-                rot_gate = QutesGates.left_rot_power_2(n, k, block_size)
-            else:
-                # TODO: if k is not power of 2, but n is, then we need to compose multiple left_rot_power_2
-                rot_gate = QutesGates.right_rot_generic(n, k, block_size).inverse()
+        if(is_power_of_two(n * block_size)):
+            rot_gate = QutesGates._compose_left_rot_power_2(n, k, block_size)
         else:
-            rot_gate = QutesGates.right_rot_generic(n, k, block_size).inverse()
+            rot_gate = QutesGates.left_rot_generic(n, k, block_size)
         return rot_gate
+
+    @staticmethod
+    def _compose_left_rot_power_2(n:int, k:int, block_size:int=1):
+        """Decomposes k into powers of 2 and composes multiple left_rot_power_2 gates."""
+        total_qubits = n * block_size
+        qc = QuantumCircuit(total_qubits, name=f'composed_rot_{k}')
+        bit = 0
+        remaining = k
+        while remaining > 0:
+            if remaining & 1:
+                gate = QutesGates.left_rot_power_2(n, 2**bit, block_size)
+                qc.append(gate, range(total_qubits))
+            remaining >>= 1
+            bit += 1
+        return qc.to_gate(label=f'block_rot_power_2_{k}')
+
+    @staticmethod
+    def greater_than(d):
+        xr = QuantumRegister(d,'x')
+        yr = QuantumRegister(d,'y')
+        out = QuantumRegister(1,'out')
+        qc = QuantumCircuit(xr,yr,out)
+        for idx in range(d):
+            i = d - 1 - idx #Suppose LSB ordering
+            qc.x(yr[i])
+            qc.mcx([xr[i]]+list(yr[i:]), out)
+            qc.x(yr[i])
+            if(idx<d-1):
+                qc.cx(xr[i],yr[i])
+                qc.x(yr[i])
+        for idx in range(d-1):
+            j = idx + 1
+            qc.x(yr[j])
+            qc.cx(xr[j],yr[j])
+        qc = qc.to_gate(label='>')
+        return qc
+
+    @staticmethod
+    def less_than(d):
+        xr = QuantumRegister(d,'x')
+        yr = QuantumRegister(d,'y')
+        out = QuantumRegister(1,'out')
+        qc = QuantumCircuit(xr,yr,out)
+        gt = QutesGates.greater_than(d)
+        qc.append(gt, [*yr, *xr, out[0]])  # x < y <==> y > x
+        qc = qc.to_gate(label='<')
+        return qc
+
+    @staticmethod
+    def greater_equal(d):
+        xr = QuantumRegister(d,'x')
+        yr = QuantumRegister(d,'y')
+        out = QuantumRegister(1,'out')
+        qc = QuantumCircuit(xr,yr,out)
+        lt = QutesGates.less_than(d)
+        qc.append(lt, [*xr, *yr, out[0]])  # compute x < y
+        qc.x(out)  # x >= y <==> NOT(x < y)
+        qc = qc.to_gate(label='>=')
+        return qc
+
+    @staticmethod
+    def less_equal(d):
+        xr = QuantumRegister(d,'x')
+        yr = QuantumRegister(d,'y')
+        out = QuantumRegister(1,'out')
+        qc = QuantumCircuit(xr,yr,out)
+        gt = QutesGates.greater_than(d)
+        qc.append(gt, [*xr, *yr, out[0]])  # compute x > y
+        qc.x(out)  # x <= y <==> NOT(x > y)
+        qc = qc.to_gate(label='<=')
+        return qc
     

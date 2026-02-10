@@ -149,7 +149,7 @@ public abstract class QuantumValue : OperableValue, IQuantumValue
             throw new InvalidOperationException($"Operator {nameof(Equals)} cannot be applied to {this.Type} and {term.Type}.");
 
         var quantumValue = term.As<IQuantumValue>();
-        return new Equals(this, quantumValue, this);
+        return new Equals(this, quantumValue, new QubitValue());
     }
 
     public override QutesResult NotEquals(IQutesValue term)

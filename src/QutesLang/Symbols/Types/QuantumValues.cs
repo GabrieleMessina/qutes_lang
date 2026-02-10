@@ -42,6 +42,11 @@ public class QubitValue() : QuantumValue
     public override QutesResult Or(IQutesValue term) => new Or(this, GetQuantumValue(term), QubitValue.GetDefaultValue());
     public override QutesResult Not() => new Not(this);
 
+    public override QutesResult LowerThan(IQutesValue term) => new LowerThan(this, GetQuantumValue(term), QubitValue.GetDefaultValue());
+    public override QutesResult LowerEqualThan(IQutesValue term) => new LowerEqualThan(this, GetQuantumValue(term), QubitValue.GetDefaultValue());
+    public override QutesResult GreaterThan(IQutesValue term) => new GreaterThan(this, GetQuantumValue(term), QubitValue.GetDefaultValue());
+    public override QutesResult GreaterEqualThan(IQutesValue term) => new GreaterEqualThan(this, GetQuantumValue(term), QubitValue.GetDefaultValue());
+
     public override bool TryConvertTo(TypeSymbol targetType, out IQutesValue result)
     {
         if (targetType == Type)
