@@ -26,46 +26,46 @@ public abstract class OperableValue : IOperableValue
 
     public virtual QutesResult Equals(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(Equals)} cannot be applied to {Type} and {term.Type}.");
 
-    public virtual QutesResult Exp(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(Equals)} cannot be applied to {Type} and {term.Type}.");
+    public virtual QutesResult Exp(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(Exp)} cannot be applied to {Type} and {term.Type}.");
 
-    public virtual QutesResult GreaterEqualThan(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(Equals)} cannot be applied to {Type} and {term.Type}.");
+    public virtual QutesResult GreaterEqualThan(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(GreaterEqualThan)} cannot be applied to {Type} and {term.Type}.");
 
-    public virtual QutesResult GreaterThan(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(Equals)} cannot be applied to {Type} and {term.Type}.");
+    public virtual QutesResult GreaterThan(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(GreaterThan)} cannot be applied to {Type} and {term.Type}.");
 
-    public virtual QutesResult InplacePostDecrement() => throw new InvalidOperationException($"Operator {nameof(Equals)} cannot be applied to {Type}.");
+    public virtual QutesResult InplacePostDecrement() => throw new InvalidOperationException($"Operator {nameof(InplacePostDecrement)} cannot be applied to {Type}.");
 
-    public virtual QutesResult InplacePostIncrement() => throw new InvalidOperationException($"Operator {nameof(Equals)} cannot be applied to {Type}.");
+    public virtual QutesResult InplacePostIncrement() => throw new InvalidOperationException($"Operator {nameof(InplacePostIncrement)} cannot be applied to {Type}.");
 
-    public virtual QutesResult InplacePreDecrement() => throw new InvalidOperationException($"Operator {nameof(Equals)} cannot be applied to {Type}.");
+    public virtual QutesResult InplacePreDecrement() => throw new InvalidOperationException($"Operator {nameof(InplacePreDecrement)} cannot be applied to {Type}.");
 
-    public virtual QutesResult InplacePreIncrement() => throw new InvalidOperationException($"Operator {nameof(Equals)} cannot be applied to {Type}.");
+    public virtual QutesResult InplacePreIncrement() => throw new InvalidOperationException($"Operator {nameof(InplacePreIncrement)} cannot be applied to {Type}.");
 
-    public virtual QutesResult LeftShift(IQutesValue positions) => throw new InvalidOperationException($"Operator {nameof(Equals)} cannot be applied to {Type} and {positions.Type}.");
+    public virtual QutesResult LeftShift(IQutesValue positions) => throw new InvalidOperationException($"Operator {nameof(LeftShift)} cannot be applied to {Type} and {positions.Type}.");
 
-    public virtual QutesResult LowerEqualThan(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(Equals)} cannot be applied to {Type} and {term.Type}.");
+    public virtual QutesResult LowerEqualThan(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(LowerEqualThan)} cannot be applied to {Type} and {term.Type}.");
 
-    public virtual QutesResult LowerThan(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(Equals)} cannot be applied to {Type} and {term.Type}.");
+    public virtual QutesResult LowerThan(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(LowerThan)} cannot be applied to {Type} and {term.Type}.");
 
-    public virtual QutesResult Minus() => throw new InvalidOperationException($"Operator {nameof(Equals)} cannot be applied to {Type}.");
+    public virtual QutesResult Minus() => throw new InvalidOperationException($"Operator {nameof(Minus)} cannot be applied to {Type}.");
 
-    public virtual QutesResult Module(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(Equals)} cannot be applied to {Type} and {term.Type}.");
+    public virtual QutesResult Module(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(Module)} cannot be applied to {Type} and {term.Type}.");
 
-    public virtual QutesResult Multiply(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(Equals)} cannot be applied to {Type} and {term.Type}.");
+    public virtual QutesResult Multiply(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(Multiply)} cannot be applied to {Type} and {term.Type}.");
 
-    public virtual QutesResult Not() => throw new InvalidOperationException($"Operator {nameof(Equals)} cannot be applied to {Type}.");
+    public virtual QutesResult Not() => throw new InvalidOperationException($"Operator {nameof(Not)} cannot be applied to {Type}.");
 
-    public virtual QutesResult NotEquals(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(Equals)} cannot be applied to {Type} and {term.Type}.");
+    public virtual QutesResult NotEquals(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(NotEquals)} cannot be applied to {Type} and {term.Type}.");
 
-    public virtual QutesResult Or(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(Equals)} cannot be applied to {Type} and {term.Type}.");
+    public virtual QutesResult Or(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(Or)} cannot be applied to {Type} and {term.Type}.");
 
-    public virtual QutesResult Plus() => throw new InvalidOperationException($"Operator {nameof(Equals)} cannot be applied to {Type}.");
+    public virtual QutesResult Plus() => throw new InvalidOperationException($"Operator {nameof(Plus)} cannot be applied to {Type}.");
 
-    public virtual QutesResult RightShift(IQutesValue positions) => throw new InvalidOperationException($"Operator {nameof(Equals)} cannot be applied to {Type} and {positions.Type}.");
+    public virtual QutesResult RightShift(IQutesValue positions) => throw new InvalidOperationException($"Operator {nameof(RightShift)} cannot be applied to {Type} and {positions.Type}.");
 
-    public virtual QutesResult Subtraction(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(Equals)} cannot be applied to {Type} and {term.Type}.");
+    public virtual QutesResult Subtraction(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(Subtraction)} cannot be applied to {Type} and {term.Type}.");
 
-    public virtual QutesResult Swap(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(Equals)} cannot be applied to {Type} and {term.Type}.");
-    public virtual QutesResult CNot(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(Equals)} cannot be applied to {Type} and {term.Type}."); //TODO: implement in concrete classes.
+    public virtual QutesResult Swap(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(Swap)} cannot be applied to {Type} and {term.Type}.");
+    public virtual QutesResult CNot(IQutesValue term) => throw new InvalidOperationException($"Operator {nameof(CNot)} cannot be applied to {Type} and {term.Type}.");
 }
 
 public abstract class ClassicalValue : OperableValue, IClassicalValue
@@ -112,6 +112,14 @@ public abstract class ClassicalValue : OperableValue, IClassicalValue
     }
 
     public override QutesResult Plus() => this;
+
+    public override QutesResult CNot(IQutesValue term)
+    {
+        return 
+            term.TryConvertTo<BoolValue>(out var classicalTerm) 
+            ? (classicalTerm.Value ? Not() : this)
+            : throw new InvalidOperationException($"Operator {nameof(CNot)} cannot be applied to {this.Type} and {term.Type}.");
+    }
 }
 
 public abstract class QuantumValue : OperableValue, IQuantumValue
@@ -158,7 +166,13 @@ public abstract class QuantumValue : OperableValue, IQuantumValue
             throw new InvalidOperationException($"Operator {nameof(NotEquals)} cannot be applied to {this.Type} and {term.Type}.");
 
         var quantumValue = term.As<IQuantumValue>();
-        return new NotEquals(this, quantumValue, this);
+        return new NotEquals(this, quantumValue, new QubitValue());
+    }
+
+    public override QutesResult CNot(IQutesValue term)
+    {
+        var control = term.As<QubitValue>();
+        return new CNOT(control, this);
     }
 
     public override QutesResult Plus() => new Empty(this);
