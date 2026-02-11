@@ -1,0 +1,67 @@
+name: Build & Release
+
+on:
+  push:
+    branches: [ "main", "migration-to-csharp" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  RIDS: win-x64 win-arm64 osx-x64 osx-arm64 linux-x64 linux-arm64
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Run tests
+        run: dotnet test src/Qutes.Tests/Qutes.Tests.csproj --configuration Release --verbosity normal
+
+      - name: Publish all platforms
+        run: |
+          for rid in $RIDS; do
+            echo "Publishing for $rid..."
+            dotnet publish src/QutesLang/QutesLang.csproj \
+              --configuration Release \
+              --runtime $rid \
+              --self-contained true \
+              /p:PublishSingleFile=true \
+              --output ./publish/$rid
+          done
+
+      - name: Zip packages
+        run: |
+          cd publish
+          for rid in $RIDS; do
+            zip -r ../qutes-$rid.zip $rid/
+          done
+
+      - name: Get short SHA
+        id: sha
+        run: echo "short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Delete existing latest release
+        run: gh release delete latest --yes --cleanup-tag || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: "Latest Build (${{ steps.sha.outputs.short }})"
+          generate_release_notes: true
+          prerelease: true
+          make_latest: true
+          files: qutes-*.zip
