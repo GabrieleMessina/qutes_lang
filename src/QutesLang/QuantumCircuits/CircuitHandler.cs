@@ -65,7 +65,7 @@ public class CircuitHandler : ICircuitHandler
 
         // in python, check that image folder exists or create it.
         stringBuilderMain.AppendLine("import os");
-        stringBuilderMain.AppendLine($"os.makedirs(r'{CompilerFlags.Current.CircuitImagesFolder}', exist_ok=True)");
+        stringBuilderMain.AppendLine($"os.makedirs({CompilerFlags.Current.PythonCircuitImagesFolderRelativeToSourceFile()}, exist_ok=True)");
 
         stringBuilderMain.AppendLine("# Operation Requirements");
         foreach (var circuit in CircuitsDeclared)
@@ -325,11 +325,9 @@ public class QuantumCircuit(BackendProvider backendProvider, string? name = null
             return;
         }
 
-        var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-        var filePath = $"{Path.Combine(CompilerFlags.Current.CircuitImagesFolder, circuitName)}_{timestamp}.png"; //TODO: maybe the timestamp should be taken from python so that same code different runs have different timestamp.
-        filePath = filePath.Replace("\\", "/"); // For windows paths in python
-        stringBuilder.AppendLine($"{circuitName}.decompose(reps={decomposeLevel}).draw(output='mpl', filename='{filePath}', style='iqp', fold=1000)");
-        stringBuilder.AppendLine($"print('Quantum circuit image saved to: {filePath}')");
+        stringBuilder.AppendLine($"imagePath = {CompilerFlags.Current.PythonCircuitImagesFolderRelativeToSourceFile(circuitName)}+{CompilerFlags.Current.PythonTimestampString}+'.png'");
+        stringBuilder.AppendLine($"{circuitName}.decompose(reps={decomposeLevel}).draw(output='mpl', filename=imagePath, style='iqp', fold=1000)");
+        stringBuilder.AppendLine($"print(f'Quantum circuit image saved to: {{imagePath}}')");
     }
 }
 

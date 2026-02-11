@@ -15,7 +15,10 @@ public class CompilerFlags
     public char[] QustringAlphabet { get; set; } = "01".ToCharArray();
     public int QucharSizeInQubit => (int)Math.Ceiling(Math.Log2(QustringAlphabet.Length));
     public string OutputPath { get; set; } = "./output";
-    public string CircuitImagesFolder => "./circuit_images";
+    public string CircuitImagesFolderName => "circuit_images";
+    public string PythonCircuitImagesFolderRelativeToSourceFile() => $"os.path.join(os.path.dirname(os.path.abspath(__file__)), r'{CircuitImagesFolderName}')".Replace("\\", "/");
+    public string PythonCircuitImagesFolderRelativeToSourceFile(string fileName) => $"os.path.join(os.path.dirname(os.path.abspath(__file__)), r'{CircuitImagesFolderName}', r'{fileName}')".Replace("\\", "/");
+    public string PythonTimestampString => "datetime.now().strftime('%Y%m%d_%H%M%S')";
     public string SourceFilePath { get; set; } = string.Empty;
 
     #region FeatureFlags
@@ -49,7 +52,7 @@ public class CompilerFlags
         Console.WriteLine($"  {nameof(NumberOfIterations)}: {NumberOfIterations}");
         Console.WriteLine($"  {nameof(QuintSizeInQubit)}: {QuintSizeInQubit}");
         Console.WriteLine($"  {nameof(OutputPath)}: {OutputPath}");
-        Console.WriteLine($"  {nameof(CircuitImagesFolder)}: {CircuitImagesFolder}");
+        Console.WriteLine($"  {nameof(CircuitImagesFolderName)}: {CircuitImagesFolderName}");
         Console.WriteLine($"  {nameof(SourceFilePath)}: {SourceFilePath}");
     }
 }
