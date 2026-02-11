@@ -14,7 +14,7 @@ public class CompilerFlags
     public int QuintSizeInQubit { get; set; } = 3;
     public char[] QustringAlphabet { get; set; } = "01".ToCharArray();
     public int QucharSizeInQubit => (int)Math.Ceiling(Math.Log2(QustringAlphabet.Length));
-    public string OutputPath { get; set; } = "./"; //TODO: in python we should check that dir exists.
+    public string OutputPath { get; set; } = "./output";
     public string CircuitImagesFolder => "./circuit_images";
     public string SourceFilePath { get; set; } = string.Empty;
 

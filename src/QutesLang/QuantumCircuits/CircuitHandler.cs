@@ -48,6 +48,9 @@ public class CircuitHandler : ICircuitHandler
         var stringBuilderMain = new StringBuilder();
         var stringBuilderLib = new StringBuilder();
 
+        //Python requirements
+        var pythonRequirementsText = ReadEmbeddedResource("requirements.txt");
+        File.WriteAllText(Path.Combine(outputPath, "requirements.txt"), pythonRequirementsText);
         // Library code
         stringBuilderLib.AppendLine("# Auto-generated Qiskit code from QutesLang");
         AppendPythonCode(stringBuilderLib);

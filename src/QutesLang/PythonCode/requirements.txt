@@ -1,0 +1,6 @@
+qiskit==2.2
+qiskit_ibm_runtime
+qiskit-aer
+matplotlib
+pylatexenc
+tabulate
