@@ -95,12 +95,21 @@ public class CircuitHandler : ICircuitHandler
 
     private static void AppendPythonCode(StringBuilder stringBuilder)
     {
-        var tabularPrint = File.ReadAllText(Path.Combine(Environment.CurrentDirectory, "PythonCode", "PrintTabularStateVectorResults.py"));
-        var qutesGate = File.ReadAllText(Path.Combine(Environment.CurrentDirectory, "PythonCode", "QutesGates.py"));
+        var tabularPrint = ReadEmbeddedResource("PrintTabularStateVectorResults.py");
+        var qutesGate = ReadEmbeddedResource("QutesGates.py");
         stringBuilder.AppendLine(tabularPrint);
         stringBuilder.AppendLine();
         stringBuilder.AppendLine(qutesGate);
         stringBuilder.AppendLine();
+    }
+
+    private static string ReadEmbeddedResource(string resourceName)
+    {
+        var assembly = typeof(CircuitHandler).Assembly;
+        using var stream = assembly.GetManifestResourceStream(resourceName)
+            ?? throw new InvalidOperationException($"Embedded resource '{resourceName}' not found.");
+        using var reader = new StreamReader(stream);
+        return reader.ReadToEnd();
     }
 
     public ICircuitContext SetCurrentContext(IQuantumCircuit circuit)
@@ -259,11 +268,11 @@ public class QuantumCircuit(BackendProvider backendProvider, string? name = null
         stringBuilder.AppendLine($"# Circuit declaration: {Name}");
         if (IncludeClassicalBits)
         {
-            stringBuilder.AppendLine($"{Name} = QuantumCircuit({quantumRegisterNames}, {classicalRegisterNames})");
+            stringBuilder.AppendLine($"{Name} = QuantumCircuit({quantumRegisterNames.OrFallback("0")}, {classicalRegisterNames.OrFallback("0")})");
         }
         else
         {
-            stringBuilder.AppendLine($"{Name} = QuantumCircuit({quantumRegisterNames})");
+            stringBuilder.AppendLine($"{Name} = QuantumCircuit({quantumRegisterNames.OrFallback("0")})");
         }
 
         if (HandleStatePreparation)

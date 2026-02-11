@@ -1,6 +1,6 @@
 ﻿using QutesLang.Symbols.Types;
 
-namespace QutesLang.Extensions;
+namespace QutesLang.Symbols;
 
 public static class QutesConvert
 {

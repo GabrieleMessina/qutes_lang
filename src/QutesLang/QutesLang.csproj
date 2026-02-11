@@ -17,9 +17,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="PythonCode/**">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  <EmbeddedResource Include="PythonCode/**">
+      <LogicalName>%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
-
 </Project>
