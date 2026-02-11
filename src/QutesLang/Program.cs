@@ -114,6 +114,8 @@ static void RunProgram(CompilerFlags flags)
         throw new SyntaxErrorException(parser.NumberOfSyntaxErrors.ToString());
     }
 
+    Directory.CreateDirectory(flags.OutputPath);
+
     var scopeHandler = new ScopeHandler();
     var circuitHandler = new CircuitHandler();
     var visitor = new QutesVisitor(scopeHandler, circuitHandler);

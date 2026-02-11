@@ -1,374 +1,358 @@
-qubit a = 1q;
-qubit b = 1q;
-
-bool c = true;
-
-while(c){
-    hadamard b;
-    break;
+quint[] v = [1q, |+>, 3q];
+qubit[] res = [0q]*v.length(); 
+for i in [0..v.length()-1]{
+	res[i] = v[i] > v[i+1];
 }
+measure res;
 
-//basic boolean 
-/*{
-    //a = 10; //'a' declared before usage.
-    bool a = true;
-    bool b = FALSE;
-    bool c = 1;
-    bool d = 0;
-}*/
 
-//basic integer
-/*{
-    int a=2+3;
-    int i=1;
-    a;
-    i=i+i;
-    //2+"a"; //this gives an error and that it's as intended, it's how the lower level language handle this kind of operation between two types.
-    int z = true;
-    int zz = 10;
-    z + zz;
+// qubit q = 1q;
+// measure q;
 
-    not z;
-    not zz;
-    not 0;
-}*/
+//// hack to always have a valida circuit.
+// qubit _ = |0>;
+// measure _;
 
-//strings and basic operations
-/*{
-    string a;
-    string b = "aa";
-    string bb = b;
-    string c = "aa\"" + "as";
-    int d = 12 + 16543;
-    //int e = 12-16543;
-    int e = 12 - 16543;
-    int f = false + false;
-    int g = true + true;
-    //int b.b = 1; //this gives error, because variable cannot be declared with qualified names (at least at the moment)
-    //b = 4; //this gives an error, wrong type assignment and no conversion available.
-    //g = 4; //this gives an error, g is not declared.
-}*/
+// qubit[] v = [1q, 0q, 0q, 0q];
+// int n = v.length();
 
-//variable scope tests
-// bool b = (0);
-// if(b){ int a = 100; }
-// if(false){
-//     int c = 34;
+// qubit[] res = [0q, 0q, 0q, 0q];
+// qubit[] res2 = [0q, 0q, 0q, 0q];
+// for i in [0..n/2]{
+//     print i;
+//     res[i] = (v[i] > v[i+1]);
+// }
+// for i in [0..n-1:2]
+// res2[i] = (v[i] < v[i+1]);
+// measure res;
+// measure res2;
+// measure v;
+
+// for i in res[n..0:-1] {
+//     print i;
+//     measure i;
+// }
+
+//// Test shift operator on array.
+// quint[] v = [1q, 0q, 0q, 0q];
+// v[0] = 0q;
+// v >> 1;
+// measure v;
+
+//// Comparison operators on quints.
+// quint a = 1q;
+// quint b = 1q;
+// qubit eq = a==b;
+// qubit neq = a!=b;
+// qubit gr = a>b;
+// qubit lo = a<b;
+// qubit ge = a>=b;
+// qubit le = a<=b;
+// measure eq;
+// measure neq;
+// measure gr;
+// measure lo;
+// measure ge;
+// measure le;
+
+
+//// Array literal, slicing, casting and access. 
+// quint[] v = [1q, |+>, 3q];
+// quint[] res = [0q]*v.length(); 
+// quint[] res = [0q]; 
+// res[0] = v[0];
+// for i in [0..v.length()]{
+//     res[i] = v[i];
+// }
+// print res;
+// print v;
+// measure res;
+// measure v;
+
+
+// int[] v = [1, 2, 3];
+// int a = v.length();
+// function f = v.length;
+// quint[] res = [1q]*v.length();
+// quint[] res2 = [1q]*a;
+// print f;
+// measure res2;
+
+// // Array slicing and access.
+// int a = 2;
+// int[] v = [1, 2, 3];
+// int[] w1 = v[..a]; // [1, 2]
+// int[] w2 = v[1..a]; // [2]
+// int[] w3 = v[a..]; // [3]
+// print w2;
+
+//// for yielding transformed input.
+// int[] a = [1, 2, 3];
+
+// quint[] b = for i in a yield foo(i);
+// measure b;
+
+// quint foo(int x){
+//     quint y = x;
+//     return y;
+// }
+
+////Test function call and return value.
+// qubit _ = |0>;
+// measure _;
+
+// int n = 3;
+// qubit foo(){
+//     return n+1;
+// }
+
+// qubit b = foo();
+// measure b;
+
+
+// //Classical Array product by scalar
+// int n = 3;
+// int[] a = [n, n];
+// print n;
+// print a;
+
+// qubit _ = |0>;
+// measure _;
+
+
+////Quantum Array product by scalar
+// quint n = 3q;
+// quint[] a = [n] * 3;
+// print n;
+// print a;
+
+// measure n;
+// measure a;
+
+
+////qubit literal not cast.
+// qubit a = true q;
+// qubit b = {0.3, -3.9}q;
+// measure b;
+// qubit bb = {true, true}q;
+// qubit c = {.7, .3}q;
+// qubit cc= {0.7}q;
+// qubit d = |+>;
+// qubit dd = |->;
+////qubit literal from cast.
+// qubit e = {0, 1}q; //from quint but we take only first two states.
+// qubit f = 1q; //from quint but we take only first two states.
+// qubit g = false; //from bool.
+////qubit cast not allowed.
+//qubit h = 0..3; //from range
+//qubit i = 1; //from int.
+
+////quint literal not cast.
+// quint l = 3q;
+// quint m = {1, 2, 3}q;
+// quint mm = {0..3}q;
+////quint literal from cast.
+// quint n = |0>; //from all qubits.
+// quint o = 3; //from int.
+// quint p = 1..3; //from range.
+
+// //Array literal, slicing, casting and access.
+// qubit _ = |0>;
+// quint addr = {0..3}q;
+// quint addr2 = 0..3;
+// int[] a = [1..5];
+// int[] aa = [1..5:2];
+// int[] b = a[1..3];
+// int[] bbb = a[0..3:2];
+// quint[] aa = [1..5];
+// quint[] bb = aa[1..3];
+// quint[] c = a;
+// quint d = aa[addr];
+// print a;
+// print b;
+// print c;
+
+// measure d;
+// measure addr;
+// measure addr2;
+// measure c;
+// measure o;
+// measure p;
+
+
+
+// quint a = 1..4;
+// int b = 1..4;
+// quint[] c = [1..4];
+// int[] d = [1..4];
+// measure a;
+// measure c;
+// print b;
+// print c;
+// print d;
+
+// for i in [0..3]{
+//     print i;
+// }
+
+
+// quint[] v = [1q, 3q, 0q];
+// // quint a = v[1];
+// // quint i = [0,1,2,3]q;
+// // quint b = v[i];
+// quint j = [0..3]q;
+// quint c = v[j];
+// // measure a;
+// measure j;
+// measure c;
+// measure v[0];
+
+
+
+// qubit a = 0q;
+// qubit b = 0q;
+
+// propagation(a, b);
+
+// measure a;
+// measure b;
+
+// void propagation(qubit a, qubit b){
+//     qubit[] q = [a, 0q, 0q, 0q, 0q, b];
+//     for ii in [0, 2, 4]{
+//         entangle(q[ii], q[ii + 1]);
+//     }
+//     for i in [0, 2]{
+//         hadamard_measure(q[i + 1],q[i + 2]);
+//         if(q[i + 1]) pauliz q[i];
+//         if(q[i + 2]) not q[i + 3];
+//     }
+// }
+
+// void entangle(qubit a1, qubit b1){
+//     hadamard a1;
+//     mcx a1, b1;
+// }
+// void hadamard_measure(qubit a2, qubit b2){
+//     mcx a2, b2;
+//     hadamard a2;
+// }
+
+
+// qubit[] a = [|+>,|+>,|+>];
+// qubit d = 0q;
+// qubit e = 0q;
+// void foo(qubit[] b, qubit c){
+//     hadamard b;
+//     mcx b, c;
+// }
+// foo(a,d);
+// measure e;
+
+
+// qubit[] input = [|+>,|+>,|+>];
+// qubit output = |->;
+
+// void function(qubit[] _input, qubit _output){
+//     // for q in _input {
+//     //     mcx q, _output;
+//     // }
+//     hadamard _output;
+//     for q in _input {
+//         id q;
+//     }
+//     hadamard _output;
+// }
+
+// function(input, output);
+
+// hadamard input;
+// qubit isConstant = false;
+// for q in input{
+//     isConstant or not q;
+// }
+// measure isConstant;
+
+
+
+// qubit[] bitmask = [1q, 0q, 1q];
+// quint[] vector = [1q, 2q, 3q];
+// for q,i in vector{
+//     if(bitmask[i]){
+//         hadamard q;
+//     }
+// }
+// measure vector;
+
+// measure vector[0];
+// measure vector[1];
+// measure vector;
+
+
+// qustring array = "1110111";
+// qustring pattern = "00";
+// qubit found = 0q;
+// if(pattern in array){
+// 	not found;
 // }
 // else{
-//     int d = 6;
+// 	hadamard found;
+// }
+// measure found;
+
+
+//hadamard input;
+//qubit isConstant = false;
+//for q in input{
+//    isConstant = isConstant or not q;
+//}
+//measure isConstant;
+
+// qubit a = 0q;
+// qubit b = 0q;
+// entangle(a, b);
+// entangle(a, b);
+// measure a;
+// measure b;
+
+// void entangle(qubit a, qubit b){
+//     hadamard a;
+//     mcx a, b;
 // }
 
 
-//{ ; }
-//{ }
+// qubit b = 0q;
+// void foo(qubit a ){
+//     hadamard a;
+// }
+// measure b;
 
-//Miscellaneous
-/*{
-    int i=0;
-    qubit qu = 0q;
-    quint num = 1q;
-    //quint num = 10q;
-    //print num;
-    while (i<3){
-        i=i+1;
-        hadamard qu;
-    }
+// qubit a = 0q;
+// qubit b = 0q;
 
-    // print num;
-    int number = num;
-    bool test = qu;
-    //if(num > 0){
-    print number;
-    if(number > 0){
-        print "positive";
-    }
-    else{
-        print "not positive";
-    }
-}*/
+// propagation(a, b);
 
-//qubits tests
-/*{
-    //alpha and beta values
-    qubit a = 0.7,0.3q;
-    //states we want the qubit is able to take
-    qubit b = [0, 1]q; 
-    //qubits with only a state 
-    qubit c = [1]q; 
-    qubit ad = 0q;
-   
-    bool bo = true;
-    // qubit qbo = bo;
+// measure a;
+// measure b;
 
-    // qubit ae = 1q;
-    // qubit bd = -0q;
-    // qubit be = +1q;
-    // be = -1q;
-    //qubits in superposition 
-    qubit f = |+> ;
-    qubit g = |-> ;
-    qubit h = |0> ;
-    qubit i = |1> ;
-    not i;
-    pauliz f;
-    hadamard g;
-    f + g;
-    qubit hx = f + g;
-}*/
-
-//quints tests
-/*{
-    
-    //qubit a = [0,1]q;
-    //not a;
-    //qubit b = 0q;
-    //a + b;
-    
-    //qubit a = [1]q;
-    //qubit b = [1]q;
-    //a + b;
-    //quint x = a + b;
-    
-    //qubit ax = 1q;
-    //quint c = 10q;
-    //quint d = 4q;
-    //quint re = c + d;
-    //c + d + ax;
-
-    //quint aa = [0q, 0q, 1q]; //quint representing the number 1
-    //quint bb = [[0, 1]q, 0q, 1q]; //quint with a superposition state where the most significant bit can be 0(50%) or 1(50%)
-    //quint cc = [0.7,0.3q, 0q, 1q]; //quint with a superposition state where the most significant bit can be 0(70%) or 1(30%)
-    //quint dd = [1, 3]q; //quint with a superposition state that can be both 1(50%) or 3(50%)
-    //quint d = -12q;
-}*/
-
-//measures tests
-/*{
-    // qubit a = [1]q;
-    // qubit b = [1]q;
-    // quint x = a + b;
-    // measure x;
-    
-    quint c = 10q;
-    quint d = 4q;
-    quint re = c + d;
-    print re;
-    //measure re;
-}*/
-
-//Circuit scope tests
-/*{
-    //This two blocks can be two different circuits.
-    // {
-    //     qubit a = [true]q;
-    //     qubit b = [true]q;
-    //     quint x = a + b;
-    //     measure x;
-    // }
-    
-    // {
-    //     quint c = 10q;
-    //     quint d = 4q;
-    //     quint re = d + c;
-    //     measure re;
-    // }
-
-    //This two blocks cannot be two different circuits because they use the same global variable.
-    //But we can say that we have two custom gate in the circuit,
-    //So if a custom gate doesn't take anything as input then it's a new circuit.
-    // qubit a = [1]q;
-    // {
-    //     qubit b = [1]q;
-    //     quint x = a + b;
-    //     measure x;
-    // }
-    
-    // {
-    //     quint c = 10q;
-    //     quint re = c + a;
-    //     measure re;
-    // }
-}*/
-
-//Quantum and classical variable collaboration tests
-/*{
-    // {
-    //     qubit a = [1]q;
-    //     qubit b = [1]q;
-    //     quint x = a + b;
-    //     print x;
-    //     int classical = x;
-    //     print classical;
-        
-    //     // measure x;
-    //     // print x;
-    // }
-
-    // {
-    //     qubit a = [true]q;
-    //     qubit b = [true]q;
-    //     int classical = a + b;
-    //     print classical;
-    // }
-
-    // {
-    //     qubit a = [true]q;
-    //     qubit b = [true]q;
-    //     int classical = a + 1;
-    // }
-
-    // {
-    //     int a = 12;
-    //     qubit b = [true]q;
-    //     quint c = a + b;
-    // }
-
-    // {
-    //     quint a = 12;
-    //     quint b = a; 
-    //     qubit c = a;
-    // }
-}*/
-
-//Functions tests I
-/*{
-    //What we want to achieve:
-    // qustring entireBook;
-    // int resultStartIndex = entireBook.find("some string.");
-    // or
-    // int resultStartIndex = find(entireBook, "some string.");
-
-    bool A (int c = 10){
-        bool a = false;
-        print a;
-        print c;
-        return a;
-        print a;
-    }
-
-    bool z = A();
-    print z;
-
-    void B (){
-        bool z = A();
-        print z;
-    }
-
-    B();
-}*/
-
-//Functions tests II
-/*{
-    // bool A (int c = 10, bool aa){
-    //     bool a = true;
-    //     print a;
-    //     print c;
-    //     print aa;
-    // }
-
-    int z = 1;
-    bool zz = true;
-    // A(z, zz);
-
-    B(zz);
-    bool B (bool aa){
-        print aa;
-        if(aa){
-            aa = not aa;
-            B(aa);
-        }
-    }
-    //print A();
-    //print A;
-}*/
-
-//Functions tests III with quantum types
-/*{
-    // void A (qubit a = 1q){
-    //     print a;
-    // }
-    // qubit c = 1q;
-    // A(c);
-
-    qubit B (qubit a = 1q){
-        not a;
-    }
-    qubit d = 0q;
-    B(d); //By Reference
-    print d;
-}*/
-
-//Functions tests IV with quantum types
-/*{
-    quint sum(quint a, quint b){
-        return a+b;
-    }
-    
-
-    quint z = 1q;
-    quint y = 3q;
-    quint c = sum(z, y);
-    print c;
-}*/
-
-//Qustring
-/*{
-    qustring a = "ab";
-    print a;
-}*/
-
-
-//Grover I
-/*{
-    qubit a; qubit b; qubit c;
-    //mcz a, b, c;
-    void oracle(){
-        //011
-        not c;
-        mcz a, b, c;
-        not c;
-
-        //100
-        not a;
-        not b;
-        mcz a, b, c;
-        not b;
-        not a;
-    }
-
-    grover oracle();
-    measure;
-}*/
-
-
-//Grover II
-/*{
-    //quint a = [1,4,6]q;
-
-    //quint a = [[0,1]q, [0,1]q, [0,1]q, [0,1]q];
-    //search 4 in a;
-
-    //qustring a = "*";
-    //print a;
-    qustring a = "ab";
-    search "a" in a;
-
-    // qustring a = "abb";
-    // search "b" in a;
-}*/
-
-
-//Grover III - SubArray Match
-// {
-//     // qustring a = "0*00";
-//     quint a = [0q, 0q, 0q, 0q, 0q, 0q, [0,1]q, [0,1]q];
-//     // qustring b = "1110111";
-// 
-//     if("01" in b){
-//         print "Substring Match Found!";
+// void propagation(qubit a, qubit b){
+//     qubit[] q = [a, 0q, 0q, 0q, 0q, b];
+//     for i in [0, 2, 4]
+//         entangle(q[i], q[i + 1]);
+//     for i in [0, 2]{
+//         hadamard_measure(q[i + 1],q[i + 2]);
+//         measure q[i + 1];
+//         measure q[i + 2];
+//         if(q[i + 1]) pauliz q[i];
+//         if(q[i + 2]) not q[i + 3];
 //     }
-//     else{
-//         print "Substring Match Not Found";
-//     }
+// }
+
+// void entangle(qubit a1, qubit b1){
+//     hadamard a1;
+//     mcx a1, b1;
+// }
+// void hadamard_measure(qubit a2, qubit b2){
+//     mcx a2, b2;
+//     hadamard a2;
 // }
