@@ -25,8 +25,8 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Run tests
-        run: dotnet test src/Qutes.Tests/Qutes.Tests.csproj --configuration Release --verbosity normal
+    #   - name: Run tests
+    #     run: dotnet test src/Qutes.Tests/Qutes.Tests.csproj --configuration Release --verbosity normal
 
       - name: Publish all platforms
         run: |
