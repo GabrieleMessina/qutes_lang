@@ -9,17 +9,22 @@ using QutesLang.QuantumCircuits.Interfaces;
 using QutesLang.Symbols;
 using QutesLang.Symbols.Types;
 using QutesLang.Symbols.Types.Interfaces;
+
 namespace QutesLang.GrammarParsing;
 
 public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHandler) : qutes_parserBaseVisitor<Symbol>
 {
     private readonly string QuantumSuffix = qutes_parser.DefaultVocabulary.GetLiteralName(qutes_parser.QUANTUM_SUFFIX);
+    private bool IsReturning() => handlingReturnStatement || handlingYieldStatement;
+
+    private readonly AccessCounter handlingReturnStatement = new();
+    private readonly AccessCounter handlingYieldStatement = new();
+    private readonly AccessCounter handlingBreakStatement = new();
 
     protected override bool ShouldVisitNextChild([NotNull] IRuleNode node, Symbol currentResult)
     {
         return !IsReturning();
     }
-    private bool IsReturning() => handlingReturnStatement || handlingYieldStatement;
 
     public override Symbol Visit(IParseTree tree)
     {
@@ -190,7 +195,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         var itemNameSymbol = Visit(context.qualifiedName(0)).As<QualifiedNameSymbol>();
         QualifiedNameSymbol? indexNameSymbol = null;
         ValueSymbol? indexSymbol = null;
-        
+
         if (context.qualifiedName(1) != null)
         {
             indexNameSymbol = Visit(context.qualifiedName(1)).As<QualifiedNameSymbol>();
@@ -203,24 +208,33 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
         scopeHandler.PushScope(scopeHandler.CreateScope(VariableNameGuid.New("ForStatement")));
 
-        int i = 0;
-        var itemSymbol = new ValueSymbol(itemNameSymbol, array.Values.ElementAt(i).Value, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+        //Parallel keyword checks handling
+        var parallelCheckRequired = context.PARALLEL() != null;
+        if (parallelCheckRequired) circuitHandler.EnableParallelAccessControl();
+
+        //Create Symbols that will contain the values during loop cycles.
+        var itemSymbol = new ValueSymbol(itemNameSymbol, GetDefaultValueSymbolForType(array.Type.NestedValue!, context.Start.TokenIndex).Value, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
         DeclareNewVariable(itemSymbol);
         if (indexNameSymbol != null)
         {
-            indexSymbol = new ValueSymbol(indexNameSymbol, new IntValue(i), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+            indexSymbol = new ValueSymbol(indexNameSymbol, new IntValue(), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
             DeclareNewVariable(indexSymbol);
         }
 
+        // Data structures to handle yield keyword
         bool hasYielded = false;
         TypeSymbol yieldedTypes = null!;
         List<ValueSymbol> yieldedSymbols = [];
-        for (; i < array.Values.Count() && !handlingBreakStatement; i++)
+
+        // Actual loop
+        for (var i = 0; i < array.Count && !handlingBreakStatement; i++)
         {
             itemSymbol.Value = array.Values.ElementAt(i).Value; //It is ok even for quantum, this variable will just point to the qubit in the array, it's an alias.
             indexSymbol?.Value = new IntValue(i);
-            var innerRes = Visit(context.statement());
-            if (innerRes is ValueSymbol yieldedValue && handlingYieldStatement) {
+            var localResult = Visit(context.statement());
+
+            // yielding handling
+            if (localResult is ValueSymbol yieldedValue && handlingYieldStatement) {
                 handlingYieldStatement.Decrement();
                 hasYielded = true;
                 if (yieldedTypes == null)
@@ -234,10 +248,13 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                 yieldedSymbols.Add(AnonymousValueSymbol.Default(yieldedValue.Value));
             }
         }
-        ValueSymbol res = hasYielded ? GetValueSymbolForType(TypeSymbol.Array(yieldedTypes), yieldedSymbols, context.Start.TokenIndex) : null!;
+
+        // Cleanup
+        ValueSymbol result = hasYielded ? GetValueSymbolForType(TypeSymbol.Array(yieldedTypes), yieldedSymbols, context.Start.TokenIndex) : null!;
         scopeHandler.PopScope();
-        if(handlingBreakStatement) handlingBreakStatement.Decrement();
-        return res;
+        if (handlingBreakStatement) handlingBreakStatement.Decrement();
+        if (parallelCheckRequired) circuitHandler.DisableParallelAccessControl();
+        return result;
         //throw new InvalidOperationException("Foreach loop can only iterate over array types."); //TODO: pass this message to contains extension methods in first line of this method.
     }
 
@@ -321,11 +338,6 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
 
         return functionToCreateSymbol;
     }
-
-    //TODO: the statement related to this could be used outside of their original context (e.g. return statement in a function could be used in a lambda inside the same function), we should find a better way to handle this instead of using these counters, maybe with a stack of contexts or something like that.
-    private AccessCounter handlingReturnStatement = new();
-    private AccessCounter handlingYieldStatement = new();
-    private AccessCounter handlingBreakStatement = new();
 
     public override Symbol VisitFunctionCallExpression(qutes_parser.FunctionCallExpressionContext context)
     {

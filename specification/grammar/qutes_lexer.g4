@@ -16,6 +16,7 @@ FUNCTION_TYPE : 'function' ;
 RETURN : 'return' ;
 YIELD : 'yield' ;
 BREAK : 'break' ;
+PARALLEL : 'parallel' ;
 EXP : '^' ;
 MULTIPLY : '*' ;
 DIVIDE : '/' ;

@@ -69,7 +69,7 @@ public class CharValue(char value) : IntValue(value)
     }
 }
 
-public class IntValue(int value) : ClassicalValue
+public class IntValue(int value = 0) : ClassicalValue
 {
     public override TypeSymbol Type { get; } = TypeSymbol.Int;
     public int Value { get; set; } = value;

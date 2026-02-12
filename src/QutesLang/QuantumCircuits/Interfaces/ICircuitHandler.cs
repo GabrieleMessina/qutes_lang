@@ -12,6 +12,8 @@ public interface ICircuitHandler
     void UpdateQuantumVariable(string name, QuantumRegister values);
     void AddDependentCircuit(IQuantumCircuit circuit);
     ICircuitContext SetCurrentContext(IQuantumCircuit circuit);
+    void EnableParallelAccessControl();
+    void DisableParallelAccessControl();
 }
 
 public interface IQuantumCircuit

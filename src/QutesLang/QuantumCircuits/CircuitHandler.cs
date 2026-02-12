@@ -64,6 +64,7 @@ public class CircuitHandler : ICircuitHandler
         stringBuilderMain.AppendLine("from qiskit.circuit.library import StatePreparation, ModularAdderGate, MultiplierGate, OrGate, AndGate, grover_operator as GroverOperator");
 
         // in python, check that image folder exists or create it.
+        stringBuilderMain.AppendLine("from datetime import datetime");
         stringBuilderMain.AppendLine("import os");
         stringBuilderMain.AppendLine($"os.makedirs({CompilerFlags.Current.PythonCircuitImagesFolderRelativeToSourceFile()}, exist_ok=True)");
 
@@ -137,6 +138,13 @@ public class CircuitHandler : ICircuitHandler
 
     public void PushOperation(CircuitOperation operation)
     {
+        if (accessControlContext != null)
+        {
+            foreach (var register in operation.RegistersInvolved)
+            {
+                accessControlContext.RegisterAccess(register);
+            }
+        }
         CurrentCircuit.PushOperation(operation);
     }
 
@@ -154,6 +162,20 @@ public class CircuitHandler : ICircuitHandler
     {
         CurrentCircuit.AddDependentCircuit(circuit);
     }
+
+    #region ParallelAccessControl    
+    private AccessControlContext<QuantumRegister>? accessControlContext = null;
+
+    public void EnableParallelAccessControl()
+    {
+        accessControlContext ??= new();
+    }
+
+    public void DisableParallelAccessControl()
+    {
+        accessControlContext = null;
+    }
+    #endregion ParallelAccessControl
 }
 
 public class QuantumCircuit(BackendProvider backendProvider, string? name = null, bool includeClassicalBits = false, bool handleStatePreparation = false) : IQuantumCircuit
