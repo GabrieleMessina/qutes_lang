@@ -213,11 +213,11 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         if (parallelCheckRequired) circuitHandler.EnableParallelAccessControl();
 
         //Create Symbols that will contain the values during loop cycles.
-        var itemSymbol = new ValueSymbol(itemNameSymbol, GetDefaultValueSymbolForType(array.Type.NestedValue!, context.Start.TokenIndex).Value, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+        var itemSymbol = new NamedValueSymbol(itemNameSymbol, GetDefaultValueSymbolForType(array.Type.NestedValue!, context.Start.TokenIndex).Value, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
         DeclareNewVariable(itemSymbol);
         if (indexNameSymbol != null)
         {
-            indexSymbol = new ValueSymbol(indexNameSymbol, new IntValue(), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+            indexSymbol = new NamedValueSymbol(indexNameSymbol, new IntValue(), scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
             DeclareNewVariable(indexSymbol);
         }
 
@@ -229,8 +229,8 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         // Actual loop
         for (var i = 0; i < array.Count && !handlingBreakStatement; i++)
         {
-            itemSymbol.Value = array.Values.ElementAt(i).Value; //It is ok even for quantum, this variable will just point to the qubit in the array, it's an alias.
-            indexSymbol?.Value = new IntValue(i);
+            itemSymbol.SetValue(array.Values.ElementAt(i).Value); //It is ok even for quantum, this variable will just point to the qubit in the array, it's an alias.
+            indexSymbol?.SetValue(new IntValue(i));
             var localResult = Visit(context.statement());
 
             // yielding handling
@@ -375,7 +375,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
                 //TODO: the check on input params number and type should be done here not after.
                 foreach (var (param, index) in functionSymbol.InputParamTypes.Select((param, index) => (param, index)))
                 {
-                    param.Value = providedParamsValues[index].Value;
+                    param.SetValue(providedParamsValues[index].Value);
                 }
 
                 functionSymbol.OutputSymbol = (ValueSymbol?)Visit(functionSymbol.Body); //TODO: how to handle classical ops inside quantum body.
@@ -463,7 +463,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         var valueToAssignSymbol = Visit(context.statement()).As<ValueSymbol>();
 
         var oldValue = variableToUpdateSymbol.Value.As<IQuantumValue>();
-        variableToUpdateSymbol.Value = CastSymbolToType(valueToAssignSymbol, variableToUpdateSymbol.Type).Value;
+        variableToUpdateSymbol.SetValue(CastSymbolToType(valueToAssignSymbol, variableToUpdateSymbol.Type).Value);
 
         if (variableToUpdateSymbol.Value is IQuantumValue quantumValue)
         {
@@ -863,7 +863,7 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         var valueToAssignSymbol = context.statement() == null ? GetDefaultValueSymbolForType(varTypeSymbol, context.Start.TokenIndex) : (ValueSymbol)Visit(context.statement());
 
         var variableToCreateSymbol = CastSymbolToType(valueToAssignSymbol, varTypeSymbol);
-        variableToCreateSymbol = new ValueSymbol(qualifiedName, variableToCreateSymbol.Value, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
+        variableToCreateSymbol = new NamedValueSymbol(qualifiedName, variableToCreateSymbol.Value, scopeHandler.GetCurrentScope(), context.Start.TokenIndex);
 
         DeclareNewVariable(variableToCreateSymbol);
 

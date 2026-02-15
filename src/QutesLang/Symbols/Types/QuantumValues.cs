@@ -10,6 +10,8 @@ public class QubitValue() : QuantumValue
 
     public QubitValue(QuintValue quint) : this()
     {
+        CircuitQubitPool.Free(quint.Register.Qubits[1..]); //we will not use the other qubits from the QuintValue.
+        CircuitQubitPool.Free(this.Register.Qubits[0]); //we will not use this qubit, it will be replaced by the QuintValue one.
         this.Register.Qubits[0] = quint.Register.Qubits.First();
         this.InitialStateVector = StateVector.Default(DefaultSize);
 
@@ -117,9 +119,9 @@ public class QuintValue : QuantumValue
     public int MaxValue => (int)(Math.Floor(Math.Pow(2, DefaultSize))/2) - 1;
 
     //TODO: temporary solution to allow using DefaultSize in static contexts, but we should consider a better design for this.
-    public static int Size => new QuintValue().DefaultSize;
-    public static int Min => new QuintValue().MinValue;
-    public static int Max => new QuintValue().MaxValue;
+    public static int Size => CompilerFlags.Current.QuintSizeInQubit;
+    public static int Min => -(int)(Math.Ceiling(Math.Pow(2, Size)) / 2);
+    public static int Max => (int)(Math.Floor(Math.Pow(2, Size)) / 2) - 1;
 
     public QuintValue()
     {
@@ -133,6 +135,7 @@ public class QuintValue : QuantumValue
 
     public QuintValue(QubitValue qubit) : this()
     {
+        CircuitQubitPool.Free(this.Register.Qubits[0]); //we will not use this qubit, we will use the qubit from the QubitValue.
         this.Register.Qubits[0] = qubit.Register.Qubits.First();
         this.InitialStateVector = StateVector.Default(DefaultSize);
 

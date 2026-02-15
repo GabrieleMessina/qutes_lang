@@ -47,11 +47,41 @@ public class AnonymousValueSymbol(IQutesValue value, Scope scope, int astTokenIn
     }
 }
 
-public class ValueSymbol(QualifiedNameSymbol qualifiedName, IQutesValue value, Scope scope, int astTokenIndex) : Symbol(scope, astTokenIndex)
+public class NamedValueSymbol : ValueSymbol
+{
+    public NamedValueSymbol(QualifiedNameSymbol qualifiedName, IQutesValue value, Scope scope, int astTokenIndex) : base(qualifiedName, value, scope, astTokenIndex)
+    {
+        HandleReferenceCount(null, value);
+    }
+
+    public override void SetValue(IQutesValue newValue)
+    {
+        HandleReferenceCount(Value, newValue);
+        Value = newValue;
+    }
+
+    private static void HandleReferenceCount(IQutesValue? oldValue, IQutesValue? newValue)
+    {
+        if (oldValue is IQuantumValue oldQuantumValue)
+        {
+            oldQuantumValue.Register.Free();
+        }
+        if (newValue is IQuantumValue newQuantumValue)
+        {
+            newQuantumValue.Register.Retain();
+        }
+    }
+}
+public abstract class ValueSymbol(QualifiedNameSymbol qualifiedName, IQutesValue value, Scope scope, int astTokenIndex) : Symbol(scope, astTokenIndex)
 {
     public QualifiedNameSymbol QualifiedName { get; } = qualifiedName;
-    public IQutesValue Value { get; set; } = value;
+    public IQutesValue Value { get; protected set; } = value;
     public TypeSymbol Type => Value.Type;
+
+    public virtual void SetValue(IQutesValue newValue)
+    {
+        Value = newValue;
+    }
 
     public override string ToString()
     {

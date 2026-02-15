@@ -1,17 +1,55 @@
-quint[] v = [1q, |+>, 3q];
-qubit[] res = [0q]*v.length(); 
-for i in [0..v.length()-1]{
-	res[i] = v[i] > v[i+1];
-}
-measure res;
+// // Qubit resuse test, working.
+// qubit a = 0q;
+// hadamard a;
+// a = 0q; //prev referenced qubit should be uncomputed and freed. this woul still be a different qubit then before, because the free happens at assign while new register of right operand happens before.
+//         // actually, that operation (hadamard a) is nosense, we could just drop it at compile time. But is out of scope for now.
+// pauliy a;
+// qubit b = 0q; //this shold point to the first qubit.
+// pauliz b;
+
+// // Qubit resuse test, working.
+// qubit a = |0>;
+// hadamard a;
+// a = |0>; //prev referenced qubit should be uncomputed and freed. this woul still be a different qubit then before, because the free happens at assign while new register of right operand happens before.
+//         // actually, that operation (hadamard a) is nosense, we could just drop it at compile time. But is out of scope for now.
+// pauliy a;
+// qubit b = |0>; //this shold point to the first qubit.
+// pauliz b;
+
+// // Test parallel for loop with array access.
+// qubit a = 0q;
+// qubit[] v = [0q, 0q, 0q, 0q];
+// for e,i in v parallel{
+//     print e;
+//     hadamard v[i];
+// }
 
 
+// // Error, trying to access array element multiple times.
+// qubit[] v = [0q, 0q, 0q, 0q];
+// for e,i in v[0..v.length()-1] parallel{
+//     print e;
+//     print v[i+1];
+// }
+
+// // No error thrown.
+// qubit[] v = [0q, 0q, 0q, 0q];
+// for e,i in v[0..v.length()-1:2] parallel{
+//     print e;
+//     print v[i*2+1];
+// }
+
+// quint[] v = [1q, |+>, 3q];
+// qubit[] res = [0q]*v.length(); 
+// for i in [0..v.length()-1]{
+// 	res[i] = v[i] > v[i+1];
+// }
+// measure res;
+
+
+////Currently not working.
 // qubit q = 1q;
 // measure q;
-
-//// hack to always have a valida circuit.
-// qubit _ = |0>;
-// measure _;
 
 // qubit[] v = [1q, 0q, 0q, 0q];
 // int n = v.length();

@@ -2,18 +2,11 @@
 
 namespace QutesLang.QuantumCircuits;
 
-public class ClassicalRegister(QuantumRegister quantumRegister)
-{
-    public string Name => $"c_{QuantumRegister.Name}";
-    public int Size { get; set; } = quantumRegister.Qubits.Count;
-    public QuantumRegister QuantumRegister { get; } = quantumRegister;
-}
-
 public class QuantumRegister
 {
     public QuantumRegister(int size, StateVector? initialStateVector = null)
     {
-        Qubits = Enumerable.Range(0, size).Select(i => new CircuitQubit()).ToList();
+        Qubits = Enumerable.Range(0, size).ToList().Select(i => CircuitQubitPool.Acquire()).ToList();
         InitialStateVector = initialStateVector;
         ClassicalRegister = new(this);
     }
@@ -22,6 +15,7 @@ public class QuantumRegister
     {
         Registers = registers.ToList();
         Qubits = registers.SelectMany(r => r.Qubits).ToList();
+        CircuitQubitPool.Acquire(Qubits);
         InitialStateVector = null;
         ClassicalRegister = new(this);
     }
@@ -53,6 +47,26 @@ public class QuantumRegister
     /// Contains the initial state vector to which the qubits in this register should be initialized.
     /// </summary>
     public StateVector? InitialStateVector { get; set; }
+
+    /// <summary>
+    /// 0 reference by default, incremented only when assigned.
+    /// </summary>
+    private readonly AccessCounter anyReferenceToRegister = new (); 
+
+    public IEnumerable<CircuitQubit> Free()
+    {
+        anyReferenceToRegister.Decrement();
+        if(!anyReferenceToRegister)
+        {
+            return CircuitQubitPool.Free(Qubits);
+        }
+        return [];
+    }
+
+    public void Retain()
+    {
+        anyReferenceToRegister.Increment();
+    }
 
     public string QubitStringList => $"{string.Join(",", Qubits.Select(c => c!.Id))}";
 
