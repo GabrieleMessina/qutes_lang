@@ -46,7 +46,6 @@ public class LeftShift : CircuitOperation
     public override IQuantumValue Destination { get; protected set; } //Is a QuantumArrayValue
     public LeftShift(QuantumArrayValue target, QuintValue offset) : base([target.Register, offset.Register], target)
     {
-        //TODO: if offset is power of 2, we can optimize the operation.
         //TODO: if offset is classic, we can do the operation in preprocessing, is this better?
         this.target = target;
         this.Destination = target;
@@ -143,7 +142,7 @@ public class Multiply(IQuantumValue a, IQuantumValue b, IQuantumValue destinatio
         }
 
         var gateName = $"multiplier_{size}";
-        //TODO: gate crash if num_result_qubits is not 2*num_state_qubits, we need a way to make the computation and then drop qubits.
+        //TODO: gate crashes if num_result_qubits is not 2*num_state_qubits, we need a way to make the computation and then drop qubits.
         AddGateInCircuit(circuit, gateName, [.. a.Register.Qubits[..size], .. b.Register.Qubits[..size], .. Destination.Register.Qubits[..size]], stringBuilder);
     }
 }

@@ -9,7 +9,7 @@ public class Measure(IQuantumValue target) : CircuitOperation([target.Register],
 {
     public override void ApplyQiskitRequirements(StringBuilder stringBuilder)
     {
-        //TODO: WIP, all operations (or the more complex ones), could declare their gates.
+        //TODO: all operations (or the more complex ones), could declare their gates.
         // This way we can have better circuit printing and also reuse gates (in the future).
         // Note that the gate reuse is possibile only for input of the same kind,
         // So we could have for example Measure_qubit and Measure_quinteger gates.

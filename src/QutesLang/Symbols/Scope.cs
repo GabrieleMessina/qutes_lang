@@ -1,8 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
-using QutesLang.Exceptions;
-
 namespace QutesLang.Symbols;
 
 public class Scope(string id, Scope? parent)

@@ -462,13 +462,14 @@ public class QutesVisitor(IScopeHandler scopeHandler, ICircuitHandler circuitHan
         var variableToUpdateSymbol = Visit(context.expr()).As<ValueSymbol>();
         var valueToAssignSymbol = Visit(context.statement()).As<ValueSymbol>();
 
+        var oldValue = variableToUpdateSymbol.Value.As<IQuantumValue>();
         variableToUpdateSymbol.Value = CastSymbolToType(valueToAssignSymbol, variableToUpdateSymbol.Type).Value;
 
         if (variableToUpdateSymbol.Value is IQuantumValue quantumValue)
         {
             try
             {
-                circuitHandler.UpdateQuantumVariable(variableToUpdateSymbol.QualifiedName.RawStringName, quantumValue.Register);
+                circuitHandler.UpdateQuantumVariable(oldValue.Register.Name, quantumValue.Register);
             }
             catch
             {
