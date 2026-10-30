@@ -1,8 +1,8 @@
 # Qutes
 
 A high-level, strongly typed quantum language with C#-inspired syntax and a
-Qiskit backend. This repository has a working parser and type/stage/effect analyzer;
-it is not yet a working source-to-Qiskit compiler.
+Qiskit backend. This repository has a parser, typed analysis, classical expansion,
+and a separately tested cleanup scheduler. Source-to-Qiskit integration is pending.
 
 ```csharp
 int main() {
@@ -86,4 +86,9 @@ validation. Full `check`/`build`/`run` commands still await those passes.
 `construct` expands classical loops and inlines helpers, while preserving quantum
 operations and measurement results symbolically. Use `--inputs FILE` for a JSON
 object matching classical main parameters. This intermediate result is not yet
-a verified circuit: automatic cleanup and Qiskit generation are still pending.
+a verified circuit: integration with cleanup and Qiskit generation is still pending.
+
+The [versioned cleanup scheduler](docs/spec/cleanup-scheduling.md) and reversible
+gate adapter have full-state tests for arithmetic, changed inputs, dependency
+recomputation, and rejected unsafe cleanup. Measurement-aware source lowering
+and complete program execution remain to be implemented.

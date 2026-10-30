@@ -44,3 +44,12 @@ conversation examples suggesting measurement consumption are superseded by D007.
   counts; max_classical_bits=65536 is configurable and errors instead of wrapping.
 - D027 (implementation): expose developer `construct` with explicit cleanup-not-
   verified status. Full build/run commands wait for verified lowering.
+- D028 (implementation): keep physical bits reserved after cleanup while their
+  computation recipes may be needed again. Correct version reconstruction takes
+  priority over qubit reuse; resource accounting must expose the resulting cost.
+- D029 (implementation): restore captured input versions temporarily during
+  cleanup, but reject any restoration that reads the value being erased. Bound
+  both scheduling work and dependency depth; never replace failure with reset.
+- D030 (implementation): basis-value overwrite retains cleanup plus preparation
+  as a reversible history step, preserving older consumers. Independent unknown
+  quantum roots still require reversible updates. Measurement support is pending.

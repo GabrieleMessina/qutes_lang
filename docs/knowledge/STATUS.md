@@ -1,16 +1,19 @@
 # Current status
 
-Updated: 2026-10-30, checkpoint KB-005. Full implementation goal remains active.
+Updated: 2026-10-30, checkpoint KB-006. Full implementation goal remains active.
 
 ## Completed capabilities
 
 - Local Git main, no remote. Checkpoints: a29edbf knowledge base; 4b8d3d8 contract /
-  probes; 18d3d56 parser; e94314a typed frontend; current commit contains KB-005.
+  probes; 18d3d56 parser; e94314a typed frontend; 5ad3bae construction. Current
+  checkpoint adds the independently tested cleanup scheduler and gate adapter.
 - Parser, source diagnostics, typed IR, name/type/stage/effect analysis.
 - Bounded construction-time evaluator: classical inputs/functions/loops, inlining,
   fresh symbols, scopes, ownership moves, symbolic quantum operations and snapshots.
 - Config/value codecs, independent small-state oracle, hand-built Qiskit probes.
-- Latest full run: 216 passed (V005). No source-generated circuit execution yet.
+- Backend-independent operations and version-aware cleanup scheduler; Qiskit
+  reversible gate adapter, including controlled addition/rotation/copy.
+- Latest full run: 267 passed (V006). No source-generated circuit execution yet.
 
 ## Commands / environment
 
@@ -31,12 +34,13 @@ elevated Git calls; the user already authorized logical commits, not remote push
 
 ## Exact next task: T008
 
-Read docs/spec/construction-ir.md and inspect construction.py output. Implement
-storage/version dependency analysis and automatic cleanup as a separate pass,
-then backend-neutral circuit lowering. Preserve scoped escapes/borrowed inputs,
-correlated copies, reversible self-updates, and non-consuming measurements.
+Read docs/spec/construction-ir.md and docs/spec/cleanup-scheduling.md. Integrate
+construction.py output with cleanup.Scheduler and gates.Gate. The scheduler already
+handles input-version restoration, released basis-value recomputation, cyclic
+rejection, and basis-value overwrite. Physical wires remain reserved after release.
+It does NOT yet understand measurement checkpoints or whole source programs.
 
-Start with scalar arithmetic and the two pending cleanup-negative corpus cases
+Start source integration with scalar arithmetic and the two pending cleanup-negative corpus cases
 (R004 unknown overwrite, R005 overlapping doubling). Verify scoped computed
 scratch cleanup and full complex states independently, including entangled inputs.
 Then integrate coherent branches/loops/functions (T009), array/text layouts
@@ -50,8 +54,9 @@ Keep ledger/status/evidence current and commit coherent verified units.
 
 - Full check/build/run/explain are NOT implemented. Goal is NOT complete.
 - Construction is an intermediate representation, not executable Qiskit output.
-- Automatic cleanup, version-safe mutation, physical register allocation, branch
-  cleanup, measurement boundaries, and result decoding still need implementation.
+- Cleanup scheduling and reversible arithmetic have independent circuit evidence;
+  source integration, lifetime-aware physical reuse, branch cleanup, measurement
+  boundaries, and result decoding still need implementation.
 - Positive corpus has frontend/construction coverage, not full execution. Cleanup
   negative cases intentionally pass until the cleanup phase.
 - Quantum string-array element lengths need complete layout/lifetime handling in

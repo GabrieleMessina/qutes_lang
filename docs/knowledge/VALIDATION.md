@@ -79,3 +79,21 @@ Limits: symbolic construction does not prove physical correctness of storage
 reuse, automatic uncomputation, branch cleanup, or measurement boundaries. No
 source-generated Qiskit circuit executes yet. Existing manually constructed
 backend probes remain the only circuit-level evidence.
+
+## V006 — 2026-10-30 — Cleanup schedules and reversible gate emission
+
+Command: `& C:\ProgramData\anaconda3\python.exe tools/check.py -q`.
+Result: **267 passed**, 63 existing external warnings, 7.23 seconds.
+Artifacts: `artifacts/checks/run-6f8zch2u/results.xml` and `environment.json`.
+Targeted command adding `tests/test_cleanup.py tests/test_gates.py`: 51 passed.
+
+New evidence covers automatic cleanup schedules executed as Qiskit circuits,
+checked against independent complete complex-state expectations. Includes changed
+source versions, multiple inputs, released intermediate reconstruction, reversible
+overwrite, preserved reference entanglement, zeroed scratch, forbidden cyclic
+cleanup, root escape rejection, rollback, and budget/depth diagnostics. Arithmetic
+has exhaustive small-width full operators and entangled controlled-operation tests.
+
+This advances beyond manual probes, but does NOT establish source compilation,
+measurement-safe cleanup, whole-program acceptance, hardware execution, clean
+installation, or cross-platform compatibility. Those remain separate tasks.

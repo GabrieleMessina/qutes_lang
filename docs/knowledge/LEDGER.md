@@ -118,3 +118,30 @@ entry IDs; do not rewrite history to hide failures.
   the actual text and reapplied the patch successfully.
 - Full suite: 216 passed (V005). Quantum cleanup synthesis, source-to-Qiskit output,
   runtime result decoding, and release verification remain outstanding.
+
+## KB-006 — 2026-10-30 — Versioned cleanup scheduler and reversible adapter
+
+- Continued from 5ad3bae with a clean tree; full goal remains active. No new user
+  design decision is required. Inspected installed Qiskit APIs and primary Qiskit/
+  Silq documentation before implementing the reversible layer.
+- Added backend-independent operations and explicit positive/negative controls.
+  Added a separately imported Qiskit adapter for copy, modular addition, constant
+  addition, preparation, and rotation. Controls that overlap source bits are
+  expanded without duplicating Qiskit operands; target overlap is rejected.
+- Implemented automatic cleanup schedules with storage versions, captured input
+  versions, temporary input restoration, released computation reconstruction,
+  cyclic dependency rejection, root ownership, and bounded scope cleanup.
+- Derived-value overwrite records a reversible composite step, preserving old
+  versions for other consumers. Independent unknown roots cannot be overwritten.
+  This does not restore the user's withdrawn function-only evolution restriction.
+- Review found composite overwrite must allow a previously released dependency
+  at version -1 (zero). Fixed dependency capture and added a complete-state test.
+  Added bounded dependency nesting to avoid leaking host recursion failures.
+- Added 51 checks for the scheduler and real emitted circuits: complex phases,
+  entangled reference inputs, changed sources, recomputation, overwrite, roots,
+  controlled arithmetic, rejection rollback, and resource diagnostics.
+- Targeted runs: 49 then 51 passed. Full suite: 267 passed (V006). No source program
+  is yet lowered through this scheduler; measurement boundaries, source branch
+  integration, arrays/text, execution, and release work remain pending.
+- Next: connect construction IR to the scheduler, starting with scalar arithmetic
+  and scoped values, then add measurement checkpoints without consuming sources.

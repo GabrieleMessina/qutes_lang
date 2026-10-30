@@ -29,3 +29,8 @@ Evidence for T005: KB-003 / V003, 102 passing tests total; all 33 corpus cases c
 T006 evidence: KB-004 / V004, 173 passing tests. T007 is next; typed analysis deliberately leaves Q3001 cleanup obligations for the later pass.
 
 T007 evidence: KB-005 / V005, 216 tests. T008 is next: scoped dependency/version cleanup and circuit lowering. T009-T012 remain pending integration/release; construction alone does not satisfy them.
+
+T008 partial evidence: KB-006 / V006, 267 tests. Backend-neutral gates, standalone
+versioned cleanup schedules, and the reversible Qiskit adapter are implemented.
+Source integration, measurement checkpoints, and acceptance cleanup diagnostics
+remain outstanding, so T008 stays ACTIVE.
