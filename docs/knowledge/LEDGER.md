@@ -43,3 +43,28 @@ entry IDs; do not rewrite history to hide failures.
   than hidden. Added corpus integrity and unchanged-repeat-measurement checks.
 - Names remain documented working defaults; no independent human review is claimed.
 - Next checkpoint: final M1 verification, then parser/source-location work T005.
+
+## KB-003 — 2026-10-30 — Parser and syntax tooling
+
+- M1 checkpoint committed as `4b8d3d8`; V002 recorded 37 passing tests.
+- Implemented source coordinates/diagnostics, a UTF-8-aware lexer, immutable untyped
+  AST, recursive-descent statements, and precedence-climbing expressions.
+- All 33 corpus cases are checked at the syntax layer: 31 parse, and the two
+  intentional lexical/syntax failures have the specified diagnostics. The 14
+  semantic-negative cases remain deliberately unvalidated by the parser.
+- Added `qutes parse FILE [--json]` and a checkout runner `tools/qutes.py`.
+  Success explicitly says types and quantum safety have not been checked; file
+  failures and malformed source return structured diagnostics and nonzero status.
+- Added tests for precedence, grouping, calls, arrays, loops, literal escapes,
+  Unicode scalar characters, CRLF/BOM positions, malformed and truncated input,
+  CLI execution, and deep nesting. Inspection identified that flat operator
+  chains could still produce deep serialized ASTs; added an iterative tree-depth
+  check in addition to the parser recursion guard. Preserved CRLF offsets in CLI
+  file reads rather than applying newline translation.
+- Initial frontend subset: 82 passed, 18 backend tests deselected. Final full run:
+  102 passed in 5.60 seconds; V003 contains the reproduction command and limits.
+- No parser result is represented as semantic acceptance; no general uncomputation,
+  source-to-circuit generation, or program execution has been implemented.
+- Next: T006 name resolution/type/stage/effect analysis and structured typed IR.
+  Begin with symbol tables, explicit classical/quantum/runtime categories, and the
+  semantic-negative corpus. Keep cleanup failures (R004/R005) for the cleanup pass.

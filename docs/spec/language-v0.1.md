@@ -19,6 +19,13 @@ only construction-time classical arguments and returns classical data or void.
 Return on all required paths and unsupported quantum-conditional returns are
 semantic checks. Bare return is permitted only for void functions.
 
+Parser implementation limits: at most 64 nested parsing contexts and 128 syntax
+tree edges from the root. Overly deep source is a Q1002 diagnostic, never a raw
+recursion error. Offsets count source Unicode code points, end positions are
+exclusive, and lines/columns start at one. CRLF is one line break; a leading BOM
+does not count as a visible column. Raw control characters in literals must be
+escaped. The untyped tree preserves grouping and source locations.
+
 Parameters are read-only bindings; quantum parameters borrow storage without an
 implicit copy. Ordinary local assignments are permitted with cleanup checks.
 The compiler must not infer that every quantum state may be overwritten merely
@@ -94,6 +101,7 @@ separately. Diagnostics include path, one-based line/column, and a concise reaso
 
 | Code | Meaning |
 | --- | --- |
+| Q0001 | Cannot read a source file as UTF-8 |
 | Q1001 | Invalid token, escape, literal, or unterminated comment/string |
 | Q1002 | Unexpected token or missing syntactic element |
 | Q2001 | Invalid types, literal range, conversion, or unsupported operation |

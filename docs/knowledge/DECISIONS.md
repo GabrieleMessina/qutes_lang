@@ -22,6 +22,8 @@ Date of initial register: 2026-10-30. Status is explicit to avoid inventing appr
 | D016 | Implementation / reproducibility | Validate the existing pinned environment without changing global packages. Use tools/check.py with workspace-local temporary directories because the host's default pytest temp directory is inaccessible. |
 | D017 | Implementation / semantic default | Classical integer division truncates toward zero; remainder follows the dividend. Logical strings use code-zero padding and a distinct known length. |
 | D018 | Implementation / scope | Backend probes and the independent test oracle are experiments, not a compiler backend or automatic-cleanup engine. Acceptance manifest checks do not claim semantic execution. |
+| D019 | Implementation / frontend | Provide a developer `parse` command, explicitly syntax-only. Do not label it `check` before semantic validation exists. Export structured AST/diagnostic JSON with spans. |
+| D020 | Implementation / bounded tooling | Bound parsing contexts at 64 and AST depth at 128, including flat operator/postfix chains; excessive input gets Q1002 instead of a recursion traceback. Preserve raw newline offsets. |
 
 All updates add or amend a decision here and explain the change in LEDGER. Earlier
 conversation examples suggesting measurement consumption are superseded by D007.

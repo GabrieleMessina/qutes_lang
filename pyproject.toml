@@ -9,6 +9,9 @@ description = "Qutes language specification and compiler foundation"
 requires-python = ">=3.12"
 dependencies = []
 
+[project.scripts]
+qutes = "qutes.cli:main"
+
 [project.optional-dependencies]
 dev = ["pytest==8.3.4", "numpy==2.1.3", "qiskit==2.3.0", "qiskit-aer==0.17.2"]
 

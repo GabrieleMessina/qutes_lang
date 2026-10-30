@@ -8,7 +8,7 @@ Status vocabulary: TODO, ACTIVE, DONE, BLOCKED. A task is DONE only with evidenc
 | T002 | DONE | Specify the initial grammar, types/staging, effects, diagnostics, and acceptance cases, separating planned from implemented behavior. | T001 |
 | T003 | DONE | Package bootstrap, validated dependency pins, reproducible test commands. | T001 |
 | T004 | DONE | Independent small-state reference semantics and Qiskit probes: addition, rotation, correlation, predicate cleanup, repeated measurement, classical feedforward, signed/text decoding. | T002, T003 |
-| T005 | ACTIVE | Parser and source spans; parse positive/semantic-negative corpus, reject lexical/syntactic errors; no backend work in parser. | T002, T004 |
+| T005 | DONE | Parser and source spans; parse positive/semantic-negative corpus, reject lexical/syntactic errors; no backend work in parser. | T002, T004 |
 | T006 | TODO | Name resolution, type/stage checking, structured typed IR, readonly parameters, coherent-condition restrictions, explicit unsupported diagnostics. | T005 |
 | T007 | TODO | Bounded classical evaluator and user-function inlining with source mapping. | T006 |
 | T008 | TODO | Dependency/version model, cleanup synthesizer, and arithmetic lowering with full-state verification. | T004, T006 |
@@ -23,3 +23,5 @@ The scheduled milestones in the roadmap may overlap only when dependencies and
 test evidence support doing so.
 
 Evidence for T002-T004: KB-002 / V002, 37 passing tests. This is the initial automated specification/feasibility gate; final naming, human review, and a clean dependency installation are not implied.
+
+Evidence for T005: KB-003 / V003, 102 passing tests total; all 33 corpus cases checked for syntax. T006 is the next unblocked task, not started. No semantic acceptance or source execution is claimed.

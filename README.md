@@ -50,6 +50,18 @@ The runner disables unrelated pytest plugins, puts temporary files inside ignore
 run. Backend probes compare full states with an independent small-state model.
 They do not prove that automatic cleanup or source compilation is implemented.
 
+## Try the syntax parser
+
+```powershell
+& C:\ProgramData\anaconda3\python.exe tools/qutes.py parse tests/acceptance/A004_snapshots.qut
+& C:\ProgramData\anaconda3\python.exe tools/qutes.py parse tests/acceptance/A004_snapshots.qut --json
+```
+
+After installation the equivalent command is `qutes parse FILE [--json]`.
+This checks **syntax only**. It intentionally accepts syntactically valid programs
+whose types, staging, or quantum cleanup will later be rejected. The `check`,
+`build`, `run`, and `explain` commands are not implemented yet.
+
 - [Working language contract](docs/spec/language-v0.1.md)
 - [Grammar](docs/spec/grammar.ebnf)
 - [Source acceptance inventory](tests/acceptance/cases.json)
