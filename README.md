@@ -1,7 +1,7 @@
 # Qutes
 
 A high-level, strongly typed quantum language with C#-inspired syntax and a
-Qiskit backend. This repository is at the specification and feasibility stage;
+Qiskit backend. This repository has a working parser and type/stage/effect analyzer;
 it is not yet a working source-to-Qiskit compiler.
 
 ```csharp
@@ -65,3 +65,14 @@ whose types, staging, or quantum cleanup will later be rejected. The `check`,
 - [Working language contract](docs/spec/language-v0.1.md)
 - [Grammar](docs/spec/grammar.ebnf)
 - [Source acceptance inventory](tests/acceptance/cases.json)
+
+## Analyze types and execution stages
+
+```powershell
+& C:\ProgramData\anaconda3\python.exe tools/qutes.py analyze tests/acceptance/A004_snapshots.qut --quint-bits 4
+```
+
+`analyze` accepts `--json` for typed IR and `--config FILE` for a project settings
+file. It validates names, types, execution stages, effects, and known shapes.
+It deliberately does not claim quantum cleanup or complete construction-time
+validation. Full `check`/`build`/`run` commands still await those passes.

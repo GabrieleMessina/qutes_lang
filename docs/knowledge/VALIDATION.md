@@ -48,3 +48,16 @@ Bounds: parser validation does not check names, types, return paths, staging,
 effects, or cleanup. The acceptance manifest has 17 intended valid programs, 2
 lex/parse failures, and 14 intended semantic failures. Those semantics have not
 been executed. No hardware, clean-install, or cross-platform verification yet.
+
+## V004 — 2026-10-30 — Typed frontend
+
+Command: `& C:\ProgramData\anaconda3\python.exe tools/check.py -q`.
+Result: **173 passed**, 63 external IBM-runtime deprecation warnings, 7.02 seconds.
+Artifacts: `artifacts/checks/run-6fjunpjd/results.xml` and `environment.json`.
+
+New evidence covers the 33-case corpus through the frontend (cleanup deliberately
+excluded), lexical scope/readonly effects, invalid entry/returns, call recursion,
+coherent predicate dependencies, stage changes inside loops, runtime helper
+specialization, branch shape merges, integer conversions, short-circuiting,
+classical division conventions, deterministic IR, and analysis CLI/config handling.
+This does NOT establish source execution, circuit construction, or automatic cleanup.

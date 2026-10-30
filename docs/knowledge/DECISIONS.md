@@ -27,3 +27,11 @@ Date of initial register: 2026-10-30. Status is explicit to avoid inventing appr
 
 All updates add or amend a decision here and explain the change in LEDGER. Earlier
 conversation examples suggesting measurement consumption are superseded by D007.
+
+- D021 (implementation): typed IR is separate from syntax and explicitly marks
+  cleanup as unverified. Expose developer `analyze`, not full `check`, until the
+  cleanup/construction passes exist.
+- D022 (implementation): stage-specialize classical helper parameters so measured
+  predicates can use helpers without permitting deferred runtime arithmetic.
+- D023 (implementation): retain original read-only parameter defaults; do not
+  interpret the user's withdrawn evolution proposal as authorization for mut/ref.

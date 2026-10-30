@@ -68,3 +68,26 @@ entry IDs; do not rewrite history to hide failures.
 - Next: T006 name resolution/type/stage/effect analysis and structured typed IR.
   Begin with symbol tables, explicit classical/quantum/runtime categories, and the
   semantic-negative corpus. Keep cleanup failures (R004/R005) for the cleanup pass.
+
+## KB-004 — 2026-10-30 — Typed frontend and staged helper analysis
+
+- Revalidated the clean worktree at 18d3d56. The prior implementation checkpoint
+  was concrete progress; the full goal remains active and incomplete.
+- Implemented structured typed IR and name/type/stage/effect analysis, separate
+  from parsing and cleanup. Symbols have stable IDs, values carry stages/shapes,
+  and function helpers specialize for construction-time versus measured inputs.
+- Added lexical scopes, readonly parameters/iteration views, return/entry-point
+  checking, recursion rejection, operator/conversion checks, condition dependency
+  protection, branch-state merging, loop-stage validation, and bounded analysis.
+- Classical short-circuiting avoids eager constant faults in unused operands;
+  type/name errors remain visible. Loop analysis discards stale constant values.
+- Added developer `analyze` with typed JSON, config loading, and width overrides.
+  It explicitly does not claim cleanup or full construction-time validation.
+- All 17 positive corpus examples analyze. Twelve semantic-negative examples now
+  produce their intended diagnostics; two cleanup-negative examples remain
+  intentionally accepted at this layer. Lex/parse failures remain diagnosed too.
+- Added 68 checker tests plus 3 CLI tests. Full suite: 173 passed (V004).
+- Two batched documentation patches failed context verification and changed no
+  files; reread the actual README and applied smaller verified edits.
+- No design input is currently required. Next: bounded construction-time evaluator
+  and user-function elaboration, then dependency/version-based cleanup synthesis.

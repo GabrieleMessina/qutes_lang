@@ -102,6 +102,7 @@ separately. Diagnostics include path, one-based line/column, and a concise reaso
 | Code | Meaning |
 | --- | --- |
 | Q0001 | Cannot read a source file as UTF-8 |
+| Q0002 | Invalid or unreadable build configuration |
 | Q1001 | Invalid token, escape, literal, or unterminated comment/string |
 | Q1002 | Unexpected token or missing syntactic element |
 | Q2001 | Invalid types, literal range, conversion, or unsupported operation |
@@ -113,5 +114,30 @@ separately. Diagnostics include path, one-based line/column, and a concise reaso
 | Q4001 | Construction budget, bounds, or resource limit exceeded |
 
 See `tests/acceptance/cases.json` for source examples with expected categories.
-The corpus is a target contract; until the checker exists, semantic-negative cases
-must still parse successfully and must not be marked as semantically verified.
+The corpus is a target contract. Type/stage/effect failures now run through the
+analyzer; cleanup failures remain pending. Every semantic-negative case must still
+parse successfully. Frontend validation does not prove uncomputation safety.
+
+## Typed analysis implementation
+
+The typed IR records each expression's type, stage, source location, symbol reads,
+effects, and known shape. Read-only classical helpers specialize for construction
+or runtime inputs: comparisons can operate on measured values, while a helper
+performing arithmetic on those values receives Q2003. Parameter values themselves
+are not assumed constant; actual evaluation belongs to the construction pass.
+
+Analysis checks both branches for types/effects, merges branch state, and forgets
+loop-mutated constant values so the first iteration is never mistaken for the
+final value. Dynamic branches cannot return or change outer classical variables.
+Local construction-time loop variables inside a dynamic branch are permitted.
+Both arms must agree on known collection shapes; unresolved shapes are checked
+again during concrete circuit construction. Array lengths are fixed after creation.
+String indexing is read-only in V1; replace a whole string or use a quchar array
+when indexed updates are needed.
+
+Classical short-circuiting suppresses evaluation faults in an unused operand but
+does not hide name/type errors. Constant folding stops above 4096 result bits;
+this is an analysis optimization limit, not a semantic integer-width limit.
+Semantic traversal has the configured evaluation-step budget; call nesting is
+bounded at 64 to avoid host recursion failure. The construction pass has its own
+budget and must validate deferred ranges, bounds, and cleanup.
