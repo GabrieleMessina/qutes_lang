@@ -20,3 +20,26 @@ entry IDs; do not rewrite history to hide failures.
   no file-permission changes or deletion of lock files are needed.
 - Next: semantic contract, executable acceptance inventory, dependency pins, and
   independent backend feasibility checks. See T002-T004.
+
+## KB-002 — 2026-10-30 — Specification and backend feasibility
+
+- Committed KB-001 as `a29edbf`. Git's whitespace check caught extra blank EOF
+  lines before that commit; normalized them and established LF attributes.
+- Added a working EBNF grammar and language contract, diagnostic categories, and
+  33 source examples (17 positive, 16 negative). Their semantic execution remains
+  pending; the manifest records the intended first failure stage and outcomes.
+- Added a Python package skeleton, central builtin vocabulary, validated config,
+  signed arithmetic codecs, and configurable text encoding. Added exact installed
+  dependency pins; no global packages were changed.
+- Built an independent small-state oracle based on index permutations/projections,
+  plus separately constructed Qiskit experiments. Checked coherent addition and
+  rotation, correlated copy, compute/use/uncompute, and dynamic measurement with
+  subsequent evolution and retained classical snapshots.
+- First direct pytest attempt: 34 passed, 1 fixture setup error caused by the host
+  temporary directory. No semantic test failed. Added tools/check.py to use fresh
+  task-owned artifact directories and disable unrelated pytest plugin autoload.
+- Second run passed all 35 then-existing tests. Installed IBM runtime contributes
+  deprecation warnings through Qiskit plugin discovery; this is documented rather
+  than hidden. Added corpus integrity and unchanged-repeat-measurement checks.
+- Names remain documented working defaults; no independent human review is claimed.
+- Next checkpoint: final M1 verification, then parser/source-location work T005.

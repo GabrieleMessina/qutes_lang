@@ -1,0 +1,1 @@
+char main() { quchar letter = 'C'; return measure(letter); }

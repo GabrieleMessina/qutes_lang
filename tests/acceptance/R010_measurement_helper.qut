@@ -1,0 +1,1 @@
+int read(quint value) { return measure(value); } int main() { quint number = 1; return read(number); }

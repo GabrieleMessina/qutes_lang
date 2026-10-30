@@ -1,0 +1,109 @@
+# Language contract, working version 0.1
+
+Status: implementation default, 2026-10-30. Grammar and examples are now concrete;
+this is not a claim that the complete language has been implemented. See the
+knowledge-base capability status. Builtin spellings remain changeable defaults.
+
+## Syntax
+
+[grammar.ebnf](grammar.ebnf) defines the syntax. UTF-8, ASCII identifiers, brace
+blocks, explicit types, declarations with initializers, and conventional precedence.
+Names are case-sensitive. Decimal integers are unsigned lexical tokens; unary
+minus is applied before an initializer range check so `-128` is valid at 8 bits.
+No classes, namespaces, implicit declarations, overloads, recursion, method calls,
+bitwise source operators, ternary expressions, or assignment expressions.
+
+All functions are top-level. Exactly one `main` is required by semantic checking,
+not by parsing. Parameters and non-main return values may be quantum. Main takes
+only construction-time classical arguments and returns classical data or void.
+Return on all required paths and unsupported quantum-conditional returns are
+semantic checks. Bare return is permitted only for void functions.
+
+Parameters are read-only bindings; quantum parameters borrow storage without an
+implicit copy. Ordinary local assignments are permitted with cleanup checks.
+The compiler must not infer that every quantum state may be overwritten merely
+because the source uses normal assignment syntax.
+
+## Values, operations, and staging
+
+Use the type/assignment/measurement contract in DEVELOPMENT_PLAN.md. Construction-
+time classical int is arbitrary precision. Division truncates toward zero and
+remainder has the dividend's sign. Division by zero is a diagnostic. Boolean
+conditions do not accept integer truthiness. No implicit quantum-to-classical
+conversion; measurement is explicit.
+
+Quantum integer operators: +, +=, signed comparisons, and named rotations. `-`,
+`-=`, multiplication, division, remainder, and ++/-- are classical-only in V1;
+adding a negative classical constant is allowed. Both quantum operands of an
+addition must have the resolved width. Quantum comparisons produce qubit predicates.
+Classical predicates use ordinary short-circuit behavior; quantum predicate
+operands are effect-free and represented coherently.
+
+`superposition()` is context-typed only by an initializing qubit/quint declaration.
+It is not a random sampler and is not a generic reset operation. `measure(value)`
+returns a classical snapshot and leaves the source available. Rotations take a
+quint and a nonnegative construction-time integer count. No builtin aliases.
+
+Classical measured values cannot drive construction-time loops, indices, array
+sizes, or rotation counts. V1 supports them in comparisons/Boolean combinations
+for feedforward and in returned results. General arithmetic on measured values
+is deferred. Quantum if bodies cannot change their predicate dependencies.
+
+Measurement is allowed in main outside if bodies; helpers remain measurement-free.
+An expanded construction-time loop may include measurement when it is in main
+and outside an if body; allocate distinct snapshot bits for each expanded occurrence.
+No observation-driven loops, conditional measurement, or hidden measurement.
+
+## Configuration and encodings
+
+`qutes.toml` contains a single `[qutes]` table. Keys match CompilerConfig fields:
+quint_bits, alphabet, qustring_capacity, max_simulation_qubits,
+max_loop_iterations, max_evaluation_steps. Overrides take priority. Unknown keys
+or invalid values are errors. Settings are part of every build's identity.
+
+Integers encode modulo 2**width and decode with the high bit as sign. Alphabet
+codes follow configuration order. Unused codes are invalid. String storage is
+fixed-capacity, padded with code zero, with a separate construction-time logical
+length. Empty strings are distinct from strings containing the first alphabet
+character. Nonzero padding is an internal invariant failure, not user text.
+
+Arrays have fixed construction-time length, one dimension, no quantum indexing,
+and value-copy assignment. foreach is a read-only view, not a per-iteration copy.
+The only property is `.Length`. Shape-changing dynamic branches are rejected.
+
+## Storage and measurement boundaries
+
+Expression evaluation uses pre-assignment values. Distinct source/target addition
+is reversible; aliased doubling is not interchangeable with it. Track dependencies
+and source versions before choosing storage reuse. Reject unsafe overwrites.
+
+Scratch temporaries must be cleaned and disentangled before reuse. A known inverse
+of a temporary computation is not by itself evidence that it is safe after its
+inputs change or are measured. A measurement cut invalidates such assumptions;
+analysis must establish a valid schedule or reject the program.
+
+Every measurement snapshot has a separate logical identity. Two measurements of
+the same unchanged register agree in an ideal execution. Evolving it afterward
+does not retroactively change the earlier snapshot. Later operations use its
+post-measurement state; correlated values are handled as part of the joint state.
+
+## Stable diagnostic categories reserved for the checker
+
+These codes express intended failures; parser/typing/cleanup support is tracked
+separately. Diagnostics include path, one-based line/column, and a concise reason.
+
+| Code | Meaning |
+| --- | --- |
+| Q1001 | Invalid token, escape, literal, or unterminated comment/string |
+| Q1002 | Unexpected token or missing syntactic element |
+| Q2001 | Invalid types, literal range, conversion, or unsupported operation |
+| Q2002 | Invalid name, duplicate definition, builtin collision, or recursion |
+| Q2003 | Wrong stage for loop/index/allocation/rotation |
+| Q2004 | Forbidden effect: readonly parameter, measurement in helper/branch, predicate dependency mutation |
+| Q2005 | Invalid return or entry-point contract |
+| Q3001 | Cleanup cannot be established, unsafe overwrite, or invalid overlap |
+| Q4001 | Construction budget, bounds, or resource limit exceeded |
+
+See `tests/acceptance/cases.json` for source examples with expected categories.
+The corpus is a target contract; until the checker exists, semantic-negative cases
+must still parse successfully and must not be marked as semantically verified.

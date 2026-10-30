@@ -1,0 +1,42 @@
+(* Qutes 0.1 working grammar. Semantics may reject syntactically valid constructs. *)
+program = { function } ;
+function = type, identifier, "(", [ parameters ], ")", block ;
+parameters = parameter, { ",", parameter } ;
+parameter = type, identifier ;
+type = type_name, [ "[", "]" ] ;
+type_name = "bool" | "int" | "char" | "string" | "void"
+          | "qubit" | "quint" | "quchar" | "qustring" ;
+block = "{", { statement }, "}" ;
+statement = block | declaration, ";" | simple, ";" | if_statement
+          | while_statement | for_statement | foreach_statement
+          | "return", [ expression ], ";" ;
+declaration = type, identifier, "=", expression ;
+simple = expression, [ ( "=" | "+=" | "-=" ), expression | "++" | "--" ] ;
+if_statement = "if", "(", expression, ")", block, [ "else", ( block | if_statement ) ] ;
+while_statement = "while", "(", expression, ")", block ;
+for_statement = "for", "(", [ declaration | simple ], ";",
+                [ expression ], ";", [ simple ], ")", block ;
+foreach_statement = "foreach", "(", type, identifier, "in", expression, ")", block ;
+expression = logical_or ;
+logical_or = logical_and, { "||", logical_and } ;
+logical_and = equality, { "&&", equality } ;
+equality = comparison, { ( "==" | "!=" ), comparison } ;
+comparison = addition, { ( "<" | "<=" | ">" | ">=" ), addition } ;
+addition = multiplication, { ( "+" | "-" ), multiplication } ;
+multiplication = unary, { ( "*" | "/" | "%" ), unary } ;
+unary = ( "!" | "-" | "+" ), unary | postfix ;
+postfix = primary, { "(", [ arguments ], ")" | "[", expression, "]" | ".", identifier } ;
+arguments = expression, { ",", expression } ;
+primary = integer | string | character | "true" | "false" | identifier
+        | "(", expression, ")" | "[", [ arguments ], "]"
+        | "new", type_name, "[", expression, "]" ;
+(* ASCII identifiers: [A-Za-z_][A-Za-z0-9_]*. Decimal integers only.
+   // line comments; non-nesting /* block comments */.
+   UTF-8 source, optional initial BOM. Strings/characters cannot contain raw newlines.
+   Escapes: \\, \", \', \n, \r, \t, \0, \uXXXX (scalar values only).
+   Character literals contain exactly one Unicode scalar, after escape decoding.
+   Operators are left-associative except unary; no assignment expressions.
+   Braces required for every branch/loop body. No empty statement or trailing comma.
+   The grammar permits a broad postfix shape; typing restricts calls to named
+   functions/builtins and members to .Length. No methods or nested arrays in V1.
+*)

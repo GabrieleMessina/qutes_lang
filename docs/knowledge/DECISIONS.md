@@ -18,6 +18,10 @@ Date of initial register: 2026-10-30. Status is explicit to avoid inventing appr
 | D012 | Implementation / start authorization | Proceed with documented defaults and automated specification checks. Record evidence; do not claim separate human review. Material intent changes require discussion. |
 | D013 | Implementation | Python 3.13 environment already available with Qiskit 2.3.0/Aer 0.17.2. Verify this pair before claiming compatibility; do not upgrade global packages. |
 | D014 | Accepted / user | Local Git history, commits for coherent completed work, not every edit. No remote/push requested. |
+| D015 | Implementation / working syntax | Require braces for branch/loop bodies; bracket array literals; ASCII identifiers and UTF-8 text; no assignment expressions. Concrete grammar is in docs/spec. |
+| D016 | Implementation / reproducibility | Validate the existing pinned environment without changing global packages. Use tools/check.py with workspace-local temporary directories because the host's default pytest temp directory is inaccessible. |
+| D017 | Implementation / semantic default | Classical integer division truncates toward zero; remainder follows the dividend. Logical strings use code-zero padding and a distinct known length. |
+| D018 | Implementation / scope | Backend probes and the independent test oracle are experiments, not a compiler backend or automatic-cleanup engine. Acceptance manifest checks do not claim semantic execution. |
 
 All updates add or amend a decision here and explain the change in LEDGER. Earlier
 conversation examples suggesting measurement consumption are superseded by D007.

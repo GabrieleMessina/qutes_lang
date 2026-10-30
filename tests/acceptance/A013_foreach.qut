@@ -1,0 +1,1 @@
+int main() { quint[] values = [1, 2, 3]; quint total = 0; foreach (quint value in values) { total += value; } return measure(total); }

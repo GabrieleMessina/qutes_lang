@@ -1,0 +1,1 @@
+int main() { quint number = 5 return measure(number); }
