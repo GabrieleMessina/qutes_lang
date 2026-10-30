@@ -91,3 +91,30 @@ entry IDs; do not rewrite history to hide failures.
   files; reread the actual README and applied smaller verified edits.
 - No design input is currently required. Next: bounded construction-time evaluator
   and user-function elaboration, then dependency/version-based cleanup synthesis.
+
+## KB-005 — 2026-10-30 — Bounded construction and function inlining
+
+- Committed KB-004 as e94314a. Continued the full active goal without a new design
+  blocker; the next work is storage/version cleanup, not project completion.
+- Added a bounded partial evaluator over typed IR. Classical operations execute;
+  loops expand globally within budgets; helper calls inline with fresh local
+  symbols. Quantum operations and runtime measurement snapshots remain symbolic.
+- Added scope/ownership handoff annotations and explicit moves for owned helper
+  results. These annotations are obligations for the cleanup pass, not proof that
+  local quantum information can be discarded.
+- All 17 positive source examples construct. Added input/range/bounds checks,
+  dynamic shape validation, immutable classical array copies, early returns,
+  distinct per-iteration storage, snapshot preservation, and deterministic IR.
+- Review found compound indexed assignment could evaluate an index helper multiple
+  times; fixed evaluation-once behavior and added a regression. Temporary quantum
+  foreach arrays are now materialized once before borrowing elements.
+- Review found quantum foreach aliases could bypass predicate-input protection.
+  Propagated borrowed collection dependencies in the checker; added regression.
+- Added configurable max_classical_bits (65536 default), which diagnoses resource
+  excess without wrapping classical integers. Array allocation charges the step
+  budget before allocating host memory.
+- Added developer construct command with JSON inputs/IR, and construction IR docs.
+  An initial documentation patch missed README context and made no changes; read
+  the actual text and reapplied the patch successfully.
+- Full suite: 216 passed (V005). Quantum cleanup synthesis, source-to-Qiskit output,
+  runtime result decoding, and release verification remain outstanding.

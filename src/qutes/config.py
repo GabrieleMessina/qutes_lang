@@ -23,11 +23,12 @@ class CompilerConfig:
     max_simulation_qubits: int = 24
     max_loop_iterations: int = 10_000
     max_evaluation_steps: int = 100_000
+    max_classical_bits: int = 65_536
 
     def __post_init__(self) -> None:
         for name in (
             "quint_bits", "qustring_capacity", "max_simulation_qubits",
-            "max_loop_iterations", "max_evaluation_steps",
+            "max_loop_iterations", "max_evaluation_steps", "max_classical_bits",
         ):
             value = getattr(self, name)
             if type(value) is not int or value < 1:

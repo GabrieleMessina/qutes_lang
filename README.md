@@ -76,3 +76,14 @@ whose types, staging, or quantum cleanup will later be rejected. The `check`,
 file. It validates names, types, execution stages, effects, and known shapes.
 It deliberately does not claim quantum cleanup or complete construction-time
 validation. Full `check`/`build`/`run` commands still await those passes.
+
+## Inspect circuit construction
+
+```powershell
+& C:\ProgramData\anaconda3\python.exe tools/qutes.py construct tests/acceptance/A011_for.qut --quint-bits 4 --json
+```
+
+`construct` expands classical loops and inlines helpers, while preserving quantum
+operations and measurement results symbolically. Use `--inputs FILE` for a JSON
+object matching classical main parameters. This intermediate result is not yet
+a verified circuit: automatic cleanup and Qiskit generation are still pending.

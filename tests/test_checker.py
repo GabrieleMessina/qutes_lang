@@ -84,6 +84,7 @@ def test_readonly_and_lexical_scopes():
     rejects("int main() { int[] a=[1]; foreach(int x in a) { x++; } return 0; }", "Q2004")
     check("int main() { int a=1; { int a=2; } return a; }")
     rejects("int main() { { int a=2; } return a; }", "Q2002")
+    rejects("int main() { qubit[] bits=[true,false]; foreach(qubit bit in bits) { if(bit) { bits[0]=false; } } return 0; }", "Q2004")
 
 
 def test_measurement_does_not_consume_and_preserves_stages():

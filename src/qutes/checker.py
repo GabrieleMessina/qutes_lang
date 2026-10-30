@@ -20,6 +20,7 @@ class Binding:
     known: bool = False
     value: Any = None
     shape: int | None = None
+    alias_dependencies: frozenset[int] = frozenset()
 
 
 def _walk(node):
@@ -175,13 +176,13 @@ class Checker:
                 return scope[name]
         self.fail("Q2002", f"unknown variable {name!r}", node)
 
-    def declare(self, name, type_, expression, node, readonly=False):
+    def declare(self, name, type_, expression, node, readonly=False, alias_dependencies=frozenset()):
         if name in self.scopes[-1] or name in self.functions or name in set(Builtin):
             self.fail("Q2002", f"duplicate or reserved variable name {name!r}", node)
         symbol = ir.Symbol(self.sequence, name, type_, readonly, node.span)
         self.sequence += 1
         self.scopes[-1][name] = Binding(symbol, expression.stage, expression.known,
-                                      expression.value, expression.shape)
+                                      expression.value, expression.shape, alias_dependencies)
         return symbol
 
     def snapshot(self):
@@ -210,7 +211,7 @@ class Checker:
             binding = self.binding(node.identifier, node)
             result = ir.Expression(node.span, binding.symbol.type, binding.stage, "load",
                                    value=binding.value, symbol=binding.symbol, known=binding.known,
-                                   shape=binding.shape, dependencies=frozenset({binding.symbol.id}))
+                                   shape=binding.shape, dependencies=frozenset({binding.symbol.id}) | binding.alias_dependencies)
         elif isinstance(node, ast.Unary):
             operand = self.expression(node.operand)
             operator = node.operator
@@ -519,7 +520,8 @@ class Checker:
             self.invalidate_loop_constants()
             with self.scope():
                 element = ir.Expression(node.span, type_, collection.stage, "element")
-                symbol = self.declare(node.name, type_, element, node, readonly=True)
+                symbol = self.declare(node.name, type_, element, node, readonly=True,
+                                      alias_dependencies=collection.dependencies)
                 body = self.block(node.body)
             self.invalidate_loop_constants()
             return ir.Statement(node.span, "foreach", (collection,), (body,), symbol=symbol), False

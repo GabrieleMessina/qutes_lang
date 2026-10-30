@@ -65,7 +65,7 @@ No observation-driven loops, conditional measurement, or hidden measurement.
 
 `qutes.toml` contains a single `[qutes]` table. Keys match CompilerConfig fields:
 quint_bits, alphabet, qustring_capacity, max_simulation_qubits,
-max_loop_iterations, max_evaluation_steps. Overrides take priority. Unknown keys
+max_loop_iterations, max_evaluation_steps, max_classical_bits. Overrides take priority. Unknown keys
 or invalid values are errors. Settings are part of every build's identity.
 
 Integers encode modulo 2**width and decode with the high bit as sign. Alphabet
@@ -103,6 +103,7 @@ separately. Diagnostics include path, one-based line/column, and a concise reaso
 | --- | --- |
 | Q0001 | Cannot read a source file as UTF-8 |
 | Q0002 | Invalid or unreadable build configuration |
+| Q0003 | Invalid or unreadable classical input JSON file |
 | Q1001 | Invalid token, escape, literal, or unterminated comment/string |
 | Q1002 | Unexpected token or missing syntactic element |
 | Q2001 | Invalid types, literal range, conversion, or unsupported operation |
@@ -141,3 +142,13 @@ this is an analysis optimization limit, not a semantic integer-width limit.
 Semantic traversal has the configured evaluation-step budget; call nesting is
 bounded at 64 to avoid host recursion failure. The construction pass has its own
 budget and must validate deferred ranges, bounds, and cleanup.
+
+## Construction implementation
+
+The bounded evaluator expands classical loops, specializes actual main inputs,
+and inlines helpers while keeping quantum values symbolic. See
+[construction-ir.md](construction-ir.md) for the downstream storage/cleanup contract.
+Memory limits diagnose oversized classical integers instead of wrapping them.
+`max_classical_bits` defaults to 65,536 and is configurable independently of quint
+width. Loop iterations are counted globally, including nested loops and helpers.
+Construction still does not prove cleanup or generate a Qiskit program.

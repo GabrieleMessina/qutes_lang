@@ -10,8 +10,8 @@ Status vocabulary: TODO, ACTIVE, DONE, BLOCKED. A task is DONE only with evidenc
 | T004 | DONE | Independent small-state reference semantics and Qiskit probes: addition, rotation, correlation, predicate cleanup, repeated measurement, classical feedforward, signed/text decoding. | T002, T003 |
 | T005 | DONE | Parser and source spans; parse positive/semantic-negative corpus, reject lexical/syntactic errors; no backend work in parser. | T002, T004 |
 | T006 | DONE | Name resolution, type/stage checking, structured typed IR, readonly parameters, coherent-condition restrictions, explicit unsupported diagnostics. | T005 |
-| T007 | ACTIVE | Bounded classical evaluator and user-function inlining with source mapping. | T006 |
-| T008 | TODO | Dependency/version model, cleanup synthesizer, and arithmetic lowering with full-state verification. | T004, T006 |
+| T007 | DONE | Bounded classical evaluator and user-function inlining with source mapping. | T006 |
+| T008 | ACTIVE | Dependency/version model, cleanup synthesizer, and arithmetic lowering with full-state verification. | T004, T006 |
 | T009 | TODO | Integrate coherent branches, functions, and construction-time loops. | T007, T008 |
 | T010 | TODO | Arrays/text/configuration integrated with lifetime analysis. | T009 |
 | T011 | TODO | Non-consuming measurement, snapshots, feedforward, results decoding, Qiskit emitter. | T010 |
@@ -27,3 +27,5 @@ Evidence for T002-T004: KB-002 / V002, 37 passing tests. This is the initial aut
 Evidence for T005: KB-003 / V003, 102 passing tests total; all 33 corpus cases checked for syntax. T006 is the next unblocked task, not started. No semantic acceptance or source execution is claimed.
 
 T006 evidence: KB-004 / V004, 173 passing tests. T007 is next; typed analysis deliberately leaves Q3001 cleanup obligations for the later pass.
+
+T007 evidence: KB-005 / V005, 216 tests. T008 is next: scoped dependency/version cleanup and circuit lowering. T009-T012 remain pending integration/release; construction alone does not satisfy them.

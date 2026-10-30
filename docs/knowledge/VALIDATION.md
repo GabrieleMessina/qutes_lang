@@ -61,3 +61,21 @@ coherent predicate dependencies, stage changes inside loops, runtime helper
 specialization, branch shape merges, integer conversions, short-circuiting,
 classical division conventions, deterministic IR, and analysis CLI/config handling.
 This does NOT establish source execution, circuit construction, or automatic cleanup.
+
+## V005 — 2026-10-30 — Bounded symbolic construction
+
+Command: `& C:\ProgramData\anaconda3\python.exe tools/check.py -q`.
+Result: **216 passed**, 63 external IBM-runtime deprecation warnings, 6.39 seconds.
+Artifacts: `artifacts/checks/run-ugle3txd/results.xml` and `environment.json`.
+
+New coverage: all 17 positive examples construct, pure classical functions/loops
+execute, calls/loops disappear from executable construction bodies, early returns,
+readonly borrow aliases, fresh local identities, helper ownership moves, classical
+array copying, retained measurement snapshots, input shape/range errors, global
+loop/step/memory budgets, dynamic shape joins, indexed helper evaluation once,
+quantum foreach materialization once, and construction CLI JSON inputs.
+
+Limits: symbolic construction does not prove physical correctness of storage
+reuse, automatic uncomputation, branch cleanup, or measurement boundaries. No
+source-generated Qiskit circuit executes yet. Existing manually constructed
+backend probes remain the only circuit-level evidence.

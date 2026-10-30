@@ -9,6 +9,7 @@ from qutes import __version__
 from qutes import ir
 from qutes.checker import analyze
 from qutes.config import CompilerConfig
+from qutes.construction import construct
 from qutes.diagnostics import DiagnosticError, Position, Span
 from qutes.parser import parse
 from qutes.syntax import to_dict
@@ -26,13 +27,20 @@ def main(arguments: list[str] | None = None) -> int:
     analysis.add_argument("--json", action="store_true", help="emit typed IR or structured diagnostics")
     analysis.add_argument("--config", type=Path, help="explicit qutes.toml project configuration")
     analysis.add_argument("--quint-bits", type=int, help="override the configured quantum integer width")
+    construction = commands.add_parser("construct", help="expand classical work and inline calls; cleanup is not yet checked")
+    construction.add_argument("source", type=Path)
+    construction.add_argument("--json", action="store_true", help="emit construction IR or structured diagnostics")
+    construction.add_argument("--config", type=Path)
+    construction.add_argument("--quint-bits", type=int)
+    construction.add_argument("--inputs", type=Path, help="JSON object containing classical main arguments")
     options = parser.parse_args(arguments)
     try:
         with options.source.open(encoding="utf-8", newline="") as stream:
             source = stream.read()
         program = parse(source, str(options.source))
         typed = None
-        if options.command == "analyze":
+        constructed = None
+        if options.command in {"analyze", "construct"}:
             overrides = {} if options.quint_bits is None else {"quint_bits": options.quint_bits}
             try:
                 config = CompilerConfig.load(options.config, overrides) if options.config else CompilerConfig.resolve(overrides=overrides)
@@ -41,6 +49,16 @@ def main(arguments: list[str] | None = None) -> int:
                 raise DiagnosticError("Q0002", f"invalid configuration: {error}",
                                       Span(str(options.config or "<options>"), point, point)) from None
             typed = analyze(program, config)
+            if options.command == "construct":
+                inputs = {}
+                if options.inputs:
+                    try:
+                        inputs = json.loads(options.inputs.read_text(encoding="utf-8"))
+                    except (OSError, UnicodeError, ValueError) as error:
+                        point = Position(0, 1, 1)
+                        raise DiagnosticError("Q0003", f"invalid input file: {error}",
+                                              Span(str(options.inputs), point, point)) from None
+                constructed = construct(typed, inputs)
     except DiagnosticError as error:
         if options.json:
             print(json.dumps({"diagnostics": [error.to_dict()]}, ensure_ascii=True))
@@ -55,7 +73,13 @@ def main(arguments: list[str] | None = None) -> int:
         else:
             print(f"{options.source}: Q0001: {message}", file=sys.stderr)
         return 1
-    if typed is not None:
+    if constructed is not None:
+        if options.json:
+            print(json.dumps({"stage": "construction", "program": ir.to_dict(constructed)}, ensure_ascii=True))
+        else:
+            print(f"Construction OK: {constructed.loop_iterations} expanded iterations; "
+                  "quantum cleanup has NOT been verified.")
+    elif typed is not None:
         if options.json:
             print(json.dumps({"stage": "types-stages-effects", "program": ir.to_dict(typed)}, ensure_ascii=True))
         else:

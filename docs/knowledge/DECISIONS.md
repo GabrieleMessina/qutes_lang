@@ -35,3 +35,12 @@ conversation examples suggesting measurement consumption are superseded by D007.
   predicates can use helpers without permitting deferred runtime arithmetic.
 - D023 (implementation): retain original read-only parameter defaults; do not
   interpret the user's withdrawn evolution proposal as authorization for mut/ref.
+
+- D024 (implementation): foreach is a borrowed element view, so quantum predicate
+  protection includes its backing collection, not just the iteration name.
+- D025 (implementation): construction emits scoped, call-free/loop-free symbolic
+  IR with explicit owned-result moves. Scope annotations do not waive cleanup.
+- D026 (implementation): global construction budgets include allocation element
+  counts; max_classical_bits=65536 is configurable and errors instead of wrapping.
+- D027 (implementation): expose developer `construct` with explicit cleanup-not-
+  verified status. Full build/run commands wait for verified lowering.
