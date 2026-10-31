@@ -3,7 +3,8 @@
 `lowering.lower(constructed_program)` connects construction IR to versioned
 storage, cleanup schedules, backend-independent gates, and result descriptors.
 `Program.to_qiskit()` emits a QuantumCircuit. This is an API available from a
-checkout/install; full command-line build/run tooling is still pending.
+checkout/install. The public `qutes.compiler.compile_source` API and
+check/build/run/explain commands compose these passes; see [the guide](../guide.md).
 
 ```python
 from qutes.checker import analyze
@@ -60,9 +61,10 @@ their intended category through the complete applicable pipeline. Additional
 source tests verify full complex states, local scratch, nested arithmetic,
 function ownership, measurement checkpoints, and explicit unsafe cleanup errors.
 
-## Pending integration
+## Resource and delivery boundaries
 
-Allocation reuse, resource reporting, program serialization, and CLI execution remain pending.
+Physical wire reuse remains deferred; reports count all reserved wires. Delivery
+now includes deterministic Python artifacts, resource reports, and bounded Aer execution.
 Unsupported lowering produces a source-located diagnostic; it is never ignored.
 The core lowering API does not by itself satisfy release readiness.
 

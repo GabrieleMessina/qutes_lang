@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 
 from qutes.config import validate_alphabet
+from qutes.serialization import integer_text
 
 
 def _integer(value: int, name: str) -> None:
@@ -34,7 +35,7 @@ class SignedInteger:
     def encode(self, value: int) -> int:
         _integer(value, "value")
         if not self.minimum <= value <= self.maximum:
-            raise ValueError(f"{value} is outside {self.minimum}..{self.maximum}")
+            raise ValueError(f"{integer_text(value)} is outside {integer_text(self.minimum)}..{integer_text(self.maximum)}")
         return value % self.modulus
 
     def decode(self, bits: int) -> int:

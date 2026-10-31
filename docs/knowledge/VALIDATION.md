@@ -182,3 +182,76 @@ diagnostics, anonymous measured/unobserved roots, and hidden-root escape rejecti
 
 No CLI/build artifact, clean-install, Linux, hardware, or complete release evidence
 is claimed yet. T012 must validate those delivery requirements separately.
+
+## V011 — 2026-10-31 — Delivery, clean installation, and V1 audit
+
+Final full suites:
+
+- Windows: `& .\.venv\Scripts\python.exe tools/check.py -q` — **577 passed**,
+  no warnings, 29.83 seconds. Artifacts: `artifacts/checks/run-o9kdw90c`.
+- Debian/WSL: `artifacts/linux-venv/bin/python tools/check.py -q` from the mounted
+  workspace — **577 passed**, no warnings, 36.90 seconds. Artifacts:
+  `artifacts/checks/run-w6545yxc`.
+
+Both use Python 3.13.5, Qiskit 2.3.0, Aer 0.17.2, NumPy 2.1.3, pytest 8.3.4,
+and the corrected requirements-dev.lock, including psutil 7.0.0. The environments
+were created inside the workspace without system/user-site packages. No global
+package changes. Linux platform is Debian glibc 2.41 under WSL2 kernel 6.6.87.2.
+
+Packaging and installed API checks (run with the corresponding environment Python):
+
+```text
+python -m pip install --only-binary=:all: -r requirements-dev.lock
+python -m pip wheel --no-build-isolation --no-deps . -w dist
+python -m pip install --no-index --no-deps --force-reinstall dist/qutes_lang-0.1.0.dev0-py3-none-any.whl
+python -I tools/verify_install.py
+python -m pip check
+```
+
+Windows and Linux installed-wheel smoke checks pass. The checker verifies the
+imported module belongs to the isolated installation, invokes the public CLI with
+isolated Python imports from a different working directory, and executes generated
+Python with new inputs. Evidence: `artifacts/installation/windows.json` and
+`linux.json`. Both dependency checks report no broken requirements. The wheel is
+pure Python; final code wheel SHA256:
+`5152f42594e06341878c2bd51ab93b40a91c10d94d2f961c5a22425d131a2246`.
+Documentation-only source-package updates do not change the tested compiler code.
+The source distribution also builds a wheel with `pip wheel --no-build-isolation
+--no-deps dist/qutes_lang-0.1.0.dev0.tar.gz -w artifacts/sdist-wheel`. An archive
+inventory check confirms the guide, examples, acceptance cases, independent backend
+probes, smoke checker, and CI are included, with no environment/artifact/Git files.
+Both wheels match all 24 current compiler Python source files byte for byte.
+
+A separate Windows `artifacts/core-venv` contains only pip and qutes-lang. Its
+isolated `python -m qutes check` and `build` commands succeed without the backend;
+`run --json` returns Q5001 with installation guidance. Main parameter type checks
+distinguish bool/float from int even when Python compares their values as equal.
+
+New delivery coverage: all 17 accepted source cases execute from generated Python;
+seven guide examples execute; mutable snapshots retain their old values; signed
+arrays preserve ordering; generated input changes rebuild sizes/loops; deterministic
+artifacts include guarded cleanup and embedded source; overwrite protection preserves
+user files; missing backends and backend failures have diagnostics; preflight and
+post-transpile guards prevent oversized simulation. Large classical integers round-
+trip without global Python digit-limit changes, including explicitly raised memory
+budgets. The test oracle remains independent of backend gate expansion.
+
+Attempts and corrections:
+
+- Initial integration: 565 passed on the original host (run-4l_y7mpa), with 121
+  external plugin warnings. Clean environments eliminate those unrelated warnings.
+- A JSON-depth regression initially expected the host recursion limit to reject
+  2,000 nested arrays (run-tg7h0zgo). Added a deterministic 512-level input bound;
+  targeted checks and final suites pass.
+- venv ensurepip failed in the host's unwritable temp folder; task-local TEMP/TMP
+  under artifacts/install-temp fixed it. Restricted DNS required normal approved
+  network access for package downloads.
+- The original psutil 5.9.0 pin required unavailable MSVC on Python 3.13. Changed
+  to the wheel-backed 7.0.0 pin, then completed fresh Windows and Linux installs.
+- Earlier clean suites (575 Windows / 576 Linux) preceded the final deterministic
+  and raised-integer-budget regressions; the 577-test runs supersede them.
+
+The complete requirement audit is docs/release-audit.md. Python 3.12 is configured
+in the Windows/Linux CI matrix, but was not run locally. Hosted CI has not run;
+there is no remote. No hardware, noisy simulation, public release, independent
+human review, or formal proof of arbitrary programs is claimed.

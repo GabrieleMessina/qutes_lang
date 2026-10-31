@@ -15,7 +15,7 @@ Status vocabulary: TODO, ACTIVE, DONE, BLOCKED. A task is DONE only with evidenc
 | T009 | DONE | Integrate coherent branches, functions, and construction-time loops. | T007, T008 |
 | T010 | DONE | Arrays/text/configuration integrated with lifetime analysis. | T009 |
 | T011 | DONE | Non-consuming measurement, snapshots, feedforward, results decoding, Qiskit emitter. | T010 |
-| T012 | ACTIVE | CLI build/run/explain, packaging, resource limits, documentation, CI/release evidence. | T011 |
+| T012 | DONE | CLI check/build/run/explain, generated modules, packaging, resource limits, documentation, CI/release evidence. | T011 |
 
 M1 readiness requires T002-T004 plus a review of unresolved limitations. A passing
 probe is evidence of backend feasibility, not proof of general automatic cleanup.
@@ -55,3 +55,13 @@ signed/text/Boolean runtime predicates, immutable snapshots, mixed controls, gua
 overwrite, and anonymous temporary cleanup have independent semantic evidence.
 T012 ACTIVE. Full goal remains incomplete until generated-module/API/CLI/release
 requirements are implemented and audited, not merely the example corpus.
+
+T012 completed at KB-011 / V011: 577 tests pass in each of clean Windows and Linux
+Python 3.13.5 environments. Generated modules execute the complete corpus and
+respecialize new inputs. Installed-wheel/entrypoint checks, core-only installation,
+resource guards, documentation/examples, source package, and requirement audit are
+complete. A Python 3.12/3.13 Windows/Linux CI matrix is included but has not run on
+hosted infrastructure; no remote exists. See docs/release-audit.md for exact limits.
+
+All V1 tasks are DONE. The hybrid/hardware/editor roadmap is future scope and
+requires a new task; do not label it implicitly implemented by the current APIs.

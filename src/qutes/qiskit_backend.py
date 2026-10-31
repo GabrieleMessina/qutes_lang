@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import replace
-
+from qutes.backend_ops import applications
 from qutes.gates import Gate, Measurement
 
 
@@ -36,78 +35,33 @@ def classical_expression(predicate, circuit):
 def append_gate(circuit, operation: Gate):
     from qiskit.circuit.library import HGate, ModularAdderGate, SwapGate, XGate
 
-    if operation.conditions:
+    if operation.conditions or operation.classical_controls:
+        from dataclasses import replace
         from qiskit.circuit.classical import expr
-        condition, expected = operation.conditions[0]
-        test = classical_expression(condition, circuit)
-        with circuit.if_test(test if expected else expr.logic_not(test)):
-            append_gate(circuit, replace(operation, conditions=operation.conditions[1:]))
+        tests = [(classical_expression(condition, circuit), expected) for condition, expected in operation.conditions]
+        tests.extend((expr.lift(circuit.clbits[bit]), expected) for bit, expected in operation.classical_controls)
+        tests = [test if expected else expr.logic_not(test) for test, expected in tests]
+        while len(tests) > 1:
+            tests = [expr.logic_and(tests[i], tests[i + 1]) if i + 1 < len(tests) else tests[i]
+                     for i in range(0, len(tests), 2)]
+        with circuit.if_test(tests[0]):
+            append_gate(circuit, replace(operation, conditions=(), classical_controls=()))
         return
 
-    if operation.classical_controls:
-        bit, value = operation.classical_controls[0]
-        with circuit.if_test((circuit.clbits[bit], int(value))):
-            append_gate(circuit, replace(operation, classical_controls=operation.classical_controls[1:]))
-        return
-
-    controls = tuple(bit for bit, _ in operation.controls)
-    state = sum(int(value) << index for index, (_, value) in enumerate(operation.controls))
-
-    def append(gate, bits, *, extra_controls=()):
-        # Input bits may also be global controls. Elementary copy gates can merge
-        # those controls; whole-register addition uses a decomposed constant sum
-        # when that overlap occurs, avoiding duplicate Qiskit operands.
-        merged = dict(operation.controls)
-        for bit in extra_controls:
-            if bit in merged and not merged[bit]:
-                return
-            merged[bit] = True
-        pairs = tuple(merged.items())
-        if pairs:
-            encoded = sum(int(value) << index for index, (_, value) in enumerate(pairs))
-            gate = gate.control(len(pairs), ctrl_state=encoded, annotated=False)
-        circuit.append(gate, [*(bit for bit, _ in pairs), *bits])
-
-    def constant(amount, extra_controls=()):
-        amount %= 1 << len(operation.targets)
-        for offset in range(len(operation.targets)):
-            if (amount >> offset) & 1:
-                for index in reversed(range(offset + 1, len(operation.targets))):
-                    append(XGate(), (operation.targets[index],),
-                           extra_controls=(*extra_controls, *operation.targets[offset:index]))
-                append(XGate(), (operation.targets[offset],), extra_controls=extra_controls)
-
-    kind = operation.kind
-    if kind in {"x", "h"}:
-        for target in operation.targets:
-            append(XGate() if kind == "x" else HGate(), (target,))
-    elif kind == "copy":
-        for source, target in zip(operation.inputs, operation.targets):
-            append(XGate(), (target,), extra_controls=(source,))
-    elif kind == "add_constant":
-        constant(-operation.amount if operation.inverse else operation.amount)
-    elif kind == "add":
-        if set(controls) & set(operation.inputs):
-            for index, source in enumerate(operation.inputs):
-                constant(-(1 << index) if operation.inverse else 1 << index, (source,))
-        else:
-            gate = ModularAdderGate(len(operation.targets))
-            if operation.inverse:
+    for application in applications(operation):
+        if application.kind == "add":
+            gate = ModularAdderGate(len(application.targets))
+            if application.inverse:
                 gate = gate.inverse()
-            if controls:
-                gate = gate.control(len(controls), ctrl_state=state, annotated=False)
-            circuit.append(gate, [*controls, *operation.inputs, *operation.targets])
-    elif kind == "rotate":
-        count = (-operation.amount if operation.inverse else operation.amount) % len(operation.targets)
-        for _ in range(count):
-            for index in range(1, len(operation.targets)):
-                append(SwapGate(), (operation.targets[0], operation.targets[index]))
-    else:
-        raise ValueError(f"unsupported operation {kind}")
+        else:
+            gate = {"x": XGate, "h": HGate, "swap": SwapGate}[application.kind]()
+        if application.controls:
+            gate = gate.control(len(application.controls), ctrl_state=application.control_state, annotated=False)
+        circuit.append(gate, application.qubits)
 
 
 def emit_gates(qubit_count: int, operations: tuple[Gate, ...] | list[Gate]):
-    """Emit a coherent circuit; this is not yet the full source-program emitter."""
+    """Emit a measurement-free circuit; emit_operations handles full schedules."""
     from qiskit import QuantumCircuit
 
     circuit = QuantumCircuit(qubit_count)

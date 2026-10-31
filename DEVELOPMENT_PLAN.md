@@ -1,8 +1,9 @@
 # Qutes development plan
 
-Updated: 2026-10-30
+Updated: 2026-10-31
 
-Status: implementation started with the specification and feasibility milestone.
+Status: V1 research implementation completed at KB-011; see the
+[release audit](docs/release-audit.md) for requirement coverage and evidence.
 This document supersedes the earlier conversational plan where they differ.
 See [current status](docs/knowledge/STATUS.md) for implemented capabilities and
 [the ledger](docs/knowledge/LEDGER.md) for progress; roadmap items are not claims
@@ -71,6 +72,8 @@ in the specification before implementing a different behavior.
   Default quantum string capacity: 2 characters.
 - Default simulator qubit limit: 24, configurable. Generation of larger circuits
   is allowed; local execution checks limits before simulation.
+- Default maximum shots per local run: 1,000,000, configurable. Report reserved
+  wires and pre-decomposition gate costs; check qubit limits again after transpilation.
 - Default total loop-expansion limit: 10,000 iterations per build, plus a bounded
   evaluator step budget so construction cannot hang outside loop accounting.
 - Array literals use `[1, 2, 3]`; sized construction uses `new quint[3]`.

@@ -1,0 +1,47 @@
+name: Compiler and package checks
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.12", "3.13"]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+          cache-dependency-path: requirements-dev.lock
+      - name: Install pinned dependencies
+        run: python -m pip install --only-binary=:all: -r requirements-dev.lock
+      - name: Build wheel
+        run: python -m pip wheel --no-build-isolation --no-deps . -w dist
+      - name: Install wheel
+        run: python -m pip install --no-deps dist/qutes_lang-0.1.0.dev0-py3-none-any.whl
+      - name: Verify installed entry point and generated artifacts
+        run: python -I tools/verify_install.py
+      - name: Verify dependency consistency
+        run: python -m pip check
+      - name: Run semantic and integration tests
+        run: python tools/check.py -q
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: validation-${{ matrix.os }}-${{ matrix.python }}
+          path: |
+            artifacts/checks/*/results.xml
+            artifacts/checks/*/environment.json
+            artifacts/installation/*.json

@@ -93,3 +93,21 @@ conversation examples suggesting measurement consumption are superseded by D007.
 - D043 (ownership correction): only explicitly named main quantum values survive
   to shot end. Anonymous helper results and computed arguments remain temporaries
   and must be cleaned, or receive a dependency diagnostic if cleanup is impossible.
+- D044 (delivery): generated Python embeds source, effective config, inputs, result
+  layout and metadata. The bound circuit is readable Qiskit; new input bindings
+  recompile the source using the installed Qutes runtime. Canonical JSON comparison
+  distinguishes Boolean/float inputs from integers. No silent frozen specialization.
+- D045 (resource defaults): cap shots per call at 1,000,000, configurable. Check
+  reserved qubit limits before backend construction and again after transpilation.
+  Compilation/generation can exceed the simulation limit, subject to construction
+  budgets. Cost reports are pre-decomposition estimates, not device gate counts.
+- D046 (delivery): CLI configuration discovery reads source-adjacent qutes.toml
+  only; explicit config and then CLI overrides take precedence. Python APIs use
+  explicit settings. Artifact replacement is atomic and protects the source file.
+- D047 (execution): programs with no measurement have a known classical output;
+  run returns that result with backend classical-output and executes no simulator.
+  Generated modules depend on Qutes plus the optional backend, rather than pretending
+  that a static Qiskit-only file can specialize arbitrary new classical inputs.
+- D048 (packaging): replace psutil 5.9.0 with 7.0.0 in the reproducibility pins.
+  The clean Python 3.13 Windows install proved 5.9.0 requires unavailable C++ build
+  tools. 7.0.0 provides a compatible wheel. No global packages are changed.

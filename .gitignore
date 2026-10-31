@@ -8,5 +8,6 @@ __pycache__/
 build/
 dist/
 artifacts/
+*.qiskit.py
 .coverage
 htmlcov/

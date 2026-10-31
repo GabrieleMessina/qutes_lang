@@ -1,91 +1,152 @@
-"""Developer commands expose each implemented analysis stage honestly."""
+"""Public delivery commands and explicit intermediate compiler views."""
 
 import argparse
-import json
 from pathlib import Path
 import sys
 
-from qutes import __version__
-from qutes import ir
+from qutes import __version__, ir
 from qutes.checker import analyze
+from qutes.codegen import write_python
+from qutes.compiler import compile_source
 from qutes.config import CompilerConfig
 from qutes.construction import construct
 from qutes.diagnostics import DiagnosticError, Position, Span
 from qutes.parser import parse
+from qutes.serialization import json_text, load_json
 from qutes.syntax import to_dict
 
 
-def main(arguments: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog="qutes", description="Qutes compiler foundation")
+def diagnostic(code, message, path):
+    point = Position(0, 1, 1)
+    return DiagnosticError(code, message, Span(str(path), point, point))
+
+
+def configuration(options):
+    path = options.config
+    if path is None:
+        adjacent = options.source.parent / "qutes.toml"
+        if adjacent.is_file():
+            path = adjacent
+    overrides = {key: getattr(options, key) for key in CompilerConfig.__dataclass_fields__
+                 if getattr(options, key, None) is not None}
+    try:
+        return CompilerConfig.load(path, overrides) if path else CompilerConfig.resolve(overrides=overrides)
+    except (OSError, ValueError) as error:
+        raise diagnostic("Q0002", f"invalid configuration: {error}", path or "<options>") from None
+
+
+def input_values(options):
+    path = getattr(options, "inputs", None)
+    if path is None:
+        return {}
+    try:
+        return load_json(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError) as error:
+        raise diagnostic("Q0003", f"invalid input file: {error}", path) from None
+
+
+def argument_parser():
+    parser = argparse.ArgumentParser(prog="qutes", description="Compile and run high-level quantum programs")
     parser.add_argument("--version", action="version", version=__version__)
     commands = parser.add_subparsers(dest="command", required=True)
-    syntax = commands.add_parser("parse", help="parse syntax; does not check types or quantum safety")
-    syntax.add_argument("source", type=Path)
-    syntax.add_argument("--json", action="store_true", help="emit a syntax tree or structured diagnostics")
-    analysis = commands.add_parser("analyze", help="check names/types/stages/effects; cleanup is not yet checked")
-    analysis.add_argument("source", type=Path)
-    analysis.add_argument("--json", action="store_true", help="emit typed IR or structured diagnostics")
-    analysis.add_argument("--config", type=Path, help="explicit qutes.toml project configuration")
-    analysis.add_argument("--quint-bits", type=int, help="override the configured quantum integer width")
-    construction = commands.add_parser("construct", help="expand classical work and inline calls; cleanup is not yet checked")
-    construction.add_argument("source", type=Path)
-    construction.add_argument("--json", action="store_true", help="emit construction IR or structured diagnostics")
-    construction.add_argument("--config", type=Path)
-    construction.add_argument("--quint-bits", type=int)
-    construction.add_argument("--inputs", type=Path, help="JSON object containing classical main arguments")
-    options = parser.parse_args(arguments)
+    descriptions = {
+        "check": "validate types, staging, resource bounds, and automatic cleanup",
+        "build": "write a readable Qiskit Python module",
+        "run": "execute on the local simulator and decode results",
+        "explain": "show allocations, cleanup, snapshots, and resource estimates",
+        "parse": "parse syntax only; does not check types or quantum safety",
+        "analyze": "check names/types/stages/effects; does not verify cleanup",
+        "construct": "expand classical work and inline calls; does not verify cleanup",
+    }
+    for command, description in descriptions.items():
+        sub = commands.add_parser(command, help=description)
+        sub.add_argument("source", type=Path)
+        sub.add_argument("--json", action="store_true", help="emit structured results or diagnostics")
+        if command != "parse":
+            sub.add_argument("--config", type=Path, help="explicit config; otherwise read source-adjacent qutes.toml")
+            for key in CompilerConfig.__dataclass_fields__:
+                flag = "--max-qubits" if key == "max_simulation_qubits" else "--" + key.replace("_", "-")
+                sub.add_argument(flag, dest=key, type=str if key == "alphabet" else int, help=f"override {key}")
+        if command not in {"parse", "analyze"}:
+            sub.add_argument("--inputs", type=Path, help="JSON object containing classical main arguments")
+        if command == "build":
+            sub.add_argument("-o", "--output", type=Path, help="output module; default: SOURCE.qiskit.py")
+            sub.add_argument("--force", action="store_true", help="replace an existing non-generated output file")
+        if command == "run":
+            sub.add_argument("--shots", type=int, default=1024)
+            sub.add_argument("--seed", type=int)
+    return parser
+
+
+def explain(metadata):
+    cost = metadata["resources"]
+    print(f"Qutes {metadata['compiler_version']}; language {metadata['language_version']}")
+    print(f"Build: {metadata['build_sha256']}")
+    print(f"Reserved qubits: {cost['allocated_qubits']} (including {cost['cleaned_qubits_at_end']} cleaned; wires are not reused)")
+    print(f"Snapshot bits: {cost['classical_bits']}; cleanup events: {cost['cleanup_events']}")
+    print(f"Gate applications: {cost['gate_applications']}; library adders: {cost['library_adders']} (before backend decomposition)")
+    estimate = cost["statevector_bytes"]
+    print(f"Statevector storage alone: {estimate if estimate is not None else '2^' + str(cost['statevector_bytes_power_of_two'])} bytes; backend overhead is additional")
+    print(f"Simulation limit: {cost['simulation_limit_qubits']} qubits; within limit: {cost['simulation_within_limit']}")
+    print("Inputs are construction-time values; quantum conditions stay coherent; measured conditions use snapshots.")
+    for allocation in metadata["allocations"]:
+        status = "cleaned" if allocation["released"] else "live at shot end"
+        print(f"  {allocation['name']}: wires {allocation['bits']}, {status}")
+    print(f"Result layout: {json_text(metadata['result_layout'])}")
+
+
+def main(arguments: list[str] | None = None) -> int:
+    options = argument_parser().parse_args(arguments)
     try:
-        with options.source.open(encoding="utf-8", newline="") as stream:
-            source = stream.read()
-        program = parse(source, str(options.source))
-        typed = None
-        constructed = None
-        if options.command in {"analyze", "construct"}:
-            overrides = {} if options.quint_bits is None else {"quint_bits": options.quint_bits}
-            try:
-                config = CompilerConfig.load(options.config, overrides) if options.config else CompilerConfig.resolve(overrides=overrides)
-            except (OSError, ValueError) as error:
-                point = Position(0, 1, 1)
-                raise DiagnosticError("Q0002", f"invalid configuration: {error}",
-                                      Span(str(options.config or "<options>"), point, point)) from None
-            typed = analyze(program, config)
-            if options.command == "construct":
-                inputs = {}
-                if options.inputs:
-                    try:
-                        inputs = json.loads(options.inputs.read_text(encoding="utf-8"))
-                    except (OSError, UnicodeError, ValueError) as error:
-                        point = Position(0, 1, 1)
-                        raise DiagnosticError("Q0003", f"invalid input file: {error}",
-                                              Span(str(options.inputs), point, point)) from None
-                constructed = construct(typed, inputs)
+        try:
+            with options.source.open(encoding="utf-8", newline="") as stream:
+                source = stream.read()
+        except (OSError, UnicodeError) as error:
+            raise diagnostic("Q0001", f"cannot read UTF-8 source: {error}", options.source) from None
+        if options.command in {"parse", "analyze", "construct"}:
+            syntax = parse(source, str(options.source))
+            if options.command == "parse":
+                payload = {"stage": "syntax-only", "program": to_dict(syntax)}
+                message = f"Syntax OK: {len(syntax.functions)} function(s). Types and quantum safety have NOT been checked."
+            else:
+                typed = analyze(syntax, configuration(options))
+                if options.command == "analyze":
+                    payload = {"stage": "types-stages-effects", "program": ir.to_dict(typed)}
+                    message = "Analysis OK: names, types, stages, and effects. Quantum cleanup and build-time bounds have NOT been verified."
+                else:
+                    constructed = construct(typed, input_values(options))
+                    payload = {"stage": "construction", "program": ir.to_dict(constructed)}
+                    message = f"Construction OK: {constructed.loop_iterations} expanded iterations; quantum cleanup has NOT been verified."
+            print(json_text(payload) if options.json else message)
+            return 0
+
+        compilation = compile_source(source, path=str(options.source), inputs=input_values(options), config=configuration(options))
+        metadata = compilation.metadata
+        if options.command == "run":
+            payload = compilation.run(shots=options.shots, seed=options.seed)
+            if options.json:
+                print(json_text(payload))
+            else:
+                print(f"{payload['execution']['shots']} shots; {payload['execution']['backend']}")
+                for outcome in payload["outcomes"]:
+                    print(f"{json_text(outcome['value'])}: {outcome['count']} ({outcome['probability']:.1%})")
+        elif options.command == "build":
+            output = options.output or options.source.with_suffix(".qiskit.py")
+            write_python(compilation, output, force=options.force)
+            payload = {"stage": "build", "output": str(output), "metadata": metadata}
+            print(json_text(payload) if options.json else f"Built {output}; {metadata['resources']['allocated_qubits']} reserved qubits.")
+        elif options.command == "explain":
+            if options.json:
+                print(json_text(metadata))
+            else:
+                explain(metadata)
+        else:
+            payload = {"stage": "checked", "cleanup_verified": True, "metadata": metadata}
+            print(json_text(payload) if options.json else "Check OK: types, staging, construction bounds, and automatic cleanup verified.")
+        return 0
     except DiagnosticError as error:
         if options.json:
-            print(json.dumps({"diagnostics": [error.to_dict()]}, ensure_ascii=True))
+            print(json_text({"diagnostics": [error.to_dict()]}))
         else:
             print(error, file=sys.stderr)
         return 1
-    except (OSError, UnicodeError) as error:
-        message = f"cannot read UTF-8 source: {error}"
-        if options.json:
-            print(json.dumps({"diagnostics": [{"code": "Q0001", "message": message,
-                                               "path": str(options.source)}]}))
-        else:
-            print(f"{options.source}: Q0001: {message}", file=sys.stderr)
-        return 1
-    if constructed is not None:
-        if options.json:
-            print(json.dumps({"stage": "construction", "program": ir.to_dict(constructed)}, ensure_ascii=True))
-        else:
-            print(f"Construction OK: {constructed.loop_iterations} expanded iterations; "
-                  "quantum cleanup has NOT been verified.")
-    elif typed is not None:
-        if options.json:
-            print(json.dumps({"stage": "types-stages-effects", "program": ir.to_dict(typed)}, ensure_ascii=True))
-        else:
-            print("Analysis OK: names, types, stages, and effects. Quantum cleanup and build-time bounds have NOT been verified.")
-    elif options.json:
-        print(json.dumps({"stage": "syntax-only", "program": to_dict(program)}, ensure_ascii=True))
-    else:
-        print(f"Syntax OK: {len(program.functions)} function(s). Types and quantum safety have NOT been checked.")
-    return 0

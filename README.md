@@ -1,97 +1,88 @@
 # Qutes
 
-A high-level, strongly typed quantum language with C#-inspired syntax and a
-Qiskit backend. The compiler lowers quantum values, arrays, text, and coherent
-branches through automatic cleanup to executable Qiskit circuits, including
-measurement-driven conditions. Full CLI execution and release tooling remain
-under development.
+A strongly typed quantum language with compact C#-inspired syntax, automatic
+uncomputation, and a Qiskit backend. The first research implementation supports
+quantum integers, bits, characters, strings, arrays, functions, ordinary assignment,
+coherent branches, construction-time loops, and non-consuming measurement.
 
 ```csharp
-int main() {
+int[] main() {
     quint number = 5;
     int before = measure(number);
     number = number + 2;
-    return measure(number);
+    return [before, measure(number)];
 }
 ```
 
-This program is covered by source-to-circuit tests and returns 7. Measurement leaves `number` usable; `before`
-remains a snapshot of 5. `measure` and `superposition` are working builtin names.
+This returns `[5,7]`. Measurement leaves `number` available; `before` remains a
+snapshot. `measure` and `superposition` are the current builtin spellings.
 
-## Start here
+## Getting started
 
-- [Knowledge base / handoff](docs/knowledge/README.md)
-- [Current status](docs/knowledge/STATUS.md)
-- [Task queue](docs/knowledge/TASKS.md)
-- [Development plan](DEVELOPMENT_PLAN.md)
-- [Contributor instructions](AGENTS.md)
-
-## Development and validation
-
-Python 3.12+ is the target; Python 3.13.5 on Windows is the currently exercised
-environment. To prepare a fresh isolated environment:
+Use Python 3.12 or 3.13 and an isolated environment. Windows PowerShell:
 
 ```powershell
 python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements-dev.lock
-.\.venv\Scripts\python.exe -m pip install --no-build-isolation --no-deps -e .
-.\.venv\Scripts\python.exe tools/check.py -q
+.\.venv\Scripts\python.exe -m pip install ".[backend]"
+.\.venv\Scripts\qutes.exe check examples/snapshots.qut
+.\.venv\Scripts\qutes.exe run examples/snapshots.qut --shots 32 --seed 7
+.\.venv\Scripts\qutes.exe explain examples/snapshots.qut
+.\.venv\Scripts\qutes.exe build examples/snapshots.qut -o snapshots.qiskit.py
 ```
 
-The pins describe the tested installed packages. A clean install and Linux support
-still need verification. No global package installation is required.
+On Linux use `.venv/bin/python` and `.venv/bin/qutes`. `python -m qutes` also works.
+Core installation without `[backend]` supports checking and Python generation;
+execution requires Qiskit/Aer. The tested backend pins are Qiskit 2.3.0, Aer 0.17.2,
+and NumPy 2.1.3.
 
-In the current workspace, a working existing interpreter is available:
+- [User guide and generated-module API](docs/guide.md)
+- [Runnable examples](examples/)
+- [Language contract](docs/spec/language-v0.1.md) and [grammar](docs/spec/grammar.ebnf)
+- [Knowledge base and handoff](docs/knowledge/README.md)
+- [Current status and validation limits](docs/knowledge/STATUS.md)
+- [V1 release audit](docs/release-audit.md)
+- [Development plan](DEVELOPMENT_PLAN.md)
 
-```powershell
-& C:\ProgramData\anaconda3\python.exe tools/check.py -q
+## Boundaries
+
+V1 runs on a local ideal simulator. Hybrid multi-job pipelines, measurement-driven
+loops, general runtime arithmetic, hardware jobs, and a large algorithm library
+belong to later milestones. Some cleanup dependency patterns are conservatively
+rejected with a source diagnostic. No hidden measurement/reset substitutes for
+uncomputation. Cleaned wires remain reserved and are included in resource reports.
+
+Quantum values are not unrestricted classical mutable values: copying correlates
+basis values, quantum branches preserve coherence, and unsafe erasure is rejected.
+See the guide for the rules and examples. These primitives alone do not imply a
+quantum speedup.
+
+## Development and verification
+
+Inside an activated virtual environment:
+
+```text
+python -m pip install -r requirements-dev.lock
+python -m pip install --no-build-isolation --no-deps -e .
+python tools/check.py -q
 ```
 
-The runner disables unrelated pytest plugins, puts temporary files inside ignored
-`artifacts/checks/`, and records a JUnit report and environment metadata for each
-run. Backend probes compare full states with an independent small-state model.
-Separate source/cleanup tests now exercise compiler-generated circuits as well.
+`tools/qutes.py` runs the checkout CLI without installation. `parse`, `analyze`,
+and `construct` expose intermediate representations and explicitly do not claim
+complete validation. Use `check` for the full compilation path.
 
-## Try the syntax parser
+The test runner disables unrelated pytest plugins and stores JUnit/environment
+evidence in ignored `artifacts/checks/`. Tests include an independent small-state
+oracle, full complex-state comparisons, measurement branches, signed arithmetic,
+cleanup histories, generated Python execution, and every acceptance example.
 
-```powershell
-& C:\ProgramData\anaconda3\python.exe tools/qutes.py parse tests/acceptance/A004_snapshots.qut
-& C:\ProgramData\anaconda3\python.exe tools/qutes.py parse tests/acceptance/A004_snapshots.qut --json
+To verify an installed wheel independently of checkout import paths:
+
+```text
+python -m pip wheel --no-build-isolation --no-deps . -w dist
+python -m pip install --no-deps --force-reinstall dist/qutes_lang-0.1.0.dev0-py3-none-any.whl
+python -I tools/verify_install.py
 ```
 
-After installation the equivalent command is `qutes parse FILE [--json]`.
-This checks **syntax only**. It intentionally accepts syntactically valid programs
-whose types, staging, or quantum cleanup will later be rejected. The `check`,
-`build`, `run`, and `explain` commands are not implemented yet.
-
-- [Working language contract](docs/spec/language-v0.1.md)
-- [Grammar](docs/spec/grammar.ebnf)
-- [Source acceptance inventory](tests/acceptance/cases.json)
-
-## Analyze types and execution stages
-
-```powershell
-& C:\ProgramData\anaconda3\python.exe tools/qutes.py analyze tests/acceptance/A004_snapshots.qut --quint-bits 4
-```
-
-`analyze` accepts `--json` for typed IR and `--config FILE` for a project settings
-file. It validates names, types, execution stages, effects, and known shapes.
-It deliberately does not claim quantum cleanup or complete construction-time
-validation. Full `check`/`build`/`run` commands still await those passes.
-
-## Inspect circuit construction
-
-```powershell
-& C:\ProgramData\anaconda3\python.exe tools/qutes.py construct tests/acceptance/A011_for.qut --quint-bits 4 --json
-```
-
-`construct` expands classical loops and inlines helpers, while preserving quantum
-operations and measurement results symbolically. Use `--inputs FILE` for a JSON
-object matching classical main parameters. This intermediate result is not yet
-a verified circuit; use the [lowering API](docs/spec/lowering.md) for the currently
-supported subset and Qiskit emission.
-
-The [versioned cleanup scheduler](docs/spec/cleanup-scheduling.md) and reversible
-gate adapter have full-state tests for arithmetic, changed inputs, dependency
-recomputation, and rejected unsafe cleanup. Measurement checkpoints preserve
-post-measurement evolution and snapshots. Full language integration remains pending.
+The knowledge base records exact environments, failed attempts, evidence, and
+remaining work. Follow [AGENTS.md](AGENTS.md) before changing code. Local commits
+capture coherent implementation checkpoints; no remote publication is implied.

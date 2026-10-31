@@ -123,7 +123,8 @@ class Lexer:
                 while self.index < len(self.source) and self.source[self.index] in "0123456789":
                     self.advance()
                 try:
-                    value = int(self.source[start.offset:self.index])
+                    from qutes.serialization import parse_integer
+                    value = parse_integer(self.source[start.offset:self.index])
                 except ValueError:
                     raise self.error("integer literal exceeds parser limits", start) from None
                 kind = "INT"

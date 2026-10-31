@@ -21,13 +21,14 @@ class CompilerConfig:
     alphabet: str = "".join(chr(code) for code in range(128))
     qustring_capacity: int = 2
     max_simulation_qubits: int = 24
+    max_simulation_shots: int = 1_000_000
     max_loop_iterations: int = 10_000
     max_evaluation_steps: int = 100_000
     max_classical_bits: int = 65_536
 
     def __post_init__(self) -> None:
         for name in (
-            "quint_bits", "qustring_capacity", "max_simulation_qubits",
+            "quint_bits", "qustring_capacity", "max_simulation_qubits", "max_simulation_shots",
             "max_loop_iterations", "max_evaluation_steps", "max_classical_bits",
         ):
             value = getattr(self, name)

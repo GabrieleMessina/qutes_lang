@@ -19,7 +19,8 @@ only construction-time classical arguments and returns classical data or void.
 Return on all required paths and unsupported quantum-conditional returns are
 semantic checks. Bare return is permitted only for void functions.
 
-Parser implementation limits: at most 64 nested parsing contexts and 128 syntax
+Parser implementation limits: at most 100,000 digits per integer token (Q1001),
+64 nested parsing contexts and 128 syntax
 tree edges from the root. Overly deep source is a Q1002 diagnostic, never a raw
 recursion error. Offsets count source Unicode code points, end positions are
 exclusive, and lines/columns start at one. CRLF is one line break; a leading BOM
@@ -68,9 +69,12 @@ instead. Construction-time short-circuiting can skip an observation normally.
 ## Configuration and encodings
 
 `qutes.toml` contains a single `[qutes]` table. Keys match CompilerConfig fields:
-quint_bits, alphabet, qustring_capacity, max_simulation_qubits,
+quint_bits, alphabet, qustring_capacity, max_simulation_qubits, max_simulation_shots,
 max_loop_iterations, max_evaluation_steps, max_classical_bits. Overrides take priority. Unknown keys
 or invalid values are errors. Settings are part of every build's identity.
+External input JSON has a 100,000-digit integer-token limit and a 512-level nesting
+limit before type validation. Compiler-authored embedded artifact integers instead
+honor the configured classical memory bound; global Python digit settings are unchanged.
 
 Integers encode modulo 2**width and decode with the high bit as sign. Alphabet
 codes follow configuration order. Unused codes are invalid. String storage is
@@ -108,6 +112,7 @@ separately. Diagnostics include path, one-based line/column, and a concise reaso
 | Q0001 | Cannot read a source file as UTF-8 |
 | Q0002 | Invalid or unreadable build configuration |
 | Q0003 | Invalid or unreadable classical input JSON file |
+| Q0004 | Artifact output failure or refused overwrite |
 | Q1001 | Invalid token, escape, literal, or unterminated comment/string |
 | Q1002 | Unexpected token or missing syntactic element |
 | Q2001 | Invalid types, literal range, conversion, or unsupported operation |
@@ -117,6 +122,8 @@ separately. Diagnostics include path, one-based line/column, and a concise reaso
 | Q2005 | Invalid return or entry-point contract |
 | Q3001 | Cleanup cannot be established, unsafe overwrite, or invalid overlap |
 | Q4001 | Construction budget, bounds, or resource limit exceeded |
+| Q5001 | Optional Qiskit/Aer dependency unavailable |
+| Q5002 | Backend circuit construction or execution failure |
 
 See `tests/acceptance/cases.json` for source examples with expected categories.
 The corpus is a target contract. Type/stage/effect failures now run through the
@@ -156,4 +163,6 @@ Memory limits diagnose oversized classical integers instead of wrapping them.
 `max_classical_bits` defaults to 65,536 and is configurable independently of quint
 width. Loop iterations are counted globally, including nested loops and helpers.
 Construction itself does not prove cleanup or generate a Qiskit program. The
-subsequent [lowering pass](lowering.md) now does so for the documented scalar subset.
+subsequent [lowering pass](lowering.md) does so for scalars, arrays, text, and both
+coherent and measured control flow. [Delivery interfaces](../guide.md) expose
+complete check/build/run/explain commands and generated-module APIs.

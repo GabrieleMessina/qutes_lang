@@ -1,0 +1,6 @@
+int[] main() {
+    quint number = 5;
+    int before = measure(number);
+    number = number + 2;
+    return [before, measure(number)];
+}

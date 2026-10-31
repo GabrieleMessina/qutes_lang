@@ -255,3 +255,54 @@ entry IDs; do not rewrite history to hide failures.
   remained intact. After the user resumed the goal and the indicated retry time
   passed, retry the ordinary approved Git path; do not bypass protected Git writes.
 - The resumed normal approval review succeeded; Git staging is available again.
+
+## KB-011 — 2026-10-31 — Delivery and installation
+
+- Committed KB-010 as 6b92ec4. Added public compilation/runtime APIs, complete CLI
+  check/build/run/explain, deterministic readable Python generation, embedded
+  metadata/result layouts, and new-input respecialization. Factored reversible gate
+  expansion so execution, generated Python, and cost reporting share one algorithm.
+- Added pre-simulation limits, post-transpile limit checks, shot/seed validation,
+  missing-backend/runtime diagnostics, safe atomic artifact writes, and source-file
+  protection. Classical-only observable outputs explicitly report no simulator run.
+- Added lossless large-integer JSON/source handling without changing Python's global
+  digit limit. A new depth test exposed that installed packages can alter the host's
+  recursion limit; JSON now has an explicit 512-level bound plus recursion handling.
+- Existing CLI/feedforward checks: 132 passed. Initial delivery suite: 36 passed.
+  Initial full run: 565 passed, 121 external warnings, run-4l_y7mpa. A later targeted
+  run had one JSON-depth test failure (run-tg7h0zgo), now fixed; three targeted checks
+  passed in run-g_dcctqy. Further example/runtime checks await the next full run.
+- One combined delete/add patch was rejected atomically; reapplied the CLI rewrite
+  as separate supported edits. No partial behavior was treated as validated.
+- Added a user guide, runnable examples, installed-wheel smoke checker, and a
+  Windows/Linux Python 3.12/3.13 CI matrix. No remote/push or hosted CI execution.
+- Windows venv ensurepip first failed because the host temp directory was not
+  writable. Project-local TEMP/TMP fixed setup. Restricted network DNS then blocked
+  dependency downloads; normal approval review permitted isolated installation.
+- Clean install found psutil 5.9.0 lacks a Python 3.13 Windows wheel and requires
+  unavailable C++ tools. Updated pin to 7.0.0 and retrying using wheels only. Existing
+  Debian Python 3.13.5 is available; created artifacts/linux-venv and installing
+  the same lock there. Docker daemon is unavailable; no service was started.
+- Current work: finish isolated installs, wheel/entrypoint smoke checks, both full
+  suites, coherent commit, and requirement audit. Goal remains active; no user
+  language-design decision is needed.
+- Completion of that work: clean Windows and Debian installs succeeded with the
+  corrected wheel-backed pins. Initial isolated suites passed 575 Windows / 576
+  Linux tests. Added deterministic guarded-artifact coverage and fixed embedded
+  metadata decoding to honor explicitly raised classical integer memory limits;
+  external JSON still has a bounded integer-token limit. Final suites: **577 passed
+  on each platform**, no warnings. Exact commands/artifacts are in V011.
+- Built/installed the wheel, checked isolated imports/entrypoints and generated
+  respecialization, and verified dependency consistency. A separate environment
+  with only pip and the core wheel checks/builds source; run reports Q5001 as intended.
+- Added source distribution manifest, including examples, docs, tests, independent
+  experiments, and CI. Package products/environments remain ignored. Reviewed the
+  complete V1 requirement table in docs/release-audit.md; future hybrid/hardware
+  scope is explicit. No public release, remote push, or human review is claimed.
+- T012 and the V1 plan are complete. This batch is one coherent delivery commit;
+  inspect Git log for its identifier. Keep named post-measurement values live and
+  retain ordinary assignment in any future revisions.
+- Built a wheel from the source distribution too; verified archive inventory and
+  exact byte equality of all 24 compiler modules in both wheels and the checkout.
+  Final documentation-only edits record this evidence and align the generated-module
+  tutorial's parameter example with the actual loops program.

@@ -79,8 +79,9 @@ expected states, with arbitrary entangled reference inputs. They cover changed
 inputs, multiple dependencies, released intermediate recomputation, overwrite,
 cyclic rejection, root ownership, controlled arithmetic, and zero scratch output.
 Exact projected-branch checks cover measurement cleanup and retained reference
-entanglement; Aer executes emitted dynamic circuits. Source coverage is currently
-the scalar subset, not the full language. See the current knowledge-base checkpoint.
+entanglement; Aer executes emitted dynamic circuits. Source integration also covers
+arrays, text, coherent conditions, and measured feedforward. See the current
+knowledge-base checkpoint for release evidence and conservative rejection cases.
 
 The distinction between basis computation and superposition preparation is informed
 by [Silq's documented qfree restrictions](https://silq.ethz.ch/documentation).
