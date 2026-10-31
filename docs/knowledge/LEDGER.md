@@ -197,3 +197,29 @@ entry IDs; do not rewrite history to hide failures.
   full suite: 377 passed (V008). No new design input is required.
 - T009 complete; T010 active for quantum arrays/text/layout/lifetime integration.
   Measured source feedforward and full CLI/release work still remain.
+
+## KB-009 — 2026-10-31 — Quantum arrays and text
+
+- Committed KB-008 as 6bde5d6. Added collection element storage and borrowed string
+  bit views to lowering, including indexed updates, correlated value copies,
+  whole-array replacement, foreach, empty arrays, and helper result ownership.
+- Added configured character/string encoding and snapshot decoding, padded storage
+  with separate logical lengths, length-aware equality, and retained text snapshots.
+  Indexed string observation measures a copied view and cleans it using that
+  explicit snapshot; it leaves the parent usable and adds no hidden measurement.
+- Resolved the construction gap for string-array element lengths, propagating them
+  through helpers, copies, updates, foreach views, branch joins, and measurements.
+  Branches must agree per element; same array length alone is insufficient.
+- Added unconditional array-permutation storage transfer without extra qubits.
+  Conditional replacements still use guarded cleanup and may reject unsafe cycles.
+- Added early type-width resource checks before huge integer encodings/padding and
+  per-allocation budget checks. Tests use a huge configured width to establish an
+  early diagnostic rather than actually allocating its physical bit tuple.
+- Initial collection run: 61 passed, one invalid two-bit test constant. Corrected
+  the test fixture. Full run then found a test assuming foreach over strings;
+  kept the specified array-only contract and tested indexed text in a for loop.
+  A failed documentation-context patch changed nothing and was reapplied correctly.
+- Final full suite: 405 passed (V009). A013-A017 now execute with exact expected
+  distributions; 16/17 positive examples have source circuit evidence.
+- T010 complete. T011 active for source feedforward, followed by full CLI/build/run,
+  serialization, resources, packaging, docs, CI, and release audit. Goal incomplete.

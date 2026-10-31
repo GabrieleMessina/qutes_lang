@@ -18,7 +18,7 @@ from tests.test_measurement_cleanup import branches_for
 pytestmark = pytest.mark.backend
 ROOT = Path(__file__).parent / "acceptance"
 CASES = json.loads((ROOT / "cases.json").read_text())["cases"]
-SCALAR_CASES = {"A001", "A002", "A003", "A004", "A005", "A006", "A008", "A009", "A010", "A011", "A012"}
+SUPPORTED_CASES = {case["id"] for case in CASES if case["expect"] == "accept" and case["id"] != "A007"}
 
 
 def compile_source(source, inputs=None, **settings):
@@ -35,8 +35,8 @@ def distribution(program):
     return probabilities
 
 
-@pytest.mark.parametrize("case", [case for case in CASES if case["id"] in SCALAR_CASES], ids=lambda case: case["id"])
-def test_scalar_source_corpus_has_exact_output_distribution(case):
+@pytest.mark.parametrize("case", [case for case in CASES if case["id"] in SUPPORTED_CASES], ids=lambda case: case["id"])
+def test_supported_source_corpus_has_exact_output_distribution(case):
     program = compile_source((ROOT / case["file"]).read_text(), **case.get("config", {}))
     assert program.cleanup_verified
     expected = {json.dumps(item["value"]): item["probability"] for item in case["outputs"]}

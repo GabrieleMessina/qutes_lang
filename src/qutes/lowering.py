@@ -1,8 +1,8 @@
 """Construction IR to verified circuit operations.
 
-Current integration covers scalar qubit/quint arithmetic, coherent predicates and
-branches, scopes, inlined helpers, expanded loops, and non-consuming measurement. Remaining source forms
-produce an explicit diagnostic until their lowering is implemented.
+Integration covers quantum scalar/array/text storage, arithmetic, coherent
+predicates and branches, scopes, helpers, loops, and non-consuming measurement.
+Source feedforward remains pending and receives an explicit diagnostic.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ from qutes.cleanup import CleanupEvent, Scheduler, Storage
 from qutes.config import CompilerConfig
 from qutes.diagnostics import DiagnosticError, Span
 from qutes.gates import Gate, Measurement, controlled
-from qutes.values import SignedInteger
+from qutes.values import EncodedString, SignedInteger, TextEncoding
 
 
 @dataclass(frozen=True)
@@ -25,6 +25,9 @@ class Result:
     arguments: tuple[Result, ...] = ()
     value: Any = None
     bits: tuple[int, ...] = ()
+    alphabet: str | None = None
+    length: int | None = None
+    capacity: int | None = None
 
     def decode(self, memory: int):
         if self.op == "literal":
@@ -35,6 +38,14 @@ class Result:
                 return bool(encoded)
             if self.type == ir.Type("int"):
                 return SignedInteger(len(self.bits)).decode(encoded)
+            if self.type.name in {"char", "string"}:
+                codec = TextEncoding(self.alphabet, self.capacity)
+                if self.type.name == "char":
+                    return codec.decode_character(encoded)
+                width = codec.bits_per_character
+                codes = tuple((encoded >> (index * width)) & ((1 << width) - 1)
+                              for index in range(self.capacity))
+                return codec.decode_string(EncodedString(codes, self.length))
             raise ValueError(f"unsupported snapshot type {self.type}")
         values = tuple(argument.decode(memory) for argument in self.arguments)
         if self.op == "array":
@@ -62,6 +73,25 @@ class Allocation:
 
 
 @dataclass(frozen=True)
+class Collection:
+    elements: tuple[Storage, ...]
+
+
+@dataclass(frozen=True)
+class View:
+    storage: Storage
+    bits: tuple[int, ...]
+
+
+def storage_ids(value):
+    if isinstance(value, Collection):
+        return {item.id for item in value.elements}
+    if isinstance(value, View):
+        return {value.storage.id}
+    return {value.id} if isinstance(value, Storage) else set()
+
+
+@dataclass(frozen=True)
 class Program:
     config: CompilerConfig
     operations: tuple[Gate | Measurement, ...]
@@ -82,23 +112,35 @@ class Lowerer:
         self.program = program
         self.config = program.typed.config
         self.scheduler = Scheduler(max_steps=self.config.max_evaluation_steps)
-        self.bindings: dict[int, Storage | Result] = {}
+        self.bindings: dict[int, Storage | Collection | Result] = {}
         self.frames: list[set[int]] = [set()]
         self.controls: tuple[tuple[int, bool], ...] = ()
+        self.lengths: dict[int, int] = {}
 
     def fail(self, node, message, code="Q2001"):
         raise DiagnosticError(code, message, node.span)
 
     def width(self, type_, node):
-        if type_.array or type_.name not in {"qubit", "quint"}:
+        if type_.array or not type_.quantum:
             self.fail(node, f"circuit lowering for {type_} is not implemented yet")
-        return 1 if type_.name == "qubit" else self.config.quint_bits
+        return {"qubit": 1, "quint": self.config.quint_bits,
+                "quchar": self.config.quchar_bits,
+                "qustring": self.config.quchar_bits * self.config.qustring_capacity}[type_.name]
 
     def reference(self, expression):
+        if expression.op == "index":
+            collection = self.reference(expression.arguments[0])
+            index = expression.arguments[1].value
+            if isinstance(collection, Collection):
+                return collection.elements[index]
+            if isinstance(collection, Storage) and expression.arguments[0].type.name == "qustring":
+                width = self.config.quchar_bits
+                return View(collection, collection.bits[index * width:(index + 1) * width])
+            self.fail(expression, "invalid quantum collection reference")
         if expression.op not in {"load", "move"}:
             self.fail(expression, f"circuit lowering for {expression.op} references is not implemented yet")
         value = self.bindings[expression.symbol.id]
-        if not isinstance(value, Storage) or value.released:
+        if not isinstance(value, (Storage, Collection)) or any(self.scheduler.storages[i].released for i in storage_ids(value)):
             self.fail(expression, "quantum storage is unavailable", "Q3001")
         return value
 
@@ -109,11 +151,33 @@ class Lowerer:
             return expression.value
         return None
 
-    def operand(self, expression):
+    def encoded_constant(self, expression):
+        value = self.constant(expression)
+        if value is None:
+            return None
+        if expression.type.name in {"quchar", "qustring"}:
+            codec = TextEncoding(self.config.alphabet, self.config.qustring_capacity)
+            if expression.type.name == "quchar":
+                return codec.encode_character(value)
+            encoded = codec.encode_string(value)
+            return sum(code << (index * codec.bits_per_character) for index, code in enumerate(encoded.codes))
+        return int(value)
+
+    def text_length(self, expression):
         value = self.constant(expression)
         if value is not None:
+            return len(value)
+        if expression.op in {"load", "move", "index"}:
+            return self.lengths[self.reference(expression).id]
+        if expression.shape is not None:
+            return expression.shape
+        self.fail(expression, "string length is not known during lowering", "Q2003")
+
+    def operand(self, expression):
+        value = self.encoded_constant(expression)
+        if value is not None:
             return int(value), ()
-        if expression.op in {"load", "move"}:
+        if expression.op in {"load", "move", "index"}:
             return self.reference(expression), ()
         value = self.create(expression, "$expression")
         return value, (value,)
@@ -133,12 +197,12 @@ class Lowerer:
 
     def preparation(self, expression, target):
         op = expression.op
-        constant = self.constant(expression)
+        constant = self.encoded_constant(expression)
         if constant is not None:
             return self.copy_gates(target, int(constant), expression.span), ()
         if op == "superposition":
             return (Gate("h", target.bits, span=expression.span),), ()
-        if op in {"load", "move"}:
+        if op in {"load", "move", "index"}:
             return self.copy_gates(target, self.reference(expression), expression.span), ()
         if op == "binary:+":
             a, a_temps = self.operand(expression.arguments[0])
@@ -176,6 +240,10 @@ class Lowerer:
         temporaries = a_temps + b_temps
         operator = expression.op[7:]
         gates = []
+
+        if expression.arguments[0].type.name == "qustring" and (
+                self.text_length(expression.arguments[0]) != self.text_length(expression.arguments[1])):
+            return ((Gate("x", target.bits, span=expression.span),) if operator == "!=" else ()), temporaries
 
         def test_bit(value, index, expected):
             return bool((value >> index) & 1) == expected if isinstance(value, int) else (value.bits[index], expected)
@@ -221,27 +289,62 @@ class Lowerer:
                 toggle(())
         return tuple(gates), temporaries
 
-    def create(self, expression, name):
-        width = self.width(expression.type, expression)
-        target = self.scheduler.allocate(width, name, expression.span)
+    def allocate(self, type_, name, node):
+        width = self.width(type_, node)
+        if width > self.config.max_evaluation_steps - self.scheduler.work:
+            self.fail(node, "quantum allocation exceeds the construction budget", "Q4001")
+        target = self.scheduler.allocate(width, name, node.span)
         self.scheduler.tick(target, width)
         self.frames[-1].add(target.id)
+        return target
+
+    def copy_value(self, source, type_, name, node):
+        if isinstance(source, Collection):
+            return Collection(tuple(self.copy_value(item, type_.element, f"{name}[{i}]", node)
+                                    for i, item in enumerate(source.elements)))
+        target = self.allocate(type_, name, node)
+        self.scheduler.initialize(target, self.gated(self.copy_gates(target, source, node.span)))
+        if type_.name == "qustring":
+            self.lengths[target.id] = self.lengths[source.id]
+        return target
+
+    def create(self, expression, name):
+        if expression.type.array:
+            if expression.op in {"load", "move"}:
+                return self.copy_value(self.reference(expression), expression.type, name, expression)
+            if expression.op == "array":
+                elements = expression.arguments
+            else:
+                if expression.op == "lift":
+                    values = expression.arguments[0].value
+                elif expression.op == "new_array":
+                    default = {"qubit": False, "quint": 0, "quchar": self.config.alphabet[0], "qustring": ""}[expression.type.name]
+                    values = (default,) * expression.shape
+                else:
+                    self.fail(expression, f"unsupported quantum array construction {expression.op}")
+                elements = tuple(ir.Expression(expression.span, expression.type.element, ir.Stage.QUANTUM, "lift",
+                    (ir.Expression(expression.span, expression.type.element.classical, ir.Stage.STATIC, "literal", value=value),),
+                    shape=len(value) if expression.type.name == "qustring" else None) for value in values)
+            return Collection(tuple(self.create(item, f"{name}[{i}]") for i, item in enumerate(elements)))
+        target = self.allocate(expression.type, name, expression)
         gates, temporaries = self.preparation(expression, target)
         self.scheduler.initialize(target, self.gated(gates))
+        if expression.type.name == "qustring":
+            self.lengths[target.id] = self.text_length(expression)
         self.release_temporaries(temporaries)
         return target
 
     def release_temporaries(self, temporaries):
-        self.scheduler.release_scope({value.id for value in temporaries})
+        self.scheduler.release_scope(set().union(*(storage_ids(value) for value in temporaries)))
 
     def contains(self, expression, target):
-        if expression.op in {"load", "move"} and expression.type.quantum:
+        if expression.op in {"load", "move", "index"} and expression.type.quantum:
             return self.reference(expression) is target
         return any(self.contains(argument, target) for argument in expression.arguments)
 
     def self_update(self, expression, target):
         op = expression.op
-        if op in {"load", "move"} and self.reference(expression) is target:
+        if op in {"load", "move", "index"} and self.reference(expression) is target:
             return (), ()
         if op == "binary:+":
             left, right = expression.arguments
@@ -258,6 +361,22 @@ class Lowerer:
             amount = expression.arguments[1].value * (-1 if op == "rotateRight" else 1)
             return gates + (Gate("rotate", target.bits, amount=amount, span=expression.span),), temporaries
         self.fail(expression, "assignment overlaps its input and has no supported reversible update; use a distinct result variable", "Q3001")
+
+    def measure_value(self, source, type_, expression):
+        if isinstance(source, Collection):
+            return Result(type_.classical, "array", tuple(self.measure_value(item, type_.element, expression)
+                                                         for item in source.elements))
+        temporary = None
+        if isinstance(source, View):
+            temporary = self.copy_value(source, type_, "$observed_element", expression)
+            source = temporary
+        measurement = self.scheduler.measure(source)
+        result = Result(type_.classical, "snapshot", bits=measurement.classical_bits,
+                        alphabet=self.config.alphabet if type_.name in {"quchar", "qustring"} else None,
+                        length=self.lengths.get(source.id), capacity=self.config.qustring_capacity)
+        if temporary is not None:
+            self.scheduler.release(temporary)
+        return result
 
     def runtime(self, expression):
         if expression is None:
@@ -277,8 +396,7 @@ class Lowerer:
                 expression = statement.expressions[0]
                 if expression.op == "measure":
                     source = self.reference(expression.arguments[0])
-                    measurement = self.scheduler.measure(source)
-                    value = Result(expression.type, "snapshot", bits=measurement.classical_bits)
+                    value = self.measure_value(source, expression.arguments[0].type, expression)
                 elif expression.op == "move":
                     value = self.reference(expression)
                 elif expression.type.quantum:
@@ -289,6 +407,26 @@ class Lowerer:
             elif op == "assign":
                 target_expression, expression = statement.expressions
                 target = self.reference(target_expression)
+                if isinstance(target, Collection):
+                    if expression.op in {"load", "move"} and self.reference(expression) is target:
+                        continue
+                    # An unconditional permutation can transfer the existing
+                    # element storage. Other value copies own different storage;
+                    # current index views resolve through this array binding.
+                    if not self.controls and expression.op == "array" and all(
+                            item.op in {"load", "move", "index"} for item in expression.arguments):
+                        reordered = tuple(self.reference(item) for item in expression.arguments)
+                        if (len(reordered) == len(target.elements) and all(isinstance(item, Storage) for item in reordered)
+                                and {item.id for item in reordered} == {item.id for item in target.elements}):
+                            self.bindings[target_expression.symbol.id] = Collection(reordered)
+                            continue
+                    replacement = self.create(expression, "$array_value")
+                    for old, new in zip(target.elements, replacement.elements, strict=True):
+                        self.scheduler.overwrite(old, self.copy_gates(old, new, expression.span), controls=self.controls)
+                        if expression.type.name == "qustring":
+                            self.lengths[old.id] = self.lengths[new.id]
+                    self.release_temporaries((replacement,))
+                    continue
                 if self.contains(expression, target):
                     gates, temporaries = self.self_update(expression, target)
                     if gates:
@@ -297,6 +435,8 @@ class Lowerer:
                     gates, temporaries = self.preparation(expression, target)
                     self.scheduler.overwrite(target, gates, controls=self.controls)
                 self.release_temporaries(temporaries)
+                if target_expression.type.name == "qustring":
+                    self.lengths[target.id] = self.text_length(expression)
             elif op == "scope":
                 self.frames.append(set())
                 self.block(statement.blocks[0])
@@ -305,8 +445,7 @@ class Lowerer:
                     # Nested return expressions can refer to more than one local.
                     for identifier in expression.dependencies:
                         value = self.bindings.get(identifier)
-                        if isinstance(value, Storage):
-                            escapes.add(value.id)
+                        escapes.update(storage_ids(value))
                 owned = self.frames.pop()
                 self.scheduler.release_scope(owned - escapes)
                 self.frames[-1].update(owned & escapes)
@@ -318,14 +457,23 @@ class Lowerer:
                 if not isinstance(predicate, Storage) or len(predicate.bits) != 1:
                     self.fail(condition, "quantum condition must occupy one qubit")
                 previous = self.controls
+                before_lengths = self.lengths.copy()
+                branch_lengths = []
                 try:
                     for block, expected in zip(statement.blocks, (True, False), strict=True):
+                        self.lengths = before_lengths.copy()
                         self.controls = (*previous, (predicate.bits[0], expected))
                         self.frames.append(set())
                         self.block(block)
                         self.scheduler.release_scope(self.frames.pop())
+                        branch_lengths.append(self.lengths.copy())
                 finally:
                     self.controls = previous
+                for identifier in before_lengths:
+                    a, b = (lengths[identifier] for lengths in branch_lengths)
+                    if a != b:
+                        self.fail(statement, "dynamic branches disagree on string length", "Q2004")
+                    self.lengths[identifier] = a
                 self.release_temporaries(temporaries)
             else:
                 self.fail(statement, f"circuit lowering for {op} statements is not implemented yet")

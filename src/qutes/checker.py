@@ -76,6 +76,11 @@ class Checker:
     def type(self, node: ast.TypeRef, allow_void=False) -> ir.Type:
         if node.name == "void" and (not allow_void or node.array):
             self.fail("Q2001", "void is only allowed as a scalar function return type", node)
+        quantum_width = {"qubit": 1, "quint": self.config.quint_bits,
+                         "quchar": self.config.quchar_bits,
+                         "qustring": self.config.quchar_bits * self.config.qustring_capacity}.get(node.name, 0)
+        if quantum_width > self.config.max_evaluation_steps:
+            self.fail("Q4001", "quantum type width exceeds the construction budget", node)
         return ir.Type(node.name, node.array)
 
     def run(self) -> ir.Program:

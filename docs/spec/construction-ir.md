@@ -1,6 +1,6 @@
 # Construction IR and ownership handoff
 
-Status: implemented construction pass; scalar cleanup/lowering are integrated. This is a
+Status: implemented construction pass; quantum scalar/collection lowering is integrated. This is a
 compiler interface, not new source syntax. `construct(typed_program, inputs)`
 expands classical work while leaving quantum/runtime values symbolic.
 

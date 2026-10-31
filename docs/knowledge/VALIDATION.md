@@ -141,3 +141,22 @@ derived values, branch-local cleanup after predicate inputs change, functions an
 loops inside controls, contradictory controls, and rejected unknown-root overwrite.
 A008/A009 now match the exact acceptance distributions. A007/A013-A017 remain
 pending. No hardware, clean-install, cross-platform, or full release claim.
+
+## V009 — 2026-10-31 — Quantum collections and text
+
+Command: `& C:\ProgramData\anaconda3\python.exe tools/check.py -q`.
+Result: **405 passed**, 65 external warnings, 9.83 seconds.
+Artifacts: `artifacts/checks/run-191pxd3d/results.xml` and `environment.json`.
+
+New evidence: A013-A017 exact source distributions; array copy/updates, correlated
+storage, whole-array replacement, conditional assignment, helper ownership, empty
+arrays, string-index observation, text snapshots, length-aware equality, coherent
+text assignments, string-array element length propagation, per-element branch
+joins, default empty strings, Unicode alphabets, self-permutation correlations,
+character views, local text cleanup, and early quantum type-width resource errors.
+
+Failed runs: run-ep9o5vq1 (invalid two-bit constant in a new fixture), run-p65z4ney
+(new test incorrectly assumed string foreach support). Corrected the tests to the
+existing contract; no acceptance requirement was removed. Physical-state tests
+verify correlations and cleaned local storage. A007 measured feedforward, full
+execution tooling, clean installation, Linux, and release audit remain pending.

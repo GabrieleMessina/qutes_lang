@@ -1,9 +1,9 @@
 # Qutes
 
 A high-level, strongly typed quantum language with C#-inspired syntax and a
-Qiskit backend. The compiler now lowers a scalar subset through automatic cleanup
-to executable Qiskit circuits, including coherent branches. Quantum collections and full CLI execution
-are still under development; this is not yet the complete language.
+Qiskit backend. The compiler lowers quantum values, arrays, text, and coherent
+branches through automatic cleanup to executable Qiskit circuits. Measured
+feedforward and full CLI execution are still under development.
 
 ```csharp
 int main() {
@@ -88,7 +88,7 @@ validation. Full `check`/`build`/`run` commands still await those passes.
 operations and measurement results symbolically. Use `--inputs FILE` for a JSON
 object matching classical main parameters. This intermediate result is not yet
 a verified circuit; use the [lowering API](docs/spec/lowering.md) for the currently
-supported scalar subset and Qiskit emission.
+supported subset and Qiskit emission.
 
 The [versioned cleanup scheduler](docs/spec/cleanup-scheduling.md) and reversible
 gate adapter have full-state tests for arithmetic, changed inputs, dependency

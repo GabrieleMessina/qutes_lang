@@ -1,13 +1,13 @@
 # Current status
 
-Updated: 2026-10-31, checkpoint KB-008. Full implementation goal remains active.
+Updated: 2026-10-31, checkpoint KB-009. Full implementation goal remains active.
 
 ## Completed capabilities
 
 - Local Git main, no remote. Checkpoints: a29edbf knowledge base; 4b8d3d8 contract /
   probes; 18d3d56 parser; e94314a typed frontend; 5ad3bae construction; 0cdd467
-  cleanup scheduler; 0115815 scalar lowering and measurement cuts. Current checkpoint
-  adds signed predicates and coherent branches.
+  cleanup scheduler; 0115815 scalar lowering/measurement cuts; 6bde5d6 coherent
+  branches. Current checkpoint adds quantum arrays/text and their lifetimes.
 - Parser, source diagnostics, typed IR, name/type/stage/effect analysis.
 - Bounded construction-time evaluator: classical inputs/functions/loops, inlining,
   fresh symbols, scopes, ownership moves, symbolic quantum operations and snapshots.
@@ -18,7 +18,9 @@ Updated: 2026-10-31, checkpoint KB-008. Full implementation goal remains active.
   helper ownership, expanded loops, explicit measurement snapshots and cleanup.
 - Signed comparisons, compound Boolean predicates, coherent if/else, conditional
   overwrite, nested controls, branch-local arithmetic and cleanup.
-- Latest full run: 377 passed (V008). Eleven positive source cases have exact output
+- Quantum arrays, indexing, foreach views, value copies, helper ownership, text
+  encoding/decoding, padded strings, element length tracking, collection snapshots.
+- Latest full run: 405 passed (V009). Sixteen positive source cases have exact output
   distribution checks; all negative cases have their expected diagnostics.
 
 ## Commands / environment
@@ -31,7 +33,7 @@ Updated: 2026-10-31, checkpoint KB-008. Full implementation goal remains active.
 Commands: parse (syntax), analyze (typed IR), construct (expanded symbolic IR).
 `--config FILE` and `--quint-bits N` apply to analysis/construction; construct also
 accepts `--inputs FILE` for a JSON main-argument object. Construction output is still
-explicitly unverified. Use lowering.lower(constructed).to_qiskit() for the scalar
+explicitly unverified. Use lowering.lower(constructed).to_qiskit() for the supported
 subset; docs/spec/lowering.md describes the API and boundaries.
 
 Python 3.13.5, Qiskit 2.3.0, Aer 0.17.2, NumPy 2.1.3, pytest 8.3.4 on Windows.
@@ -40,17 +42,19 @@ packages changed. Runner uses ignored workspace-local artifacts and Windows Pyth
 stream capture to avoid Aer native DLL failures under descriptor capture. Git writes need
 elevated Git calls; the user already authorized logical commits, not remote pushes.
 
-## Exact next task: T010
+## Exact next task: T011
 
-Read docs/spec/lowering.md and cleanup-scheduling.md. Integrate quantum arrays,
-quchar/qustring layout, indexing, foreach views, text length metadata, value copies,
-and lifetime handling. Scalar predicates and coherent branches are now integrated.
-Physical wires remain reserved after release; histories preserve source/control
-versions. Keep string logical length distinct from padded physical capacity.
+Read docs/spec/lowering.md and cleanup-scheduling.md. Add same-circuit feedforward
+for runtime comparisons/Boolean expressions. Gate guards need immutable snapshot
+expressions in addition to existing single-bit classical controls. Apply the guard
+to complete overwrite transformations and disable unconditional array-permutation
+rebinding inside classical conditional branches too. Preserve signed comparisons,
+out-of-range classical constants, text encoding/length semantics, and nested controls.
 
-Start with A013-A017 and add quantum collection copy/alias/branch tests beyond those
-examples. Resolve the pending string-array element length construction limitation.
-Then finish feedforward/result integration (T011) and release tooling (T012).
+Start with A007, then combined runtime predicates, mixed quantum/runtime nesting,
+snapshot updates, text/array branches, and generated-circuit execution. Existing
+measurement checkpoints and result codecs are integrated. Then add T012 CLI,
+serialization, resources, packaging, docs, CI, and complete release audit.
 R004 and R005 now fail correctly; never regress non-consuming measurement.
 
 Inspect worktree changes before resuming; active work may postdate this checkpoint.
@@ -60,14 +64,16 @@ Keep ledger/status/evidence current and commit coherent verified units.
 
 - Full check/build/run/explain are NOT implemented. Goal is NOT complete.
 - Construction is an intermediate representation, not executable Qiskit output.
-- Scalar coherent branches/predicates have source circuit evidence. Quantum
-  arrays/text, general feedforward/results, and physical reuse remain pending.
-- Positive corpus A001-A006/A008-A012 has exact distribution evidence; A007 and
-  A013-A017 await source integration. All 16 negative examples are diagnosed.
+- Source coherent branches/predicates and quantum arrays/text have circuit evidence.
+  General measured feedforward, execution tooling, and physical reuse remain pending.
+- Positive corpus A001-A006/A008-A017 has exact distribution evidence; A007 awaits
+  feedforward. All 16 negative examples are diagnosed.
 - Indirect measurement conservatively invalidates connected roots' preparation;
   erasing such an unobserved root is rejected unless explicitly measured itself.
-- Quantum string-array element lengths need complete layout/lifetime handling in
-  T010; basic scalar text codecs and construction are not that full integration.
+- String-array element lengths now propagate through construction and lowering,
+  including helper borrows, indexed writes, foreach views, branches, and snapshots.
+- Some dependency cycles still receive conservative Q3001 diagnostics; conditional
+  permutations cannot use unconditional storage-rebinding optimization.
 - Builtin spellings remain documented defaults, without a separate human review.
   Readonly parameter behavior remains the original V1 default.
 - Never restore measurement consumption or function-only evolution restrictions.

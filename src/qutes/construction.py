@@ -43,6 +43,7 @@ class Constructor:
         self.iterations = 0
         self.call_depth = 0
         self.expression_overrides: dict[int, ir.Expression] = {}
+        self.array_shapes: dict[int, tuple[int | None, ...]] = {}
 
     def fail(self, code, message, node):
         raise DiagnosticError(code, message, node.span)
@@ -80,7 +81,35 @@ class Constructor:
         self.output.append(ir.Statement(expression.span, op, (expression,), symbol=symbol))
         if expression.type.quantum:
             self.owned.add(symbol.id)
+        shapes = self.element_shapes(expression)
+        if shapes is not None:
+            self.array_shapes[symbol.id] = shapes
         return self.load(symbol, expression.stage, expression.shape)
+
+    def element_shapes(self, expression):
+        if not expression.type.array or expression.type.name not in {"string", "qustring"}:
+            return None
+        if expression.op in {"load", "move"}:
+            return self.array_shapes.get(expression.symbol.id)
+        if expression.op == "array":
+            return tuple(self.value_shape(item) for item in expression.arguments)
+        if expression.op == "new_array":
+            return (0,) * expression.shape
+        if expression.op == "lift":
+            return tuple(len(value) for value in expression.arguments[0].value)
+        if expression.op == "literal":
+            return tuple(len(value) for value in expression.value)
+        if expression.op == "measure":
+            return self.element_shapes(expression.arguments[0])
+        return None
+
+    def value_shape(self, expression):
+        if expression.op == "index":
+            collection, index = expression.arguments
+            shapes = self.element_shapes(collection)
+            if shapes is not None:
+                return shapes[index.value]
+        return expression.shape
 
     def validate_input(self, value, type_, node):
         if type_.array:
@@ -132,7 +161,8 @@ class Constructor:
             return self.expression_overrides[id(expression)]
         op = expression.op
         if op == "load":
-            return replace(self.environment[expression.symbol.id], span=expression.span)
+            value = self.environment[expression.symbol.id]
+            return replace(value, span=expression.span, shape=self.value_shape(value))
         if op == "literal":
             return self.literal(expression, expression.value)
         if op == "superposition":
@@ -248,8 +278,9 @@ class Constructor:
         if collection.op == "array":
             return collection.arguments[position]
         offset = ir.Expression(source.span, ir.Type("int"), ir.Stage.STATIC, "literal", value=position, known=True)
+        shapes = self.element_shapes(collection)
         return ir.Expression(source.span, collection.type.element, collection.stage, "index", (collection, offset),
-                             dependencies=collection.dependencies)
+                             shape=shapes[position] if shapes is not None else None, dependencies=collection.dependencies)
 
     def condition(self, expression):
         value = self.expression(expression)
@@ -311,6 +342,14 @@ class Constructor:
             if target.type.quantum:
                 self.output.append(ir.Statement(statement.span, "assign", (target, value), operator="="))
                 updated = replace(target, shape=value.shape)
+                if target.type.array:
+                    shapes = self.element_shapes(value)
+                    if shapes is not None:
+                        self.array_shapes[target.symbol.id] = shapes
+                elif base is not None and base.type.array and base.type.name == "qustring":
+                    shapes = list(self.element_shapes(base) or (None,) * base.shape)
+                    shapes[index] = value.shape
+                    self.array_shapes[base.symbol.id] = tuple(shapes)
             else:
                 updated = value
             if target_source.op == "load":
@@ -353,13 +392,7 @@ class Constructor:
                 self.fail("Q2003", "foreach length must be known during construction", statement)
             for index in range(collection.shape):
                 self.iteration(statement)
-                if collection.stage == ir.Stage.STATIC:
-                    item = self.literal(ir.Expression(statement.span, collection.type.element, ir.Stage.STATIC, "literal"),
-                                        collection.value[index])
-                else:
-                    offset = ir.Expression(statement.span, ir.Type("int"), ir.Stage.STATIC, "literal", value=index, known=True)
-                    item = ir.Expression(statement.span, collection.type.element, collection.stage, "index", (collection, offset),
-                                         dependencies=collection.dependencies)
+                item = self.index_value(collection, index, statement)
                 self.environment[statement.symbol.id] = item
                 self.region(statement.blocks[0], "iteration")
         else:
@@ -371,18 +404,27 @@ class Constructor:
             self.region(statement.blocks[0 if condition.value else 1])
             return
         before = self.environment.copy()
+        before_shapes = self.array_shapes.copy()
         parent_output, parent_owned = self.output, self.owned
-        branches, states = [], []
+        branches, states, shape_states = [], [], []
         try:
             for block in statement.blocks:
                 self.output, self.owned = [], set()
                 self.environment = before.copy()
+                self.array_shapes = before_shapes.copy()
                 self.statements(block)
                 branches.append(ir.Block(block.span, tuple(self.output)))
                 states.append(self.environment.copy())
+                shape_states.append(self.array_shapes.copy())
         finally:
             self.output, self.owned = parent_output, parent_owned
             self.environment = before.copy()
+            self.array_shapes = before_shapes.copy()
+        for identifier in before_shapes:
+            a, b = (state[identifier] for state in shape_states)
+            if a != b:
+                self.fail("Q2004", "dynamic branches disagree on string-array element lengths", statement)
+            self.array_shapes[identifier] = a
         for identifier, value in before.items():
             a, b = (state[identifier] for state in states)
             if a.shape != b.shape:

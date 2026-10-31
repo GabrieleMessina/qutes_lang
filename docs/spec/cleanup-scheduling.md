@@ -1,8 +1,8 @@
 # Versioned cleanup and reversible operations
 
 Implementation status: `cleanup.Scheduler`, measurement checkpoints, and the
-Qiskit adapter are implemented. Scalar source lowering includes coherent branches;
-feedforward and quantum collections remain pending. See [source lowering](lowering.md)
+Qiskit adapter are implemented. Source lowering includes coherent branches and
+quantum collections; measured feedforward remains pending. See [source lowering](lowering.md)
 for the exact supported subset and API.
 
 ## Storage and history

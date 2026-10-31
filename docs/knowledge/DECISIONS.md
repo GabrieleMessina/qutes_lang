@@ -72,3 +72,15 @@ conversation examples suggesting measurement consumption are superseded by D007.
 - D036 (implementation): conditional overwrite guards both old-value cleanup and
   replacement preparation. Capture control versions in histories; reject cleanup
   that would mutate its condition. This preserves the unselected branch's value.
+- D037 (implementation): arrays own separate element storage. String indexing is a
+  borrowed bit view; observing it uses a temporary copy plus explicit measurement
+  and checkpoint cleanup. No implicit observation is introduced.
+- D038 (implementation): track each string-array element's logical length through
+  construction and lowering; branch joins must agree per element. Snapshot lengths
+  remain frozen when their source text changes.
+- D039 (implementation): unconditional array self-permutations transfer existing
+  element storage. Conditional cases retain the guarded cleanup path; never apply
+  unconditional rebinding inside either quantum or runtime-classical branches.
+- D040 (resource default): reject quantum type widths above the construction budget
+  before encoding large constants/allocating padded arrays, and charge actual bit
+  allocations to the scheduler budget. Foreach remains array-only as specified.
