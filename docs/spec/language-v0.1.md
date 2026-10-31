@@ -116,7 +116,7 @@ separately. Diagnostics include path, one-based line/column, and a concise reaso
 
 See `tests/acceptance/cases.json` for source examples with expected categories.
 The corpus is a target contract. Type/stage/effect failures now run through the
-analyzer; cleanup failures remain pending. Every semantic-negative case must still
+analyzer; cleanup failures now run through scalar lowering. Every semantic-negative case must still
 parse successfully. Frontend validation does not prove uncomputation safety.
 
 ## Typed analysis implementation
@@ -151,4 +151,5 @@ and inlines helpers while keeping quantum values symbolic. See
 Memory limits diagnose oversized classical integers instead of wrapping them.
 `max_classical_bits` defaults to 65,536 and is configurable independently of quint
 width. Loop iterations are counted globally, including nested loops and helpers.
-Construction still does not prove cleanup or generate a Qiskit program.
+Construction itself does not prove cleanup or generate a Qiskit program. The
+subsequent [lowering pass](lowering.md) now does so for the documented scalar subset.

@@ -19,7 +19,13 @@ def main() -> int:
         raise RuntimeError("test output must stay inside the repository artifacts directory")
     # pytest may clear its basetemp: pass a fresh, task-owned subdirectory only.
     command = [sys.executable, "-m", "pytest", "--basetemp", str(run / "tmp"),
-               "--junitxml", str(run / "results.xml"), *sys.argv[1:]]
+               "--junitxml", str(run / "results.xml")]
+    # Native Aer initialization can fail with Windows ERROR_INVALID_HANDLE when
+    # pytest redirects C-runtime file descriptors. Python stream capture preserves
+    # test output without replacing the native handles. User flags still override.
+    if os.name == "nt":
+        command.append("--capture=sys")
+    command.extend(sys.argv[1:])
     environment = dict(os.environ, PYTEST_DISABLE_PLUGIN_AUTOLOAD="1")
     result = subprocess.run(command, cwd=root, env=environment, check=False)
     versions = {}

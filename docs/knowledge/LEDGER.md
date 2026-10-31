@@ -145,3 +145,33 @@ entry IDs; do not rewrite history to hide failures.
   integration, arrays/text, execution, and release work remain pending.
 - Next: connect construction IR to the scheduler, starting with scalar arithmetic
   and scoped values, then add measurement checkpoints without consuming sources.
+
+## KB-007 — 2026-10-30 — Scalar source circuits and measurement checkpoints
+
+- Committed KB-006 as 0cdd467. Implemented explicit measurement operations, fresh
+  snapshot bits, checkpoint-based cleanup/reconstruction, and dynamic Qiskit guards
+  using recorded bits. Measurement leaves its source available for later updates.
+- Kept pre-measurement version history instead of dropping older dependencies.
+  Directly measured roots can be erased while their correlated outputs remain.
+  Indirect measurement invalidates original preparations across the connected
+  dependency graph; reject root cleanup without a direct checkpoint in that case.
+- Connected source construction to storage and arithmetic lowering: scalar
+  qubit/quint values, correlated copies, nested expressions, self-update chains,
+  overwrite checks, scopes, helper moves, expanded loops, snapshots, result decoding.
+  Main's remaining quantum values stay live until shot end; locals must be clean.
+- Nine positive corpus cases now have exact output-distribution checks. All 16
+  negative cases fail with the intended diagnostic, including R004/R005 at cleanup.
+  Actual source-generated Qiskit executes the retained-snapshot program through Aer.
+- Two targeted collection attempts failed with native Aer DLL initialization and
+  Windows invalid-handle errors under pytest descriptor capture. Direct import and
+  Python stream/no-capture runs succeeded. Updated the Windows runner to stream
+  capture, preserving assertions and without changing global packages.
+- First uncaptured source run: 42 passed, 3 test-fixture failures. Two constants 2
+  were out of signed two-bit range; changed them to equivalent valid -2. One exact
+  floating probability assertion was changed to the existing numerical tolerance.
+  Targeted rerun: 45 passed. Full suite: 312 passed (V007).
+- A documentation patch failed exact-context matching and made no changes; read
+  the actual file and applied the corrected patch. No semantic rule was changed.
+- T008 is complete for arithmetic/cleanup integration. T009 is active: coherent
+  predicates/branches next, then quantum arrays/text, feedforward, and release tools.
+  Full goal remains incomplete; no design decision is currently blocking progress.

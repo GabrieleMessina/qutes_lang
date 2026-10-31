@@ -1,8 +1,9 @@
 # Qutes
 
 A high-level, strongly typed quantum language with C#-inspired syntax and a
-Qiskit backend. This repository has a parser, typed analysis, classical expansion,
-and a separately tested cleanup scheduler. Source-to-Qiskit integration is pending.
+Qiskit backend. The compiler now lowers a scalar subset through automatic cleanup
+to executable Qiskit circuits. Branches, quantum collections, and full CLI execution
+are still under development; this is not yet the complete language.
 
 ```csharp
 int main() {
@@ -13,7 +14,7 @@ int main() {
 }
 ```
 
-This planned program returns 7. Measurement leaves `number` usable; `before`
+This program is covered by source-to-circuit tests and returns 7. Measurement leaves `number` usable; `before`
 remains a snapshot of 5. `measure` and `superposition` are working builtin names.
 
 ## Start here
@@ -48,7 +49,7 @@ In the current workspace, a working existing interpreter is available:
 The runner disables unrelated pytest plugins, puts temporary files inside ignored
 `artifacts/checks/`, and records a JUnit report and environment metadata for each
 run. Backend probes compare full states with an independent small-state model.
-They do not prove that automatic cleanup or source compilation is implemented.
+Separate source/cleanup tests now exercise compiler-generated circuits as well.
 
 ## Try the syntax parser
 
@@ -86,9 +87,10 @@ validation. Full `check`/`build`/`run` commands still await those passes.
 `construct` expands classical loops and inlines helpers, while preserving quantum
 operations and measurement results symbolically. Use `--inputs FILE` for a JSON
 object matching classical main parameters. This intermediate result is not yet
-a verified circuit: integration with cleanup and Qiskit generation is still pending.
+a verified circuit; use the [lowering API](docs/spec/lowering.md) for the currently
+supported scalar subset and Qiskit emission.
 
 The [versioned cleanup scheduler](docs/spec/cleanup-scheduling.md) and reversible
 gate adapter have full-state tests for arithmetic, changed inputs, dependency
-recomputation, and rejected unsafe cleanup. Measurement-aware source lowering
-and complete program execution remain to be implemented.
+recomputation, and rejected unsafe cleanup. Measurement checkpoints preserve
+post-measurement evolution and snapshots. Full language integration remains pending.

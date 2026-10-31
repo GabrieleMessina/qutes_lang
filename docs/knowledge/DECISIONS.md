@@ -53,3 +53,16 @@ conversation examples suggesting measurement consumption are superseded by D007.
 - D030 (implementation): basis-value overwrite retains cleanup plus preparation
   as a reversible history step, preserving older consumers. Independent unknown
   quantum roots still require reversible updates. Measurement support is pending.
+- D031 (implementation, extends D030): an explicit measurement records a versioned
+  classical checkpoint without consuming its source. Cleanup may use those bits;
+  retain prior basis histories for older consumers. A measured value can be safely
+  overwritten when its checkpoint-based cleanup schedule is valid.
+- D032 (implementation): indirect measurement conservatively invalidates original
+  preparations of connected roots. Without a direct checkpoint, reject root erase
+  rather than incorrectly reversing H or inserting hidden measurement.
+- D033 (implementation): at program end, main's still-live quantum values remain
+  circuit outputs until shot completion. Lexical/local temporaries are cleaned;
+  end-of-shot disposal is not represented as in-program reset.
+- D034 (environment): use Python stream capture in the Windows test runner. Native
+  descriptor capture intermittently caused Aer DLL initialization/invalid-handle
+  failures. This does not skip tests or change packages; explicit flags may override.

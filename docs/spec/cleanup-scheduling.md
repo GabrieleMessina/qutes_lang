@@ -1,9 +1,9 @@
 # Versioned cleanup and reversible operations
 
-Implementation status: `cleanup.Scheduler` and the reversible Qiskit adapter are
-implemented and tested independently of source lowering. They do not yet accept
-an entire constructed source program. Measurement checkpoints and dynamic branch
-integration remain pending; no CLI command claims those capabilities.
+Implementation status: `cleanup.Scheduler`, measurement checkpoints, and the
+Qiskit adapter are implemented. Scalar source lowering is integrated; dynamic
+branches and quantum collections remain pending. See [source lowering](lowering.md)
+for the exact supported subset and API.
 
 ## Storage and history
 
@@ -35,8 +35,8 @@ be cleaned first. Source spans and cleanup events explain the resulting schedule
 
 Independent superposition roots are different from computed basis values. A root
 may be unprepared only when no live value depends on it, including through released
-intermediate recipes. Arbitrary external input states cannot be erased. Ordinary
-overwrite of an unknown root is rejected; reversible updates remain accepted.
+intermediate recipes. Unmeasured arbitrary external input states cannot be erased.
+Overwrite of an unmeasured unknown root is rejected; reversible updates remain accepted.
 The dependency analysis is deliberately conservative about cancelled dependencies.
 
 Overwriting a basis-derived value records its cleanup plus replacement preparation
@@ -44,14 +44,35 @@ as one reversible history step. Older consumers can therefore still reconstruct
 the old version. The composite step records every other touched register at its
 entry version, including released registers whose entry state is zero.
 
+## Explicit measurement checkpoints
+
+Each source measurement emits an operation with fresh classical bits and leaves
+the register live. A checkpoint records its current version and result bits. To
+clean it later, reverse subsequent basis updates to that version, then use the
+recorded bits to conditionally flip it to zero. No additional measurement is added.
+To reconstruct an earlier version, initialize from the same stable snapshot and
+reverse/advance the recorded basis updates. Original histories are not discarded.
+
+Measuring a dependent can also collapse a superposition root. Track connected
+dependencies in both directions and invalidate the root's original preparation
+as a cleanup recipe. Without its own explicit measurement checkpoint, such a root
+cannot be cleaned by reversing its old H gates. This is conservative: the compiler
+does not yet infer a root's value from an indirectly measured invertible copy.
+
+A directly measured root can be cleaned or overwritten while correlated values
+remain live: its measurement already made the observed basis value explicit.
+Its old versions remain reconstructible from the snapshot, subject to the same
+cycle and version checks. Future operations evolve the post-measurement state.
+
 ## Evidence and boundaries
 
 Tests compare complete complex amplitudes against independently constructed
 expected states, with arbitrary entangled reference inputs. They cover changed
 inputs, multiple dependencies, released intermediate recomputation, overwrite,
 cyclic rejection, root ownership, controlled arithmetic, and zero scratch output.
-This evidence establishes the scheduler and gate adapter, not full source-language
-execution or measurement-safe cleanup. See the current knowledge-base checkpoint.
+Exact projected-branch checks cover measurement cleanup and retained reference
+entanglement; Aer executes emitted dynamic circuits. Source coverage is currently
+the scalar subset, not the full language. See the current knowledge-base checkpoint.
 
 The distinction between basis computation and superposition preparation is informed
 by [Silq's documented qfree restrictions](https://silq.ethz.ch/documentation).

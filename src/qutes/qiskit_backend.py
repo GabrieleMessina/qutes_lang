@@ -2,11 +2,19 @@
 
 from __future__ import annotations
 
-from qutes.gates import Gate
+from dataclasses import replace
+
+from qutes.gates import Gate, Measurement
 
 
 def append_gate(circuit, operation: Gate):
     from qiskit.circuit.library import HGate, ModularAdderGate, SwapGate, XGate
+
+    if operation.classical_controls:
+        bit, value = operation.classical_controls[0]
+        with circuit.if_test((circuit.clbits[bit], int(value))):
+            append_gate(circuit, replace(operation, classical_controls=operation.classical_controls[1:]))
+        return
 
     controls = tuple(bit for bit, _ in operation.controls)
     state = sum(int(value) << index for index, (_, value) in enumerate(operation.controls))
@@ -71,4 +79,18 @@ def emit_gates(qubit_count: int, operations: tuple[Gate, ...] | list[Gate]):
     circuit = QuantumCircuit(qubit_count)
     for operation in operations:
         append_gate(circuit, operation)
+    return circuit
+
+
+def emit_operations(qubit_count: int, classical_bit_count: int,
+                    operations: tuple[Gate | Measurement, ...] | list[Gate | Measurement]):
+    """Emit scheduled operations, including explicit measurements and snapshot use."""
+    from qiskit import QuantumCircuit
+
+    circuit = QuantumCircuit(qubit_count, classical_bit_count)
+    for operation in operations:
+        if isinstance(operation, Measurement):
+            circuit.measure(operation.qubits, operation.classical_bits)
+        else:
+            append_gate(circuit, operation)
     return circuit

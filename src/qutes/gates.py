@@ -20,6 +20,7 @@ class Gate:
     controls: tuple[tuple[int, bool], ...] = ()
     inverse: bool = False
     span: Span | None = None
+    classical_controls: tuple[tuple[int, bool], ...] = ()
 
     def __post_init__(self):
         if self.kind not in {"x", "h", "copy", "add", "add_constant", "rotate"}:
@@ -44,6 +45,11 @@ class Gate:
             raise ValueError("control values must be Boolean")
         if type(self.amount) is not int:
             raise ValueError("operation amount must be an integer")
+        if any(type(bit) is not int or bit < 0 or type(value) is not bool
+               for bit, value in self.classical_controls):
+            raise ValueError("classical controls require nonnegative bits and Boolean values")
+        if len({bit for bit, _ in self.classical_controls}) != len(self.classical_controls):
+            raise ValueError("classical controls must be normalized")
 
     @property
     def reads(self) -> frozenset[int]:
@@ -55,6 +61,20 @@ class Gate:
 
     def adjoint(self) -> Gate:
         return replace(self, inverse=not self.inverse)
+
+
+@dataclass(frozen=True)
+class Measurement:
+    qubits: tuple[int, ...]
+    classical_bits: tuple[int, ...]
+    span: Span
+
+    def __post_init__(self):
+        if not self.qubits or len(self.qubits) != len(self.classical_bits):
+            raise ValueError("measurement requires equally sized nonempty bit lists")
+        for bits in (self.qubits, self.classical_bits):
+            if len(set(bits)) != len(bits) or any(type(bit) is not int or bit < 0 for bit in bits):
+                raise ValueError("measurement requires distinct nonnegative bit identifiers")
 
 
 def inverse(gates: tuple[Gate, ...] | list[Gate]) -> tuple[Gate, ...]:

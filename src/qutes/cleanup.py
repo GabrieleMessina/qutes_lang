@@ -12,7 +12,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from qutes.diagnostics import DiagnosticError, Span
-from qutes.gates import Gate, inverse
+from qutes.gates import Gate, Measurement, inverse
 
 
 @dataclass(frozen=True)
@@ -27,6 +27,12 @@ class Step:
     dependencies: tuple[Version, ...]
 
 
+@dataclass(frozen=True)
+class Checkpoint:
+    version: int
+    classical_bits: tuple[int, ...]
+
+
 @dataclass
 class Storage:
     id: int
@@ -38,6 +44,8 @@ class Storage:
     released: bool = False
     root: bool = False
     external: bool = False
+    checkpoint: Checkpoint | None = None
+    coherence_lost: bool = False
 
 
 @dataclass(frozen=True)
@@ -55,9 +63,10 @@ class Scheduler:
     def __init__(self, *, max_steps: int = 100_000):
         self.storages: list[Storage] = []
         self.bit_owner: dict[int, int] = {}
-        self.operations: list[Gate] = []
+        self.operations: list[Gate | Measurement] = []
         self.events: list[CleanupEvent] = []
         self.qubit_count = 0
+        self.classical_bit_count = 0
         self.max_steps = max_steps
         self.work = 0
         self.active_moves: set[tuple[int, int]] = set()
@@ -83,6 +92,8 @@ class Scheduler:
     def dependencies(self, gates: tuple[Gate, ...], target: Storage, *, auxiliary=False):
         identifiers = set()
         for gate in gates:
+            if any(bit >= self.classical_bit_count for bit, _ in gate.classical_controls):
+                raise ValueError("operation reads an unallocated measurement snapshot")
             if not gate.bits <= self.bit_owner.keys():
                 raise ValueError("operation refers to unallocated bits")
             if not auxiliary and not set(gate.targets) <= set(target.bits):
@@ -156,16 +167,62 @@ class Scheduler:
             self.fail("quantum cleanup dependency nesting limit exceeded", target, "Q4001")
         if not -1 <= version < len(target.history):
             raise ValueError("unknown storage version")
-        if target.root and target.version == -1:
+        if target.root and target.version == -1 and target.checkpoint is None:
             self.fail(f"cannot recreate the independent quantum state of {target.name}", target)
         self.active_moves.add(key)
         try:
+            checkpoint = target.checkpoint
+            if checkpoint is not None and target.version == -1:
+                self.emit(self._snapshot_x(target), target)
+                target.version = checkpoint.version
+            if checkpoint is not None and version == -1:
+                self._move(target, checkpoint.version, forbidden)
+                self.emit(self._snapshot_x(target), target)
+                target.version = -1
+                return
             while target.version != version:
                 backwards = target.version > version
                 index = target.version if backwards else target.version + 1
                 self._apply(target, index, backwards, forbidden)
         finally:
             self.active_moves.remove(key)
+
+    def _snapshot_x(self, target: Storage) -> tuple[Gate, ...]:
+        assert target.checkpoint is not None
+        return tuple(Gate("x", (qubit,), span=target.span,
+                          classical_controls=((bit, True),))
+                     for qubit, bit in zip(target.bits, target.checkpoint.classical_bits))
+
+    def measure(self, target: Storage) -> Measurement:
+        """Explicit non-consuming observation; every result gets fresh bits.
+
+        A direct snapshot can restore a definite basis value. Indirect observation
+        can collapse connected roots; their original H preparation is no longer a
+        valid cleanup recipe, even after the measured dependent has been cleaned.
+        """
+        if target.released or target.version < 0:
+            raise ValueError("cannot measure unavailable storage")
+        bits = tuple(range(self.classical_bit_count, self.classical_bit_count + len(target.bits)))
+        self.classical_bit_count += len(bits)
+        measurement = Measurement(target.bits, bits, target.span)
+        self.tick(target, len(bits))
+        self.operations.append(measurement)
+        target.checkpoint = Checkpoint(target.version, bits)
+        neighbors = [set() for _ in self.storages]
+        for storage in self.storages:
+            for step in storage.history:
+                for dependency in step.dependencies:
+                    neighbors[storage.id].add(dependency.storage)
+                    neighbors[dependency.storage].add(storage.id)
+        pending = [target.id]
+        visited = set()
+        while pending:
+            identifier = pending.pop()
+            if identifier not in visited:
+                visited.add(identifier)
+                self.storages[identifier].coherence_lost = True
+                pending.extend(neighbors[identifier] - visited)
+        return measurement
 
     def _depends_on(self, source: Storage, identifier: int) -> bool:
         pending = [source.id]
@@ -183,9 +240,13 @@ class Scheduler:
         return False
 
     def _root_guard(self, target: Storage):
+        if target.checkpoint is not None:
+            return
         if target.external:
             self.fail(f"cannot erase the unknown input state of {target.name}", target)
         if target.root:
+            if target.coherence_lost:
+                self.fail(f"cannot clean {target.name}: a related value was measured; its original preparation is no longer an inverse", target)
             for source in self.storages:
                 if source is not target and not source.released and self._depends_on(source, target.id):
                     self.fail(f"cannot clean {target.name}: live value {source.name} still depends on its quantum state", target)
@@ -215,7 +276,7 @@ class Scheduler:
         The composite update retains the old recipe so other values may still
         depend on an older version. Independent quantum roots are not overwritable.
         """
-        if target.root:
+        if target.root and target.checkpoint is None:
             self.fail(f"cannot overwrite the unknown quantum value of {target.name}; use a reversible update", target)
         if target.released or target.version < 0:
             raise ValueError("cannot overwrite unavailable storage")

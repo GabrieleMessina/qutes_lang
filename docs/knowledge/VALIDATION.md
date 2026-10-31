@@ -97,3 +97,29 @@ has exhaustive small-width full operators and entangled controlled-operation tes
 This advances beyond manual probes, but does NOT establish source compilation,
 measurement-safe cleanup, whole-program acceptance, hardware execution, clean
 installation, or cross-platform compatibility. Those remain separate tasks.
+
+## V007 — 2026-10-30 — Scalar source lowering and explicit measurement cleanup
+
+Command: `& C:\ProgramData\anaconda3\python.exe tools/check.py -q`.
+Result: **312 passed**, 65 external IBM runtime warnings, 7.63 seconds.
+Artifacts: `artifacts/checks/run-ogcuhmp_/results.xml` and `environment.json`.
+Targeted source/measurement run with `--capture=sys`: 45 passed in 4.97 seconds.
+
+New evidence: source cases A001-A006/A010-A012 match exact ideal distributions;
+all 16 negative examples produce the intended category. Compiler-generated
+coherent circuits match full complex-state expectations for changed inputs,
+nested arithmetic, and cleaned scratch. Helpers transfer owned results without
+hidden root escapes. Expanded loops retain distinct snapshots and clean locals.
+
+Measurement checks enumerate projected branches and compare full conditional
+states/probabilities, including entangled references. They cover stable snapshots,
+post-measurement updates, reconstruction of older dependencies, measured-root
+overwrite/cleanup, indirect-observation rejection, and repeated observations.
+Aer executes a source snapshot example and a dynamic checkpoint circuit; density
+matrix output confirms the released measured register is zero.
+
+Failed artifacts: run-oxwgjt3f and run-xz6bk5jo (Aer DLL collection failure under
+Windows descriptor capture); run-e_oe6q1q (three corrected test-fixture issues).
+The runner now uses Python stream capture on Windows. Clean installation and
+Linux remain unverified. Dynamic source branches, quantum collections, and the
+full CLI still await implementation; this is not full-language release evidence.
