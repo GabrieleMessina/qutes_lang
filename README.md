@@ -2,8 +2,9 @@
 
 A high-level, strongly typed quantum language with C#-inspired syntax and a
 Qiskit backend. The compiler lowers quantum values, arrays, text, and coherent
-branches through automatic cleanup to executable Qiskit circuits. Measured
-feedforward and full CLI execution are still under development.
+branches through automatic cleanup to executable Qiskit circuits, including
+measurement-driven conditions. Full CLI execution and release tooling remain
+under development.
 
 ```csharp
 int main() {

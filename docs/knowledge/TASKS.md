@@ -14,8 +14,8 @@ Status vocabulary: TODO, ACTIVE, DONE, BLOCKED. A task is DONE only with evidenc
 | T008 | DONE | Dependency/version model, cleanup synthesizer, and arithmetic lowering with full-state verification. | T004, T006 |
 | T009 | DONE | Integrate coherent branches, functions, and construction-time loops. | T007, T008 |
 | T010 | DONE | Arrays/text/configuration integrated with lifetime analysis. | T009 |
-| T011 | ACTIVE | Non-consuming measurement, snapshots, feedforward, results decoding, Qiskit emitter. | T010 |
-| T012 | TODO | CLI build/run/explain, packaging, resource limits, documentation, CI/release evidence. | T011 |
+| T011 | DONE | Non-consuming measurement, snapshots, feedforward, results decoding, Qiskit emitter. | T010 |
+| T012 | ACTIVE | CLI build/run/explain, packaging, resource limits, documentation, CI/release evidence. | T011 |
 
 M1 readiness requires T002-T004 plus a review of unresolved limitations. A passing
 probe is evidence of backend feasibility, not proof of general automatic cleanup.
@@ -49,3 +49,9 @@ T010 completed at KB-009 / V009: 405 tests. Arrays/text, indexing, foreach borro
 value copy/ownership, lengths/padding, branch joins, snapshots, and type-width bounds
 are integrated. T011 ACTIVE: only source feedforward remains from its core features;
 release execution/serialization/CLI validation belongs to T012.
+
+T011 completed at KB-010 / V010: 529 tests. All 17 positive examples execute on Aer;
+signed/text/Boolean runtime predicates, immutable snapshots, mixed controls, guarded
+overwrite, and anonymous temporary cleanup have independent semantic evidence.
+T012 ACTIVE. Full goal remains incomplete until generated-module/API/CLI/release
+requirements are implemented and audited, not merely the example corpus.

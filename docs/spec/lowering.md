@@ -35,6 +35,9 @@ circuit = program.to_qiskit()
   time loops/functions already expanded by the preceding pass.
 - Non-consuming measurements with separate snapshots, signed integer/Boolean
   and text result decoding, array snapshots, classical result arrays/predicates.
+- Same-circuit runtime if/else over snapshot comparisons and Boolean expressions,
+  including signed constants of different widths, text equality, indexed results,
+  predicate helpers, and nesting with coherent controls. See [feedforward](feedforward.md).
 - Quantum arrays with separate element storage, indexed updates, value copies,
   borrowed foreach views, owned function returns, and empty-array results.
 - Configured character encodings and fixed-capacity padded strings with separate
@@ -45,23 +48,23 @@ circuit = program.to_qiskit()
   bounded scheduler work. No hidden measurement/reset fallback.
 
 All lexical-scope temporaries must be clean before leaving their scope. Main's
-remaining values are live circuit outputs until shot completion; they are not
+explicitly named values are live circuit outputs until shot completion; they are not
 silently reset by source lowering. Released storage remains physically reserved
 so historical recipes can be reconstructed. This increases qubit requirements.
+Anonymous helper results/computed arguments must be cleaned too; an escaping
+helper result does not automatically become a user-owned main value.
 
-The positive source cases A001-A006 and A008-A017 have exact output-distribution
-tests, and A004 executes through Aer. All 16 negative corpus cases now produce
+All 17 positive source cases have exact output-distribution tests and execute
+through Aer. All 16 negative corpus cases now produce
 their intended category through the complete applicable pipeline. Additional
 source tests verify full complex states, local scratch, nested arithmetic,
 function ownership, measurement checkpoints, and explicit unsafe cleanup errors.
 
 ## Pending integration
 
-Feedforward predicates, allocation reuse,
-resource reporting, program serialization, and CLI execution remain pending.
+Allocation reuse, resource reporting, program serialization, and CLI execution remain pending.
 Unsupported lowering produces a source-located diagnostic; it is never ignored.
-The parser/analyzer/constructor support more syntax than this lowerer currently
-executes. A partial lowering API does not satisfy release readiness.
+The core lowering API does not by itself satisfy release readiness.
 
 Conditional overwrite guards the whole transformation: both old-value cleanup and
 replacement preparation. Guarding only the new preparation would erase the old

@@ -2,7 +2,7 @@
 
 Integration covers quantum scalar/array/text storage, arithmetic, coherent
 predicates and branches, scopes, helpers, loops, and non-consuming measurement.
-Source feedforward remains pending and receives an explicit diagnostic.
+Runtime-classical predicates use immutable measurement snapshots for feedforward.
 """
 
 from __future__ import annotations
@@ -14,7 +14,8 @@ from qutes import construction, ir
 from qutes.cleanup import CleanupEvent, Scheduler, Storage
 from qutes.config import CompilerConfig
 from qutes.diagnostics import DiagnosticError, Span
-from qutes.gates import Gate, Measurement, controlled
+from qutes.feedforward import predicate as runtime_predicate
+from qutes.gates import Gate, Measurement, conditioned, controlled
 from qutes.values import EncodedString, SignedInteger, TextEncoding
 
 
@@ -114,7 +115,9 @@ class Lowerer:
         self.scheduler = Scheduler(max_steps=self.config.max_evaluation_steps)
         self.bindings: dict[int, Storage | Collection | Result] = {}
         self.frames: list[set[int]] = [set()]
+        self.main_values: set[int] = set()
         self.controls: tuple[tuple[int, bool], ...] = ()
+        self.conditions = ()
         self.lengths: dict[int, int] = {}
 
     def fail(self, node, message, code="Q2001"):
@@ -231,7 +234,9 @@ class Lowerer:
             except ValueError:
                 raise DiagnosticError("Q2004", "operation would change its quantum condition", gate.span)
             if operation is not None:
-                result.append(operation)
+                operation = conditioned(operation, self.conditions)
+                if operation is not None:
+                    result.append(operation)
         return tuple(result)
 
     def predicate(self, expression, target):
@@ -386,8 +391,19 @@ class Lowerer:
             if not isinstance(value, Result):
                 self.fail(expression, "a quantum value requires explicit measurement")
             return value
-        return Result(expression.type, expression.op,
-                      tuple(self.runtime(argument) for argument in expression.arguments), expression.value)
+        arguments = tuple(self.runtime(argument) for argument in expression.arguments)
+        if expression.op == "index":
+            collection, index = arguments
+            if collection.op == "array":
+                return collection.arguments[index.value]
+            if collection.op == "literal":
+                return Result(expression.type, "literal", value=collection.value[index.value])
+            if collection.op == "snapshot" and collection.type.name == "string":
+                width = (len(collection.alphabet) - 1).bit_length()
+                return Result(expression.type, "snapshot",
+                              bits=collection.bits[index.value * width:(index.value + 1) * width],
+                              alphabet=collection.alphabet, capacity=collection.capacity)
+        return Result(expression.type, expression.op, arguments, expression.value)
 
     def block(self, block):
         for statement in block.statements:
@@ -404,6 +420,8 @@ class Lowerer:
                 else:
                     value = self.runtime(expression)
                 self.bindings[statement.symbol.id] = value
+                if len(self.frames) == 1 and statement.symbol.type.quantum and not statement.symbol.name.startswith("$"):
+                    self.main_values.update(storage_ids(value))
             elif op == "assign":
                 target_expression, expression = statement.expressions
                 target = self.reference(target_expression)
@@ -413,7 +431,7 @@ class Lowerer:
                     # An unconditional permutation can transfer the existing
                     # element storage. Other value copies own different storage;
                     # current index views resolve through this array binding.
-                    if not self.controls and expression.op == "array" and all(
+                    if not self.controls and not self.conditions and expression.op == "array" and all(
                             item.op in {"load", "move", "index"} for item in expression.arguments):
                         reordered = tuple(self.reference(item) for item in expression.arguments)
                         if (len(reordered) == len(target.elements) and all(isinstance(item, Storage) for item in reordered)
@@ -422,7 +440,8 @@ class Lowerer:
                             continue
                     replacement = self.create(expression, "$array_value")
                     for old, new in zip(target.elements, replacement.elements, strict=True):
-                        self.scheduler.overwrite(old, self.copy_gates(old, new, expression.span), controls=self.controls)
+                        self.scheduler.overwrite(old, self.copy_gates(old, new, expression.span),
+                                                 controls=self.controls, conditions=self.conditions)
                         if expression.type.name == "qustring":
                             self.lengths[old.id] = self.lengths[new.id]
                     self.release_temporaries((replacement,))
@@ -433,7 +452,7 @@ class Lowerer:
                         self.scheduler.update(target, self.gated(gates))
                 else:
                     gates, temporaries = self.preparation(expression, target)
-                    self.scheduler.overwrite(target, gates, controls=self.controls)
+                    self.scheduler.overwrite(target, gates, controls=self.controls, conditions=self.conditions)
                 self.release_temporaries(temporaries)
                 if target_expression.type.name == "qustring":
                     self.lengths[target.id] = self.text_length(expression)
@@ -451,24 +470,34 @@ class Lowerer:
                 self.frames[-1].update(owned & escapes)
             elif op == "if":
                 condition = statement.expressions[0]
-                if condition.stage != ir.Stage.QUANTUM:
-                    self.fail(statement, "source feedforward lowering is not implemented yet")
-                predicate, temporaries = self.operand(condition)
-                if not isinstance(predicate, Storage) or len(predicate.bits) != 1:
-                    self.fail(condition, "quantum condition must occupy one qubit")
+                if condition.stage == ir.Stage.QUANTUM:
+                    predicate, temporaries = self.operand(condition)
+                    if not isinstance(predicate, Storage) or len(predicate.bits) != 1:
+                        self.fail(condition, "quantum condition must occupy one qubit")
+                else:
+                    predicate = runtime_predicate(self.runtime(condition))
+                    self.scheduler.work += sum(1 for _ in predicate.nodes())
+                    if self.scheduler.work > self.scheduler.max_steps:
+                        self.fail(condition, "classical predicate construction budget exceeded", "Q4001")
+                    temporaries = ()
                 previous = self.controls
+                previous_conditions = self.conditions
                 before_lengths = self.lengths.copy()
                 branch_lengths = []
                 try:
                     for block, expected in zip(statement.blocks, (True, False), strict=True):
                         self.lengths = before_lengths.copy()
-                        self.controls = (*previous, (predicate.bits[0], expected))
+                        if condition.stage == ir.Stage.QUANTUM:
+                            self.controls = (*previous, (predicate.bits[0], expected))
+                        else:
+                            self.conditions = (*previous_conditions, (predicate, expected))
                         self.frames.append(set())
                         self.block(block)
                         self.scheduler.release_scope(self.frames.pop())
                         branch_lengths.append(self.lengths.copy())
                 finally:
                     self.controls = previous
+                    self.conditions = previous_conditions
                 for identifier in before_lengths:
                     a, b = (lengths[identifier] for lengths in branch_lengths)
                     if a != b:
@@ -482,8 +511,10 @@ class Lowerer:
         self.block(self.program.body)
         result = self.runtime(self.program.result)
         scheduler = self.scheduler
-        # Main's still-live values are circuit outputs; scope temporaries have all
-        # been proven clean. End-of-shot disposal is not an in-program reset.
+        # Only explicitly named main values may survive until shot completion.
+        # Escaping helper results and computed arguments used anonymously remain
+        # compiler temporaries; they must not become silently retained garbage.
+        scheduler.release_scope(self.frames[0] - self.main_values)
         allocations = tuple(Allocation(item.id, item.name, item.bits, item.released, item.span)
                             for item in scheduler.storages)
         return Program(self.config, tuple(scheduler.operations), scheduler.qubit_count,

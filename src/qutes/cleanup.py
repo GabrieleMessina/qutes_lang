@@ -12,7 +12,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from qutes.diagnostics import DiagnosticError, Span
-from qutes.gates import Gate, Measurement, controlled, inverse
+from qutes.gates import Gate, Measurement, conditioned, controlled, inverse
 
 
 @dataclass(frozen=True)
@@ -94,6 +94,8 @@ class Scheduler:
         for gate in gates:
             if any(bit >= self.classical_bit_count for bit, _ in gate.classical_controls):
                 raise ValueError("operation reads an unallocated measurement snapshot")
+            if any(bit >= self.classical_bit_count for condition, _ in gate.conditions for bit in condition.bits):
+                raise ValueError("condition reads an unallocated measurement snapshot")
             if not gate.bits <= self.bit_owner.keys():
                 raise ValueError("operation refers to unallocated bits")
             if not auxiliary and not set(gate.targets) <= set(target.bits):
@@ -270,7 +272,7 @@ class Scheduler:
         self.events.append(CleanupEvent(target.id, target.name, before[target.id], start,
                                         len(self.operations), tuple(Version(i, before[i]) for i in sorted(touched)), target.span))
 
-    def overwrite(self, target: Storage, preparation: tuple[Gate, ...], *, controls=()):
+    def overwrite(self, target: Storage, preparation: tuple[Gate, ...], *, controls=(), conditions=()):
         """Erase a basis-derived old value and initialize its replacement atomically.
 
         The composite update retains the old recipe so other values may still
@@ -289,7 +291,7 @@ class Scheduler:
             self._move(target, -1, frozenset())
             self.emit(preparation, target)
             gates = tuple(self.operations[start:])
-            if controls:
+            if controls or conditions:
                 guarded = []
                 for gate in gates:
                     try:
@@ -297,7 +299,9 @@ class Scheduler:
                     except ValueError:
                         self.fail(f"cannot conditionally overwrite {target.name}: cleanup would modify its quantum condition", target)
                     if operation is not None:
-                        guarded.append(operation)
+                        operation = conditioned(operation, conditions)
+                        if operation is not None:
+                            guarded.append(operation)
                 gates = tuple(guarded)
                 del self.operations[start:]
                 self.emit(gates, target)

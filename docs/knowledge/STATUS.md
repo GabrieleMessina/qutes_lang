@@ -1,13 +1,14 @@
 # Current status
 
-Updated: 2026-10-31, checkpoint KB-009. Full implementation goal remains active.
+Updated: 2026-10-31, checkpoint KB-010. Full implementation goal remains active.
 
 ## Completed capabilities
 
 - Local Git main, no remote. Checkpoints: a29edbf knowledge base; 4b8d3d8 contract /
   probes; 18d3d56 parser; e94314a typed frontend; 5ad3bae construction; 0cdd467
   cleanup scheduler; 0115815 scalar lowering/measurement cuts; 6bde5d6 coherent
-  branches. Current checkpoint adds quantum arrays/text and their lifetimes.
+  branches; 0926943 arrays/text. Current checkpoint adds measured feedforward and
+  anonymous main-temporary cleanup.
 - Parser, source diagnostics, typed IR, name/type/stage/effect analysis.
 - Bounded construction-time evaluator: classical inputs/functions/loops, inlining,
   fresh symbols, scopes, ownership moves, symbolic quantum operations and snapshots.
@@ -20,8 +21,10 @@ Updated: 2026-10-31, checkpoint KB-009. Full implementation goal remains active.
   overwrite, nested controls, branch-local arithmetic and cleanup.
 - Quantum arrays, indexing, foreach views, value copies, helper ownership, text
   encoding/decoding, padded strings, element length tracking, collection snapshots.
-- Latest full run: 405 passed (V009). Sixteen positive source cases have exact output
-  distribution checks; all negative cases have their expected diagnostics.
+- Runtime snapshot predicates, signed/text/Boolean conditions, mixed quantum and
+  classical nesting, guarded overwrite, anonymous helper/argument cleanup.
+- Latest full run: 529 passed (V010). All 17 positive examples have exact output
+  distributions AND execute on Aer; all 16 negative examples have expected diagnostics.
 
 ## Commands / environment
 
@@ -42,19 +45,20 @@ packages changed. Runner uses ignored workspace-local artifacts and Windows Pyth
 stream capture to avoid Aer native DLL failures under descriptor capture. Git writes need
 elevated Git calls; the user already authorized logical commits, not remote pushes.
 
-## Exact next task: T011
+## Exact next task: T012
 
-Read docs/spec/lowering.md and cleanup-scheduling.md. Add same-circuit feedforward
-for runtime comparisons/Boolean expressions. Gate guards need immutable snapshot
-expressions in addition to existing single-bit classical controls. Apply the guard
-to complete overwrite transformations and disable unconditional array-permutation
-rebinding inside classical conditional branches too. Preserve signed comparisons,
-out-of-range classical constants, text encoding/length semantics, and nested controls.
+Read DEVELOPMENT_PLAN.md section 4 and the current lowering/feedforward specs.
+Implement check/build/run/explain, readable generated Qiskit Python, resource
+reports, deterministic artifacts, and Aer execution with pre-simulation limits.
+Generated modules must expose build(inputs) -> (circuit, result layout) and
+run(inputs, shots, seed) -> decoded results plus metadata; do not silently freeze
+new input bindings to the specialization used when generating the artifact.
 
-Start with A007, then combined runtime predicates, mixed quantum/runtime nesting,
-snapshot updates, text/array branches, and generated-circuit execution. Existing
-measurement checkpoints and result codecs are integrated. Then add T012 CLI,
-serialization, resources, packaging, docs, CI, and complete release audit.
+Then finish packaging/isolated installation, user docs/examples, Linux CI coverage,
+and a requirement-by-requirement release audit. Keep codegen and execution separate
+for later hybrid pipelines. Report compiler/language/dependency versions, effective
+config, source identity, result layout, and resource estimates. Reserve actual
+reuse optimization for a safe last-use allocator or clearly report reserved cost.
 R004 and R005 now fail correctly; never regress non-consuming measurement.
 
 Inspect worktree changes before resuming; active work may postdate this checkpoint.
@@ -64,10 +68,10 @@ Keep ledger/status/evidence current and commit coherent verified units.
 
 - Full check/build/run/explain are NOT implemented. Goal is NOT complete.
 - Construction is an intermediate representation, not executable Qiskit output.
-- Source coherent branches/predicates and quantum arrays/text have circuit evidence.
-  General measured feedforward, execution tooling, and physical reuse remain pending.
-- Positive corpus A001-A006/A008-A017 has exact distribution evidence; A007 awaits
-  feedforward. All 16 negative examples are diagnosed.
+- Core source features, including measured feedforward, have circuit evidence.
+  Generated modules, execution tooling, packaging/release checks remain pending.
+- Every positive corpus example executes; this is necessary but not sufficient
+  evidence for the release requirements. Allocation still reserves released wires.
 - Indirect measurement conservatively invalidates connected roots' preparation;
   erasing such an unobserved root is rejected unless explicitly measured itself.
 - String-array element lengths now propagate through construction and lowering,
@@ -77,5 +81,7 @@ Keep ledger/status/evidence current and commit coherent verified units.
 - Builtin spellings remain documented defaults, without a separate human review.
   Readonly parameter behavior remains the original V1 default.
 - Never restore measurement consumption or function-only evolution restrictions.
-- Clean installation/Linux remain unverified; external IBM runtime emits 65
+- Short-circuited runtime measurement is deliberately rejected under the existing
+  conditional-measurement restriction. Reading snapshots remains supported.
+- Clean installation/Linux remain unverified; external IBM runtime emits 100
   non-failing deprecation warnings in existing Qiskit tests.

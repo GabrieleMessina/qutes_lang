@@ -7,8 +7,42 @@ from dataclasses import replace
 from qutes.gates import Gate, Measurement
 
 
+def classical_expression(predicate, circuit):
+    from qiskit.circuit.classical import expr
+
+    # Qiskit expression nodes may be mutable. Build fresh nodes for each tree
+    # occurrence rather than sharing backend nodes from the immutable IR DAG.
+    pending, values = [(predicate, False)], []
+    while pending:
+        node, ready = pending.pop()
+        if not ready:
+            pending.append((node, True))
+            pending.extend((argument, False) for argument in reversed(node.arguments))
+            continue
+        count = len(node.arguments)
+        arguments = values[-count:] if count else []
+        if count:
+            del values[-count:]
+        if node.op == "literal": value = expr.lift(node.value)
+        elif node.op == "bit": value = expr.lift(circuit.clbits[node.value])
+        elif node.op == "not": value = expr.logic_not(arguments[0])
+        elif node.op == "and": value = expr.logic_and(*arguments)
+        elif node.op == "or": value = expr.logic_or(*arguments)
+        else: value = expr.bit_xor(*arguments)
+        values.append(value)
+    return values[0]
+
+
 def append_gate(circuit, operation: Gate):
     from qiskit.circuit.library import HGate, ModularAdderGate, SwapGate, XGate
+
+    if operation.conditions:
+        from qiskit.circuit.classical import expr
+        condition, expected = operation.conditions[0]
+        test = classical_expression(condition, circuit)
+        with circuit.if_test(test if expected else expr.logic_not(test)):
+            append_gate(circuit, replace(operation, conditions=operation.conditions[1:]))
+        return
 
     if operation.classical_controls:
         bit, value = operation.classical_controls[0]

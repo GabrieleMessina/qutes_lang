@@ -160,3 +160,25 @@ Failed runs: run-ep9o5vq1 (invalid two-bit constant in a new fixture), run-p65z4
 existing contract; no acceptance requirement was removed. Physical-state tests
 verify correlations and cleaned local storage. A007 measured feedforward, full
 execution tooling, clean installation, Linux, and release audit remain pending.
+
+## V010 — 2026-10-31 — Same-circuit feedforward and complete corpus execution
+
+Command: `& C:\ProgramData\anaconda3\python.exe tools/check.py -q`.
+Result: **529 passed**, 100 existing external-plugin warnings, 16.22 seconds.
+Artifacts: `artifacts/checks/run-indfpw84/results.xml` and `environment.json`.
+Earlier targeted feedforward run: 118 passed in 10.93 seconds.
+
+All 17 positive source examples now execute through Qiskit transpilation and Aer
+with fixed seeds and the expected output support; their ideal probabilities also
+have exact projected-branch tests. All 16 negative examples retain their diagnostics.
+Backend sampling checks output support/semantics, not a statistical confidence
+claim about every probability. Exact comparator tests use independent Python
+signed comparisons for widths 1-5 and constants beyond the measured range.
+
+Additional evidence covers immutable snapshots, classical/quantum nesting with
+preserved unmeasured coherence, branch-wide overwrite guards, helper predicates,
+text length/alphabet/index behavior, conditional collections, short-circuit effect
+diagnostics, anonymous measured/unobserved roots, and hidden-root escape rejection.
+
+No CLI/build artifact, clean-install, Linux, hardware, or complete release evidence
+is claimed yet. T012 must validate those delivery requirements separately.

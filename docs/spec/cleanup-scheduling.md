@@ -2,7 +2,7 @@
 
 Implementation status: `cleanup.Scheduler`, measurement checkpoints, and the
 Qiskit adapter are implemented. Source lowering includes coherent branches and
-quantum collections; measured feedforward remains pending. See [source lowering](lowering.md)
+quantum collections and measured feedforward. See [source lowering](lowering.md)
 for the exact supported subset and API.
 
 ## Storage and history
@@ -48,6 +48,9 @@ Conditional overwrite guards the complete composite step, including cleanup of t
 old value. It records the condition register's version like any other quantum read.
 If restoring old inputs would mutate the condition, reject the schedule. Nested
 controls are normalized; contradictory controls are identity operations.
+Runtime conditions are immutable Boolean expressions over snapshot bits. They
+guard the complete composite update as well, and survive inverse scheduling
+unchanged. They do not borrow the corresponding quantum source's current value.
 
 ## Explicit measurement checkpoints
 

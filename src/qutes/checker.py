@@ -341,6 +341,8 @@ class Checker:
             self.fail("Q2001", "operator requires matching scalar operand types", node)
         base = left.type.classical.name
         stage = _merge_stage((left, right))
+        if operator in {"&&", "||"} and left.stage == ir.Stage.RUNTIME and "measure" in right.effects:
+            self.fail("Q2004", "measurement in a short-circuited runtime operand is not supported; measure separately", node.right)
         if operator in {"&&", "||"}:
             if base != "bool":
                 self.fail("Q2001", "Boolean operators require Boolean operands", node)

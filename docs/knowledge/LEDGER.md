@@ -223,3 +223,35 @@ entry IDs; do not rewrite history to hide failures.
   distributions; 16/17 positive examples have source circuit evidence.
 - T010 complete. T011 active for source feedforward, followed by full CLI/build/run,
   serialization, resources, packaging, docs, CI, and release audit. Goal incomplete.
+
+## KB-010 — 2026-10-31 — Runtime feedforward and ownership audit
+
+- Continued from clean 0926943; the prior goal turn made committed progress.
+  Checked primary Qiskit classical expression/control-flow documentation and
+  validated emitted operations on the installed pinned backend versions.
+- Added immutable classical predicate IR, balanced signed comparisons, Boolean
+  combinations, text/length semantics, snapshot/index normalization, and Qiskit
+  expression emission. Fresh backend expression nodes avoid mutable-node sharing.
+- Runtime guards compose with coherent controls and cover complete overwrite
+  transformations. Disabled unconditional array permutation rebinding under runtime
+  guards. Snapshot IDs stay stable after later evolution or observations.
+- Found direct RHS measurement in runtime &&/|| was being emitted eagerly by
+  construction. Added Q2004 under the existing no-conditional-measurement rule;
+  construction-time short-circuit and previously captured snapshot reads still work.
+- Ownership audit found escaped helper results/computed arguments could remain as
+  anonymous main values. Track explicitly named main quantum values; clean other
+  temporaries at main end, rejecting stranded correlated roots instead of retaining
+  hidden garbage. Added regressions for measured/unused roots and computed arguments.
+- Added exhaustive classical signed predicates and real Aer execution for every
+  positive corpus example, plus observed input-pair comparisons, mixed controls,
+  stable snapshots, text/indexed predicates, branch overwrite, and cleanup tests.
+- Targeted feedforward run: 118 passed. Full integration before ownership fix:
+  526 passed. Final full suite: 529 passed (V010), 100 external warnings. No test
+  failure or new user design blocker occurred in this batch.
+- T011 complete, T012 active. Generated Python modules, public build/run/explain/check,
+  resources, package validation, docs/CI, and release audit remain outstanding.
+- The first Git staging attempt was not executed: automatic approval review hit
+  a usage limit, explicitly not an unsafe-action determination. Worktree evidence
+  remained intact. After the user resumed the goal and the indicated retry time
+  passed, retry the ordinary approved Git path; do not bypass protected Git writes.
+- The resumed normal approval review succeeded; Git staging is available again.

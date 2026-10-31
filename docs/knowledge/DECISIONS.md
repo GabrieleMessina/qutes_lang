@@ -84,3 +84,12 @@ conversation examples suggesting measurement consumption are superseded by D007.
 - D040 (resource default): reject quantum type widths above the construction budget
   before encoding large constants/allocating padded arrays, and charge actual bit
   allocations to the scheduler budget. Foreach remains array-only as specified.
+- D041 (implementation): runtime guards are immutable Boolean circuits over stable
+  snapshot IDs. Sign-extend integer operands; do not truncate classical constants.
+  Text guards include logical length and alphabet semantics.
+- D042 (clarification of existing effect contract): reject measurement on the RHS
+  of runtime short-circuit Boolean operators. Eager emission violates semantics,
+  while conditional measurement is explicitly deferred. Snapshot reads are allowed.
+- D043 (ownership correction): only explicitly named main quantum values survive
+  to shot end. Anonymous helper results and computed arguments remain temporaries
+  and must be cleaned, or receive a dependency diagnostic if cleanup is impossible.

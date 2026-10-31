@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 
+from qutes.classical import Predicate
 from qutes.diagnostics import Span
 
 
@@ -21,6 +22,7 @@ class Gate:
     inverse: bool = False
     span: Span | None = None
     classical_controls: tuple[tuple[int, bool], ...] = ()
+    conditions: tuple[tuple[Predicate, bool], ...] = ()
 
     def __post_init__(self):
         if self.kind not in {"x", "h", "copy", "add", "add_constant", "rotate"}:
@@ -50,6 +52,8 @@ class Gate:
             raise ValueError("classical controls require nonnegative bits and Boolean values")
         if len({bit for bit, _ in self.classical_controls}) != len(self.classical_controls):
             raise ValueError("classical controls must be normalized")
+        if any(not isinstance(condition, Predicate) or type(expected) is not bool for condition, expected in self.conditions):
+            raise ValueError("classical conditions require Boolean predicates")
 
     @property
     def reads(self) -> frozenset[int]:
@@ -89,3 +93,16 @@ def controlled(gate: Gate, controls: tuple[tuple[int, bool], ...]) -> Gate | Non
             return None
         merged[bit] = value
     return replace(gate, controls=tuple(sorted(merged.items())))
+
+
+def conditioned(gate: Gate, conditions: tuple[tuple[Predicate, bool], ...]) -> Gate | None:
+    merged = dict(gate.conditions)
+    for condition, expected in conditions:
+        if condition.op == "literal":
+            if condition.value != expected:
+                return None
+            continue
+        if condition in merged and merged[condition] != expected:
+            return None
+        merged[condition] = expected
+    return replace(gate, conditions=tuple(merged.items()))

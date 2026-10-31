@@ -60,6 +60,10 @@ Measurement is allowed in main outside if bodies; helpers remain measurement-fre
 An expanded construction-time loop may include measurement when it is in main
 and outside an if body; allocate distinct snapshot bits for each expanded occurrence.
 No observation-driven loops, conditional measurement, or hidden measurement.
+Consequently, a measurement on the right of `&&`/`||` with a runtime left operand
+is rejected with Q2004: eager evaluation would violate short-circuit semantics,
+and conditional measurement is outside V1. Read previously measured snapshots
+instead. Construction-time short-circuiting can skip an observation normally.
 
 ## Configuration and encodings
 

@@ -31,9 +31,11 @@ def branches_for(scheduler, initial=None):
                 assert all(len(branch.snapshots) == classical_bit for branch in branches)
                 branches = [result for branch in branches for result in measure(branch, bit, 1)]
         else:
-            circuit = emit_gates(scheduler.qubit_count, (replace(operation, classical_controls=()),))
+            circuit = emit_gates(scheduler.qubit_count, (replace(operation, classical_controls=(), conditions=()),))
             branches = [replace(branch, state=Statevector(branch.state).evolve(circuit).data)
                         if all(bool(branch.snapshots[bit]) == value for bit, value in operation.classical_controls)
+                        and all(condition.evaluate(sum(value << index for index, value in enumerate(branch.snapshots))) == expected
+                                for condition, expected in operation.conditions)
                         else branch for branch in branches]
     return branches
 
