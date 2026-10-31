@@ -12,8 +12,8 @@ Status vocabulary: TODO, ACTIVE, DONE, BLOCKED. A task is DONE only with evidenc
 | T006 | DONE | Name resolution, type/stage checking, structured typed IR, readonly parameters, coherent-condition restrictions, explicit unsupported diagnostics. | T005 |
 | T007 | DONE | Bounded classical evaluator and user-function inlining with source mapping. | T006 |
 | T008 | DONE | Dependency/version model, cleanup synthesizer, and arithmetic lowering with full-state verification. | T004, T006 |
-| T009 | ACTIVE | Integrate coherent branches, functions, and construction-time loops. | T007, T008 |
-| T010 | TODO | Arrays/text/configuration integrated with lifetime analysis. | T009 |
+| T009 | DONE | Integrate coherent branches, functions, and construction-time loops. | T007, T008 |
+| T010 | ACTIVE | Arrays/text/configuration integrated with lifetime analysis. | T009 |
 | T011 | TODO | Non-consuming measurement, snapshots, feedforward, results decoding, Qiskit emitter. | T010 |
 | T012 | TODO | CLI build/run/explain, packaging, resource limits, documentation, CI/release evidence. | T011 |
 
@@ -40,3 +40,7 @@ scope cleanup, measurement checkpoints, and both cleanup-negative examples are
 integrated. T009 is ACTIVE: helpers and expanded loops work for scalars, while
 quantum predicates/dynamic branches remain. T011 has partial measurement evidence,
 but feedforward, text/array decoding, and full execution tooling are still pending.
+
+T009 completed at KB-008 / V008: 377 tests. Signed/Boolean predicates, coherent
+branches, conditional overwrite, branch cleanup, helpers/loops under controls,
+and changed predicate-input history all have full-state evidence. T010 is ACTIVE.

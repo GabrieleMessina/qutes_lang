@@ -175,3 +175,25 @@ entry IDs; do not rewrite history to hide failures.
 - T008 is complete for arithmetic/cleanup integration. T009 is active: coherent
   predicates/branches next, then quantum arrays/text, feedforward, and release tools.
   Full goal remains incomplete; no design decision is currently blocking progress.
+
+## KB-008 — 2026-10-31 — Coherent predicates and branches
+
+- Revalidated the prior worktree/test artifact and committed KB-007 as 0115815.
+  The previous goal turn made concrete progress; no blocked/no-progress state.
+- Added signed comparisons with reversible XOR-difference scratch and Boolean
+  conjunction/disjunction. Literal operands and shared operands normalize without
+  duplicated gate controls; the implementation does not enumerate truth tables.
+- Added nested coherent if/else lowering and branch-local scope cleanup. Existing
+  helper ownership and expanded loops compose with these controls.
+- Extended overwrite scheduling to guard the entire erase/prepare sequence. A
+  branch must preserve the old value when unselected; guarding only preparation
+  would be incorrect. Reject cleanup that would modify the quantum condition.
+- Added full complex-state tests with arbitrary inputs/reference entanglement,
+  all six signed comparisons at widths 1-3, signed boundary constants, identical
+  operands, Boolean combinations, nested branches, changed predicate inputs,
+  conditional overwrite, helper/loop locals, and contradictory controls.
+- A008/A009 now have exact source output-distribution checks. Targeted initial
+  integration: 101 passed. Added one compound predicate regression and ran the
+  full suite: 377 passed (V008). No new design input is required.
+- T009 complete; T010 active for quantum arrays/text/layout/lifetime integration.
+  Measured source feedforward and full CLI/release work still remain.

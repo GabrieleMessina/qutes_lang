@@ -1,8 +1,8 @@
 # Versioned cleanup and reversible operations
 
 Implementation status: `cleanup.Scheduler`, measurement checkpoints, and the
-Qiskit adapter are implemented. Scalar source lowering is integrated; dynamic
-branches and quantum collections remain pending. See [source lowering](lowering.md)
+Qiskit adapter are implemented. Scalar source lowering includes coherent branches;
+feedforward and quantum collections remain pending. See [source lowering](lowering.md)
 for the exact supported subset and API.
 
 ## Storage and history
@@ -43,6 +43,11 @@ Overwriting a basis-derived value records its cleanup plus replacement preparati
 as one reversible history step. Older consumers can therefore still reconstruct
 the old version. The composite step records every other touched register at its
 entry version, including released registers whose entry state is zero.
+
+Conditional overwrite guards the complete composite step, including cleanup of the
+old value. It records the condition register's version like any other quantum read.
+If restoring old inputs would mutate the condition, reject the schedule. Nested
+controls are normalized; contradictory controls are identity operations.
 
 ## Explicit measurement checkpoints
 

@@ -123,3 +123,21 @@ Windows descriptor capture); run-e_oe6q1q (three corrected test-fixture issues).
 The runner now uses Python stream capture on Windows. Clean installation and
 Linux remain unverified. Dynamic source branches, quantum collections, and the
 full CLI still await implementation; this is not full-language release evidence.
+
+## V008 — 2026-10-31 — Coherent source control flow
+
+Command: `& C:\ProgramData\anaconda3\python.exe tools/check.py -q`.
+Result: **377 passed**, 65 external warnings, 9.16 seconds.
+Artifacts: `artifacts/checks/run-j2oaqi3_/results.xml` and `environment.json`.
+Targeted initial source/control integration: 101 passed in 6.63 seconds.
+
+New evidence includes all six signed comparisons at widths 1-3 on arbitrary
+complex amplitudes entangled with a reference, preserving inputs and zeroing
+comparison scratch. Signed constants, literal-left/identical operands, Boolean
+operations, and compound predicates have independent expected semantics.
+
+Full-state source tests cover nested branches, conditional overwrite of known and
+derived values, branch-local cleanup after predicate inputs change, functions and
+loops inside controls, contradictory controls, and rejected unknown-root overwrite.
+A008/A009 now match the exact acceptance distributions. A007/A013-A017 remain
+pending. No hardware, clean-install, cross-platform, or full release claim.

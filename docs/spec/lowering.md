@@ -27,6 +27,10 @@ circuit = program.to_qiskit()
 - Nested arithmetic expression temporaries automatically cleaned; operands are
   evaluated using pre-assignment values. Distinct-output doubling is supported;
   overlapping in-place doubling produces Q3001.
+- Signed comparisons, Boolean conjunction/disjunction/negation, coherent if/else,
+  nested controls, branch-local cleanup, and conditional overwrite. Comparisons
+  compute XOR-difference scratch, detect the first differing bit (with reversed
+  sign-bit ordering), then clean scratch. No exponential truth table is generated.
 - Lexical scopes, owned helper-result transfers, borrowed parameters, construction-
   time loops/functions already expanded by the preceding pass.
 - Non-consuming measurements with separate snapshots, signed integer/Boolean
@@ -39,7 +43,7 @@ remaining values are live circuit outputs until shot completion; they are not
 silently reset by source lowering. Released storage remains physically reserved
 so historical recipes can be reconstructed. This increases qubit requirements.
 
-The positive source cases A001-A006 and A010-A012 have exact output-distribution
+The positive source cases A001-A006 and A008-A012 have exact output-distribution
 tests, and A004 executes through Aer. All 16 negative corpus cases now produce
 their intended category through the complete applicable pipeline. Additional
 source tests verify full complex states, local scratch, nested arithmetic,
@@ -47,15 +51,16 @@ function ownership, measurement checkpoints, and explicit unsafe cleanup errors.
 
 ## Pending integration
 
-Quantum comparisons/Boolean combinations and dynamic if statements, quantum
-arrays/text/indexing, feedforward predicates, full result codecs, allocation reuse,
+Quantum arrays/text/indexing, feedforward predicates, full result codecs, allocation reuse,
 resource reporting, program serialization, and CLI execution remain pending.
 Unsupported lowering produces a source-located diagnostic; it is never ignored.
 The parser/analyzer/constructor support more syntax than this lowerer currently
 executes. A partial lowering API does not satisfy release readiness.
 
-Next work must handle conditional overwrite as a whole transformation: both old
-value cleanup and replacement preparation need the branch condition. Guarding only
-the new preparation would erase the old value on the unselected branch. Quantum
-condition storage must remain unchanged, and its version must be captured in every
-controlled history step. Scope cleanup must preserve those controls too.
+Conditional overwrite guards the whole transformation: both old-value cleanup and
+replacement preparation. Guarding only the new preparation would erase the old
+value on the unselected branch. Quantum condition storage remains unchanged and
+its version is captured in each controlled history step. Scope cleanup preserves
+those controls. Contradictory controls emit no operation. Full-state tests cover
+signed boundaries, reference entanglement, identical operands, nested predicates,
+changed condition inputs after a branch, and clean branch-local storage.

@@ -2,7 +2,7 @@
 
 A high-level, strongly typed quantum language with C#-inspired syntax and a
 Qiskit backend. The compiler now lowers a scalar subset through automatic cleanup
-to executable Qiskit circuits. Branches, quantum collections, and full CLI execution
+to executable Qiskit circuits, including coherent branches. Quantum collections and full CLI execution
 are still under development; this is not yet the complete language.
 
 ```csharp

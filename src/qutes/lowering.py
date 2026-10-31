@@ -1,7 +1,7 @@
 """Construction IR to verified circuit operations.
 
-Current integration covers scalar qubit/quint arithmetic, scopes, inlined helpers,
-expanded classical loops, and non-consuming measurement. Remaining source forms
+Current integration covers scalar qubit/quint arithmetic, coherent predicates and
+branches, scopes, inlined helpers, expanded loops, and non-consuming measurement. Remaining source forms
 produce an explicit diagnostic until their lowering is implemented.
 """
 
@@ -14,7 +14,7 @@ from qutes import construction, ir
 from qutes.cleanup import CleanupEvent, Scheduler, Storage
 from qutes.config import CompilerConfig
 from qutes.diagnostics import DiagnosticError, Span
-from qutes.gates import Gate, Measurement
+from qutes.gates import Gate, Measurement, controlled
 from qutes.values import SignedInteger
 
 
@@ -84,6 +84,7 @@ class Lowerer:
         self.scheduler = Scheduler(max_steps=self.config.max_evaluation_steps)
         self.bindings: dict[int, Storage | Result] = {}
         self.frames: list[set[int]] = [set()]
+        self.controls: tuple[tuple[int, bool], ...] = ()
 
     def fail(self, node, message, code="Q2001"):
         raise DiagnosticError(code, message, node.span)
@@ -144,6 +145,9 @@ class Lowerer:
             b, b_temps = self.operand(expression.arguments[1])
             return (self.copy_gates(target, a, expression.span) + self.add_gates(target, b, expression.span),
                     a_temps + b_temps)
+        if op in {"binary:==", "binary:!=", "binary:<", "binary:<=", "binary:>", "binary:>=",
+                  "binary:&&", "binary:||"}:
+            return self.predicate(expression, target)
         if op in {"rotateLeft", "rotateRight", "unary:!"}:
             value, temporaries = self.operand(expression.arguments[0])
             gates = self.copy_gates(target, value, expression.span)
@@ -155,13 +159,75 @@ class Lowerer:
             return gates, temporaries
         self.fail(expression, f"circuit lowering for {op} is not implemented yet")
 
+    def gated(self, gates):
+        result = []
+        for gate in gates:
+            try:
+                operation = controlled(gate, self.controls)
+            except ValueError:
+                raise DiagnosticError("Q2004", "operation would change its quantum condition", gate.span)
+            if operation is not None:
+                result.append(operation)
+        return tuple(result)
+
+    def predicate(self, expression, target):
+        a, a_temps = self.operand(expression.arguments[0])
+        b, b_temps = self.operand(expression.arguments[1])
+        temporaries = a_temps + b_temps
+        operator = expression.op[7:]
+        gates = []
+
+        def test_bit(value, index, expected):
+            return bool((value >> index) & 1) == expected if isinstance(value, int) else (value.bits[index], expected)
+
+        def toggle(tests):
+            pairs = []
+            for test in tests:
+                if test is False:
+                    return
+                if test is not True:
+                    pairs.append(test)
+            operation = controlled(Gate("x", target.bits, span=expression.span), tuple(pairs))
+            if operation is not None:
+                gates.append(operation)
+
+        if operator in {"&&", "||"}:
+            if operator == "||":
+                toggle((test_bit(a, 0, True),))
+                toggle((test_bit(b, 0, True),))
+            toggle((test_bit(a, 0, True), test_bit(b, 0, True)))
+            return tuple(gates), temporaries
+
+        width = self.width(expression.arguments[0].type, expression)
+        difference = self.scheduler.allocate(width, "$comparison", expression.span)
+        self.scheduler.tick(difference, width)
+        self.frames[-1].add(difference.id)
+        self.scheduler.initialize(difference, self.gated(self.copy_gates(difference, a, expression.span)
+                                                       + self.copy_gates(difference, b, expression.span)))
+        temporaries += (difference,)
+        if operator in {"==", "!="}:
+            toggle(tuple((bit, False) for bit in difference.bits))
+            if operator == "!=":
+                toggle(())
+        else:
+            if operator in {">", "<="}:
+                a, b = b, a
+            signed = expression.arguments[0].type.name == "quint"
+            for index in range(width):
+                sign = signed and index == width - 1
+                toggle((*((bit, False) for bit in difference.bits[index + 1:]),
+                        test_bit(a, index, sign), test_bit(b, index, not sign)))
+            if operator in {"<=", ">="}:
+                toggle(())
+        return tuple(gates), temporaries
+
     def create(self, expression, name):
         width = self.width(expression.type, expression)
         target = self.scheduler.allocate(width, name, expression.span)
         self.scheduler.tick(target, width)
         self.frames[-1].add(target.id)
         gates, temporaries = self.preparation(expression, target)
-        self.scheduler.initialize(target, gates)
+        self.scheduler.initialize(target, self.gated(gates))
         self.release_temporaries(temporaries)
         return target
 
@@ -226,10 +292,10 @@ class Lowerer:
                 if self.contains(expression, target):
                     gates, temporaries = self.self_update(expression, target)
                     if gates:
-                        self.scheduler.update(target, gates)
+                        self.scheduler.update(target, self.gated(gates))
                 else:
                     gates, temporaries = self.preparation(expression, target)
-                    self.scheduler.overwrite(target, gates)
+                    self.scheduler.overwrite(target, gates, controls=self.controls)
                 self.release_temporaries(temporaries)
             elif op == "scope":
                 self.frames.append(set())
@@ -244,6 +310,23 @@ class Lowerer:
                 owned = self.frames.pop()
                 self.scheduler.release_scope(owned - escapes)
                 self.frames[-1].update(owned & escapes)
+            elif op == "if":
+                condition = statement.expressions[0]
+                if condition.stage != ir.Stage.QUANTUM:
+                    self.fail(statement, "source feedforward lowering is not implemented yet")
+                predicate, temporaries = self.operand(condition)
+                if not isinstance(predicate, Storage) or len(predicate.bits) != 1:
+                    self.fail(condition, "quantum condition must occupy one qubit")
+                previous = self.controls
+                try:
+                    for block, expected in zip(statement.blocks, (True, False), strict=True):
+                        self.controls = (*previous, (predicate.bits[0], expected))
+                        self.frames.append(set())
+                        self.block(block)
+                        self.scheduler.release_scope(self.frames.pop())
+                finally:
+                    self.controls = previous
+                self.release_temporaries(temporaries)
             else:
                 self.fail(statement, f"circuit lowering for {op} statements is not implemented yet")
 

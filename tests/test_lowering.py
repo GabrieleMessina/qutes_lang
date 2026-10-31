@@ -18,7 +18,7 @@ from tests.test_measurement_cleanup import branches_for
 pytestmark = pytest.mark.backend
 ROOT = Path(__file__).parent / "acceptance"
 CASES = json.loads((ROOT / "cases.json").read_text())["cases"]
-SCALAR_CASES = {"A001", "A002", "A003", "A004", "A005", "A006", "A010", "A011", "A012"}
+SCALAR_CASES = {"A001", "A002", "A003", "A004", "A005", "A006", "A008", "A009", "A010", "A011", "A012"}
 
 
 def compile_source(source, inputs=None, **settings):
@@ -165,6 +165,6 @@ def test_source_generated_qiskit_executes_snapshots_and_evolution():
     assert program.result.decode(int(next(iter(counts)), 2)) == [5, 7]
 
 
-def test_partial_lowerer_reports_unimplemented_branch_instead_of_ignoring_it():
-    with pytest.raises(DiagnosticError, match="if statements is not implemented"):
-        compile_source((ROOT / "A008_quantum_if.qut").read_text())
+def test_partial_lowerer_reports_unimplemented_feedforward_instead_of_ignoring_it():
+    with pytest.raises(DiagnosticError, match="source feedforward lowering is not implemented"):
+        compile_source((ROOT / "A007_feedforward.qut").read_text())

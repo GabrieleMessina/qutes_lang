@@ -66,3 +66,9 @@ conversation examples suggesting measurement consumption are superseded by D007.
 - D034 (environment): use Python stream capture in the Windows test runner. Native
   descriptor capture intermittently caused Aer DLL initialization/invalid-handle
   failures. This does not skip tests or change packages; explicit flags may override.
+- D035 (implementation): comparisons use reversible XOR-difference scratch and
+  first-differing-bit predicates, including signed sign-bit ordering. Avoid
+  exponential truth-table synthesis; preserve exact phases and clean scratch.
+- D036 (implementation): conditional overwrite guards both old-value cleanup and
+  replacement preparation. Capture control versions in histories; reject cleanup
+  that would mutate its condition. This preserves the unselected branch's value.

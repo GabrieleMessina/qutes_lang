@@ -1,12 +1,13 @@
 # Current status
 
-Updated: 2026-10-30, checkpoint KB-007. Full implementation goal remains active.
+Updated: 2026-10-31, checkpoint KB-008. Full implementation goal remains active.
 
 ## Completed capabilities
 
 - Local Git main, no remote. Checkpoints: a29edbf knowledge base; 4b8d3d8 contract /
   probes; 18d3d56 parser; e94314a typed frontend; 5ad3bae construction; 0cdd467
-  cleanup scheduler. Current checkpoint adds scalar lowering and measurement cuts.
+  cleanup scheduler; 0115815 scalar lowering and measurement cuts. Current checkpoint
+  adds signed predicates and coherent branches.
 - Parser, source diagnostics, typed IR, name/type/stage/effect analysis.
 - Bounded construction-time evaluator: classical inputs/functions/loops, inlining,
   fresh symbols, scopes, ownership moves, symbolic quantum operations and snapshots.
@@ -15,7 +16,9 @@ Updated: 2026-10-30, checkpoint KB-007. Full implementation goal remains active.
   reversible gate adapter, including controlled addition/rotation/copy.
 - Scalar source-to-Qiskit lowering: qubit/quint arithmetic, self-updates, scopes,
   helper ownership, expanded loops, explicit measurement snapshots and cleanup.
-- Latest full run: 312 passed (V007). Nine positive source cases have exact output
+- Signed comparisons, compound Boolean predicates, coherent if/else, conditional
+  overwrite, nested controls, branch-local arithmetic and cleanup.
+- Latest full run: 377 passed (V008). Eleven positive source cases have exact output
   distribution checks; all negative cases have their expected diagnostics.
 
 ## Commands / environment
@@ -37,18 +40,17 @@ packages changed. Runner uses ignored workspace-local artifacts and Windows Pyth
 stream capture to avoid Aer native DLL failures under descriptor capture. Git writes need
 elevated Git calls; the user already authorized logical commits, not remote pushes.
 
-## Exact next task: T009
+## Exact next task: T010
 
-Read docs/spec/lowering.md and cleanup-scheduling.md. Add quantum comparisons and
-Boolean predicates, coherent if lowering, conditional overwrite, and branch-local
-cleanup. The scalar lowerer already integrates construction, arithmetic, scopes,
-helper moves, loops, and direct measurement checkpoints. Physical wires remain
-reserved after release. Scheduler histories preserve control/source versions.
+Read docs/spec/lowering.md and cleanup-scheduling.md. Integrate quantum arrays,
+quchar/qustring layout, indexing, foreach views, text length metadata, value copies,
+and lifetime handling. Scalar predicates and coherent branches are now integrated.
+Physical wires remain reserved after release; histories preserve source/control
+versions. Keep string logical length distinct from padded physical capacity.
 
-Start with A008 quantum if and A009 scoped predicate cleanup; verify all signed
-comparison operators on small exhaustive states, plus phase/control/scratch checks.
-Conditional overwrite must guard cleanup AND replacement. Then finish array/text
-layouts (T010), feedforward/result integration (T011), and release tooling (T012).
+Start with A013-A017 and add quantum collection copy/alias/branch tests beyond those
+examples. Resolve the pending string-array element length construction limitation.
+Then finish feedforward/result integration (T011) and release tooling (T012).
 R004 and R005 now fail correctly; never regress non-consuming measurement.
 
 Inspect worktree changes before resuming; active work may postdate this checkpoint.
@@ -58,10 +60,10 @@ Keep ledger/status/evidence current and commit coherent verified units.
 
 - Full check/build/run/explain are NOT implemented. Goal is NOT complete.
 - Construction is an intermediate representation, not executable Qiskit output.
-- Scalar lowerer has source circuit evidence. Dynamic branches, quantum predicates,
-  quantum arrays/text, general feedforward/results, and physical reuse remain pending.
-- Positive corpus A001-A006/A010-A012 has exact distribution evidence; A007-A009
-  and A013-A017 await source integration. All 16 negative examples are diagnosed.
+- Scalar coherent branches/predicates have source circuit evidence. Quantum
+  arrays/text, general feedforward/results, and physical reuse remain pending.
+- Positive corpus A001-A006/A008-A012 has exact distribution evidence; A007 and
+  A013-A017 await source integration. All 16 negative examples are diagnosed.
 - Indirect measurement conservatively invalidates connected roots' preparation;
   erasing such an unobserved root is rejected unless explicitly measured itself.
 - Quantum string-array element lengths need complete layout/lifetime handling in

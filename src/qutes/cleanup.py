@@ -12,7 +12,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from qutes.diagnostics import DiagnosticError, Span
-from qutes.gates import Gate, Measurement, inverse
+from qutes.gates import Gate, Measurement, controlled, inverse
 
 
 @dataclass(frozen=True)
@@ -270,7 +270,7 @@ class Scheduler:
         self.events.append(CleanupEvent(target.id, target.name, before[target.id], start,
                                         len(self.operations), tuple(Version(i, before[i]) for i in sorted(touched)), target.span))
 
-    def overwrite(self, target: Storage, preparation: tuple[Gate, ...]):
+    def overwrite(self, target: Storage, preparation: tuple[Gate, ...], *, controls=()):
         """Erase a basis-derived old value and initialize its replacement atomically.
 
         The composite update retains the old recipe so other values may still
@@ -289,6 +289,18 @@ class Scheduler:
             self._move(target, -1, frozenset())
             self.emit(preparation, target)
             gates = tuple(self.operations[start:])
+            if controls:
+                guarded = []
+                for gate in gates:
+                    try:
+                        operation = controlled(gate, controls)
+                    except ValueError:
+                        self.fail(f"cannot conditionally overwrite {target.name}: cleanup would modify its quantum condition", target)
+                    if operation is not None:
+                        guarded.append(operation)
+                gates = tuple(guarded)
+                del self.operations[start:]
+                self.emit(gates, target)
         except DiagnosticError:
             del self.operations[start:]
             for storage, version in zip(self.storages, before):
