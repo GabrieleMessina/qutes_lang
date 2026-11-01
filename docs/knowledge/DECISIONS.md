@@ -120,3 +120,17 @@ conversation examples suggesting measurement consumption are superseded by D007.
   file rendering and no external LaTeX processes. File names include source stem
   and build-hash prefix; repeat builds atomically replace their image, differing
   bindings/settings get distinct names. Guard image size before rasterization.
+
+- D051 (user approved): migrate to ANTLR 4.13.2 now; commit generated Python
+  frontend sources, pin runtime/generator, keep quantum semantics outside grammar.
+- D052 (user approved, supersedes entry rules in D033/D043): only top-level
+  statements execute automatically; main is ordinary. Explicit classical script
+  return, inferred type, no implicit last-expression output. Script globals live
+  to shot end; ordinary function locals must clean.
+- D053 (user approved): root input TYPE name declarations replace main arguments;
+  functions can read/write globals; initialization order is checked transitively.
+- D054 (user approved): functions can measure with inferred transitive effects;
+  preserve readonly borrows, non-consuming measurement and conditional restrictions.
+- D055 (implementation): diagnostic recovery reports at most ten errors and never
+  compiles repaired input. Source offsets, stable codes and first-error exception
+  fields stay compatible; structured hints and related locations are additive.

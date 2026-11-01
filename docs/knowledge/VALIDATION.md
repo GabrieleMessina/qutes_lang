@@ -294,3 +294,16 @@ temporary functions.qut experiment. A separate snapshot with the committed fixtu
 passed 596 tests at artifacts/circuit-validation-3zmfr3d8/artifacts/checks/run-m02hz69v.
 The user subsequently reverted the experiment; the final normal workspace run
 above passes without altering tests or excluding that example.
+
+## V013 — 2026-11-01 — ANTLR frontend
+
+- `.venv/Scripts/python.exe tools/check.py -q tests/test_parser.py`: 60 passed,
+  artifacts/checks/run-t3qszxdr.
+- Full Windows `tools/check.py -q`: 599 passed, 1 failed, 30.08s,
+  artifacts/checks/run-as9eqx7n. Failure is test_documented_examples_execute for
+  user's modified snapshots.qut, expected [5,7], actual correct [5,-6].
+- `tools/generate_parser.py --jar artifacts/antlr/antlr-4.13.2-complete.jar
+  --java "C:/Program Files/Android/openjdk/jdk-21.0.8/bin/java.exe" --check`: passed.
+- Four new diagnostic tests cover independent errors, error count bound, lexer
+  collection, source excerpts and related opener locations. Existing parser corpus,
+  truncation, Unicode/BOM/CRLF and nesting tests pass unchanged.

@@ -1,5 +1,20 @@
 # Current status
 
+Updated: 2026-11-01, checkpoint KB-013. Qutes 0.2 implementation is ACTIVE.
+User approved scripts-only execution, ANTLR, globals, input declarations, inferred
+measurement effects, and improved diagnostics. No additional design approval needed.
+
+Checkpoint 1 implemented: generated ANTLR 4.13.2 lexer/parser, AST adapter,
+structured diagnostic collections, excerpts/hints, reproducible generation.
+Validation: 60 parser tests pass; full Windows suite 599 passed, one pre-existing
+user-example expectation mismatch (snapshots.qut deliberately changed). See V013.
+
+Next action: implement script/global/input semantics and transitive effects, then
+migrate examples/tests/docs and version generated artifacts. Preserve the user's
+snapshots.qut edit (numberb and number + numberb); do not stage this file.
+
+## Previous delivery baseline
+
 Updated: 2026-11-01, checkpoint KB-012. V1 implementation and delivery are complete
 within the research-tool boundary of DEVELOPMENT_PLAN.md. No user design decision
 is currently blocking the implementation. See [release audit](../release-audit.md)

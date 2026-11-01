@@ -3,7 +3,13 @@
 from dataclasses import dataclass
 
 from qutes.diagnostics import DiagnosticError, Position, Span
-from qutes.vocabulary import KEYWORDS
+from bisect import bisect_right
+import re
+from antlr4 import InputStream, CommonTokenStream
+from qutes.generated.QutesLexer import QutesLexer
+from qutes.generated.QutesParser import QutesParser
+from qutes.serialization import parse_integer
+from qutes.diagnostics import DiagnosticErrors
 
 
 @dataclass(frozen=True)
@@ -18,7 +24,7 @@ def _identifier_start(character: str) -> bool:
     return character.isascii() and (character.isalpha() or character == "_")
 
 
-class Lexer:
+class LiteralDecoder:
     DOUBLE = frozenset({"==", "!=", "<=", ">=", "+=", "-=", "++", "--", "&&", "||"})
     SINGLE = frozenset("(){}[],;.+-*/%!<>=")
     ESCAPES = {"n": "\n", "r": "\r", "t": "\t", "0": "\0", "\\": "\\", '"': '"', "'": "'"}
@@ -85,68 +91,83 @@ class Lexer:
             characters.append(character)
         raise self.error("unterminated literal", start)
 
-    def tokens(self) -> tuple[Token, ...]:
-        result = []
-        while self.index < len(self.source):
-            character = self.source[self.index]
-            if character in " \t\r\n":
-                self.advance()
-                continue
-            start = self.position()
-            pair = self.source[self.index:self.index + 2]
-            if pair == "//":
-                while self.index < len(self.source) and self.source[self.index] not in "\r\n":
-                    self.advance()
-                continue
-            if pair == "/*":
-                self.advance()
-                self.advance()
-                while self.index < len(self.source) and self.source[self.index:self.index + 2] != "*/":
-                    self.advance()
-                if self.index == len(self.source):
-                    raise self.error("unterminated block comment", start)
-                self.advance()
-                self.advance()
-                continue
-            value: str | int | None = None
-            if _identifier_start(character):
-                self.advance()
-                while self.index < len(self.source):
-                    current = self.source[self.index]
-                    if not (_identifier_start(current) or current in "0123456789"):
-                        break
-                    self.advance()
-                value = self.source[start.offset:self.index]
-                kind = value if value in KEYWORDS else "IDENT"
-            elif character in "0123456789":
-                self.advance()
-                while self.index < len(self.source) and self.source[self.index] in "0123456789":
-                    self.advance()
-                try:
-                    from qutes.serialization import parse_integer
-                    value = parse_integer(self.source[start.offset:self.index])
-                except ValueError:
-                    raise self.error("integer literal exceeds parser limits", start) from None
-                kind = "INT"
-            elif character in "\"'":
-                value = self.literal(character, start)
-                kind = "STRING" if character == '"' else "CHAR"
-            elif pair in self.DOUBLE:
-                self.advance()
-                self.advance()
-                kind = pair
-            elif character in self.SINGLE:
-                self.advance()
-                kind = character
-            else:
-                self.advance()
-                raise self.error(f"unexpected character {character!r}", start)
-            result.append(Token(kind, self.source[start.offset:self.index], value,
-                                Span(self.path, start, self.position())))
-        end = self.position()
-        result.append(Token("EOF", "", None, Span(self.path, end, end)))
-        return tuple(result)
+
+class SourceMap:
+    def __init__(self, source, path):
+        self.source, self.path = source, path
+        self.bom = int(source.startswith("\ufeff"))
+        self.starts = [self.bom] + [m.end() for m in re.finditer(r"\r\n|\r|\n", source)]
+
+    def position(self, offset):
+        offset = min(len(self.source), max(self.bom, offset))
+        line = bisect_right(self.starts, offset) - 1
+        return Position(offset, line + 1, offset - self.starts[line] + 1)
+
+    def span(self, start, end):
+        return Span(self.path, self.position(start), self.position(end))
+
+    def token_span(self, token):
+        start = token.start + self.bom
+        return self.span(start, start if token.type == -1 else token.stop + 1 + self.bom)
+
+
+def token_value(token, locations):
+    kind = QutesParser.symbolicNames[token.type] if token.type > 0 else "EOF"
+    text = token.text
+    span = locations.token_span(token)
+    if kind in {"STRING", "CHAR"}:
+        decoder = LiteralDecoder(locations.source, locations.path)
+        decoder.index, decoder.line, decoder.column = span.start.offset, span.start.line, span.start.column
+        return decoder.literal(text[0], span.start)
+    if kind == "INT":
+        try:
+            return parse_integer(text)
+        except ValueError:
+            raise DiagnosticError("Q1001", "integer literal exceeds parser limits", span) from None
+    return text
+
+
+def token_stream(source, path):
+    locations = SourceMap(source, path)
+    lexer = QutesLexer(InputStream(source[locations.bom:]))
+    lexer.removeErrorListeners()
+    stream = CommonTokenStream(lexer)
+    stream.fill()
+    errors = []
+    bad = {QutesLexer.UNTERMINATED_COMMENT: "unterminated block comment",
+           QutesLexer.UNTERMINATED_STRING: "unterminated literal",
+           QutesLexer.UNTERMINATED_CHAR: "unterminated literal"}
+    for token in stream.tokens:
+        try:
+            if token.type in bad:
+                raise DiagnosticError("Q1001", bad[token.type], locations.token_span(token),
+                                      help="Close the comment or quoted literal before continuing.")
+            if token.type == QutesLexer.INVALID:
+                raise DiagnosticError("Q1001", f"unexpected character {token.text!r}", locations.token_span(token))
+            if token.type in {QutesLexer.STRING, QutesLexer.CHAR, QutesLexer.INT}:
+                token_value(token, locations)
+        except DiagnosticError as error:
+            error.source = source
+            if not error.help:
+                error.help = "Use a valid literal; supported escapes include \\n, \\t and \\uXXXX." if token.type in {QutesLexer.STRING, QutesLexer.CHAR} else "Remove or replace the invalid token."
+            errors.append(error)
+            if len(errors) == 10:
+                break
+    if errors:
+        raise DiagnosticErrors(errors)
+    return stream, locations
 
 
 def lex(source: str, path: str = "<source>") -> tuple[Token, ...]:
-    return Lexer(source, path).tokens()
+    stream, locations = token_stream(source, path)
+    result = []
+    for token in stream.tokens:
+        if token.type == -1:
+            result.append(Token("EOF", "", None, locations.token_span(token)))
+            continue
+        kind = QutesParser.symbolicNames[token.type]
+        if kind not in {"IDENT", "INT", "STRING", "CHAR"}:
+            kind = token.text
+        value = token_value(token, locations) if kind in {"IDENT", "INT", "STRING", "CHAR"} or token.text[0].isalpha() else None
+        result.append(Token(kind, token.text, value, locations.token_span(token)))
+    return tuple(result)

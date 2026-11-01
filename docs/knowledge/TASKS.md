@@ -71,3 +71,9 @@ T013 completed at KB-012 / V012: final compiler diagrams on check/build/run/expl
 PNG/SVG files, lazy optional dependencies, JSON-safe console output, atomic writes,
 image-size guards, and documentation. Full Windows suite: 596 passed. Linux
 rendering/CLI suite: 28 passed; installed flags verified on both platforms.
+
+## Qutes 0.2 approved increment
+
+- T014 DONE: ANTLR migration/diagnostics; KB-013 / V013.
+- T015 ACTIVE: scripts, globals, input declarations, inferred function effects.
+- T016 TODO: migration, generated-artifact contract, Windows/Linux validation.

@@ -338,3 +338,19 @@ entry IDs; do not rewrite history to hide failures.
   Verified the file has no diff and reran the normal workspace suite.
 - Two status-document patches failed exact-context verification and made no changes;
   the corrected patch succeeded. T013 is complete; see V012 for final evidence.
+
+## KB-013 — 2026-11-01 — ANTLR and diagnostics checkpoint
+
+- Read continuity/specification and inspected 1826686; user snapshots.qut edit
+  adds numberb and changes addition. Preserved byte-for-byte, excluded from commits.
+- Implemented authoritative grammar, generated Python parser/lexer, independent
+  AST adapter, scalar literal validation, bounded syntax/error collection, source
+  excerpts and actionable hints. No backend semantics moved into grammar.
+- Downloaded pinned generator and installed runtime only into project .venv.
+  Initial restricted DNS failed; approved network retry succeeded. Existing Java:
+  C:/Program Files/Android/openjdk/jdk-21.0.8/bin/java.exe. Jar under artifacts/antlr.
+- Generator SHA256 is checked before regeneration; generated source is reproducible.
+- Parser suite 60 passed; full suite 599 passed and one expected example mismatch:
+  user's snapshots computes [5,-6] with configured four bits versus baseline [5,7].
+  No compiler regression found; do not overwrite the experiment to make tests green.
+- Next checkpoint: change entry semantics, globals/inputs, inferred call effects.

@@ -4,4 +4,5 @@ recursive-include examples *.qut *.toml *.json
 recursive-include tests *.py *.qut *.json
 recursive-include experiments *.py
 include tools/*.py
+recursive-include grammar *.g4 *.sha256
 include .github/workflows/*.yml

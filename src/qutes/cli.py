@@ -163,7 +163,7 @@ def main(arguments: list[str] | None = None) -> int:
         return 0
     except DiagnosticError as error:
         if options.json:
-            print(json_text({"diagnostics": [error.to_dict()]}))
+            print(json_text({"diagnostics": [item.to_dict() for item in error.diagnostics]}))
         else:
-            print(error, file=sys.stderr)
+            print(error.render(locals().get("source")), file=sys.stderr)
         return 1

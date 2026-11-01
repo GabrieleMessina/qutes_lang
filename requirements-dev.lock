@@ -1,6 +1,7 @@
 # Pinned development environment for Python 3.12/3.13.
 # Install in an isolated environment; these are version pins, not artifact hashes.
 # psutil 7 supplies wheels for Python 3.13; the original host's 5.9.0 did not.
+antlr4-python3-runtime==4.13.2
 qiskit==2.3.0
 qiskit-aer==0.17.2
 numpy==2.1.3
