@@ -1,1 +1,1 @@
-int main() { quint number = superposition(); number = number + number; return measure(number); }
+quint number = superposition(); number = number + number; return measure(number);

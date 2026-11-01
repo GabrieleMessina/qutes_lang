@@ -48,7 +48,7 @@ def test_all_positive_cases_execute_from_generated_python(case, tmp_path):
 
 @pytest.mark.backend
 def test_generated_build_respecializes_inputs_and_preserves_old_binding(tmp_path):
-    compilation = compiled("int[] main(int count) { quint[] values=new quint[count]; return measure(values); }", {"count": 1})
+    compilation = compiled('input int count;  quint[] values=new quint[count]; return measure(values); ', {"count": 1})
     module = generated(compilation, tmp_path)
     circuit, layout = module.build({"count": 2})
     assert circuit.num_qubits == 6
@@ -65,13 +65,13 @@ def test_generated_build_respecializes_inputs_and_preserves_old_binding(tmp_path
 
 @pytest.mark.backend
 def test_generated_runtime_conditions_snapshots_and_cleanup(tmp_path):
-    module = generated(compiled("""int[] main() {
+    module = generated(compiled("""
         quint n=superposition(); int before=measure(n); n+=1; int after=measure(n);
         quint value=0;
         if(before<0 && after>=0 || before==after) { value=1; } else { value=2; }
         { quint local=n+1; }
         return [before,after,measure(value)];
-    }""", quint_bits=3), tmp_path)
+    """, quint_bits=3), tmp_path)
     outcomes = module.run(shots=256, seed=17)["outcomes"]
     assert len(outcomes) == 8
     for item in outcomes:
@@ -81,7 +81,8 @@ def test_generated_runtime_conditions_snapshots_and_cleanup(tmp_path):
 
 
 def test_deterministic_artifacts_identity_and_safe_source_embedding(tmp_path):
-    source = 'string main() { return "\\\"; __import__(\\\"sys\\\")"; } // λ\n'
+    source = """ return "\\"; __import__(\\"sys\\")";  // λ
+"""
     compilation = compiled(source)
     assert python_source(compilation) == python_source(compiled(source))
     module = generated(compilation, tmp_path)
@@ -94,12 +95,12 @@ def test_deterministic_artifacts_identity_and_safe_source_embedding(tmp_path):
 
 
 def test_artifacts_with_quantum_cleanup_and_runtime_guards_are_deterministic():
-    source = """int main() {
+    source = """
         quint n=superposition(); int sample=measure(n); quint result=0;
         if(sample<0 || sample==2) { result+=1; }
         { quint temporary=n+1; if(temporary==2) { result+=1; } }
         return measure(result);
-    }"""
+    """
     a, b = compiled(source), compiled(source)
     assert a.metadata == b.metadata
     assert python_source(a) == python_source(b)
@@ -112,7 +113,7 @@ def test_compilation_and_python_generation_do_not_import_backend(monkeypatch, tm
             raise AssertionError(f"unexpected backend import {name}")
         return original(name, *args, **kwargs)
     monkeypatch.setattr(builtins, "__import__", no_backend)
-    compilation = compiled("int main() { quint q=1; return measure(q); }")
+    compilation = compiled(' quint q=1; return measure(q); ')
     generated(compilation, tmp_path)
     path = tmp_path / "main.qut"
     path.write_text(compilation.source)
@@ -120,7 +121,7 @@ def test_compilation_and_python_generation_do_not_import_backend(monkeypatch, tm
 
 
 def test_resource_report_counts_reserved_storage_and_preflights_before_builder():
-    compilation = compiled("int main() { quint q=1; { quint temporary=q+1; } return measure(q); }", max_simulation_qubits=3)
+    compilation = compiled(' quint q=1; { quint temporary=q+1; } return measure(q); ', max_simulation_qubits=3)
     cost = compilation.metadata["resources"]
     assert cost["allocated_qubits"] > cost["cleaned_qubits_at_end"] > 0
     assert not cost["wire_reuse"] and not cost["simulation_within_limit"]
@@ -135,12 +136,12 @@ def test_resource_report_counts_reserved_storage_and_preflights_before_builder()
 @pytest.mark.parametrize("options", [{"shots": 0}, {"shots": True}, {"shots": 1_000_001}, {"seed": -1}, {"seed": 2**32}, {"seed": False}])
 def test_execution_options_checked_before_classical_or_quantum_execution(options):
     with pytest.raises(DiagnosticError) as error:
-        compiled("int main() { return 9; }").run(**options)
+        compiled(' return 9; ').run(**options)
     assert error.value.code == "Q4001"
 
 
 def test_classical_output_explicitly_reports_no_simulator_execution(tmp_path):
-    compilation = compiled("int main(int n) { int total=0; for(int i=0;i<n;i++){ total+=i; } return total; }", {"n": 4})
+    compilation = compiled('input int n;  int total=0; for(int i=0;i<n;i++){ total+=i; } return total; ', {"n": 4})
     module = generated(compilation, tmp_path)
     result = module.run({"n": 5}, shots=3)
     assert result["outcomes"] == [{"value": 10, "count": 3, "probability": 1.0}]
@@ -151,29 +152,29 @@ def test_classical_output_explicitly_reports_no_simulator_execution(tmp_path):
 def test_lossless_large_integers_without_global_python_changes(tmp_path):
     limit = sys.get_int_max_str_digits()
     value = 10**5000 + 3
-    source = "int main(int n) { return n+1; }"
+    source = 'input int n;  return n+1; '
     compilation = compiled(source, {"n": value})
     module = generated(compilation, tmp_path)
     payload = module.run(shots=1)
     assert load_json(json_text(payload))["outcomes"][0]["value"] == value + 1
     assert parse_integer(integer_text(-value)) == -value
-    assert compiled("int main() { return " + integer_text(value) + "; }").run(shots=1)["outcomes"][0]["value"] == value
+    assert compiled("return " + integer_text(value) + ";").run(shots=1)["outcomes"][0]["value"] == value
     assert sys.get_int_max_str_digits() == limit
     with pytest.raises(ValueError, match="limit"):
         load_json("1" * 100_001)
     with pytest.raises(DiagnosticError):
-        compiled("int main() { return " + "1" * 100_001 + "; }")
+        compiled("return " + "1" * 100_001 + ";")
 
 
 def test_generated_metadata_honors_explicitly_larger_classical_memory_budget(tmp_path):
     value = 1 << 335_000
-    compilation = compiled("int main(int n) { return n; }", {"n": value}, max_classical_bits=400_000)
+    compilation = compiled('input int n;  return n; ', {"n": value}, max_classical_bits=400_000)
     module = generated(compilation, tmp_path)
     assert module.run(shots=1)["outcomes"][0]["value"] == value
 
 
 def test_artifact_write_is_deterministic_and_preserves_unrelated_files(tmp_path):
-    compilation = compiled("int main() { return 1; }")
+    compilation = compiled(' return 1; ')
     target = tmp_path / "output.py"
     target.write_text("user data", encoding="utf-8")
     with pytest.raises(DiagnosticError) as error:
@@ -194,7 +195,7 @@ def test_artifact_write_is_deterministic_and_preserves_unrelated_files(tmp_path)
 
 
 def test_layout_roundtrip_and_unknown_schema():
-    compilation = compiled('string[] main() { qustring[] words=["A","AB"]; return measure(words); }', alphabet="AB")
+    compilation = compiled(' qustring[] words=["A","AB"]; return measure(words); ', alphabet="AB")
     layout = layout_from_metadata(load_json(json_text(compilation.metadata)))
     assert layout.to_dict() == compilation.metadata["result_layout"]
     with pytest.raises(ValueError, match="schema"):
@@ -202,7 +203,7 @@ def test_layout_roundtrip_and_unknown_schema():
 
 
 def test_missing_backend_is_a_deliberate_diagnostic(monkeypatch):
-    compilation = compiled("int main() { quint q=1; return measure(q); }")
+    compilation = compiled(' quint q=1; return measure(q); ')
     original = builtins.__import__
     def unavailable(name, *args, **kwargs):
         if name.startswith("qiskit"):
@@ -221,14 +222,14 @@ def test_deep_json_and_large_invalid_quantum_value_have_deliberate_diagnostics()
     with pytest.raises(ValueError, match="nesting"):
         load_json("[" * 2000 + "0" + "]" * 2000)
     with pytest.raises(DiagnosticError) as error:
-        compiled("int main(int n) { quint q=n; return measure(q); }", {"n": 10**5000})
+        compiled('input int n;  quint q=n; return measure(q); ', {"n": 10**5000})
     assert error.value.code == "Q2001"
     assert "outside" in error.value.message
 
 
 def test_cli_check_build_explain_and_config_precedence(tmp_path, capsys):
     source, config = tmp_path / "main.qut", tmp_path / "qutes.toml"
-    source.write_text("int main() { quint n=3; return measure(n); }")
+    source.write_text(' quint n=3; return measure(n); ')
     config.write_text("[qutes]\nquint_bits=3\nmax_simulation_qubits=2\n")
     assert main(["check", str(source), "--json"]) == 0
     checked = load_json(capsys.readouterr().out)
@@ -249,17 +250,17 @@ def test_cli_check_build_explain_and_config_precedence(tmp_path, capsys):
 @pytest.mark.backend
 def test_cli_seeded_run_decodes_signed_array_order(tmp_path, capsys):
     source = tmp_path / "main.qut"
-    source.write_text("int[] main() { quint[] values=[-1,2,0]; return measure(values); }")
+    source.write_text(' quint[] values=[-1,2,0]; return measure(values); ')
     assert main(["run", str(source), "--quint-bits", "3", "--shots", "8", "--seed", "5", "--json"]) == 0
     assert load_json(capsys.readouterr().out)["outcomes"] == [{"value": [-1, 2, 0], "count": 8, "probability": 1.0}]
 
 
 def test_cli_checks_unsafe_cleanup_and_non_object_inputs(tmp_path, capsys):
     source, inputs = tmp_path / "main.qut", tmp_path / "inputs.json"
-    source.write_text("int main() { quint n=superposition(); n=1; return measure(n); }")
+    source.write_text(' quint n=superposition(); n=1; return measure(n); ')
     assert main(["check", str(source), "--json"]) == 1
     assert load_json(capsys.readouterr().out)["diagnostics"][0]["code"] == "Q3001"
-    source.write_text("int main() { return 1; }")
+    source.write_text(' return 1; ')
     inputs.write_text("[]")
     assert main(["check", str(source), "--inputs", str(inputs), "--json"]) == 1
     assert load_json(capsys.readouterr().out)["diagnostics"][0]["code"] == "Q2001"
@@ -267,7 +268,7 @@ def test_cli_checks_unsafe_cleanup_and_non_object_inputs(tmp_path, capsys):
 
 @pytest.mark.backend
 @pytest.mark.parametrize("filename,inputs,expected", [
-    ("snapshots.qut", {}, [[5, 7]]), ("feedforward.qut", {}, [[False, False], [True, True]]),
+    ("measurement_snapshots.qut", {}, [[5, 7]]), ("feedforward.qut", {}, [[False, False], [True, True]]),
     ("arrays.qut", {}, [6]), ("functions.qut", {}, [3]), ("coherent_if.qut", {}, [0, 1]),
     ("text.qut", {}, ["HI"]), ("loops.qut", {"count": 3}, [-4]),
 ])
@@ -283,7 +284,7 @@ def test_limit_rechecked_after_backend_transpilation(monkeypatch):
     from qiskit import QuantumCircuit
     import qiskit
     import qiskit_aer
-    compilation = compiled("bool main() { qubit q=false; return measure(q); }", max_simulation_qubits=2)
+    compilation = compiled(' qubit q=false; return measure(q); ', max_simulation_qubits=2)
     monkeypatch.setattr(qiskit, "transpile", lambda *args, **kwargs: QuantumCircuit(3, 1))
     def forbidden(*args, **kwargs):
         pytest.fail("simulation must not start above the post-transpile limit")
@@ -296,7 +297,7 @@ def test_limit_rechecked_after_backend_transpilation(monkeypatch):
 @pytest.mark.backend
 def test_backend_failure_is_diagnostic_and_seeded_runs_are_repeatable(monkeypatch):
     import qiskit
-    compilation = compiled("bool main() { qubit q=superposition(); return measure(q); }")
+    compilation = compiled(' qubit q=superposition(); return measure(q); ')
     assert compilation.run(shots=32, seed=10) == compilation.run(shots=32, seed=10)
     def broken(*args, **kwargs):
         raise RuntimeError("test backend failure")

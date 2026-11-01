@@ -1,9 +1,7 @@
-int main() {
-    quint number = superposition();
-    quint matches = 0;
-    {
-        quint adjusted = number + 1;
-        if (adjusted == 3) { matches += 1; }
-    }
-    return measure(matches);
+quint number = superposition();
+quint matches = 0;
+{
+    quint adjusted = number + 1;
+    if (adjusted == 3) { matches += 1; }
 }
+return measure(matches);

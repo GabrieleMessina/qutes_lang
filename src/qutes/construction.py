@@ -44,6 +44,8 @@ class Constructor:
         self.call_depth = 0
         self.expression_overrides: dict[int, ir.Expression] = {}
         self.array_shapes: dict[int, tuple[int | None, ...]] = {}
+        self.global_ids = {symbol.id for symbol in program.globals}
+        self.input_values = {}
 
     def fail(self, code, message, node):
         raise DiagnosticError(code, message, node.span)
@@ -130,14 +132,14 @@ class Constructor:
 
     def run(self, inputs):
         entry = self.functions[self.program.entry]
-        expected = {parameter.name for parameter in entry.parameters}
+        expected = {parameter.name for parameter in self.program.inputs}
         if set(inputs) != expected:
-            self.fail("Q2001", f"main inputs must be exactly {sorted(expected)}", entry)
+            self.fail("Q2001", f"script inputs must be exactly {sorted(expected)}", entry)
         resolved = {}
-        for parameter in entry.parameters:
+        for parameter in self.program.inputs:
             value = self.validate_input(inputs[parameter.name], parameter.type, parameter)
             resolved[parameter.name] = value
-            self.environment[parameter.id] = self.literal(
+            self.input_values[parameter.id] = self.literal(
                 ir.Expression(parameter.span, parameter.type, ir.Stage.STATIC, "literal"), value)
         result = None
         try:
@@ -145,7 +147,7 @@ class Constructor:
         except Returned as returned:
             result = returned.value
         if entry.return_type != ir.Type("void") and result is None:
-            self.fail("Q2005", "main ended without a value", entry)
+            self.fail("Q2005", "script ended without a value", entry)
         return Program(self.program, ir.Block(entry.body.span, tuple(self.output)), result,
                        resolved, self.steps, self.iterations)
 
@@ -315,7 +317,9 @@ class Constructor:
     def statement(self, statement):
         self.step(statement)
         op = statement.op
-        if op == "let":
+        if op == "input":
+            self.environment[statement.symbol.id] = self.input_values[statement.symbol.id]
+        elif op == "let":
             value = self.expression(statement.expressions[0])
             if value.type.quantum:
                 value = self.materialize(value, statement.symbol.name)
@@ -444,7 +448,8 @@ class Constructor:
                 argument = self.materialize(argument, "$argument")
             normalized.append(argument)
         parent_environment, parent_output, parent_owned = self.environment, self.output, self.owned
-        self.environment = {parameter.id: argument for parameter, argument in zip(function.parameters, normalized, strict=True)}
+        self.environment = {identifier: value for identifier, value in parent_environment.items() if identifier in self.global_ids}
+        self.environment.update({parameter.id: argument for parameter, argument in zip(function.parameters, normalized, strict=True)})
         self.output, self.owned = [], set()
         result = None
         try:
@@ -458,6 +463,7 @@ class Constructor:
                 result = replace(result, op="move")
             body = ir.Block(function.body.span, tuple(self.output))
         finally:
+            parent_environment.update({identifier: value for identifier, value in self.environment.items() if identifier in self.global_ids})
             self.environment, self.output, self.owned = parent_environment, parent_output, parent_owned
             self.call_depth -= 1
         escapes = () if result is None or not result.type.quantum else (result,)
@@ -469,5 +475,5 @@ class Constructor:
 
 def construct(program: ir.Program, inputs: dict[str, Any] | None = None) -> Program:
     if inputs is not None and not isinstance(inputs, dict):
-        raise DiagnosticError("Q2001", "main inputs must be a name-to-value mapping", program.span)
+        raise DiagnosticError("Q2001", "script inputs must be a name-to-value mapping", program.span)
     return Constructor(program).run({} if inputs is None else inputs)

@@ -391,6 +391,23 @@
       "expect": "reject",
       "stage": "effect",
       "code": "Q2004"
+    },
+    {
+      "id": "A018",
+      "file": "A018_measurement_helper.qut",
+      "expect": "accept",
+      "config": {
+        "quint_bits": 3
+      },
+      "outputs": [
+        {
+          "value": [
+            1,
+            2
+          ],
+          "probability": 1
+        }
+      ]
     }
   ]
 }

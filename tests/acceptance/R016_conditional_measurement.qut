@@ -1,1 +1,1 @@
-int main() { qubit choice = superposition(); if (choice) { bool selected = measure(choice); } return 0; }
+qubit choice = superposition(); if (choice) { bool selected = measure(choice); } return 0;

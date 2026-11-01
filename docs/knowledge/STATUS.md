@@ -1,17 +1,23 @@
 # Current status
 
-Updated: 2026-11-01, checkpoint KB-013. Qutes 0.2 implementation is ACTIVE.
-User approved scripts-only execution, ANTLR, globals, input declarations, inferred
-measurement effects, and improved diagnostics. No additional design approval needed.
+Updated: 2026-11-01, checkpoint KB-014. Qutes 0.2 implementation is ACTIVE.
 
-Checkpoint 1 implemented: generated ANTLR 4.13.2 lexer/parser, AST adapter,
-structured diagnostic collections, excerpts/hints, reproducible generation.
-Validation: 60 parser tests pass; full Windows suite 599 passed, one pre-existing
-user-example expectation mismatch (snapshots.qut deliberately changed). See V013.
+Implemented and tested: ANTLR frontend, source diagnostics, top-level script entry,
+classical inferred returns, input declarations, mutable script globals, callable
+ordinary main, measurement helpers with transitive effects and borrow protection.
 
-Next action: implement script/global/input semantics and transitive effects, then
-migrate examples/tests/docs and version generated artifacts. Preserve the user's
-snapshots.qut edit (numberb and number + numberb); do not stage this file.
+Checkpoint 2 validation: full Windows suite 653 passed (run-zl5icgqo); subsequent
+short-circuit and block-comment fixes passed 117 frontend/script tests. Existing
+full-state cleanup/correlation tests migrated to scripts and still pass. No legacy
+runtime entry fallback or test-only source conversion is installed.
+
+Next action: version package/language/artifacts, add artifact compatibility guard,
+finish docs and CI regeneration check, test both Windows/Linux and installed wheels.
+T014/T015 DONE; T016 ACTIVE. Three-checkpoint delivery remains unfinished.
+
+Preserve examples/snapshots.qut byte-for-byte (user experiment); it still defines
+main and now requires an explicit call to execute. Canonical migrated example is
+examples/measurement_snapshots.qut; docs/test migration uses that distinct file.
 
 ## Previous delivery baseline
 

@@ -307,3 +307,18 @@ above passes without altering tests or excluding that example.
 - Four new diagnostic tests cover independent errors, error count bound, lexer
   collection, source excerpts and related opener locations. Existing parser corpus,
   truncation, Unicode/BOM/CRLF and nesting tests pass unchanged.
+
+## V014 — 2026-11-01 — Script/global/effect semantics
+
+- `tools/check.py -q`: 653 passed, 26.90s, Windows isolated Python 3.13.5,
+  artifacts/checks/run-zl5icgqo.
+- Earlier targeted semantic/backend/delivery suite: 324 passed, 20.53s,
+  artifacts/checks/run-kuk3mdsg.
+- Final targeted after short-circuit/comment corrections:
+  `tools/check.py -q tests/test_scripts.py tests/test_parser.py tests/test_diagnostics.py`:
+  117 passed, artifacts/checks/run-ftrkcdgl. Includes 48 script behavior/safety tests
+  and independent full-state/reference-branch evidence.
+- Intermediate migration runs exposed stale test expectations/fixtures; these were
+  updated to the approved script contract, not bypassed by legacy compiler modes.
+  Canonical snapshots test now uses new measurement_snapshots.qut, leaving user's
+  edited source intact. Both source and tests explicitly express top-level execution.

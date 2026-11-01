@@ -1,1 +1,1 @@
-char main() { quchar letter = 'Z'; return measure(letter); }
+quchar letter = 'Z'; return measure(letter);

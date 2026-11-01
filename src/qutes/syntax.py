@@ -106,6 +106,12 @@ class Declaration(Stmt):
 
 
 @dataclass(frozen=True)
+class Input(Stmt):
+    type: TypeRef
+    name: str
+
+
+@dataclass(frozen=True)
 class Assignment(Stmt):
     target: Expr
     operator: str
@@ -168,6 +174,7 @@ class Function(Node):
 @dataclass(frozen=True)
 class Program(Node):
     functions: tuple[Function, ...]
+    statements: tuple[Stmt, ...] = ()
 
 
 def to_dict(value: Any) -> Any:

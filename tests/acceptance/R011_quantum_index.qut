@@ -1,1 +1,1 @@
-int main() { quint[] values = [1, 2]; quint index = superposition(); return measure(values[index]); }
+quint[] values = [1, 2]; quint index = superposition(); return measure(values[index]);

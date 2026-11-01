@@ -32,3 +32,8 @@ def test_lexical_errors_are_collected_without_accepting_a_repaired_program():
         parse('void main() { @ # $ }')
     assert len(failure.value.diagnostics) == 3
     assert all(item.code == 'Q1001' for item in failure.value.diagnostics)
+
+
+@pytest.mark.parametrize('comment', ['/**/', '/***/', '/****/', '/* ** comment */'])
+def test_comments_with_star_runs_terminate_correctly(comment):
+    assert parse(comment + 'return 1;').statements

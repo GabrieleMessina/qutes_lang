@@ -83,7 +83,7 @@ def test_analysis_config_errors_and_precedence(tmp_path, capsys):
 
 def test_construction_with_inputs(tmp_path, capsys):
     source, inputs = tmp_path / "main.qut", tmp_path / "inputs.json"
-    source.write_text("int main(int n) { int total=0; for(int i=0;i<n;i++){total+=i;} return total; }", encoding="utf-8")
+    source.write_text("input int n; int total=0; for(int i=0;i<n;i++){total+=i;} return total;", encoding="utf-8")
     inputs.write_text('{"n":4}', encoding="utf-8")
     assert main(["construct", str(source), "--inputs", str(inputs), "--json"]) == 0
     payload = json.loads(capsys.readouterr().out)

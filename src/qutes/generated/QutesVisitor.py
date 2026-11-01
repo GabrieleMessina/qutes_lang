@@ -14,6 +14,11 @@ class QutesVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by QutesParser#inputDeclaration.
+    def visitInputDeclaration(self, ctx:QutesParser.InputDeclarationContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by QutesParser#function.
     def visitFunction(self, ctx:QutesParser.FunctionContext):
         return self.visitChildren(ctx)

@@ -75,5 +75,7 @@ rendering/CLI suite: 28 passed; installed flags verified on both platforms.
 ## Qutes 0.2 approved increment
 
 - T014 DONE: ANTLR migration/diagnostics; KB-013 / V013.
-- T015 ACTIVE: scripts, globals, input declarations, inferred function effects.
-- T016 TODO: migration, generated-artifact contract, Windows/Linux validation.
+- T015 DONE: scripts, globals, input declarations, inferred function effects.
+- T016 ACTIVE: migration, generated-artifact contract, Windows/Linux validation.
+
+T015 evidence: KB-014 / V014; script/global/effect semantics and migrated semantic corpus.

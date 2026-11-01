@@ -2,7 +2,6 @@
 import argparse
 import hashlib
 from pathlib import Path
-import shutil
 import subprocess
 import tempfile
 
@@ -27,11 +26,13 @@ def main():
         destination = ROOT / "src/qutes/generated"
         for path in sorted(Path(directory).glob("*.py")):
             target = destination / path.name
+            # ANTLR emits trailing spaces; normalize deterministically across OSes.
+            data = ("\n".join(line.rstrip() for line in path.read_text(encoding="utf-8").splitlines()) + "\n").encode("utf-8")
             if args.check:
-                if not target.exists() or path.read_bytes() != target.read_bytes():
+                if not target.exists() or data != target.read_bytes():
                     parser.error(f"generated source differs: {target.name}")
             else:
-                shutil.copyfile(path, target)
+                target.write_bytes(data)
 
 
 if __name__ == "__main__":

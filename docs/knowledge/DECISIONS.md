@@ -134,3 +134,15 @@ conversation examples suggesting measurement consumption are superseded by D007.
 - D055 (implementation): diagnostic recovery reports at most ten errors and never
   compiles repaired input. Source offsets, stable codes and first-error exception
   fields stay compatible; structured hints and related locations are additive.
+
+- D056 (implementation): every helper call specializes against current globals;
+  do not cache by parameter stages alone. Shared global symbol IDs survive inlining;
+  function-local ownership remains separate. Read/write effects include global IDs.
+- D057 (implementation): input declarations bind when reached and remain mutable;
+  input metadata retains original bindings. Functions may appear anywhere, but
+  accessing a not-yet-executed global declaration is rejected transitively.
+- D058 (implementation): runtime short-circuit RHS cannot measure or write globals;
+  statically skipped RHS is typechecked without propagating its state/effects.
+- D059 (user preservation): leave edited snapshots.qut untouched. Publish/test the
+  canonical script as measurement_snapshots.qut; the preserved file has no automatic
+  main execution under 0.2. No exception or hidden migration in the compiler.

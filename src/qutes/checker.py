@@ -5,6 +5,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 from dataclasses import dataclass, fields, replace
 from typing import Any
+from difflib import get_close_matches
 
 from qutes import ir, syntax as ast
 from qutes.config import CompilerConfig
@@ -21,6 +22,7 @@ class Binding:
     value: Any = None
     shape: int | None = None
     alias_dependencies: frozenset[int] = frozenset()
+    initialized: bool = True
 
 
 def _walk(node):
@@ -64,9 +66,15 @@ class Checker:
         self.deferred_faults = 0
         self.steps = 0
         self.call_depth = 0
+        self.global_symbols = {}
+        self.script_return_seen = False
 
-    def fail(self, code: str, message: str, node) -> None:
-        raise DiagnosticError(code, message, node if isinstance(node, Span) else node.span)
+    def fail(self, code: str, message: str, node, *, help=None) -> None:
+        raise DiagnosticError(code, message, node if isinstance(node, Span) else node.span, help=help)
+
+    def suggestion(self, name, candidates):
+        matches = get_close_matches(name, sorted(set(candidates)), n=2, cutoff=0.75)
+        return f"Did you mean {matches[0]!r}?" if len(matches) == 1 else None
 
     def step(self, node):
         self.steps += 1
@@ -91,20 +99,42 @@ class Checker:
             self.type(function.return_type, allow_void=True)
             for parameter in function.parameters:
                 self.type(parameter.type)
-        if "main" not in self.functions:
-            self.fail("Q2005", "program requires exactly one main function", self.source)
-        main = self.functions["main"]
-        if self.type(main.return_type, allow_void=True).quantum:
-            self.fail("Q2005", "main must return classical data or void", main.return_type)
-        if any(self.type(parameter.type).quantum for parameter in main.parameters):
-            self.fail("Q2005", "main parameters must be construction-time classical values", main)
+        self.scopes = [{}]
+        inputs = []
+        for statement in self.source.statements:
+            if isinstance(statement, (ast.Declaration, ast.Input)):
+                type_ = self.type(statement.type)
+                if isinstance(statement, ast.Input) and type_.quantum:
+                    self.fail("Q2001", "inputs must be classical data", statement)
+                value = ir.Expression(statement.span, type_, ir.Stage.QUANTUM if type_.quantum else ir.Stage.STATIC, "global")
+                symbol = self.declare(statement.name, type_, value, statement)
+                self.global_symbols[statement.name] = symbol
+                self.scopes[0][statement.name].initialized = False
+                if isinstance(statement, ast.Input):
+                    inputs.append(symbol)
+        script = ast.Function(self.source.span, ast.TypeRef(self.source.span, "void"), "$script", (),
+                              ast.Block(self.source.span, self.source.statements))
+        self.functions["$script"] = script
         self.check_calls()
+        self.function = script
+        body = self.block(script.body, new_scope=False)
+        if self.return_type != ir.Type("void") and not body.returns:
+            self.fail("Q2005", "script must return a value on every path", self.source)
+        entry = ir.Function(script.span, "$script", "$script", (), self.return_type,
+                            _merge_stage(self.return_values), None, body, frozenset(self.effects))
+        # Validate uncalled definitions too, with symbolic globals. Calls from the
+        # script were already checked using their actual initialization/staging state.
+        final_globals = self.snapshot()[0]
         for function in self.source.functions:
+            if any(instance.name == function.name for instance in self.instances.values()):
+                continue
+            self.scopes = [{name: replace(binding, initialized=True, known=False, value=None)
+                            for name, binding in final_globals.items()}]
             parameters = tuple((ir.Stage.QUANTUM if self.type(p.type).quantum else ir.Stage.STATIC, None)
                                for p in function.parameters)
             self.function_instance(function.name, parameters)
-        entry = self.function_instance("main", tuple((ir.Stage.STATIC, None) for _ in main.parameters))
-        return ir.Program(self.source.span, self.config, tuple(self.instances.values()), entry.key)
+        return ir.Program(self.source.span, self.config, (*self.instances.values(), entry), entry.key,
+                          globals=tuple(self.global_symbols.values()), inputs=tuple(inputs))
 
     def check_calls(self):
         graph = {name: [] for name in self.functions}
@@ -113,8 +143,6 @@ class Checker:
                 if isinstance(node, ast.Call) and isinstance(node.callee, ast.Name):
                     target = node.callee.identifier
                     if target in self.functions:
-                        if target == "main":
-                            self.fail("Q2002", "main is an entry point and cannot be called", node)
                         graph[name].append((target, node))
         visiting, finished = set(), set()
 
@@ -134,10 +162,10 @@ class Checker:
             if name not in finished:
                 visit(name)
 
-    def function_instance(self, name, parameter_info):
-        cache_key = (name, parameter_info)
-        if cache_key in self.instances:
-            return self.instances[cache_key]
+    def function_instance(self, name, parameter_info, arguments=()):
+        # Globals are mutable and their stages/shapes vary by call site. Each
+        # specialization is analyzed against its current environment, never cached.
+        cache_key = (name, self.function_sequence)
         function = self.functions[name]
         if self.call_depth >= 64:
             self.fail("Q4001", "function specialization nesting limit exceeded", function)
@@ -145,20 +173,26 @@ class Checker:
         state = (self.scopes, self.function, self.return_type, self.return_values, self.effects,
                  self.if_depth, self.coherent_depth, self.dynamic_outers, self.protected,
                  self.dynamic_depth, self.deferred_faults)
-        self.scopes, self.function = [{}], function
+        global_scope = {name: replace(binding, known=False, value=None) for name, binding in self.scopes[0].items()}
+        self.scopes, self.function = [global_scope, {}], function
         self.return_type = self.type(function.return_type, allow_void=True)
         self.return_values, self.effects = [], set()
-        self.if_depth = self.coherent_depth = 0
-        self.dynamic_outers, self.protected = set(), set()
+        # Inherit call-site restrictions, but returns belong to this function.
+        self.dynamic_outers = set(self.dynamic_outers)
+        self.protected = set(self.protected)
+        for argument in arguments:
+            if argument.type.quantum:
+                self.protected.update(argument.dependencies)
         self.dynamic_depth = self.deferred_faults = 0
         key = f"{name}${self.function_sequence}"
         self.function_sequence += 1
         try:
             parameters = []
-            for parameter, (stage, shape) in zip(function.parameters, parameter_info, strict=True):
+            for index, (parameter, (stage, shape)) in enumerate(zip(function.parameters, parameter_info, strict=True)):
                 type_ = self.type(parameter.type)
                 expression = ir.Expression(parameter.span, type_, stage, "parameter", shape=shape)
-                parameters.append(self.declare(parameter.name, type_, expression, parameter, readonly=True))
+                aliases = arguments[index].dependencies if arguments and type_.quantum else frozenset()
+                parameters.append(self.declare(parameter.name, type_, expression, parameter, readonly=True, alias_dependencies=aliases))
             body = self.block(function.body, new_scope=False)
             if self.return_type.name != "void" and not body.returns:
                 self.fail("Q2005", f"function {name!r} must return a value on every path", function)
@@ -170,16 +204,25 @@ class Checker:
             self.instances[cache_key] = result
             return result
         finally:
+            updated_globals = self.scopes[0]
             (self.scopes, self.function, self.return_type, self.return_values, self.effects,
              self.if_depth, self.coherent_depth, self.dynamic_outers, self.protected,
              self.dynamic_depth, self.deferred_faults) = state
+            self.scopes[0] = updated_globals
             self.call_depth -= 1
 
     def binding(self, name, node):
         for scope in reversed(self.scopes):
             if name in scope:
-                return scope[name]
-        self.fail("Q2002", f"unknown variable {name!r}", node)
+                binding = scope[name]
+                if not binding.initialized:
+                    self.fail("Q2002", f"global {name!r} is accessed before its declaration executes", node,
+                              help="Move the declaration before this statement or the call that accesses it.")
+                if binding.symbol.id in {symbol.id for symbol in self.global_symbols.values()}:
+                    self.effects.add(f"read:{binding.symbol.id}")
+                return binding
+        self.fail("Q2002", f"unknown variable {name!r}", node,
+                  help=self.suggestion(name, (key for scope in self.scopes for key in scope)))
 
     def declare(self, name, type_, expression, node, readonly=False, alias_dependencies=frozenset()):
         if name in self.scopes[-1] or name in self.functions or name in set(Builtin):
@@ -236,11 +279,15 @@ class Checker:
             left = self.expression(node.left)
             shorted = left.type == ir.Type("bool") and left.known and (
                 (node.operator == "&&" and not left.value) or (node.operator == "||" and left.value))
+            before_right, before_effects = self.snapshot(), set(self.effects)
             self.deferred_faults += int(shorted)
             try:
                 right = self.expression(node.right)
             finally:
                 self.deferred_faults -= int(shorted)
+                if shorted:
+                    self.restore(before_right)
+                    self.effects = before_effects
             result = self.binary(node, left, right)
             if shorted and right.type == ir.Type("bool"):
                 result = replace(result, stage=ir.Stage.STATIC, known=True, value=left.value,
@@ -341,8 +388,9 @@ class Checker:
             self.fail("Q2001", "operator requires matching scalar operand types", node)
         base = left.type.classical.name
         stage = _merge_stage((left, right))
-        if operator in {"&&", "||"} and left.stage == ir.Stage.RUNTIME and "measure" in right.effects:
-            self.fail("Q2004", "measurement in a short-circuited runtime operand is not supported; measure separately", node.right)
+        if operator in {"&&", "||"} and left.stage == ir.Stage.RUNTIME and any(
+                effect == "measure" or effect.startswith("write:") for effect in right.effects):
+            self.fail("Q2004", "measurement or global writes in a short-circuited runtime operand are not supported; perform them separately", node.right)
         if operator in {"&&", "||"}:
             if base != "bool":
                 self.fail("Q2001", "Boolean operators require Boolean operands", node)
@@ -399,8 +447,8 @@ class Checker:
         if name == Builtin.MEASURE:
             if len(node.arguments) != 1:
                 self.fail("Q2001", "measure requires one quantum argument", node)
-            if self.function.name != "main" or self.if_depth:
-                self.fail("Q2004", "measurement is allowed only in main outside conditional bodies", node)
+            if self.if_depth:
+                self.fail("Q2004", "measurement is not allowed in conditional bodies, including through function calls", node)
             argument = self.expression(node.arguments[0])
             if not argument.type.quantum:
                 self.fail("Q2001", "measure requires quantum data", node.arguments[0])
@@ -417,19 +465,21 @@ class Checker:
                 self.fail("Q2001", "rotation count cannot be negative", node.arguments[1])
             return self.make(node, ir.Type("quint"), ir.Stage.QUANTUM, str(name), (value, count))
         if name not in self.functions:
-            self.fail("Q2002", f"unknown function {name!r}", node.callee)
+            self.fail("Q2002", f"unknown function {name!r}", node.callee,
+                      help=self.suggestion(name, set(self.functions) | set(Builtin)))
         function = self.functions[name]
         if len(node.arguments) != len(function.parameters):
             self.fail("Q2001", f"{name} expects {len(function.parameters)} arguments", node)
         arguments = tuple(self.expression(argument, self.type(parameter.type))
                           for argument, parameter in zip(node.arguments, function.parameters, strict=True))
-        instance = self.function_instance(name, tuple((argument.stage, argument.shape) for argument in arguments))
+        instance = self.function_instance(name, tuple((argument.stage, argument.shape) for argument in arguments), arguments)
         if self.coherent_depth and "prepare" in instance.effects:
             self.fail("Q2004", "this helper prepares quantum state inside a quantum condition", node)
         self.effects.update(instance.effects)
         value = self.make(node, instance.return_type, instance.return_stage, "call", arguments,
                           shape=instance.return_shape, value=instance.key)
-        return replace(value, effects=value.effects | instance.effects)
+        reads = frozenset(int(effect.split(':')[1]) for effect in instance.effects if effect.startswith('read:'))
+        return replace(value, effects=value.effects | instance.effects, dependencies=value.dependencies | reads)
 
     def block(self, node, new_scope=True):
         if new_scope:
@@ -448,10 +498,20 @@ class Checker:
         if isinstance(node, ast.Block):
             block = self.block(node)
             return ir.Statement(node.span, "block", blocks=(block,)), block.returns
+        if isinstance(node, ast.Input):
+            binding = self.scopes[0][node.name]
+            binding.initialized = True
+            return ir.Statement(node.span, "input", symbol=binding.symbol), False
         if isinstance(node, ast.Declaration):
             type_ = self.type(node.type)
             value = self.expression(node.initializer, type_, allow_prepare=True)
-            symbol = self.declare(node.name, type_, value, node)
+            if self.function.name == "$script" and len(self.scopes) == 1:
+                binding = self.scopes[0][node.name]
+                symbol = binding.symbol
+                binding.initialized = True
+                binding.stage, binding.known, binding.value, binding.shape = value.stage, value.known, value.value, value.shape
+            else:
+                symbol = self.declare(node.name, type_, value, node)
             return ir.Statement(node.span, "let", (value,), symbol=symbol), False
         if isinstance(node, (ast.Assignment, ast.Update)):
             target = self.expression(node.target)
@@ -468,6 +528,8 @@ class Checker:
                 right = self.expression(node.value)
                 proxy = ast.Binary(node.span, node.operator[0], node.target, node.value)
                 value = self.binary(proxy, target, right)
+            # RHS calls can replace the shared global analysis environment.
+            binding = self.mutable_target(node.target)
             if target.type.array and target.shape is not None and value.shape is not None and target.shape != value.shape:
                 self.fail("Q2001", "array assignment cannot change its fixed length", node)
             if isinstance(node.target, ast.Name):
@@ -486,6 +548,17 @@ class Checker:
         if isinstance(node, ast.Return):
             if self.dynamic_depth:
                 self.fail("Q2005", "return inside a quantum or runtime branch is deferred", node)
+            if self.function.name == "$script":
+                value = self.expression(node.value) if node.value is not None else None
+                type_ = value.type if value else ir.Type("void")
+                if type_.quantum:
+                    self.fail("Q2005", "script output must be classical data; use measure() explicitly", node)
+                if self.script_return_seen and self.return_type != type_:
+                    self.fail("Q2005", "script returns must have one consistent type; cannot mix values and void", node)
+                self.script_return_seen, self.return_type = True, type_
+                if value:
+                    self.return_values.append(value)
+                return ir.Statement(node.span, "return", (value,) if value else ()), True
             if node.value is None:
                 if self.return_type != ir.Type("void"):
                     self.fail("Q2005", "this function must return a value", node)
@@ -549,6 +622,8 @@ class Checker:
             self.fail("Q2004", f"{binding.symbol.name!r} is needed to clean up the quantum condition", node)
         if binding.symbol.id in self.dynamic_outers and not binding.symbol.type.quantum:
             self.fail("Q2004", "dynamic branches cannot change outer classical state in V1", node)
+        if binding.symbol.id in {symbol.id for symbol in self.global_symbols.values()}:
+            self.effects.add(f"write:{binding.symbol.id}")
         return binding
 
     def condition(self, node):
@@ -571,7 +646,7 @@ class Checker:
 
     def if_statement(self, node):
         condition = self.condition(node.condition)
-        if condition.stage == ir.Stage.QUANTUM and condition.effects:
+        if condition.stage == ir.Stage.QUANTUM and any(effect in {"prepare", "measure"} or effect.startswith("write:") for effect in condition.effects):
             self.fail("Q2004", "quantum predicates must be free of preparation and measurement", node.condition)
         before = self.snapshot()
         old_if, old_coherent = self.if_depth, self.coherent_depth

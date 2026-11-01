@@ -1,1 +1,1 @@
-int main() { quint number = 1; int result = number; return result; }
+quint number = 1; int result = number; return result;

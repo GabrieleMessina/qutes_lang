@@ -354,3 +354,30 @@ entry IDs; do not rewrite history to hide failures.
   user's snapshots computes [5,-6] with configured four bits versus baseline [5,7].
   No compiler regression found; do not overwrite the experiment to make tests green.
 - Next checkpoint: change entry semantics, globals/inputs, inferred call effects.
+
+## KB-014 — 2026-11-01 — Scripts and inferred effects
+
+- Implemented ordered script statements, inferred classical return type, root-only
+  input declarations, filewide globals with initialization checks, ordinary main,
+  global read/write effects, call-site borrow/predicate/dynamic-write protection,
+  measurement in helpers, and shared global construction environments.
+- Specialize each call against current global state; preserve function cleanup
+  boundaries. All readonly parameter assignments still fail. No measurement/reset
+  is introduced to repair invalid cleanup.
+- Migrated embedded fixtures and acceptance programs to actual script source (no
+  runtime adapter); retained function-syntax/parser location tests. R010 now tests
+  forbidden conditional measurement through helpers; A018 tests allowed helpers.
+- Mechanical migration initially exposed outdated main-required expectations,
+  f-string fixtures, a Unicode source-offset edit issue, and input used as a former
+  identifier. Corrected fixtures to test the new contract without dropping semantic
+  coverage. New keyword is input; affected former variable names became operand.
+- Existing full-state tests pass; added arbitrary complex reference-entangled state
+  test for global updates and clean helper scratch, exact correlated measurement
+  branches, nested readonly alias checks, and per-call stage/shape changes.
+- Found/fixed skipped short-circuit RHS propagating global state in analysis; reject
+  runtime conditional writes. Found/fixed unterminated-comment matcher swallowing
+  closed comments with odd star runs. Added dedicated regressions for both.
+- Full suite 653 passed; subsequent targeted frontend/script suite 117 passed.
+- Still to deliver: versioned artifact compatibility, documentation, packaging and
+  full Windows/Linux validation. Preserve user's snapshots file; canonical script
+  now lives in measurement_snapshots.qut.

@@ -20,13 +20,7 @@ class Token:
     span: Span
 
 
-def _identifier_start(character: str) -> bool:
-    return character.isascii() and (character.isalpha() or character == "_")
-
-
 class LiteralDecoder:
-    DOUBLE = frozenset({"==", "!=", "<=", ">=", "+=", "-=", "++", "--", "&&", "||"})
-    SINGLE = frozenset("(){}[],;.+-*/%!<>=")
     ESCAPES = {"n": "\n", "r": "\r", "t": "\t", "0": "\0", "\\": "\\", '"': '"', "'": "'"}
 
     def __init__(self, source: str, path: str = "<source>"):

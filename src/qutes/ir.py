@@ -106,6 +106,8 @@ class Program:
     entry: str
     validated: tuple[str, ...] = ("names", "types", "stages", "effects")
     cleanup_verified: bool = False
+    globals: tuple[Symbol, ...] = ()
+    inputs: tuple[Symbol, ...] = ()
 
 
 def to_dict(value: Any) -> Any:

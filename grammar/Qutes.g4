@@ -1,6 +1,7 @@
 grammar Qutes;
 
-program: function* EOF;
+program: (function | statement | inputDeclaration)* EOF;
+inputDeclaration: 'input' type IDENT ';';
 function: type IDENT '(' parameters? ')' block;
 parameters: parameter (',' parameter)*;
 parameter: type IDENT;
@@ -41,7 +42,7 @@ STRING: '"' ('\\' ~[\r\n] | ~["\\\r\n])* '"';
 CHAR: '\'' ('\\' ~[\r\n] | ~['\\\r\n])* '\'';
 LINE_COMMENT: '//' ~[\r\n]* -> skip;
 BLOCK_COMMENT: '/*' .*? '*/' -> skip;
-UNTERMINATED_COMMENT: '/*' (~[*] | '*' ~[/])* '*'? EOF;
+UNTERMINATED_COMMENT: '/*' (~[*] | '*'+ ~[*/])* '*'* EOF;
 UNTERMINATED_STRING: '"' ('\\' ~[\r\n] | ~["\\\r\n])*;
 UNTERMINATED_CHAR: '\'' ('\\' ~[\r\n] | ~['\\\r\n])*;
 WS: [ \t\r\n]+ -> skip;

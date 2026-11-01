@@ -1,1 +1,1 @@
-int main() { quint number = 3; number = rotateLeft(number, 1); return measure(number); }
+quint number = 3; number = rotateLeft(number, 1); return measure(number);

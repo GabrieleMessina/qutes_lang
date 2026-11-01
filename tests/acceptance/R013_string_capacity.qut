@@ -1,1 +1,1 @@
-string main() { qustring text = "ABC"; return measure(text); }
+qustring text = "ABC"; return measure(text);

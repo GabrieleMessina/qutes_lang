@@ -13,11 +13,11 @@ from qutes.serialization import load_json
 from qutes.visualization import render
 
 pytestmark = pytest.mark.backend
-SOURCE = """bool[] main() {
+SOURCE = """
     qubit q=superposition(); bool before=measure(q);
     if(before) { q=!q; }
     return [before,measure(q)];
-}"""
+"""
 
 
 def compilation(source=SOURCE, **kwargs):
@@ -74,14 +74,14 @@ def test_save_option_creates_nested_folder_and_valid_image(image_format, tmp_pat
 
 def test_default_png_and_saved_image_message(tmp_path, capsys):
     source = tmp_path / "sample.qut"
-    source.write_text("int main() { quint n=1; return measure(n); }")
+    source.write_text(' quint n=1; return measure(n); ')
     assert main(["check", str(source), "--quint-bits", "2", "--save-circuit", str(tmp_path / "images")]) == 0
     assert "Saved circuit image:" in capsys.readouterr().out
     assert len(list((tmp_path / "images").glob("*.png"))) == 1
 
 
 def test_input_bindings_get_distinct_images_and_repeated_build_reuses_filename(tmp_path):
-    source = "int main(int n) { quint q=n; return measure(q); }"
+    source = 'input int n;  quint q=n; return measure(q); '
     first = compilation(source, inputs={"n": 1})
     second = compilation(source, inputs={"n": 2})
     unrelated = tmp_path / "notes.txt"
@@ -99,7 +99,7 @@ def test_drawing_does_not_simulate_or_change_the_circuit(monkeypatch, tmp_path):
     def forbidden(*args, **kwargs):
         pytest.fail("drawing must not simulate")
     monkeypatch.setattr(qiskit_aer.AerSimulator, "run", forbidden)
-    value = compilation("int main() { quint n=superposition(); { quint temporary=n+1; } return measure(n); }")
+    value = compilation(' quint n=superposition(); { quint temporary=n+1; } return measure(n); ')
     circuit, _ = value.build()
     expected = circuit.copy()
     monkeypatch.setattr(type(value), "build", lambda self: (circuit, None))
@@ -109,7 +109,7 @@ def test_drawing_does_not_simulate_or_change_the_circuit(monkeypatch, tmp_path):
 
 def test_empty_classical_program_has_explicit_text_and_image(tmp_path):
     output = io.StringIO()
-    result = render(compilation("int main() { return 42; }"), print_circuit=True, directory=tmp_path, stream=output)
+    result = render(compilation(' return 42; '), print_circuit=True, directory=tmp_path, stream=output)
     assert "No quantum operations or measurements" in output.getvalue()
     assert Path(result["image"]).is_file()
 

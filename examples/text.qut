@@ -1,5 +1,3 @@
-string main() {
-    quchar initial = 'H';
-    qustring word = "HI";
-    return measure(word);
-}
+quchar initial = 'H';
+qustring word = "HI";
+return measure(word);

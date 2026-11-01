@@ -27,6 +27,7 @@ class SyntaxErrors(ErrorListener):
             message = f"Missing {missing} before {found}."
             help = "End the declaration or statement with ';'." if missing == "';'" else f"Insert {missing} before {found}."
         elif token.text in {";", "="}:
+            message = f"Missing or invalid expression before {found}."
             help = "Provide a value or expression after '=' and before ';'."
         elif token.text == "else":
             help = "An 'else' must immediately follow an 'if' block."
@@ -40,6 +41,10 @@ class SyntaxErrors(ErrorListener):
         if stack and (token.type == -1 or msg.startswith("missing ")):
             opener = stack[-1]
             related.append((f"Opening {opener.text!r} is here.", self.locations.token_span(opener)))
+            if token.type == -1:
+                closer = {"(": ")", "[": "]", "{": "}"}[opener.text]
+                message = f"Missing {closer!r} at end of file."
+                help = f"Close the {opener.text!r} opened at line {self.locations.token_span(opener).start.line}."
         error = DiagnosticError("Q1002", message, self.locations.token_span(token),
                                 help=help, related=related, source=self.locations.source)
         if not self.errors or self.errors[-1].span.start.offset != error.span.start.offset:
@@ -56,7 +61,12 @@ class Builder(QutesVisitor):
         return self.locations.token_span(context.start).through(self.locations.token_span(context.stop or context.start))
 
     def visitProgram(self, ctx):
-        return ast.Program(self.span(ctx), tuple(self.visit(f) for f in ctx.function()))
+        items = [self.visit(child) for child in ctx.children[:-1]]
+        return ast.Program(self.span(ctx), tuple(item for item in items if isinstance(item, ast.Function)),
+                           tuple(item for item in items if not isinstance(item, ast.Function)))
+
+    def visitInputDeclaration(self, ctx):
+        return ast.Input(self.span(ctx), self.visit(ctx.type_()), ctx.IDENT().getText())
 
     def visitFunction(self, ctx):
         parameters = tuple(self.visit(p) for p in ctx.parameters().parameter()) if ctx.parameters() else ()

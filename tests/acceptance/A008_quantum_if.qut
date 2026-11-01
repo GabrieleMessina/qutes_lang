@@ -1,6 +1,4 @@
-int main() {
-    quint number = superposition();
-    quint category = 0;
-    if (number < 0) { category += 1; } else { category += 2; }
-    return measure(category);
-}
+quint number = superposition();
+quint category = 0;
+if (number < 0) { category += 1; } else { category += 2; }
+return measure(category);
