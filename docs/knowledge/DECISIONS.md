@@ -111,3 +111,12 @@ conversation examples suggesting measurement consumption are superseded by D007.
 - D048 (packaging): replace psutil 5.9.0 with 7.0.0 in the reproducibility pins.
   The clean Python 3.13 Windows install proved 5.9.0 requires unavailable C++ build
   tools. 7.0.0 provides a compatible wheel. No global packages are changed.
+- D049 (user request / implementation): print or export the completed compiler
+  circuit with --print-circuit and --save-circuit FOLDER on full compiler commands.
+  This view includes cleanup/measurement before backend-specific decomposition.
+  PNG is default; SVG is optional. Text goes to stderr with --json; image paths
+  are returned in circuit_diagram. These options do not alter compilation identity.
+- D050 (implementation): use optional Qiskit/Matplotlib visualization with headless
+  file rendering and no external LaTeX processes. File names include source stem
+  and build-hash prefix; repeat builds atomically replace their image, differing
+  bindings/settings get distinct names. Guard image size before rasterization.

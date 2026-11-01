@@ -30,6 +30,11 @@ python -m venv .venv
 .\.venv\Scripts\qutes.exe build examples/snapshots.qut -o snapshots.qiskit.py
 ```
 
+Add `--print-circuit` to print the final compiler circuit, or
+`--save-circuit artifacts/circuits` to save its image. PNG is the default;
+`--circuit-format svg` selects SVG. Both options work on check/build/run/explain.
+For images, install `".[backend,visualization]"` in the virtual environment.
+
 On Linux use `.venv/bin/python` and `.venv/bin/qutes`. `python -m qutes` also works.
 Core installation without `[backend]` supports checking and Python generation;
 execution requires Qiskit/Aer. The tested backend pins are Qiskit 2.3.0, Aer 0.17.2,

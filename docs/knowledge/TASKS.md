@@ -16,6 +16,7 @@ Status vocabulary: TODO, ACTIVE, DONE, BLOCKED. A task is DONE only with evidenc
 | T010 | DONE | Arrays/text/configuration integrated with lifetime analysis. | T009 |
 | T011 | DONE | Non-consuming measurement, snapshots, feedforward, results decoding, Qiskit emitter. | T010 |
 | T012 | DONE | CLI check/build/run/explain, generated modules, packaging, resource limits, documentation, CI/release evidence. | T011 |
+| T013 | DONE | User-requested console circuit diagrams and PNG/SVG export to a folder; optional dependencies, CLI/API checks, documentation. | T012 |
 
 M1 readiness requires T002-T004 plus a review of unresolved limitations. A passing
 probe is evidence of backend feasibility, not proof of general automatic cleanup.
@@ -65,3 +66,8 @@ hosted infrastructure; no remote exists. See docs/release-audit.md for exact lim
 
 All V1 tasks are DONE. The hybrid/hardware/editor roadmap is future scope and
 requires a new task; do not label it implicitly implemented by the current APIs.
+
+T013 completed at KB-012 / V012: final compiler diagrams on check/build/run/explain,
+PNG/SVG files, lazy optional dependencies, JSON-safe console output, atomic writes,
+image-size guards, and documentation. Full Windows suite: 596 passed. Linux
+rendering/CLI suite: 28 passed; installed flags verified on both platforms.

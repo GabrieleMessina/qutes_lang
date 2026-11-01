@@ -124,6 +124,7 @@ separately. Diagnostics include path, one-based line/column, and a concise reaso
 | Q4001 | Construction budget, bounds, or resource limit exceeded |
 | Q5001 | Optional Qiskit/Aer dependency unavailable |
 | Q5002 | Backend circuit construction or execution failure |
+| Q5003 | Circuit diagram rendering failure |
 
 See `tests/acceptance/cases.json` for source examples with expected categories.
 The corpus is a target contract. Type/stage/effect failures now run through the

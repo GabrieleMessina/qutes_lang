@@ -150,6 +150,43 @@ qutes run examples/loops.qut --inputs examples/inputs.json --shots 16 --seed 7
 qutes explain examples/loops.qut --inputs examples/inputs.json --json
 ```
 
+## Print or save the circuit
+
+The full compiler commands (`check`, `build`, `run`, and `explain`) accept these
+options, individually or together:
+
+```text
+qutes check examples/snapshots.qut --print-circuit
+qutes build examples/snapshots.qut --save-circuit artifacts/circuits
+qutes run examples/feedforward.qut --print-circuit --save-circuit artifacts/circuits --circuit-format svg
+```
+
+`--print-circuit` prints a text diagram. `--save-circuit FOLDER` creates the folder
+if needed and saves a PNG; use `--circuit-format svg` for a scalable image. Image
+export requires the optional visualization libraries:
+
+```text
+python -m pip install ".[backend,visualization]"
+```
+
+Use your virtual environment's Python. Console diagrams only require Qiskit;
+normal checking/Python generation still do not require a backend installation.
+Image export is headless and does not open windows or require a LaTeX installation.
+
+Each compilation has one circuit for its bound main inputs. Files are named
+`SOURCE-BUILDHASH.png` (or `.svg`), so different inputs/settings can share a folder.
+Repeating the same build replaces its image atomically. Other files remain intact.
+With `--json`, text diagrams go to stderr, and stdout includes the image path in
+`circuit_diagram.image` alongside the normal JSON result.
+
+Both views show the complete compiler-emitted circuit, including measurement and
+automatic cleanup, before simulator/device-specific gate decomposition. They do
+not run extra simulations. `run` renders after a successful execution; `check`
+lets you inspect a circuit without executing it. Idle/reserved wires remain visible.
+Images fold long circuits into rows; excessive image dimensions receive Q4001
+(40 million estimated pixels or 32,000 pixels on either side at 120 dpi).
+Use console output to inspect a circuit that exceeds this image-size bound.
+
 ## Generated Python and future pipelines
 
 ```text

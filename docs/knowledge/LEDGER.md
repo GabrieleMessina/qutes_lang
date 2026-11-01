@@ -306,3 +306,35 @@ entry IDs; do not rewrite history to hide failures.
   exact byte equality of all 24 compiler modules in both wheels and the checkout.
   Final documentation-only edits record this evidence and align the generated-module
   tutorial's parameter example with the actual loops program.
+
+## KB-012 — 2026-11-01 — Circuit diagrams
+
+- User requested a compiler option to print the final circuit and an option to
+  save images in a folder. Read the knowledge base and inspected clean 906b88e.
+- Plan: --print-circuit, --save-circuit FOLDER, --circuit-format png|svg on
+  check/build/run/explain. Render the complete compiler-emitted Qiskit circuit
+  before backend-specific decomposition, with all cleanup and measurements.
+  JSON stdout stays parseable; text diagrams use stderr when --json is present.
+- Verified Qiskit drawer documentation and installed 2.3.0 implementation.
+  Use text and Matplotlib drawers, not LaTeX external processes. Image libraries
+  will be optional and installed only into project-local environments.
+- Implemented the planned flags with lazy rendering. Text remains legible on
+  ASCII-only consoles. PNG/SVG files use source/build-hash names, atomic replacement,
+  parent-folder creation, dimension bounds, and figure/temp-file cleanup. Empty
+  classical programs have an explicit diagram. Added Q5003 rendering diagnostics.
+- Added visualization extra and pinned Matplotlib 3.10.0/pylatexenc 2.10 plus
+  transitive dependencies. Restricted package lookup failed; normal approved network
+  access succeeded. pylatexenc builds a pure Python wheel; CI's binary-only install
+  now has an explicit exception for that dependency. No global package changes.
+- Initial targeted run: 26 passed, one ASCII-wire test failure. Added double-line
+  wire mappings; rerun passed 27. Added a partial-figure failure regression, bringing
+  rendering/CLI checks to 28, which pass on Linux. Generated PNGs for feedforward
+  and coherent_if and visually verified labels, controls, measurement, and folds;
+  SVG export also passed. Refreshed and exercised installed Windows/Linux commands.
+- The first full suite had 595 passes and one failure because functions.qut changed
+  during work to return [2,3] while its existing test expected 3. Preserved the edit
+  and ran a temporary validation snapshot with only that fixture restored from HEAD:
+  596 passed. The user then confirmed the edit was an experiment and reverted it.
+  Verified the file has no diff and reran the normal workspace suite.
+- Two status-document patches failed exact-context verification and made no changes;
+  the corrected patch succeeded. T013 is complete; see V012 for final evidence.

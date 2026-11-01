@@ -69,6 +69,10 @@ def argument_parser():
                 sub.add_argument(flag, dest=key, type=str if key == "alphabet" else int, help=f"override {key}")
         if command not in {"parse", "analyze"}:
             sub.add_argument("--inputs", type=Path, help="JSON object containing classical main arguments")
+        if command in {"check", "build", "run", "explain"}:
+            sub.add_argument("--print-circuit", action="store_true", help="print the final compiler circuit (stderr with --json)")
+            sub.add_argument("--save-circuit", type=Path, metavar="FOLDER", help="save a circuit image in this folder (created if needed)")
+            sub.add_argument("--circuit-format", choices=("png", "svg"), help="image format for --save-circuit; default: png")
         if command == "build":
             sub.add_argument("-o", "--output", type=Path, help="output module; default: SOURCE.qiskit.py")
             sub.add_argument("--force", action="store_true", help="replace an existing non-generated output file")
@@ -96,7 +100,10 @@ def explain(metadata):
 
 
 def main(arguments: list[str] | None = None) -> int:
-    options = argument_parser().parse_args(arguments)
+    parser = argument_parser()
+    options = parser.parse_args(arguments)
+    if getattr(options, "circuit_format", None) and options.save_circuit is None:
+        parser.error("--circuit-format requires --save-circuit FOLDER")
     try:
         try:
             with options.source.open(encoding="utf-8", newline="") as stream:
@@ -124,25 +131,35 @@ def main(arguments: list[str] | None = None) -> int:
         metadata = compilation.metadata
         if options.command == "run":
             payload = compilation.run(shots=options.shots, seed=options.seed)
-            if options.json:
-                print(json_text(payload))
-            else:
-                print(f"{payload['execution']['shots']} shots; {payload['execution']['backend']}")
-                for outcome in payload["outcomes"]:
-                    print(f"{json_text(outcome['value'])}: {outcome['count']} ({outcome['probability']:.1%})")
         elif options.command == "build":
             output = options.output or options.source.with_suffix(".qiskit.py")
             write_python(compilation, output, force=options.force)
             payload = {"stage": "build", "output": str(output), "metadata": metadata}
-            print(json_text(payload) if options.json else f"Built {output}; {metadata['resources']['allocated_qubits']} reserved qubits.")
         elif options.command == "explain":
-            if options.json:
-                print(json_text(metadata))
-            else:
-                explain(metadata)
+            payload = dict(metadata)
         else:
             payload = {"stage": "checked", "cleanup_verified": True, "metadata": metadata}
-            print(json_text(payload) if options.json else "Check OK: types, staging, construction bounds, and automatic cleanup verified.")
+        if options.print_circuit or options.save_circuit is not None:
+            from qutes.visualization import render
+            payload["circuit_diagram"] = render(compilation, print_circuit=options.print_circuit,
+                directory=options.save_circuit, image_format=options.circuit_format or "png",
+                stream=sys.stderr if options.json else sys.stdout)
+        if options.json:
+            print(json_text(payload))
+        else:
+            if options.command == "run":
+                print(f"{payload['execution']['shots']} shots; {payload['execution']['backend']}")
+                for outcome in payload["outcomes"]:
+                    print(f"{json_text(outcome['value'])}: {outcome['count']} ({outcome['probability']:.1%})")
+            elif options.command == "build":
+                print(f"Built {output}; {metadata['resources']['allocated_qubits']} reserved qubits.")
+            elif options.command == "explain":
+                explain(metadata)
+            else:
+                print("Check OK: types, staging, construction bounds, and automatic cleanup verified.")
+            image = payload.get("circuit_diagram", {}).get("image")
+            if image:
+                print(f"Saved circuit image: {image}")
         return 0
     except DiagnosticError as error:
         if options.json:

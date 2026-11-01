@@ -255,3 +255,42 @@ The complete requirement audit is docs/release-audit.md. Python 3.12 is configur
 in the Windows/Linux CI matrix, but was not run locally. Hosted CI has not run;
 there is no remote. No hardware, noisy simulation, public release, independent
 human review, or formal proof of arbitrary programs is claimed.
+
+## V012 — 2026-11-01 — Console and image circuit diagrams
+
+- Final Windows workspace: `& .\.venv\Scripts\python.exe tools/check.py -q` with
+  `MPLCONFIGDIR` pointing to `artifacts/matplotlib`: **596 passed**, no warnings,
+  28.72 seconds. Artifacts: `artifacts/checks/run-7rwonw51`.
+- Linux: `artifacts/linux-venv/bin/python tools/check.py -q tests/test_visualization.py
+  tests/test_cli.py`, with project-local MPLCONFIGDIR: **28 passed**, no warnings,
+  14.28 seconds. Artifacts: `artifacts/checks/run-m6j_f4sr`. This was targeted Linux
+  validation; the preceding full Linux suite remains V011.
+- Built/reinstalled the wheel in both existing isolated environments. Exercised the
+  installed Windows `qutes.exe run ... --print-circuit --save-circuit ...` and SVG
+  check command; Linux `python -I -m qutes check ... --print-circuit --save-circuit
+  ... --circuit-format svg` passed too. Windows pip check reports no broken requirements.
+
+Coverage includes all four full commands, normal/JSON console streams, ASCII
+fallback, measured conditions and cleanup, PNG/SVG validity, empty classical
+programs, binding-specific names, repeated writes, unrelated-file preservation,
+missing dependencies, output errors, size guards, partial figure cleanup, and
+verification that rendering neither simulates nor changes the circuit.
+
+Manually inspected generated feedforward and coherent_if PNGs in
+`artifacts/circuit-preview/`; labels, control lines, measurements, and folded rows
+are legible. The snapshots SVG was parsed/produced successfully. Qiskit's text/mpl
+drawers display the complete compiler circuit before backend-specific decomposition;
+no claim of hardware-transpiled gate display is made.
+
+New pins: Matplotlib 3.10.0, pylatexenc 2.10, Pillow 11.1.0, contourpy 1.3.1,
+cycler 0.11.0, fonttools 4.55.3, kiwisolver 1.4.8, pyparsing 3.2.0. Installed only
+in the project-local Windows/Linux environments. pylatexenc is built as a pure
+Python wheel; all other new packages were installed as wheels. See the
+[Qiskit circuit drawer reference](https://quantum.cloud.ibm.com/docs/en/api/qiskit/qiskit.visualization.circuit_drawer).
+
+Earlier failures: run-ds5npi83 had one ASCII-wire mapping failure (fixed);
+run-s_60ux17 had 595 passes and one expected-output mismatch from the user's
+temporary functions.qut experiment. A separate snapshot with the committed fixture
+passed 596 tests at artifacts/circuit-validation-3zmfr3d8/artifacts/checks/run-m02hz69v.
+The user subsequently reverted the experiment; the final normal workspace run
+above passes without altering tests or excluding that example.

@@ -1,6 +1,6 @@
 # Current status
 
-Updated: 2026-10-31, checkpoint KB-011. V1 implementation and delivery are complete
+Updated: 2026-11-01, checkpoint KB-012. V1 implementation and delivery are complete
 within the research-tool boundary of DEVELOPMENT_PLAN.md. No user design decision
 is currently blocking the implementation. See [release audit](../release-audit.md)
 for requirement coverage and the distinction between automated evidence and review.
@@ -18,6 +18,10 @@ for requirement coverage and the distinction between automated evidence and revi
   measurement checkpoints, mixed coherent/classical conditions, same-circuit feedforward.
 - Public check/build/run/explain commands and JSON output. Intermediate parse,
   analyze, and construct commands remain explicitly partial views.
+- Circuit diagrams on full commands: --print-circuit, --save-circuit FOLDER,
+  --circuit-format png|svg. Includes cleanup/measurement before backend-specific
+  decomposition; preserves JSON stdout. Optional image dependencies are pinned
+  and installed in the project-local environments. See the guide.
 - Source API, deterministic readable Qiskit Python artifacts, build(inputs) and
   run(inputs,shots,seed), actual respecialization for new inputs, ordered decoding,
   source/build identity, config/version metadata, resource/cleanup reports.
@@ -26,6 +30,11 @@ for requirement coverage and the distinction between automated evidence and revi
 - Windows/Linux Python 3.12/3.13 CI matrix checked in; no hosted run or remote push.
 
 ## Verified evidence
+
+- KB-012: **596 passed** on Windows; **28 rendering/CLI tests passed** on Linux.
+  PNG/SVG export and installed entrypoints were verified on both platforms.
+  Measured/coherent PNG diagrams were visually checked. See V012 for exact
+  commands and the resolved temporary example edit during validation.
 
 - **577 passed on isolated Windows Python 3.13.5**, no warnings, 29.83 seconds:
   `artifacts/checks/run-o9kdw90c`.
