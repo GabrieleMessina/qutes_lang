@@ -1,5 +1,6 @@
-(* Qutes 0.1 working grammar. Semantics may reject syntactically valid constructs. *)
-program = { function } ;
+(* Qutes 0.2 grammar summary; grammar/Qutes.g4 is authoritative. Semantics may reject syntactically valid constructs. *)
+program = { function | statement | input_declaration } ;
+input_declaration = "input", type, identifier, ";" ;
 function = type, identifier, "(", [ parameters ], ")", block ;
 parameters = parameter, { ",", parameter } ;
 parameter = type, identifier ;

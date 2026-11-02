@@ -13,7 +13,7 @@ from qutes.construction import construct
 from qutes.lowering import lower
 from qutes.parser import parse
 
-source = "int main() { quint n=5; n=n+2; return measure(n); }"
+source = "quint n=5; n=n+2; return measure(n);"
 program = lower(construct(analyze(parse(source, "example.qut"),
                                   CompilerConfig(quint_bits=4))))
 circuit = program.to_qiskit()
@@ -48,14 +48,14 @@ circuit = program.to_qiskit()
 - Source spans, allocation manifests, cleanup events, deterministic operation IR,
   bounded scheduler work. No hidden measurement/reset fallback.
 
-All lexical-scope temporaries must be clean before leaving their scope. Main's
+All lexical-scope temporaries must be clean before leaving their scope. The script's
 explicitly named values are live circuit outputs until shot completion; they are not
 silently reset by source lowering. Released storage remains physically reserved
 so historical recipes can be reconstructed. This increases qubit requirements.
 Anonymous helper results/computed arguments must be cleaned too; an escaping
-helper result does not automatically become a user-owned main value.
+helper result does not automatically become a user-owned script value.
 
-All 17 positive source cases have exact output-distribution tests and execute
+All 18 positive source cases have exact output-distribution tests and execute
 through Aer. All 16 negative corpus cases now produce
 their intended category through the complete applicable pipeline. Additional
 source tests verify full complex states, local scratch, nested arithmetic,

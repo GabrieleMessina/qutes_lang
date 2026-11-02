@@ -67,7 +67,9 @@ class Checker:
         self.steps = 0
         self.call_depth = 0
         self.global_symbols = {}
+        self.global_ids = set()
         self.script_return_seen = False
+        self.exit_globals = []
 
     def fail(self, code: str, message: str, node, *, help=None) -> None:
         raise DiagnosticError(code, message, node if isinstance(node, Span) else node.span, help=help)
@@ -109,6 +111,7 @@ class Checker:
                 value = ir.Expression(statement.span, type_, ir.Stage.QUANTUM if type_.quantum else ir.Stage.STATIC, "global")
                 symbol = self.declare(statement.name, type_, value, statement)
                 self.global_symbols[statement.name] = symbol
+                self.global_ids.add(symbol.id)
                 self.scopes[0][statement.name].initialized = False
                 if isinstance(statement, ast.Input):
                     inputs.append(symbol)
@@ -172,17 +175,20 @@ class Checker:
         self.call_depth += 1
         state = (self.scopes, self.function, self.return_type, self.return_values, self.effects,
                  self.if_depth, self.coherent_depth, self.dynamic_outers, self.protected,
-                 self.dynamic_depth, self.deferred_faults)
+                 self.dynamic_depth, self.deferred_faults, self.exit_globals)
         global_scope = {name: replace(binding, known=False, value=None) for name, binding in self.scopes[0].items()}
         self.scopes, self.function = [global_scope, {}], function
         self.return_type = self.type(function.return_type, allow_void=True)
         self.return_values, self.effects = [], set()
+        self.exit_globals = []
         # Inherit call-site restrictions, but returns belong to this function.
         self.dynamic_outers = set(self.dynamic_outers)
         self.protected = set(self.protected)
-        for argument in arguments:
-            if argument.type.quantum:
-                self.protected.update(argument.dependencies)
+        aliases = tuple(argument.dependencies if argument.type.quantum and argument.op in {"load", "index"}
+                        else frozenset() for argument in arguments)
+        for dependencies in aliases:
+            self.protected.update(identifier for identifier in dependencies if identifier in self.global_ids
+                                  and any(symbol.id == identifier and symbol.type.quantum for symbol in self.global_symbols.values()))
         self.dynamic_depth = self.deferred_faults = 0
         key = f"{name}${self.function_sequence}"
         self.function_sequence += 1
@@ -191,11 +197,22 @@ class Checker:
             for index, (parameter, (stage, shape)) in enumerate(zip(function.parameters, parameter_info, strict=True)):
                 type_ = self.type(parameter.type)
                 expression = ir.Expression(parameter.span, type_, stage, "parameter", shape=shape)
-                aliases = arguments[index].dependencies if arguments and type_.quantum else frozenset()
-                parameters.append(self.declare(parameter.name, type_, expression, parameter, readonly=True, alias_dependencies=aliases))
+                dependencies = aliases[index] if arguments else frozenset()
+                parameters.append(self.declare(parameter.name, type_, expression, parameter, readonly=True, alias_dependencies=dependencies))
             body = self.block(function.body, new_scope=False)
             if self.return_type.name != "void" and not body.returns:
                 self.fail("Q2005", f"function {name!r} must return a value on every path", function)
+            if not body.returns:
+                self.exit_globals.append(self.snapshot()[0])
+            # Early returns are separate outgoing states. A later assignment on
+            # another path must not hide a measurement/stage change on an exit.
+            if self.exit_globals:
+                for global_name, binding in self.scopes[0].items():
+                    exits = [scope[global_name] for scope in self.exit_globals]
+                    binding.stage = _merge_stage(exits)
+                    binding.shape = exits[0].shape if all(item.shape == exits[0].shape for item in exits) else None
+                    binding.known = all(item.known and item.value == exits[0].value for item in exits)
+                    binding.value = exits[0].value if binding.known else None
             stage = _merge_stage(self.return_values)
             shapes = {value.shape for value in self.return_values}
             result = ir.Function(function.span, key, name, tuple(parameters), self.return_type,
@@ -207,7 +224,7 @@ class Checker:
             updated_globals = self.scopes[0]
             (self.scopes, self.function, self.return_type, self.return_values, self.effects,
              self.if_depth, self.coherent_depth, self.dynamic_outers, self.protected,
-             self.dynamic_depth, self.deferred_faults) = state
+             self.dynamic_depth, self.deferred_faults, self.exit_globals) = state
             self.scopes[0] = updated_globals
             self.call_depth -= 1
 
@@ -218,7 +235,7 @@ class Checker:
                 if not binding.initialized:
                     self.fail("Q2002", f"global {name!r} is accessed before its declaration executes", node,
                               help="Move the declaration before this statement or the call that accesses it.")
-                if binding.symbol.id in {symbol.id for symbol in self.global_symbols.values()}:
+                if binding.symbol.id in self.global_ids:
                     self.effects.add(f"read:{binding.symbol.id}")
                 return binding
         self.fail("Q2002", f"unknown variable {name!r}", node,
@@ -562,10 +579,12 @@ class Checker:
             if node.value is None:
                 if self.return_type != ir.Type("void"):
                     self.fail("Q2005", "this function must return a value", node)
+                self.exit_globals.append(self.snapshot()[0])
                 return ir.Statement(node.span, "return"), True
             if self.return_type == ir.Type("void"):
                 self.fail("Q2005", "void functions cannot return a value", node)
             value = self.expression(node.value, self.return_type)
+            self.exit_globals.append(self.snapshot()[0])
             self.return_values.append(value)
             return ir.Statement(node.span, "return", (value,)), True
         if isinstance(node, ast.If):
@@ -619,10 +638,10 @@ class Checker:
         if binding.symbol.readonly:
             self.fail("Q2004", f"{binding.symbol.name!r} is a read-only parameter or iteration binding", node)
         if binding.symbol.id in self.protected:
-            self.fail("Q2004", f"{binding.symbol.name!r} is needed to clean up the quantum condition", node)
+            self.fail("Q2004", f"{binding.symbol.name!r} is protected by an active quantum condition or read-only borrow", node)
         if binding.symbol.id in self.dynamic_outers and not binding.symbol.type.quantum:
             self.fail("Q2004", "dynamic branches cannot change outer classical state in V1", node)
-        if binding.symbol.id in {symbol.id for symbol in self.global_symbols.values()}:
+        if binding.symbol.id in self.global_ids:
             self.effects.add(f"write:{binding.symbol.id}")
         return binding
 

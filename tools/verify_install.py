@@ -24,7 +24,7 @@ def main():
     with tempfile.TemporaryDirectory(prefix="smoke-", dir=output) as temporary:
         folder = Path(temporary)
         source = folder / "smoke.qut"
-        source.write_text("int[] main(int start) { quint n=start; int before=measure(n); n+=1; return [before,measure(n)]; }", encoding="utf-8")
+        source.write_text('input int start;  quint n=start; int before=measure(n); n+=1; return [before,measure(n)]; ', encoding="utf-8")
         inputs = folder / "inputs.json"
         inputs.write_text('{"start":2}', encoding="utf-8")
         command = [sys.executable, "-I", "-m", "qutes", "run", str(source), "--inputs", str(inputs),

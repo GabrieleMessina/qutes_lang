@@ -339,7 +339,7 @@ entry IDs; do not rewrite history to hide failures.
 - Two status-document patches failed exact-context verification and made no changes;
   the corrected patch succeeded. T013 is complete; see V012 for final evidence.
 
-## KB-013 — 2026-11-01 — ANTLR and diagnostics checkpoint
+## KB-013 â€” 2026-11-01 â€” ANTLR and diagnostics checkpoint
 
 - Read continuity/specification and inspected 1826686; user snapshots.qut edit
   adds numberb and changes addition. Preserved byte-for-byte, excluded from commits.
@@ -355,7 +355,7 @@ entry IDs; do not rewrite history to hide failures.
   No compiler regression found; do not overwrite the experiment to make tests green.
 - Next checkpoint: change entry semantics, globals/inputs, inferred call effects.
 
-## KB-014 — 2026-11-01 — Scripts and inferred effects
+## KB-014 â€” 2026-11-01 â€” Scripts and inferred effects
 
 - Implemented ordered script statements, inferred classical return type, root-only
   input declarations, filewide globals with initialization checks, ordinary main,
@@ -381,3 +381,46 @@ entry IDs; do not rewrite history to hide failures.
 - Still to deliver: versioned artifact compatibility, documentation, packaging and
   full Windows/Linux validation. Preserve user's snapshots file; canonical script
   now lives in measurement_snapshots.qut.
+
+## KB-015 â€” 2026-11-01 â€” Versioned delivery and cross-platform completion
+
+- Versioned package/language/artifacts to 0.2.0.dev0 / 0.2 / 2. Added artifact_v2
+  adapter and import-time legacy error; tested cached and new-binding paths so
+  old embedded main-only source can never silently execute with new semantics.
+- Published active 0.2 contract; marked 0.1 historical. Updated grammar summary,
+  guide, README, roadmap, IR/lowering notes, release audit, CLI help and CI. Added
+  pinned-Java regeneration verification to CI; hosted workflow has not been run.
+- Final semantic review distinguished owned computed arguments from direct readonly
+  aliases and fixed global stage/shape joins across early return paths. Dedicated
+  tests cover both; no broadening of runtime control/measurement scope.
+- Added core dependency to metadata and adjusted its exact-key test. The first
+  targeted delivery run had one stale metadata expectation; corrected and all
+  subsequent suites pass. Diagnostics now describe active borrows as well as
+  quantum-condition protection, with a targeted 50-test rerun after wording edit.
+- Full Windows/Linux suites both passed 666 tests. Both installed package smoke
+  checks execute CLI and respecialize generated modules; pip check passes.
+- Pinned ANTLR runtime installed only in project Windows/Linux/core environments.
+  Restricted DNS on wheel download failed; approved network retry succeeded.
+  Existing Java 21 regenerated committed sources exactly; jar SHA256 checked.
+- Core-only installed wheel compiled and generated source with PATH empty and no
+  Qiskit; simulation produced Q5001. Installed console/SVG circuit export passed.
+- Built final wheel/source distribution, verified every compiler .py byte in the
+  wheel against checkout, and verified grammar/hash/generator/parser/spec in sdist.
+  Reinstalled final wheel in Windows/Linux/core environments; no global packages.
+- T016 and the approved increment are complete. Third coherent local checkpoint
+  records code/tests/docs/knowledge. No remote/push, hardware or human-review claim.
+- User snapshots.qut experiment remains byte-for-byte untouched and uncommitted.
+  Its ordinary main now requires an explicit call; tutorial replacement is
+  measurement_snapshots.qut. Future agents must preserve this distinction.
+
+### 2026-11-02 â€” Resume the final Git checkpoint
+
+The first staging attempt did not execute: automatic approval review had reached
+its usage limit. On resume, the index was empty and both earlier checkpoint
+commits were present. Verified all 30 compiler modules against the tested 0.2
+wheel and confirmed the recorded Windows/Linux JUnit reports (666 each, zero
+failures, errors or skips) and final diagnostic regression run (50 passed).
+Only the delivery changes belong in this commit; the snapshots experiment is
+excluded. No compiler changes or additional packaging were needed on resume.
+The staged diff exposed an encoding change to punctuation in historical records;
+restored it and verified both documents retain the complete original 0.1 records.

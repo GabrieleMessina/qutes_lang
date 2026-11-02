@@ -146,3 +146,16 @@ conversation examples suggesting measurement consumption are superseded by D007.
 - D059 (user preservation): leave edited snapshots.qut untouched. Publish/test the
   canonical script as measurement_snapshots.qut; the preserved file has no automatic
   main execution under 0.2. No exception or hidden migration in the compiler.
+
+- D060 (delivery): package 0.2.0.dev0, language 0.2, artifact schema 2. Generated
+  modules use qutes.artifact_v2 and validate metadata before both cached and newly
+  bound paths. Retire runtime.layout_from_metadata via an explicit import-time
+  migration error so old modules cannot silently reinterpret embedded source.
+- D061 (correctness): join global stages/shapes across every function exit, including
+  early returns. A later assignment on another path cannot erase a runtime stage.
+- D062 (borrow precision): direct quantum loads/indices borrow aliases; computed
+  arguments own materialized values and do not borrow their source dependencies.
+  Array-element borrows conservatively protect the whole backing array.
+- D063 (distribution): ANTLR whitespace normalization is deterministic across OSes;
+  generated Python is compiler source, not an ignored build product. Java is needed
+  only for regeneration; core installations depend solely on the Python runtime.

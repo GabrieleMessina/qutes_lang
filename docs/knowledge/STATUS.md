@@ -1,121 +1,75 @@
 # Current status
 
-Updated: 2026-11-01, checkpoint KB-014. Qutes 0.2 implementation is ACTIVE.
-
-Implemented and tested: ANTLR frontend, source diagnostics, top-level script entry,
-classical inferred returns, input declarations, mutable script globals, callable
-ordinary main, measurement helpers with transitive effects and borrow protection.
-
-Checkpoint 2 validation: full Windows suite 653 passed (run-zl5icgqo); subsequent
-short-circuit and block-comment fixes passed 117 frontend/script tests. Existing
-full-state cleanup/correlation tests migrated to scripts and still pass. No legacy
-runtime entry fallback or test-only source conversion is installed.
-
-Next action: version package/language/artifacts, add artifact compatibility guard,
-finish docs and CI regeneration check, test both Windows/Linux and installed wheels.
-T014/T015 DONE; T016 ACTIVE. Three-checkpoint delivery remains unfinished.
-
-Preserve examples/snapshots.qut byte-for-byte (user experiment); it still defines
-main and now requires an explicit call to execute. Canonical migrated example is
-examples/measurement_snapshots.qut; docs/test migration uses that distinct file.
-
-## Previous delivery baseline
-
-Updated: 2026-11-01, checkpoint KB-012. V1 implementation and delivery are complete
-within the research-tool boundary of DEVELOPMENT_PLAN.md. No user design decision
-is currently blocking the implementation. See [release audit](../release-audit.md)
-for requirement coverage and the distinction between automated evidence and review.
+Updated: 2026-11-02, checkpoint KB-015. The approved Qutes 0.2 increment is complete.
+Package: 0.2.0.dev0. Language: 0.2. Generated artifact schema: 2.
+Active contract: [language-v0.2](../spec/language-v0.2.md).
 
 ## Delivered
 
-- Compact C#-inspired syntax, strong typing, source locations, stable diagnostics.
-- qubit, signed fixed-width quint, configured quchar/qustring, one-dimensional
-  arrays, user functions, readonly borrows, owned return values, ordinary assignment.
-- Addition, wraparound, rotations, signed/Boolean comparisons, coherent if/else,
-  construction-time for/while/foreach, bounded construction and function inlining.
-- Version-aware automatic uncomputation with full-state tests, dependency
-  restoration, safe overwrite, scoped/anonymous cleanup, deliberate cycle errors.
-- Non-consuming measurement, immutable snapshots, post-measurement updates,
-  measurement checkpoints, mixed coherent/classical conditions, same-circuit feedforward.
-- Public check/build/run/explain commands and JSON output. Intermediate parse,
-  analyze, and construct commands remain explicitly partial views.
-- Circuit diagrams on full commands: --print-circuit, --save-circuit FOLDER,
-  --circuit-format png|svg. Includes cleanup/measurement before backend-specific
-  decomposition; preserves JSON stdout. Optional image dependencies are pinned
-  and installed in the project-local environments. See the guide.
-- Source API, deterministic readable Qiskit Python artifacts, build(inputs) and
-  run(inputs,shots,seed), actual respecialization for new inputs, ordered decoding,
-  source/build identity, config/version metadata, resource/cleanup reports.
-- Bounded local Aer execution, optional backend dependency, atomic output files,
-  large-integer serialization, runnable examples, user guide, source/wheel packaging.
-- Windows/Linux Python 3.12/3.13 CI matrix checked in; no hosted run or remote push.
+- ANTLR 4.13.2 lexer/parser with authoritative grammar/Qutes.g4, committed generated
+  Python sources, matching runtime, pinned generator SHA256 and CI regeneration check.
+- Source excerpts, carets, targeted hints, related opener locations, conservative
+  name suggestions and up to ten syntax diagnostics. Recovered input never compiles.
+- Ordered top-level statements; ordinary callable main; inferred explicit classical
+  script return; empty/function-only files execute no statements and yield void.
+- Root input declarations and shared readable/writable globals. Calls check global
+  initialization order transitively and specialize against current stages/shapes.
+- Measurement helpers and inferred read/write/quantum effects. Non-consuming
+  measurement, readonly borrows, predicate protection, dynamic-write restrictions,
+  function-local cleanup and script-global shot-end lifetimes are preserved.
+- Global state joins across early function returns; skipped static short-circuit
+  calls do not change analysis state. Runtime conditional writes/measurement fail.
+- Existing arrays/text, addition/rotations, controlled branches, bounded classical
+  loops, automatic uncomputation, Qiskit generation and execution remain supported.
+- CLI/source/generated-module interfaces retained. Artifact-v2 guards reject old
+  generated modules before execution/respecialization. Rebuild after source migration.
+- Console circuit diagrams and PNG/SVG export remain supported and tested.
 
-## Verified evidence
+## Verification
 
-- KB-012: **596 passed** on Windows; **28 rendering/CLI tests passed** on Linux.
-  PNG/SVG export and installed entrypoints were verified on both platforms.
-  Measured/coherent PNG diagrams were visually checked. See V012 for exact
-  commands and the resolved temporary example edit during validation.
+- Full isolated Windows Python 3.13.5 suite: **666 passed**, 36.25s,
+  artifacts/checks/run-0rphx8ss.
+- Full isolated Debian/WSL Python 3.13.5 suite: **666 passed**, 43.38s,
+  artifacts/checks/run-ggcdntc3.
+- A final diagnostic wording improvement was followed by **50 script tests passed**,
+  artifacts/checks/run-9cyfik1r. Behavior is unchanged from the full-suite runs.
+- Installed Windows/Linux CLI and generated modules pass new-input respecialization;
+  dependency checks pass. Final wheel source bytes match the checkout.
+- Core-only install compiles/generates with PATH empty (no Java/Qiskit); execution
+  reports Q5001 as intended. Source distribution includes grammar, generator and spec.
+- Reproducible ANTLR generation and installed console/SVG output verified. See V015
+  for exact commands, artifact paths, earlier failures and testing limits.
 
-- **577 passed on isolated Windows Python 3.13.5**, no warnings, 29.83 seconds:
-  `artifacts/checks/run-o9kdw90c`.
-- **577 passed on isolated Debian/WSL Python 3.13.5**, no warnings, 36.90 seconds:
-  `artifacts/checks/run-w6545yxc`.
-- All 17 positive acceptance examples execute from generated Python and have
-  exact projected-branch distributions. All 16 negative cases keep their expected
-  diagnostic. Seven tutorial examples execute with expected output support.
-- Installed-wheel checks use isolated Python imports, verify package paths outside
-  checkout sources, CLI execution, and new-input generated-module behavior.
-  Evidence: `artifacts/installation/{windows,linux}.json`; dependency checks pass.
-- A separate core-only environment checks/generates without Qiskit/Aer and reports
-  Q5001 for requested simulation. Wheel/source artifacts are ignored under `dist/`.
-
-Pinned backend: Qiskit 2.3.0, Aer 0.17.2, NumPy 2.1.3. `requirements-dev.lock`
-adds reproducibility pins; psutil 7.0.0 replaces the host's non-installable 5.9.0
-pin. No global package was modified. Python 3.12 is configured in CI, not locally
-tested. Hosted CI requires a future user-authorized remote/publication step.
-
-## Commands in this workspace
+## Resume commands
 
 ```powershell
-& .\.venv\Scripts\qutes.exe run examples/snapshots.qut --shots 32 --seed 7
-& .\.venv\Scripts\qutes.exe explain examples/coherent_if.qut
+& .\.venv\Scripts\qutes.exe run examples/measurement_snapshots.qut --shots 32 --seed 7
+& .\.venv\Scripts\qutes.exe check examples/measurement_snapshots.qut --print-circuit
 & .\.venv\Scripts\python.exe tools/check.py -q
 & .\.venv\Scripts\python.exe -I tools/verify_install.py
+& .\.venv\Scripts\python.exe tools/generate_parser.py --jar artifacts/antlr/antlr-4.13.2-complete.jar --java "C:/Program Files/Android/openjdk/jdk-21.0.8/bin/java.exe" --check
 ```
 
-The fallback existing interpreter is `C:\ProgramData\anaconda3\python.exe`;
-PATH python/py aliases were unusable. Its external IBM-runtime plugin adds
-deprecation warnings, absent in the clean environment. The Windows runner uses
-Python stream capture to avoid native Aer handle failures under descriptor capture.
+For package/generator operations set TEMP/TMP to artifacts/install-temp on this host.
+Linux environment: artifacts/linux-venv/bin/python under Debian WSL, workspace
+/mnt/c/Users/gabry/Work/Quantum/qutes_lang_chatgpt. WSL/Git writes require normal tool
+approval review. All commits are local; no remote/push or hosted CI run exists.
+Backend pins: Qiskit 2.3.0, Aer 0.17.2, NumPy 2.1.3. Python 3.12 is configured in
+CI but not locally tested. Generated files do not imply hardware validation or proof.
 
-Linux environment: `artifacts/linux-venv/bin/python` under Debian WSL, with the
-workspace at `/mnt/c/Users/gabry/Work/Quantum/qutes_lang_chatgpt`. WSL execution and
-Git writes need normal elevated tool review in this host. Git commits are already
-user-authorized; no remote exists and no push was requested. Package installs used
-project-local TEMP/TMP because the host's default temporary directory was unwritable.
+## User work and next action
 
-## Limits and next work
+User-modified examples/snapshots.qut is deliberately untouched and uncommitted.
+It still defines main; add an explicit call to execute it under 0.2. The canonical
+script tutorial/tests use examples/measurement_snapshots.qut. Do not overwrite or
+stage the experiment during future work. Inspect git status/log before continuing.
 
-No V1 implementation task remains. Start future work from a new concrete user
-request, not by silently expanding the approved language boundary. The later
-roadmap includes hybrid multi-stage orchestration, measured loops, higher-level
-algorithms, hardware backends, and editor support.
+T014-T016 are DONE. No implementation task remains from the approved increment.
+Start future work from a new user request. Keep the knowledge base and coherent
+commits current; never restore automatic main execution or consuming measurement.
 
-- Released wires remain reserved for historical recomputation. Resource reports
-  include them; a safe last-use allocator is a future optimization.
-- Some valid dependency cycles receive conservative Q3001. Indirect measurement
-  does not prove a root erasable without a direct checkpoint. No hidden reset or
-  observation is permitted as a workaround.
-- Conditional measurement, runtime arithmetic/indices/loops, dynamic quantum
-  sizes/text lengths, general state preparation and mutation parameters are deferred.
-- Named main quantum outputs may remain live until shot end; scoped/anonymous
-  temporaries must clean or fail. Measurement never consumes a named value.
-- Builtin names remain the documented defaults; no separate human naming or
-  correctness review has been claimed. This is a local research implementation,
-  not a published package, hardware validation, or formal proof of all programs.
-
-Before resuming, read AGENTS.md and the knowledge base, inspect Git status/log,
-and check whether any uncommitted work postdates this checkpoint. Maintain the
-ledger and commit coherent tested units; never reintroduce the withdrawn
-function-only evolution rule or use-after-measurement errors.
+Limits remain: conditional measurement, runtime arithmetic/indices/loops, recursion,
+mutable parameters, hardware and multi-stage hybrid orchestration are deferred.
+Quantum array-element borrows conservatively protect the whole backing array.
+Cleanup can conservatively reject dependency cycles; released wires remain reserved
+for historical recomputation. No hidden measurement/reset is used to accept them.

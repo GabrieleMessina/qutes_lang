@@ -29,7 +29,7 @@ def main() -> int:
     environment = dict(os.environ, PYTEST_DISABLE_PLUGIN_AUTOLOAD="1")
     result = subprocess.run(command, cwd=root, env=environment, check=False)
     versions = {}
-    for name in ("qiskit", "qiskit-aer", "numpy", "pytest"):
+    for name in ("antlr4-python3-runtime", "qiskit", "qiskit-aer", "numpy", "pytest"):
         try:
             versions[name] = importlib.metadata.version(name)
         except importlib.metadata.PackageNotFoundError:

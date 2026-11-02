@@ -1,3 +1,6 @@
+> Historical 0.1 contract. Superseded by [version 0.2](language-v0.2.md).
+> Automatic main execution and measurement-free helpers below no longer apply.
+
 # Language contract, working version 0.1
 
 Status: implementation default, 2026-10-30. Grammar and examples are now concrete;

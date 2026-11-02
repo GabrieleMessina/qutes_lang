@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "qutes-lang"
-version = "0.1.0.dev0"
+version = "0.2.0.dev0"
 description = "A strongly typed high-level quantum language that compiles to Qiskit"
 readme = "README.md"
 requires-python = ">=3.12"

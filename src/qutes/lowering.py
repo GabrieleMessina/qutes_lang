@@ -115,7 +115,7 @@ class Lowerer:
         self.scheduler = Scheduler(max_steps=self.config.max_evaluation_steps)
         self.bindings: dict[int, Storage | Collection | Result] = {}
         self.frames: list[set[int]] = [set()]
-        self.main_values: set[int] = set()
+        self.script_values: set[int] = set()
         self.controls: tuple[tuple[int, bool], ...] = ()
         self.conditions = ()
         self.lengths: dict[int, int] = {}
@@ -421,7 +421,7 @@ class Lowerer:
                     value = self.runtime(expression)
                 self.bindings[statement.symbol.id] = value
                 if len(self.frames) == 1 and statement.symbol.type.quantum and not statement.symbol.name.startswith("$"):
-                    self.main_values.update(storage_ids(value))
+                    self.script_values.update(storage_ids(value))
             elif op == "assign":
                 target_expression, expression = statement.expressions
                 target = self.reference(target_expression)
@@ -511,10 +511,10 @@ class Lowerer:
         self.block(self.program.body)
         result = self.runtime(self.program.result)
         scheduler = self.scheduler
-        # Only explicitly named main values may survive until shot completion.
+        # Only explicitly named script values may survive until shot completion.
         # Escaping helper results and computed arguments used anonymously remain
         # compiler temporaries; they must not become silently retained garbage.
-        scheduler.release_scope(self.frames[0] - self.main_values)
+        scheduler.release_scope(self.frames[0] - self.script_values)
         allocations = tuple(Allocation(item.id, item.name, item.bits, item.released, item.span)
                             for item in scheduler.storages)
         return Program(self.config, tuple(scheduler.operations), scheduler.qubit_count,

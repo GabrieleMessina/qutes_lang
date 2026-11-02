@@ -76,6 +76,10 @@ rendering/CLI suite: 28 passed; installed flags verified on both platforms.
 
 - T014 DONE: ANTLR migration/diagnostics; KB-013 / V013.
 - T015 DONE: scripts, globals, input declarations, inferred function effects.
-- T016 ACTIVE: migration, generated-artifact contract, Windows/Linux validation.
+- T016 DONE: migration, generated-artifact contract, Windows/Linux validation.
 
 T015 evidence: KB-014 / V014; script/global/effect semantics and migrated semantic corpus.
+
+T016 evidence: KB-015 / V015. Full Windows/Linux suites 666 each; installed wheels,
+artifact migration guards, Java-free core installation, diagrams, regeneration,
+source/wheel packaging and active 0.2 documentation verified. No hosted CI run.

@@ -1,4 +1,30 @@
-# V1 research implementation audit
+# Qutes 0.2 increment audit
+
+Date: 2026-11-01. Package 0.2.0.dev0; language 0.2; artifact schema 2.
+
+- ANTLR 4.13.2 authoritative grammar, committed generated Python, matching runtime,
+  pinned generator hash, reproducible regeneration check in CI. No Java for users.
+- Top-level execution, ordinary callable main, inferred explicit classical returns,
+  root input declarations, shared globals with transitive initialization checks.
+- Inferred function effects, measurement helpers, readonly alias/predicate protection,
+  current-global specialization and joins across early returns. Existing staging,
+  loop, cleanup and no-hidden-measurement requirements remain enforced.
+- Syntax errors include excerpts/hints/related locations and bounded collections.
+  No recovered program executes. Unknown-name suggestions are conservative.
+- Versioned generated-module API rejects old modules before cached execution or
+  embedded-source respecialization. Public source compilation API remains stable.
+- Semantic fixtures migrated directly to scripts; exact quantum-state/correlation
+  and cleanup tests retained. New coverage includes global effects, arbitrary complex
+  states entangled with references, snapshots, input schemas and artifact guards.
+- User-edited snapshots.qut is untouched. The canonical script example is now
+  measurement_snapshots.qut; the preserved legacy main requires an explicit call.
+
+Final cross-platform/package evidence is recorded in knowledge/VALIDATION.md (V015).
+No hosted CI, remote push, hardware validation, formal proof or human review is claimed.
+
+## Historical V1 delivery audit
+
+### Original V1 audit
 
 Date: 2026-10-31. Package: 0.1.0.dev0; language contract: 0.1.
 The evidence below concerns the V1 boundary in DEVELOPMENT_PLAN.md, not the later

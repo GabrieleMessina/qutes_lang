@@ -68,7 +68,7 @@ def argument_parser():
                 flag = "--max-qubits" if key == "max_simulation_qubits" else "--" + key.replace("_", "-")
                 sub.add_argument(flag, dest=key, type=str if key == "alphabet" else int, help=f"override {key}")
         if command not in {"parse", "analyze"}:
-            sub.add_argument("--inputs", type=Path, help="JSON object containing classical main arguments")
+            sub.add_argument("--inputs", type=Path, help="JSON object binding script input declarations")
         if command in {"check", "build", "run", "explain"}:
             sub.add_argument("--print-circuit", action="store_true", help="print the final compiler circuit (stderr with --json)")
             sub.add_argument("--save-circuit", type=Path, metavar="FOLDER", help="save a circuit image in this folder (created if needed)")

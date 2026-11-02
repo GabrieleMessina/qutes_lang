@@ -155,3 +155,23 @@ def test_short_circuit_does_not_apply_skipped_global_effects():
     assert value('quint q=1; int n=1; bool sample(){n=measure(q);return true;} bool b=false&&sample(); return n+1;') == 2
     with pytest.raises(DiagnosticError, match='Q2004'):
         compiled('qubit q=false; bool b=measure(q); int n=0; bool set(){n=1;return true;} bool c=b&&set(); return n;')
+
+
+def test_computed_argument_is_an_owned_copy_not_a_borrow_of_its_dependencies():
+    assert value('quint q=1; quint f(quint p){q+=1;return p+1;} quint r=f(q+1); return [measure(q),measure(r)];') == [2,3]
+
+
+def test_early_returns_join_global_effects_across_all_exit_paths():
+    source = 'input bool flag; quint q=2; int n=0; void f(){if(flag){return;} n=measure(q);} f();'
+    assert value(source+'return n;', {'flag':False}) == 2
+    assert value(source+'return n;', {'flag':True}) == 0
+    with pytest.raises(DiagnosticError, match='Q2003'):
+        compiled(source+'return n+1;', {'flag':False})
+    source = 'input bool flag; quint q=2; int n=0; void f(){n=measure(q); if(flag){return;} n=1;} f();'
+    assert value(source+'return n;', {'flag':True}) == 2
+    assert value(source+'return n;', {'flag':False}) == 1
+    with pytest.raises(DiagnosticError, match='Q2003'):
+        compiled(source+'return n+1;', {'flag':True})
+    source = 'input bool flag; quint q=2; int n=0; int f(){if(flag){n=1;return 0;} n=measure(q);return 0;} f();'
+    with pytest.raises(DiagnosticError, match='Q2003'):
+        compiled(source+'return n+1;', {'flag':False})

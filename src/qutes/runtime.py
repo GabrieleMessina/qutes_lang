@@ -28,10 +28,13 @@ def result_from_data(data):
                   data.get("length"), data.get("capacity"))
 
 
-def layout_from_metadata(metadata):
-    if metadata.get("artifact_schema") != 1:
-        raise ValueError("unsupported Qutes artifact schema")
-    return ResultLayout(result_from_data(metadata["result_layout"]), metadata)
+def __getattr__(name):
+    if name == "layout_from_metadata":
+        # Old generated modules import this at module load, before choosing their
+        # cached circuit OR recompiling embedded 0.1 source with new bindings.
+        raise ImportError("Qutes 0.1 generated module is incompatible with Qutes 0.2. "
+                          "Migrate the source to top-level statements and rebuild it with 'qutes build'.")
+    raise AttributeError(name)
 
 
 def fail(layout, code, message):

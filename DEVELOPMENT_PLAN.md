@@ -85,7 +85,8 @@ in the specification before implementing a different behavior.
 ### Syntax and types
 
 Use braces, semicolons, explicit declarations, conventional precedence, top-level
-functions, and a `main` entry point. Require initialization before use. Classical
+functions, and executable top-level statements (0.2). The name `main` has no special
+execution behavior; call it explicitly if desired. Require initialization before use. Classical
 types are `bool`, `int`, `char`, `string`, and `void`, with one-dimensional arrays.
 Construction-time classical integers have arbitrary precision.
 
@@ -181,8 +182,8 @@ Decode `quint` as signed; decode text through the effective alphabet and length.
 - Physical reuse of storage is an implementation detail and must preserve this
   logical behavior.
 
-V1 measurement is allowed in `main`, outside conditional bodies. User helpers
-remain measurement-free. This allows multiple observations interleaved with
+Since 0.2, measurement is allowed in scripts and functions outside conditional
+bodies. Effects are inferred transitively; indirect conditional measurement fails. This allows multiple observations interleaved with
 evolution and measurement-driven branches without adding conditional measurement
 merging to the first release.
 
@@ -255,13 +256,11 @@ probes for the highest-risk behavior. These must cover:
 For example, using the provisional measurement name:
 
 ```csharp
-int main() {
-    quint number = 5;
-    int before = measure(number);
-    number = number + 2;
-    int after = measure(number);
-    return after;
-}
+quint number = 5;
+int before = measure(number);
+number = number + 2;
+int after = measure(number);
+return after;
 ```
 
 This must produce 7, while the reference execution records `before` as 5. The
@@ -339,3 +338,19 @@ library. Re-estimate the later roadmap using V1 implementation evidence.
 - [IBM: classical expressions](https://quantum.cloud.ibm.com/docs/en/api/qiskit/circuit_classical)
 - [IBM: bit ordering](https://quantum.cloud.ibm.com/docs/en/guides/bit-ordering)
 - [Qiskit Aer simulator guide](https://qiskit.github.io/qiskit-aer/tutorials/1_aersimulator.html)
+
+## Approved 0.2 increment: scripts and ANTLR (2026-11-01)
+
+1. Replace handwritten lexing/parsing with ANTLR 4.13.2 and retain the AST/IR
+   boundary. Commit generated Python and reproducible generator/hash checks.
+2. Execute ordered top-level statements; infer explicit classical return types.
+   Main is ordinary; functions share readable/writable globals, and root input
+   declarations replace main arguments. Infer call effects, including measurement,
+   while retaining cleanup, readonly borrow, dynamic-control, and staging rules.
+3. Migrate examples/docs/tests, version generated artifacts, reject legacy imports
+   before execution/respecialization, and validate full suites plus installed
+   packages on Windows/Linux. Preserve user experiments and maintain the ledger.
+
+These decisions supersede earlier main-only entry/measurement assumptions. The
+active specification is docs/spec/language-v0.2.md; checkpoint evidence is in the
+knowledge base. Runtime-driven loops and hybrid orchestration remain future scope.

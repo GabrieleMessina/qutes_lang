@@ -15,13 +15,13 @@ from qutes.lowering import Program, lower
 from qutes.parser import parse
 from qutes.serialization import json_text
 
-LANGUAGE_VERSION = "0.1"
-ARTIFACT_VERSION = 1
+LANGUAGE_VERSION = "0.2"
+ARTIFACT_VERSION = 2
 
 
 def dependency_versions():
     versions = {}
-    for name in ("qiskit", "qiskit-aer", "numpy"):
+    for name in ("antlr4-python3-runtime", "qiskit", "qiskit-aer", "numpy"):
         try:
             versions[name] = importlib.metadata.version(name)
         except importlib.metadata.PackageNotFoundError:
@@ -84,9 +84,14 @@ class Compilation:
 
 def compile_source(source: str, *, path="<input>", inputs=None, config=None) -> Compilation:
     config = config or CompilerConfig()
-    syntax = parse(source, path)
-    constructed = construct(analyze(syntax, config), inputs)
-    program = lower(constructed)
+    try:
+        syntax = parse(source, path)
+        constructed = construct(analyze(syntax, config), inputs)
+        program = lower(constructed)
+    except DiagnosticError as error:
+        for item in error.diagnostics:
+            item.source = source
+        raise
     source_hash = hashlib.sha256(source.encode("utf-8")).hexdigest()
     identity = {"source_sha256": source_hash, "config": config.to_dict(), "inputs": constructed.inputs,
                 "compiler_version": __version__, "language_version": LANGUAGE_VERSION}

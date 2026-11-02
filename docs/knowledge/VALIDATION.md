@@ -295,7 +295,7 @@ passed 596 tests at artifacts/circuit-validation-3zmfr3d8/artifacts/checks/run-m
 The user subsequently reverted the experiment; the final normal workspace run
 above passes without altering tests or excluding that example.
 
-## V013 — 2026-11-01 — ANTLR frontend
+## V013 â€” 2026-11-01 â€” ANTLR frontend
 
 - `.venv/Scripts/python.exe tools/check.py -q tests/test_parser.py`: 60 passed,
   artifacts/checks/run-t3qszxdr.
@@ -308,7 +308,7 @@ above passes without altering tests or excluding that example.
   collection, source excerpts and related opener locations. Existing parser corpus,
   truncation, Unicode/BOM/CRLF and nesting tests pass unchanged.
 
-## V014 — 2026-11-01 — Script/global/effect semantics
+## V014 â€” 2026-11-01 â€” Script/global/effect semantics
 
 - `tools/check.py -q`: 653 passed, 26.90s, Windows isolated Python 3.13.5,
   artifacts/checks/run-zl5icgqo.
@@ -322,3 +322,54 @@ above passes without altering tests or excluding that example.
   updated to the approved script contract, not bypassed by legacy compiler modes.
   Canonical snapshots test now uses new measurement_snapshots.qut, leaving user's
   edited source intact. Both source and tests explicitly express top-level execution.
+
+## V015 â€” 2026-11-01 â€” Qutes 0.2 delivery
+
+Full suites (Python 3.13.5, isolated dependencies, no warnings):
+
+- Windows: `$env:MPLCONFIGDIR = Join-Path $PWD 'artifacts/matplotlib';
+  & .\.venv\Scripts\python.exe tools/check.py -q`: **666 passed**, 36.25s,
+  artifacts/checks/run-0rphx8ss.
+- Debian/WSL, from /mnt/c/Users/gabry/Work/Quantum/qutes_lang_chatgpt:
+  `MPLCONFIGDIR="$PWD/artifacts/matplotlib-linux" artifacts/linux-venv/bin/python
+  tools/check.py -q`: **666 passed**, 43.38s, artifacts/checks/run-ggcdntc3.
+- After final diagnostic wording only: Windows `tools/check.py -q
+  tests/test_scripts.py`: **50 passed**, artifacts/checks/run-9cyfik1r.
+- Early-return/alias regressions: checker/construction/scripts **162 passed**,
+  artifacts/checks/run-6_vvz2k9 (superseded by full runs).
+
+Distribution and entrypoints:
+
+- Built dist/qutes_lang-0.2.0.dev0-py3-none-any.whl with
+  `python -m pip wheel --no-build-isolation --no-deps . -w dist` and installed into
+  existing project Windows/Linux/core environments using --force-reinstall.
+- `.venv/Scripts/python.exe -I tools/verify_install.py` and
+  `artifacts/linux-venv/bin/python -I tools/verify_install.py`: passed. Reports:
+  artifacts/installation/windows.json and linux.json. Paths prove isolated imports;
+  CLI and generated new-input execution passed. Both pip check commands passed.
+- Final wheel source inventory matches every src/qutes/**/*.py byte in checkout.
+  `setuptools.build_meta.build_sdist('dist')` produced 0.2 source archive; verified
+  grammar/Qutes.g4, grammar/antlr.sha256, tools/generate_parser.py, generated parser,
+  and docs/spec/language-v0.2.md. Build log: artifacts/sdist-v02.log.
+- Core-only `artifacts/core-venv/Scripts/python.exe -I` with empty PATH:
+  no Java/Qiskit discoverable, script compilation/Python generation passed,
+  requested simulation returned Q5001. Runtime dependency 4.13.2 installed offline
+  from downloaded pinned wheel; no generator/JRE bundled or invoked.
+- ANTLR regeneration `tools/generate_parser.py --jar
+  artifacts/antlr/antlr-4.13.2-complete.jar --java
+  "C:/Program Files/Android/openjdk/jdk-21.0.8/bin/java.exe" --check`: passed.
+- Installed Windows `qutes.exe check examples/measurement_snapshots.qut
+  --print-circuit --save-circuit artifacts/circuit-v02 --circuit-format svg`:
+  passed. Both full suites also cover PNG/SVG exports and JSON stream separation.
+
+Coverage includes 18 positive and 16 negative acceptance programs, script globals,
+input schemas, helper measurement, repeated snapshots, transitive restrictions,
+full complex reference-entangled states and clean scratch, early exits, mutable
+stages/shapes, ordinary main/no-op scripts, error recovery and artifact guards.
+Initial delivery run-gpbbv0xa had 63 passes/one stale dependency-metadata key
+expectation; corrected for the new ANTLR runtime and superseded by the full runs.
+
+Python 3.12 is configured in CI but not run locally. Hosted CI has not run; no remote
+or push exists. No hardware validation, formal proof or independent human review.
+User experiment snapshots.qut is preserved; canonical tutorial tests run the new
+measurement_snapshots.qut. No semantic tests use a legacy main-execution adapter.

@@ -6,12 +6,10 @@ quantum integers, bits, characters, strings, arrays, functions, ordinary assignm
 coherent branches, construction-time loops, and non-consuming measurement.
 
 ```csharp
-int[] main() {
-    quint number = 5;
-    int before = measure(number);
-    number = number + 2;
-    return [before, measure(number)];
-}
+quint number = 5;
+int before = measure(number);
+number = number + 2;
+return [before, measure(number)];
 ```
 
 This returns `[5,7]`. Measurement leaves `number` available; `before` remains a
@@ -24,10 +22,10 @@ Use Python 3.12 or 3.13 and an isolated environment. Windows PowerShell:
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install ".[backend]"
-.\.venv\Scripts\qutes.exe check examples/snapshots.qut
-.\.venv\Scripts\qutes.exe run examples/snapshots.qut --shots 32 --seed 7
-.\.venv\Scripts\qutes.exe explain examples/snapshots.qut
-.\.venv\Scripts\qutes.exe build examples/snapshots.qut -o snapshots.qiskit.py
+.\.venv\Scripts\qutes.exe check examples/measurement_snapshots.qut
+.\.venv\Scripts\qutes.exe run examples/measurement_snapshots.qut --shots 32 --seed 7
+.\.venv\Scripts\qutes.exe explain examples/measurement_snapshots.qut
+.\.venv\Scripts\qutes.exe build examples/measurement_snapshots.qut -o snapshots.qiskit.py
 ```
 
 Add `--print-circuit` to print the final compiler circuit, or
@@ -42,7 +40,7 @@ and NumPy 2.1.3.
 
 - [User guide and generated-module API](docs/guide.md)
 - [Runnable examples](examples/)
-- [Language contract](docs/spec/language-v0.1.md) and [grammar](docs/spec/grammar.ebnf)
+- [Language contract](docs/spec/language-v0.2.md) and [grammar](docs/spec/grammar.ebnf)
 - [Knowledge base and handoff](docs/knowledge/README.md)
 - [Current status and validation limits](docs/knowledge/STATUS.md)
 - [V1 release audit](docs/release-audit.md)
@@ -84,10 +82,25 @@ To verify an installed wheel independently of checkout import paths:
 
 ```text
 python -m pip wheel --no-build-isolation --no-deps . -w dist
-python -m pip install --no-deps --force-reinstall dist/qutes_lang-0.1.0.dev0-py3-none-any.whl
+python -m pip install --no-deps --force-reinstall dist/qutes_lang-0.2.0.dev0-py3-none-any.whl
 python -I tools/verify_install.py
 ```
 
 The knowledge base records exact environments, failed attempts, evidence, and
 remaining work. Follow [AGENTS.md](AGENTS.md) before changing code. Local commits
 capture coherent implementation checkpoints; no remote publication is implied.
+
+## Parser development
+
+The authoritative grammar is [Qutes.g4](grammar/Qutes.g4). Generated Python sources
+are committed, so installations do not require Java. To regenerate, use Java 21
+and the official ANTLR 4.13.2 complete jar (the script verifies its SHA256):
+
+```text
+python tools/generate_parser.py --jar artifacts/antlr/antlr-4.13.2-complete.jar
+python tools/generate_parser.py --jar artifacts/antlr/antlr-4.13.2-complete.jar --check
+```
+
+Use `--java PATH` if Java is not on PATH. The runtime is pinned to the same version.
+The [0.2 language contract](docs/spec/language-v0.2.md) documents scripts, globals,
+input declarations, diagnostics, inferred effects, and migration from 0.1.

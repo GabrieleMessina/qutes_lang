@@ -11,7 +11,8 @@ from qutes.codegen import python_source, write_python
 from qutes.compiler import compile_source
 from qutes.config import CompilerConfig
 from qutes.diagnostics import DiagnosticError
-from qutes.runtime import ResultLayout, execute, layout_from_metadata
+from qutes.runtime import ResultLayout, execute
+from qutes.artifact_v2 import layout_from_metadata
 from qutes.serialization import integer_text, json_text, load_json, parse_integer
 
 ROOT = Path(__file__).parent / "acceptance"
@@ -91,7 +92,7 @@ def test_deterministic_artifacts_identity_and_safe_source_embedding(tmp_path):
     identity = compilation.metadata["build_sha256"]
     assert compiled(source + " ").metadata["build_sha256"] != identity
     assert compiled(source, quint_bits=4).metadata["build_sha256"] != identity
-    assert set(compilation.metadata["dependency_versions"]) == {"numpy", "qiskit", "qiskit-aer"}
+    assert set(compilation.metadata["dependency_versions"]) == {"antlr4-python3-runtime", "numpy", "qiskit", "qiskit-aer"}
 
 
 def test_artifacts_with_quantum_cleanup_and_runtime_guards_are_deterministic():

@@ -15,7 +15,7 @@ python -m venv .venv
 # Windows: .venv\Scripts\python.exe
 # Linux:   .venv/bin/python
 python -m pip install ".[backend]"
-qutes run examples/snapshots.qut --shots 32 --seed 7
+qutes run examples/measurement_snapshots.qut --shots 32 --seed 7
 ```
 
 Run the install command using the virtual environment's Python, or activate the
@@ -26,17 +26,48 @@ For the exactly pinned development environment, follow README.md.
 The snapshots example always returns `[5,7]`:
 
 ```csharp
-int[] main() {
-    quint number = 5;
-    int before = measure(number);
-    number = number + 2;
-    return [before, measure(number)];
-}
+quint number = 5;
+int before = measure(number);
+number = number + 2;
+return [before, measure(number)];
 ```
 
 `measure` returns an ordinary classical value. `number` remains available, and
 later operations evolve its post-measurement state. `before` stays 5.
 Each simulator shot begins a fresh execution of the whole circuit.
+
+## Scripts, inputs, and shared values
+
+Write executable statements directly in the file. A `main` function is optional
+and ordinary: defining it does nothing until you call it. A script returns a
+classical result with an explicit `return`; otherwise it has no output value.
+
+```csharp
+input int increment;
+quint number = 1;
+
+void advance() {
+    number += increment;
+}
+
+int sample() {
+    return measure(number);
+}
+
+advance();
+return sample();
+```
+
+Run with `--inputs FILE.json`, where the file contains, for example,
+`{"increment": 2}`. Functions can read and update root variables. Initialize a
+variable before calling any function that accesses it. Function definitions can
+appear before or after their calls; variables inside blocks remain local.
+
+To migrate a 0.1 program, move main's body to the top level and turn each parameter
+into an `input` declaration. Rebuild generated Python with `qutes build`: older
+artifacts deliberately report an incompatibility error. The preserved legacy
+`examples/snapshots.qut` uses an ordinary main declaration; the script tutorial is
+`examples/measurement_snapshots.qut`.
 
 ## Types and ordinary expressions
 
@@ -76,7 +107,9 @@ quint next(quint value) {
 
 Parameters are read-only: return a result and assign it at the call site.
 The compiler diagnoses parameter writes. Quantum parameters borrow their input
-without an implicit copy. Helpers cannot measure in V1; main can.
+without an implicit copy. Functions may measure; the compiler infers this effect
+through calls and rejects it in conditional bodies. Measurement changes the
+post-measurement state even though the parameter binding is read-only.
 
 An `if` over quantum values preserves coherence and applies controlled
 operations behind the scenes. It must not change the values used by its condition.
@@ -111,14 +144,15 @@ unknown superposition with `number = 0` would erase information, and `number +=
 number` is not an ordinary reversible in-place addition. These receive `Q3001`.
 The compiler never inserts hidden measurement or reset to make them work.
 
-Main's explicitly named quantum values remain live until the shot ends. Cleaned
+The script's explicitly named quantum values remain live until the shot ends. Cleaned
 wires are still reserved in V1 to allow historical recomputation, so a temporary
 can increase the reported qubit count even after it is cleaned.
 
 Use `qutes check FILE` for complete compilation checks and `qutes explain FILE`
 to inspect storage, snapshots, cleanup counts, and estimated circuit size.
-Diagnostics include a stable category and source location. `--json` provides
-structured results. See [all categories](spec/language-v0.1.md).
+Diagnostics include a stable category, source excerpt, caret, and relevant hints.
+Parsing can report up to ten errors together; invalid programs never run. `--json` provides
+structured results. See [all categories](spec/language-v0.2.md).
 
 ## Configuration and inputs
 
@@ -143,7 +177,8 @@ or silently truncate work. Statevector memory alone grows as `16 * 2^qubits`
 bytes; backend overhead is additional. Reports count reserved wires and gate
 applications before device decomposition, not physical hardware costs.
 
-Main accepts classical arguments from a JSON object:
+Declare external values at the top level, for example `input int count;`.
+Supply them through a JSON object:
 
 ```text
 qutes run examples/loops.qut --inputs examples/inputs.json --shots 16 --seed 7
@@ -156,8 +191,8 @@ The full compiler commands (`check`, `build`, `run`, and `explain`) accept these
 options, individually or together:
 
 ```text
-qutes check examples/snapshots.qut --print-circuit
-qutes build examples/snapshots.qut --save-circuit artifacts/circuits
+qutes check examples/measurement_snapshots.qut --print-circuit
+qutes build examples/measurement_snapshots.qut --save-circuit artifacts/circuits
 qutes run examples/feedforward.qut --print-circuit --save-circuit artifacts/circuits --circuit-format svg
 ```
 
@@ -173,7 +208,7 @@ Use your virtual environment's Python. Console diagrams only require Qiskit;
 normal checking/Python generation still do not require a backend installation.
 Image export is headless and does not open windows or require a LaTeX installation.
 
-Each compilation has one circuit for its bound main inputs. Files are named
+Each compilation has one circuit for its bound script inputs. Files are named
 `SOURCE-BUILDHASH.png` (or `.svg`), so different inputs/settings can share a folder.
 Repeating the same build replaces its image atomically. Other files remain intact.
 With `--json`, text diagrams go to stderr, and stdout includes the image path in
@@ -208,7 +243,7 @@ circuit, layout = module.build(inputs={"count": 3})
 results = module.run(inputs={"count": 4}, shots=128, seed=7)
 ```
 
-Use the parameter names declared by that module's main. `None` uses the bound
+Use the names declared by that module's `input` declarations. `None` uses the bound
 inputs recorded at build time. New inputs recompile the embedded source, including
 loops and array sizes, instead of silently running the old circuit. Each build
 returns its own layout; `layout.decode(memory)` decodes an integer representing

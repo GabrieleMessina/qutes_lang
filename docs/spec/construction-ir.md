@@ -46,7 +46,7 @@ requires conditional cleanup. No conditional measurement/dynamic return is added
 Enforce global iteration/evaluation budgets. Charge array element counts before
 host allocation. Classical integers do not wrap; `max_classical_bits` (65,536 by
 default) bounds construction memory independently of quint width. Validate exact
-main argument names/types, resolved ranges, indices, encodings, lengths, and
+script input names/types, resolved ranges, indices, encodings, lengths, and
 shapes. Short-circuiting and early returns avoid unused execution.
 
 ## Next pass obligations
@@ -57,3 +57,17 @@ shapes. Short-circuiting and early returns avoid unused execution.
 4. Preserve snapshots and post-measurement evolution.
 5. Lower verified work into backend-neutral circuits, then Qiskit. Experiments
    using manually supplied inverses do not establish this automatic proof.
+
+## Script globals and call effects (0.2)
+
+Typed programs identify globals and inputs separately from functions. Input values
+are validated before construction, then become available when each input declaration
+executes. The script has an internal entry; user main is an ordinary function.
+Each helper receives the current global environment plus its parameter bindings;
+updated globals propagate back to the caller. Global quantum storage stays owned
+by the script; locals/computed arguments retain their own cleanup scopes.
+
+Analysis specializes each call for current stages/shapes and joins global states
+across all function exits, including early returns. Effects record transitive
+reads/writes/preparation/measurement. Borrowed load/index arguments protect their
+quantum aliases; computed arguments materialize independent owned temporaries.
