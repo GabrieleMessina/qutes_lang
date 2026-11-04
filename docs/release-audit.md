@@ -1,3 +1,31 @@
+# Qutes 0.3 completion audit
+
+Date: 2026-11-04. Package 0.3.0.dev0; language 0.3; artifact schema 3.
+Validation evidence and exact environments are in knowledge/VALIDATION.md (V018).
+
+| Requirement | Implementation and evidence |
+| --- | --- |
+| Generic membership and contiguous patterns | membership.py independent semantics; asymmetric checker; construction expansion; test_membership.py and A019 |
+| Strings as sequences and wildcard patterns | string/char-array combinations, whole string entries, foreach, quantum wildcard correlation and padding-aware character access |
+| Coherent comparison and cleanup | existing reversible comparisons/Boolean networks; complex reference-entangled overlap test and zero-workspace checks |
+| Named one-element oracle and selected value | checker purity/signature/call graph checks; SearchOracle construction; visible view over owned result/index/workspace |
+| Automatic conditional 99% success | Yoder-Low-Chuang schedule; independent Chebyshev checks and emitted small-state circuits across match counts |
+| Quantum collections, duplicates, no matches | branch/reference-entanglement tests, duplicate index weighting, invalid-index suppression and no-match branch tests |
+| Ownership, alias protection and measurement | replayable preparation with captured versions; moves/returns, changed-input cleanup, readonly guards, partial measurement and explicit impossible cleanup |
+| Bounded construction | membership comparison preflight, search expansion checks, backend operand limits; configuration and budget rejection tests |
+| Public integration | CLI float setting/reports, artifact-v3 generation and legacy import rejection, generated phase comparison/respecialization, SVG/console tests and existing PNG tests |
+| Distribution | full Windows/Linux suites, installed isolated CLI/search smoke tests, pinned parser regeneration, no-Java/no-Qiskit core compilation, wheel source inventory and source package checks |
+| Continuity and Git | KB-016 through KB-018, V016 through V018, three coherent local checkpoints; user snapshots and grammar/.antlr excluded |
+
+Known limits match the approved scope: same-length searched strings, one-dimensional
+representable collections, pure basis oracles, explicit measurement, no hybrid
+retry/enumeration, no general quantum indexing, no custom state-domain preparation.
+Selected-value measurement may prevent local hidden-index cleanup. Linear indexed
+access is reported honestly; no end-to-end speedup or hardware validation is claimed.
+Python 3.12 and hosted CI are configured but not run locally. No human review claimed.
+
+## Historical 0.2 audit
+
 # Qutes 0.2 increment audit
 
 Date: 2026-11-01. Package 0.2.0.dev0; language 0.2; artifact schema 2.

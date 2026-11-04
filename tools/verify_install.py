@@ -40,9 +40,22 @@ def main():
         spec.loader.exec_module(module)
         outcomes = module.run({"start": 3}, shots=8, seed=17)["outcomes"]
         assert outcomes == [{"value": [3, -4], "count": 8, "probability": 1.0}]
+        search = compile_source('input bool[] values; qubit good(qubit x){return x;} '
+                                'qubit result=search(values,good); return measure(result);',
+                                inputs={"values": [False, True]})
+        search_artifact = folder / "search_generated.py"
+        write_python(search, search_artifact)
+        search_spec = importlib.util.spec_from_file_location("search_smoke", search_artifact)
+        search_module = importlib.util.module_from_spec(search_spec)
+        search_spec.loader.exec_module(search_module)
+        search_result = search_module.run({"values": [True, True, False]}, shots=32, seed=17)
+        assert sum(item['count'] for item in search_result['outcomes'] if item['value']) >= 28
+        assert search_result['build']['artifact_schema'] == 3
+        assert search_result['build']['searches'][0]['entries'] == 3
     report = {"python": platform.python_version(), "platform": platform.platform(), "qutes": qutes.__version__,
               "installed_path": str(installed), "dependencies": dependency_versions(),
-              "isolated_cli": "passed", "generated_module_respecialization": "passed"}
+              "isolated_cli": "passed", "generated_module_respecialization": "passed",
+              "search_generated_module_respecialization": "passed"}
     target = output / ("windows.json" if sys.platform == "win32" else "linux.json")
     target.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report, indent=2))

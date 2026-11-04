@@ -210,7 +210,7 @@ class Scheduler:
                           classical_controls=((bit, True),))
                      for qubit, bit in zip(target.bits, target.checkpoint.classical_bits))
 
-    def measure(self, target: Storage) -> Measurement:
+    def measure(self, target: Storage, observed_bits: tuple[int, ...] | None = None) -> Measurement:
         """Explicit non-consuming observation; every result gets fresh bits.
 
         A direct snapshot can restore a definite basis value. Indirect observation
@@ -219,12 +219,16 @@ class Scheduler:
         """
         if target.released or target.version < 0:
             raise ValueError("cannot measure unavailable storage")
-        bits = tuple(range(self.classical_bit_count, self.classical_bit_count + len(target.bits)))
+        observed = target.bits if observed_bits is None else observed_bits
+        if not observed or len(set(observed)) != len(observed) or not set(observed) <= set(target.bits):
+            raise ValueError("measurement view must select distinct owned bits")
+        bits = tuple(range(self.classical_bit_count, self.classical_bit_count + len(observed)))
         self.classical_bit_count += len(bits)
-        measurement = Measurement(target.bits, bits, target.span)
+        measurement = Measurement(observed, bits, target.span)
         self.tick(target, len(bits))
         self.operations.append(measurement)
-        target.checkpoint = Checkpoint(target.version, bits)
+        if observed == target.bits:
+            target.checkpoint = Checkpoint(target.version, bits)
         neighbors = [set() for _ in self.storages]
         for storage in self.storages:
             for step in storage.history:

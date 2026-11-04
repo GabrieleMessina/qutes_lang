@@ -38,7 +38,7 @@ class CompilerConfig:
                 raise ValueError(f"{name} must be a positive integer")
         validate_alphabet(self.alphabet)
         failure = self.search_failure_probability
-        if type(failure) not in (int, float) or not math.isfinite(failure) or not 0 < failure < 1:
+        if type(failure) not in (int, float) or not 0 < failure < 1 or not math.isfinite(failure):
             raise ValueError("search_failure_probability must be finite and strictly between zero and one")
 
     @property

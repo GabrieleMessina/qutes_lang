@@ -12,7 +12,7 @@ from qutes.config import CompilerConfig
 from qutes.diagnostics import DiagnosticError, Span
 from qutes.values import SignedInteger, TextEncoding
 from qutes.vocabulary import Builtin
-from qutes.membership import is_sequence, pattern_is_element, matches
+from qutes.membership import is_sequence, pattern_is_element, matches, work_bound
 
 
 @dataclass
@@ -79,8 +79,8 @@ class Checker:
         matches = get_close_matches(name, sorted(set(candidates)), n=2, cutoff=0.75)
         return f"Did you mean {matches[0]!r}?" if len(matches) == 1 else None
 
-    def step(self, node):
-        self.steps += 1
+    def step(self, node, amount=1):
+        self.steps += amount
         if self.steps > self.config.max_evaluation_steps:
             self.fail("Q4001", "semantic analysis step budget exceeded", node)
 
@@ -422,6 +422,8 @@ class Checker:
                 self.fail("Q2003", "membership on runtime-classical data is deferred", node)
             stage = _merge_stage((left, right))
             known = stage == ir.Stage.STATIC and left.known and right.known
+            if known:
+                self.step(node, work_bound(left.value, right.value, left.type, right.type))
             return self.make(node, ir.Type("qubit" if stage == ir.Stage.QUANTUM else "bool"), stage,
                              "membership", (left, right), known=known,
                              value=matches(left.value, right.value, left.type, right.type) if known else None)

@@ -29,3 +29,10 @@ def matches(pattern, values, left: Type, right: Type) -> bool:
     return any(all(element_matches(p, values[i + j], right.element.classical)
                    for j, p in enumerate(elements))
                for i in range(len(values) - len(elements) + 1))
+
+
+def work_bound(pattern, values, left: Type, right: Type) -> int:
+    """Conservative comparison work, including characters of text entries."""
+    elements = (pattern,) if pattern_is_element(left, right) else pattern
+    cost = sum(1 + len(item) for item in elements) if right.element.classical.name == "string" else len(elements)
+    return max(0, len(values) - len(elements) + 1) * max(1, cost)

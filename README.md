@@ -40,7 +40,7 @@ and NumPy 2.1.3.
 
 - [User guide and generated-module API](docs/guide.md)
 - [Runnable examples](examples/)
-- [Language contract](docs/spec/language-v0.2.md) and [grammar](docs/spec/grammar.ebnf)
+- [Language contract](docs/spec/language-v0.3.md) and [grammar](docs/spec/grammar.ebnf)
 - [Knowledge base and handoff](docs/knowledge/README.md)
 - [Current status and validation limits](docs/knowledge/STATUS.md)
 - [V1 release audit](docs/release-audit.md)
@@ -58,6 +58,38 @@ Quantum values are not unrestricted classical mutable values: copying correlates
 basis values, quantum branches preserve coherence, and unsafe erasure is rejected.
 See the guide for the rules and examples. These primitives alone do not imply a
 quantum speedup.
+
+## Membership and automatic search
+
+`in` checks scalar membership or contiguous sequences. Strings act as character
+sequences, with `?` matching one character on the pattern side. Quantum operands
+produce a coherent qubit predicate without measurement or amplification.
+
+```csharp
+qubit accepts(qustring text) { return "?B" in text; }
+string[] texts = ["AA", "AB", "BB"];
+qustring candidate = search(texts, accepts);
+return measure(candidate);
+```
+
+`search` amplifies matching entries automatically and returns a quantum value.
+Its named oracle receives one element and returns qubit. Measurement is explicit.
+The default ideal success bound is 99% when a match exists; with no matches the
+result is a nonmatching candidate. Set `search_failure_probability` in qutes.toml
+or pass `--search-failure-probability 0.01`. `explain` reports oracle calls and the
+retained selection/workspace qubits. Controlled collection access has linear cost.
+
+```text
+python tools/qutes.py run examples/search.qut --alphabet AB --shots 128 --seed 17
+python tools/qutes.py explain examples/search_numbers.qut
+python tools/qutes.py check examples/search.qut --alphabet AB --print-circuit
+```
+
+The alphabet override keeps the string example small enough to simulate. Search
+requires equal-length string entries. A search result retains an internal index;
+measurement can make local cleanup impossible, which is reported explicitly.
+See the [0.3 contract](docs/spec/language-v0.3.md) for oracle effects and ownership.
+Rebuild older generated Python modules with `qutes build` for artifact schema 3.
 
 ## Development and verification
 
@@ -82,7 +114,7 @@ To verify an installed wheel independently of checkout import paths:
 
 ```text
 python -m pip wheel --no-build-isolation --no-deps . -w dist
-python -m pip install --no-deps --force-reinstall dist/qutes_lang-0.2.0.dev0-py3-none-any.whl
+python -m pip install --no-deps --force-reinstall dist/qutes_lang-0.3.0.dev0-py3-none-any.whl
 python -I tools/verify_install.py
 ```
 
@@ -102,5 +134,5 @@ python tools/generate_parser.py --jar artifacts/antlr/antlr-4.13.2-complete.jar 
 ```
 
 Use `--java PATH` if Java is not on PATH. The runtime is pinned to the same version.
-The [0.2 language contract](docs/spec/language-v0.2.md) documents scripts, globals,
+The [0.3 language contract](docs/spec/language-v0.3.md) documents scripts, globals,
 input declarations, diagnostics, inferred effects, and migration from 0.1.

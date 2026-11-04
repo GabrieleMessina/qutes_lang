@@ -41,6 +41,13 @@ def test_generated_script_inputs_and_version_metadata():
     exec(python_source(compilation), namespace)
     result = namespace['run']({'count':3}, shots=2)
     assert result['outcomes'][0]['value'] == 3
-    assert result['build']['artifact_schema'] == 2
-    assert result['build']['language_version'] == '0.2'
-    assert result['build']['compiler_version'] == '0.2.0.dev0'
+    assert result['build']['artifact_schema'] == 3
+    assert result['build']['language_version'] == '0.3'
+    assert result['build']['compiler_version'] == '0.3.0.dev0'
+
+
+def test_v02_generated_import_is_rejected_before_compilation(monkeypatch):
+    import qutes.compiler
+    monkeypatch.setattr(qutes.compiler, 'compile_source', lambda *args, **kwargs: pytest.fail('must not recompile'))
+    with pytest.raises(ImportError, match='rebuild'):
+        exec('from qutes.artifact_v2 import checked_build, execute, layout_from_metadata, validate_metadata', {})

@@ -46,7 +46,7 @@ def python_source(compilation: Compilation) -> str:
     lines = [MARKER, '"""Qiskit circuit and decoded execution. Requires qutes-lang[backend].',
              "New classical input bindings recompile the embedded Qutes source.", '"""', "",
              "from qutes.compiler import compile_source", "from qutes.config import CompilerConfig",
-             "from qutes.artifact_v2 import checked_build, execute, layout_from_metadata, validate_metadata",
+             "from qutes.artifact_v3 import checked_build, execute, layout_from_metadata, validate_metadata",
              "from qutes.serialization import json_text, load_json", "",
              f"SOURCE = {ascii(compilation.source)}", f"SOURCE_PATH = {ascii(compilation.source_path)}",
              f"_METADATA_JSON = {ascii(json_text(compilation.metadata))}", "", ""]

@@ -1,3 +1,16 @@
+# Qutes 0.3 delivery update
+
+The user approved coherent membership and automatic collection search on
+2026-11-04. The active contract is docs/spec/language-v0.3.md; the knowledge base
+tracks checkpoint completion. Preserve the historical roadmap below.
+
+The three checkpoints are membership/sequence behavior, oracle search with owned
+selection state, and release integration/validation. Search uses a named pure
+one-element qubit oracle and returns the selected quantum value; explicit
+measurement, 99% configurable conditional success, duplicate-position weighting,
+and equal-length string entries are required. No hybrid retries, hidden
+measurement/reset, mixed quantum lengths, or full match enumeration are included.
+
 # Qutes development plan
 
 Updated: 2026-10-31

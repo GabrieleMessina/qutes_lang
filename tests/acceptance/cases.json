@@ -408,6 +408,48 @@
           "probability": 1
         }
       ]
+    },
+    {
+      "id": "A019",
+      "file": "A019_membership.qut",
+      "expect": "accept",
+      "outputs": [
+        {
+          "value": [
+            false,
+            false
+          ],
+          "probability": 0.5
+        },
+        {
+          "value": [
+            true,
+            true
+          ],
+          "probability": 0.5
+        }
+      ]
+    },
+    {
+      "id": "A020",
+      "file": "A020_search.qut",
+      "expect": "accept",
+      "config": {
+        "quint_bits": 2
+      },
+      "outputs": [
+        {
+          "value": 1,
+          "probability": 1
+        }
+      ]
+    },
+    {
+      "id": "R017",
+      "file": "R017_search_oracle.qut",
+      "expect": "reject",
+      "stage": "type",
+      "code": "Q2001"
     }
   ]
 }

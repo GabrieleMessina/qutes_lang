@@ -91,5 +91,9 @@ source/wheel packaging and active 0.2 documentation verified. No hosted CI run.
 - T018 DONE: `search(collection, oracle)`, fixed-point amplification at configurable
   99% success, returned selected value with retained selection index, phase gates,
   effect validation and ownership/cleanup. Depends on T017.
-- T019 ACTIVE: version 0.3/artifact 3, examples/specification, reports, generated code,
+- T019 DONE: version 0.3/artifact 3, examples/specification, reports, generated code,
   full Windows/Linux validation and installed-package smoke tests. Depends on T018.
+
+T017-T019 complete at KB-018 / V018: 775 tests on each platform, installed 0.3
+wheel/CLI/search checks, artifact migration, core-only compile, parser reproduction,
+source packaging and requirement audit. All commits local; user experiments preserved.

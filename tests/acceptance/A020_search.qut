@@ -1,0 +1,3 @@
+qubit accepts(quint number) { return number in [1]; }
+quint selected = search([1], accepts);
+return measure(selected);

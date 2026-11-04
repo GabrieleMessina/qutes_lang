@@ -471,6 +471,11 @@ class Lowerer:
             return Result(type_.classical, "array", tuple(self.measure_value(item, type_.element, expression)
                                                          for item in source.elements))
         temporary = None
+        if isinstance(source, View) and source.storage.replayable:
+            measurement = self.scheduler.measure(source.storage, source.bits)
+            return Result(type_.classical, "snapshot", bits=measurement.classical_bits,
+                          alphabet=self.config.alphabet if type_.name in {"quchar", "qustring"} else None,
+                          length=self.lengths.get(source.id), capacity=self.config.qustring_capacity)
         if isinstance(source, View):
             temporary = self.copy_value(source, type_, "$observed_element", expression)
             source = temporary

@@ -1,0 +1,3 @@
+qubit candidate = superposition();
+qubit matches = candidate in [true];
+return [measure(candidate), measure(matches)];

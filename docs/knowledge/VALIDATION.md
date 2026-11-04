@@ -397,3 +397,56 @@ Windows project Python 3.13.5, Qiskit 2.3.0.
   `tools/check.py -q tests/test_search.py`: 51 passed, 4.22s; run-op7p_yb5.
 Commands used `.venv/Scripts/python.exe`; reports under artifacts/checks.
 No hardware, Linux release, installed 0.3 package or human review claimed yet.
+
+## V018 — 2026-11-04 release validation
+
+Final source package/language 0.3, artifact schema 3. Python 3.13.5 on Windows 11
+and Debian/WSL; Qiskit 2.3.0, Aer 0.17.2, NumPy 2.1.3, ANTLR runtime 4.13.2.
+
+- `.venv/Scripts/python.exe tools/check.py -q`: **775 passed**, 52.95s;
+  artifacts/checks/run-nou9xgzv (zero errors/failures/skips).
+- `wsl.exe -d Debian -- /mnt/c/Users/gabry/Work/Quantum/qutes_lang_chatgpt/artifacts/linux-venv/bin/python /mnt/c/Users/gabry/Work/Quantum/qutes_lang_chatgpt/tools/check.py -q`:
+  **775 passed**, 71.23s; artifacts/checks/run-2nwmk3_m.
+- Earlier release runs passed 770 each, then 774 each after added oracle/resource
+  cases. Final budget-guard source supersedes them; 89 focused membership/search
+  tests also passed (run-g84xvyk4).
+- `.venv/Scripts/python.exe -m pip wheel --no-build-isolation --no-deps . -w dist`:
+  built qutes_lang-0.3.0.dev0-py3-none-any.whl, SHA256
+  d88eb6bca6960a4dff8c1cf2d4485cb226c9664dbb54df6603a04c721e2f908a.
+  All 33 src/qutes/**/*.py files match archived wheel bytes exactly.
+- Installed final wheel using `python -m pip install --no-deps --force-reinstall
+  dist/qutes_lang-0.3.0.dev0-py3-none-any.whl` in project Windows, Linux, and
+  core-only environments. No global packages changed. `python -I
+  tools/verify_install.py` passes Windows/Linux CLI, generated module and generated
+  search changed-input specialization. Reports: artifacts/installation/windows.json
+  and linux.json. `python -m pip check` passes both environments.
+- Core-only `artifacts/core-venv/Scripts/python.exe -I -` with PATH empty:
+  membership/search source compiles, artifact-v3 Python generates, Qiskit is absent,
+  execution deliberately reports Q5001. Java is not needed to install/use compiler.
+- With workspace TEMP/TMP, `.venv/Scripts/python.exe tools/generate_parser.py --jar
+  artifacts/antlr/antlr-4.13.2-complete.jar --java
+  "C:/Program Files/Android/openjdk/jdk-21.0.8/bin/java.exe" --check`: passed.
+- Installed `qutes run examples/search.qut --alphabet AB --shots 64 --seed 17`:
+  AB 34, BB 30, 8 qubits. Numeric example: 1 34, 3 30, 21 qubits. These are
+  deterministic-seed smoke samples, not statistical proof of the success bound.
+- test_search_delivery covers generated/direct phase parity, changed input lengths,
+  CLI floating-point config and JSON diagnostics, console diagrams and saved SVG.
+  Existing visualization suites cover PNG and resource guards on both platforms.
+- test_search and test_membership cover independent full complex/reference-entangled
+  states, scratch zero, duplicate indices, no-match branch weights, conditional
+  success bounds, literal/quantum wildcards, operand order, alias protection,
+  ownership moves, input-version cleanup, non-consuming measurement, impossible
+  cleanup, transitive effects, non-power-of-two sizes and work-budget rejection.
+- `git diff --check`: passed. Expanded acceptance corpus: 20 positive and 17
+  negative programs; frontend, construction, execution and generated-module suites.
+
+Environment failures are recorded in KB-018: default Windows temporary directories
+caused pip/parser failures; workspace TEMP/TMP retries succeeded. Failed pip backup
+folders were removed only after installed-package verification. WSL needs normal
+approval review. No test failures are being suppressed. No hardware, formal proof,
+independent human review, Python 3.12 execution, hosted CI or remote publication.
+
+Source distribution: `setuptools.build_meta.build_sdist("dist")` passed;
+artifacts/sdist-v03.log. Verified dist/qutes_lang-0.3.0.dev0.tar.gz includes the
+authoritative grammar/hash, regeneration tool, active spec, compiler modules,
+search tests and examples.

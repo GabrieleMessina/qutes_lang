@@ -175,3 +175,13 @@ conversation examples suggesting measurement consumption are superseded by D007.
 - D067 (implementation): `[] in []` uses an empty int sequence context, since no
   values constrain the type; other empty literals infer from the opposite operand.
   Existing declaration rules for uncontextualized empty arrays remain unchanged.
+
+- D068 (delivery): version 0.3/artifact 3; retire artifact_v2 imports with rebuild
+  instructions before execution or specialization. search is a reserved builtin.
+- D069 (implementation): retained selection index and zero workspace share the
+  selected value owner. Explicit visible-view measurement invalidates coherence
+  without claiming a full-owner checkpoint. Reversible updates remain legal;
+  impossible erasure of hidden selection state fails Q3001.
+- D070 (implementation): conservatively preflight classical membership comparisons
+  and charge quantum character expansion to existing construction work budgets.
+  Pure known Boolean factors simplify without changing operand evaluation order.

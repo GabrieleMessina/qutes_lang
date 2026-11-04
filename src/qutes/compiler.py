@@ -15,8 +15,8 @@ from qutes.lowering import Program, lower
 from qutes.parser import parse
 from qutes.serialization import json_text
 
-LANGUAGE_VERSION = "0.2"
-ARTIFACT_VERSION = 2
+LANGUAGE_VERSION = "0.3"
+ARTIFACT_VERSION = 3
 
 
 def dependency_versions():

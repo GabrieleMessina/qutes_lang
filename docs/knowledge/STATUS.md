@@ -1,75 +1,74 @@
 # Current status
 
-Updated: 2026-11-04. Qutes 0.3 membership/search increment is ACTIVE.
-T017 membership passed 694 Windows tests and is complete; T018 search is implemented and validated; T019 integration/release is ACTIVE. The delivered 0.2 baseline follows.
-Package: 0.2.0.dev0. Language: 0.2. Generated artifact schema: 2.
-Active contract: [language-v0.2](../spec/language-v0.2.md).
+Updated: 2026-11-04, checkpoint KB-018. The approved Qutes 0.3 increment is complete.
+Package: 0.3.0.dev0. Language: 0.3. Generated artifact schema: 3.
+Active contract: [language-v0.3](../spec/language-v0.3.md), extending 0.2.
 
 ## Delivered
 
-- ANTLR 4.13.2 lexer/parser with authoritative grammar/Qutes.g4, committed generated
-  Python sources, matching runtime, pinned generator SHA256 and CI regeneration check.
-- Source excerpts, carets, targeted hints, related opener locations, conservative
-  name suggestions and up to ten syntax diagnostics. Recovered input never compiles.
-- Ordered top-level statements; ordinary callable main; inferred explicit classical
-  script return; empty/function-only files execute no statements and yield void.
-- Root input declarations and shared readable/writable globals. Calls check global
-  initialization order transitively and specialize against current stages/shapes.
-- Measurement helpers and inferred read/write/quantum effects. Non-consuming
-  measurement, readonly borrows, predicate protection, dynamic-write restrictions,
-  function-local cleanup and script-global shot-end lifetimes are preserved.
-- Global state joins across early function returns; skipped static short-circuit
-  calls do not change analysis state. Runtime conditional writes/measurement fail.
-- Existing arrays/text, addition/rotations, controlled branches, bounded classical
-  loops, automatic uncomputation, Qiskit generation and execution remain supported.
-- CLI/source/generated-module interfaces retained. Artifact-v2 guards reject old
-  generated modules before execution/respecialization. Rebuild after source migration.
-- Console circuit diagrams and PNG/SVG export remain supported and tested.
+- Coherent `in` for scalar membership and contiguous sequences, including strings,
+  character arrays, whole text entries, left-side `?` wildcards and quantum patterns.
+- Strings support character foreach. Membership evaluates operands once in order,
+  respects logical lengths, protects predicate dependencies and cleans scratch.
+- `search(collection, oracle)` accepts a named pure one-element qubit predicate,
+  searches collection positions, and returns the selected quantum value. Matching
+  probabilities are amplified automatically; measurement remains explicit.
+- Yoder-Low-Chuang fixed-point schedule, configurable failure probability 0.01,
+  exact non-power-of-two index preparation, honest linear-access resource reports.
+- Owned retained indices and zeroed oracle workspace; replayable preparations with
+  captured input versions; moves/returns, partial observation and guarded cleanup.
+- RY/phase operations in backend-neutral gates, Qiskit execution and generated code.
+- CLI/API, console diagrams, PNG/SVG export, generated build/run and changed-input
+  specialization retained. Artifact v1/v2 imports fail with actionable rebuild errors.
+- Existing ANTLR diagnostics, scripts, inputs/globals, ordinary main, readonly
+  parameters, coherent control, classical loops and non-consuming measurement remain.
 
-## Verification
+## Validation
 
-- Full isolated Windows Python 3.13.5 suite: **666 passed**, 36.25s,
-  artifacts/checks/run-0rphx8ss.
-- Full isolated Debian/WSL Python 3.13.5 suite: **666 passed**, 43.38s,
-  artifacts/checks/run-ggcdntc3.
-- A final diagnostic wording improvement was followed by **50 script tests passed**,
-  artifacts/checks/run-9cyfik1r. Behavior is unchanged from the full-suite runs.
-- Installed Windows/Linux CLI and generated modules pass new-input respecialization;
-  dependency checks pass. Final wheel source bytes match the checkout.
-- Core-only install compiles/generates with PATH empty (no Java/Qiskit); execution
-  reports Q5001 as intended. Source distribution includes grammar, generator and spec.
-- Reproducible ANTLR generation and installed console/SVG output verified. See V015
-  for exact commands, artifact paths, earlier failures and testing limits.
+- Full Windows Python 3.13.5 suite: **775 passed**, 52.95s;
+  artifacts/checks/run-nou9xgzv.
+- Full Debian/WSL Python 3.13.5 suite: **775 passed**, 71.23s;
+  artifacts/checks/run-2nwmk3_m.
+- Includes independent complex reference-entangled membership/search checks,
+  Chebyshev success bounds, duplicate/no-match branches, zero scratch, input-version
+  cleanup, effect/alias rejection, budgets, CLI diagrams and generated phase parity.
+- Final installed Windows/Linux wheel smoke checks and dependency checks pass.
+  Core-only install compiles with empty PATH and no Java/Qiskit; run reports Q5001.
+- Pinned ANTLR regeneration check passes. Wheel matches all 33 compiler modules.
+  Source distribution includes grammar, specs, examples, tests and regeneration tool.
+- See V018 and release-audit.md for commands, intermediate failures and exact limits.
 
-## Resume commands
+## Resume and demo commands
 
 ```powershell
-& .\.venv\Scripts\qutes.exe run examples/measurement_snapshots.qut --shots 32 --seed 7
-& .\.venv\Scripts\qutes.exe check examples/measurement_snapshots.qut --print-circuit
+& .\.venv\Scripts\qutes.exe run examples/search.qut --alphabet AB --shots 64 --seed 17
+& .\.venv\Scripts\qutes.exe explain examples/search_numbers.qut
+& .\.venv\Scripts\qutes.exe check examples/search.qut --alphabet AB --print-circuit
 & .\.venv\Scripts\python.exe tools/check.py -q
 & .\.venv\Scripts\python.exe -I tools/verify_install.py
+$env:TEMP = Join-Path $PWD 'artifacts/install-temp'; $env:TMP = $env:TEMP
 & .\.venv\Scripts\python.exe tools/generate_parser.py --jar artifacts/antlr/antlr-4.13.2-complete.jar --java "C:/Program Files/Android/openjdk/jdk-21.0.8/bin/java.exe" --check
 ```
 
-For package/generator operations set TEMP/TMP to artifacts/install-temp on this host.
+Always set workspace-local TEMP/TMP for Windows pip/build/parser operations.
 Linux environment: artifacts/linux-venv/bin/python under Debian WSL, workspace
-/mnt/c/Users/gabry/Work/Quantum/qutes_lang_chatgpt. WSL/Git writes require normal tool
-approval review. All commits are local; no remote/push or hosted CI run exists.
-Backend pins: Qiskit 2.3.0, Aer 0.17.2, NumPy 2.1.3. Python 3.12 is configured in
-CI but not locally tested. Generated files do not imply hardware validation or proof.
+/mnt/c/Users/gabry/Work/Quantum/qutes_lang_chatgpt. WSL/Git writes use normal approval
+review. Backend pins remain Qiskit 2.3.0, Aer 0.17.2, NumPy 2.1.3, ANTLR 4.13.2.
 
-## User work and next action
+## Handoff and limitations
 
-User-modified examples/snapshots.qut is deliberately untouched and uncommitted.
-It still defines main; add an explicit call to execute it under 0.2. The canonical
-script tutorial/tests use examples/measurement_snapshots.qut. Do not overwrite or
-stage the experiment during future work. Inspect git status/log before continuing.
+T017-T019 are DONE. No required implementation work remains from this increment.
+For the next request, inspect git status/log and the active contract before editing.
+Do not restore automatic main execution or consuming measurement.
 
-T014-T016 are DONE. Current authorized work is T017-T019 (see TASKS).
-Next: version/artifact migration, documentation, installed-wheel and Windows/Linux release validation. Preserve ordinary main and non-consuming measurement.
+User-modified examples/snapshots.qut and untracked grammar/.antlr are preserved,
+excluded from feature commits. No remote was added and nothing was pushed.
 
-Limits remain: conditional measurement, runtime arithmetic/indices/loops, recursion,
-mutable parameters, hardware and multi-stage hybrid orchestration are deferred.
-Quantum array-element borrows conservatively protect the whole backing array.
-Cleanup can conservatively reject dependency cycles; released wires remain reserved
-for historical recomputation. No hidden measurement/reset is used to accept them.
+The 99% ideal success bound requires a match in the relevant data branch. No-match
+branches can return nonmatching candidates. Quantum data can become entangled with
+results. Search strings require equal entry lengths; no runtime indices, mixed
+quantum lengths, custom domain preparation, hybrid retries or match enumeration.
+Observed local selection state may be impossible to clean and fails explicitly.
+Physical work wires remain reserved; large circuits may exceed simulation limits.
+No hardware validation, human review, formal proof, or hosted CI run is claimed.
+Python 3.12 is configured in CI but has not been locally tested.

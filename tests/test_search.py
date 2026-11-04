@@ -70,6 +70,14 @@ def test_quantum_collection_keeps_branch_weights_and_entanglement():
     assert joint[1] + joint[2] >= .99
 
 
+def test_no_match_data_branches_are_not_amplified_away():
+    c = build('qubit seed=superposition(); qubit[] data=[seed,seed]; qubit good(qubit x){return x;} qubit result=search(data,good);')
+    owner = next(a for a in c.program.allocations if a.name == 'result')
+    s = Statevector.from_instruction(c.program.to_qiskit())
+    assert s.probabilities([0]) == pytest.approx([.5,.5])
+    assert s.probabilities([owner.bits[0]]) == pytest.approx([.5,.5])
+
+
 def test_scope_cleanup_and_returned_ownership():
     c = build('qubit good(quint x){return x==1;} {quint local=search([0,1],good);}')
     s = Statevector.from_instruction(c.program.to_qiskit()).data
@@ -102,7 +110,7 @@ def test_rejected_search(source):
         build(source)
 
 
-@pytest.mark.parametrize("value", [0,1,-.1,True,float('nan'),float('inf')])
+@pytest.mark.parametrize("value", [0,1,-.1,True,float('nan'),float('inf'),10**1000])
 def test_invalid_failure_probability(value):
     with pytest.raises(ValueError, match='search_failure_probability'):
         CompilerConfig(search_failure_probability=value)
@@ -194,3 +202,20 @@ def test_full_complex_state_with_external_reference_and_clean_workspace():
                 position |= index<<owner.retained_index_bits[0] | value<<owner.bits[0]
                 expected[position] = initial[seed+2*ref]*selected[index]
     np.testing.assert_allclose(actual, expected, atol=1e-10)
+
+
+def test_search_budget_rejects_without_weakening_success_target():
+    with pytest.raises(DiagnosticError, match='search.*budget') as error:
+        build('qubit good(quint x){return x==1;} quint result=search([0,1,-1],good);',
+              max_evaluation_steps=100, search_failure_probability=.000001)
+    assert error.value.code == 'Q4001'
+
+
+def test_search_through_helper_cannot_bypass_dynamic_control():
+    with pytest.raises(DiagnosticError, match='dynamic control'):
+        build('qubit good(qubit x){return x;} qubit pick(){return search([false,true],good);} qubit seed=superposition(); bool flag=measure(seed); if(flag){qubit result=pick();}')
+
+
+def test_oracle_local_arithmetic_and_control():
+    c = build('qubit good(quint x){quint shifted=x+1; qubit yes=false; if(shifted==0){yes=!yes;} return yes;} quint result=search([-1,0],good);')
+    assert probabilities(c)[3] >= .99

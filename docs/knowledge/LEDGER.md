@@ -459,3 +459,54 @@ Full suite: 744 passed, then added independent complex reference-entangled searc
 check: 51 search tests passed. Search state phases, duplicates, branch-conditioned
 success, zero scratch, changed-input cleanup and impossible measured cleanup are
 covered. Release/artifact migration and Linux distribution checks remain T019.
+
+### 2026-11-04 — KB-018 release integration and audit underway
+
+Updated package/language to 0.3 and artifact contract to 3. Old generated 0.2
+imports now fail with a rebuild instruction. Added CLI floating-point failure
+configuration, search reports, examples, acceptance cases and documentation.
+Added phase-bearing generated-module comparisons/respecialization, CLI SVG and
+console checks, and backend-free compilation. A release patch initially failed
+because it deleted/recreated one file in one patch; reapplied as an update.
+
+Audit fixes: snapshot a quantum left membership operand before RHS global updates;
+fold Boolean constants in expanded predicates; measure the visible part of a
+search owner directly without allocating a correlated observation copy. Partial
+measurement never creates a full-owner cleanup checkpoint. Configuration rejects
+very large invalid integer failure bounds with ValueError instead of OverflowError.
+Added complex reference-entangled membership, quantum wildcard, predicate-protection,
+no-match quantum branch, budget, helper-control and oracle local arithmetic tests.
+
+Windows/Linux initial release suites: 770 passed each (run-pwmfr49e and
+run-ale006ao). Both installed wheels passed isolated CLI and generated search
+respecialization. Core-only compilation succeeded with PATH empty, no Java/Qiskit,
+and execution correctly gave Q5001. Pinned parser regeneration --check passed.
+Final suites are rerunning after the configuration validation edge-case fix.
+
+Environment failures and recovery: WSL required normal approval review; retry
+succeeded. Windows pip uninstall failed when default temporary directories were
+used, temporarily leaving qutes absent and two ~utes backup directories. Reinstalled
+using workspace-local TEMP/TMP, verified isolated imports/smokes, then removed only
+the two resolved project-environment backup directories. pip check passes.
+No source data or user experiment was deleted or altered. Test-session handles
+expired across a continuation; completion was recovered from final environment
+and JUnit artifacts rather than restarting completed jobs.
+
+Final audit added classical membership comparison preflight and per-character
+quantum expansion charging, covering input-bound patterns that could otherwise
+bypass the work limit. Focused membership/search suite: 89 passed, run-g84xvyk4.
+The preceding final suites passed 774 each (Windows run-afj8jxfs, Linux
+run-n9y5rkto); final suites rerun for the budget guard. Example runs produced only
+matching outputs at seed 17: strings AB/BB, numbers 1/3 (64 shots each). Another
+parser check accidentally used default temporary storage and failed to write;
+workspace TEMP/TMP retry passed reproducible generation without source changes.
+
+KB-018 final validation: 775 tests passed on each platform (V018). Final wheel
+installed and verified on Windows/Linux; core-only install verified again with
+empty PATH. All 33 compiler modules match the wheel. Requirements audited in
+docs/release-audit.md. T017-T019 DONE; preparing third coherent local checkpoint.
+User snapshots.qut and untracked grammar/.antlr remain excluded.
+
+Source archive rebuilt and inspected successfully. Third checkpoint contains
+release integration, compatibility, audit fixes, examples and full validation
+evidence. No required work remains; future work starts from a new user request.

@@ -66,7 +66,8 @@ def argument_parser():
             sub.add_argument("--config", type=Path, help="explicit config; otherwise read source-adjacent qutes.toml")
             for key in CompilerConfig.__dataclass_fields__:
                 flag = "--max-qubits" if key == "max_simulation_qubits" else "--" + key.replace("_", "-")
-                sub.add_argument(flag, dest=key, type=str if key == "alphabet" else int, help=f"override {key}")
+                argument_type = str if key == "alphabet" else float if key == "search_failure_probability" else int
+                sub.add_argument(flag, dest=key, type=argument_type, help=f"override {key}")
         if command not in {"parse", "analyze"}:
             sub.add_argument("--inputs", type=Path, help="JSON object binding script input declarations")
         if command in {"check", "build", "run", "explain"}:
@@ -85,6 +86,11 @@ def argument_parser():
 def explain(metadata):
     cost = metadata["resources"]
     print(f"Qutes {metadata['compiler_version']}; language {metadata['language_version']}")
+    for search in metadata.get("searches", ()):
+        print(f"Search: {search['entries']} entries, {search['oracle_calls']} oracle calls, "
+              f"failure bound {search['failure_probability']:g} when a match exists; "
+              f"{search['retained_index_qubits']} retained index qubits, "
+              f"{search['workspace_qubits']} workspace qubits; linear controlled access")
     print(f"Build: {metadata['build_sha256']}")
     print(f"Reserved qubits: {cost['allocated_qubits']} (including {cost['cleaned_qubits_at_end']} cleaned; wires are not reused)")
     print(f"Snapshot bits: {cost['classical_bits']}; cleanup events: {cost['cleanup_events']}")

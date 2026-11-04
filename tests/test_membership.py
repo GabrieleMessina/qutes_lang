@@ -59,3 +59,47 @@ def test_foreach_strings():
 def test_invalid_membership(source):
     with pytest.raises(DiagnosticError):
         compile_source(source)
+
+
+def test_left_operand_is_captured_before_right_operand_updates_it():
+    p = compile_source('quint p=1; quint[] items(){p+=1; return [1];} qubit found=p in items(); return measure(found);')
+    assert distribution(p) == pytest.approx({'true':1})
+
+
+def test_quantum_wildcard_value_preserves_correlation():
+    p = compile_source('qubit seed=superposition(); quchar pattern=\'A\'; if(seed){pattern=\'?\';} qubit found=pattern in "B"; return [measure(seed),measure(found)];', alphabet='AB?')
+    assert distribution(p) == pytest.approx({'[false, false]':.5,'[true, true]':.5})
+
+
+def test_overlapping_membership_with_complex_reference_entanglement():
+    from qiskit import QuantumCircuit
+    from qutes.qiskit_backend import emit_gates
+    from tests.reference import random_state
+    p = compile_source('qubit a=superposition(); qubit b=superposition(); qubit[] arr=[a,b,a]; qubit found=[true,true] in arr;')
+    live = {item.name:item.bits for item in p.allocations if not item.released}
+    initial = random_state(3)
+    reference = p.qubit_count
+    qc = QuantumCircuit(reference+1)
+    qc.initialize(initial,[0,1,reference])
+    qc.compose(emit_gates(p.qubit_count,p.operations[2:]),list(range(p.qubit_count)),inplace=True)
+    state = Statevector.from_instruction(qc).data
+    expected = np.zeros_like(state)
+    for a in (0,1):
+        for b in (0,1):
+            for r in (0,1):
+                bits = [('a',a),('b',b),('arr[0]',a),('arr[1]',b),('arr[2]',a),('found',a & b)]
+                position = sum(value<<live[name][0] for name,value in bits) | r<<reference
+                expected[position] = initial[a+2*b+4*r]
+    np.testing.assert_allclose(state,expected,atol=1e-10)
+
+
+def test_membership_protects_all_quantum_dependencies():
+    with pytest.raises(DiagnosticError,match='protected'):
+        compile_source('quint p=1; quint[] a=[1,2]; if(p in a){a[0]+=1;}')
+
+
+def test_classical_membership_preflights_comparison_work():
+    with pytest.raises(DiagnosticError, match='budget') as error:
+        compile_source('input int[] p; input int[] a; return p in a;',
+                       inputs={'p':[1]*15,'a':[1]*30},max_evaluation_steps=100)
+    assert error.value.code == 'Q4001'

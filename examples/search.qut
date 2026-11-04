@@ -1,0 +1,8 @@
+// Uses examples/qutes.toml. Equal-length entries fit its two-character capacity.
+qubit accepts(qustring text) {
+    return "?B" in text;
+}
+
+string[] texts = ["AA", "AB", "BB"];
+qustring candidate = search(texts, accepts);
+return measure(candidate);

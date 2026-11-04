@@ -12,7 +12,7 @@ from typing import Any
 from qutes import ir
 from qutes.diagnostics import DiagnosticError
 from qutes.values import SignedInteger, TextEncoding
-from qutes.membership import matches, pattern_is_element
+from qutes.membership import matches, pattern_is_element, work_bound
 
 
 @dataclass(frozen=True)
@@ -181,8 +181,13 @@ class Constructor:
             arguments = tuple(self.expression(argument) for argument in expression.arguments)
             return self.call(self.functions[expression.value], arguments, expression)
         if op == "membership":
-            left, right = (self.expression(argument) for argument in expression.arguments)
+            left = self.expression(expression.arguments[0])
+            if left.type.quantum and any(effect == "measure" or effect.startswith("write:")
+                                         for effect in expression.arguments[1].effects):
+                left = self.materialize(left, "$membership_snapshot")
+            right = self.expression(expression.arguments[1])
             if left.stage == right.stage == ir.Stage.STATIC:
+                self.step(expression, work_bound(left.value, right.value, left.type, right.type))
                 return self.literal(expression, matches(left.value, right.value, left.type, right.type))
             return self.membership(expression, left, right)
         if op == "search":
@@ -314,6 +319,10 @@ class Constructor:
                     a, b = items[i:i + 2]
                     if a.stage == b.stage == ir.Stage.STATIC:
                         merged.append(constant((a.value and b.value) if op == "&&" else (a.value or b.value)))
+                    elif a.stage == ir.Stage.STATIC:
+                        merged.append(b if bool(a.value) == (op == "&&") else a)
+                    elif b.stage == ir.Stage.STATIC:
+                        merged.append(a if bool(b.value) == (op == "&&") else b)
                     else:
                         merged.append(binary(op, a, b))
                 items = merged
@@ -332,6 +341,7 @@ class Constructor:
                                  (a, b), dependencies=a.dependencies | b.dependencies)
 
         def equal(a, b):
+            self.step(source)
             if a.type.classical.name == "string":
                 if a.shape != b.shape:
                     return constant(False)

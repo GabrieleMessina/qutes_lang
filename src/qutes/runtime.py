@@ -32,7 +32,7 @@ def __getattr__(name):
     if name == "layout_from_metadata":
         # Old generated modules import this at module load, before choosing their
         # cached circuit OR recompiling embedded 0.1 source with new bindings.
-        raise ImportError("Qutes 0.1 generated module is incompatible with Qutes 0.2. "
+        raise ImportError("Qutes 0.1 generated module is incompatible with Qutes 0.3. "
                           "Migrate the source to top-level statements and rebuild it with 'qutes build'.")
     raise AttributeError(name)
 
