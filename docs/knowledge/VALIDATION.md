@@ -384,3 +384,16 @@ Windows project Python 3.13.5. Commands:
 - `tools/generate_parser.py --jar artifacts/antlr/antlr-4.13.2-complete.jar --java
   "C:/Program Files/Android/openjdk/jdk-21.0.8/bin/java.exe"` regenerated sources.
 - `git diff --check`: passed. Linux and 0.3 distribution validation pending.
+
+## V017 — 2026-11-04 search checkpoint
+
+Windows project Python 3.13.5, Qiskit 2.3.0.
+- `tools/check.py -q tests/test_search.py`: initial 37 passed/6 failed due to
+  test fixtures; corrected signed range and reserved identifier. run-8kfd6k_t.
+- `tools/check.py -q tests/test_search.py tests/test_cleanup.py tests/test_gates.py`:
+  94 passed, 4.64s; run-gfw3934c.
+- `tools/check.py -q`: 744 passed, 41.91s; run-rzmb69nz.
+- After adding a full complex-state reference-entanglement check,
+  `tools/check.py -q tests/test_search.py`: 51 passed, 4.22s; run-op7p_yb5.
+Commands used `.venv/Scripts/python.exe`; reports under artifacts/checks.
+No hardware, Linux release, installed 0.3 package or human review claimed yet.

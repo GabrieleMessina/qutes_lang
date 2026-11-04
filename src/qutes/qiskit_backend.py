@@ -33,7 +33,7 @@ def classical_expression(predicate, circuit):
 
 
 def append_gate(circuit, operation: Gate):
-    from qiskit.circuit.library import HGate, ModularAdderGate, SwapGate, XGate
+    from qiskit.circuit.library import HGate, ModularAdderGate, SwapGate, XGate, RYGate, PhaseGate
 
     if operation.conditions or operation.classical_controls:
         from dataclasses import replace
@@ -53,6 +53,8 @@ def append_gate(circuit, operation: Gate):
             gate = ModularAdderGate(len(application.targets))
             if application.inverse:
                 gate = gate.inverse()
+        elif application.kind in {"ry", "phase"}:
+            gate = {"ry": RYGate, "phase": PhaseGate}[application.kind](application.angle)
         else:
             gate = {"x": XGate, "h": HGate, "swap": SwapGate}[application.kind]()
         if application.controls:

@@ -88,8 +88,8 @@ source/wheel packaging and active 0.2 documentation verified. No hosted CI run.
 
 - T017 DONE: coherent `in`, wildcard/sequence semantics, string foreach,
   independent reference behavior, tests and authoritative grammar regeneration.
-- T018 ACTIVE: `search(collection, oracle)`, fixed-point amplification at configurable
+- T018 DONE: `search(collection, oracle)`, fixed-point amplification at configurable
   99% success, returned selected value with retained selection index, phase gates,
   effect validation and ownership/cleanup. Depends on T017.
-- T019 TODO: version 0.3/artifact 3, examples/specification, reports, generated code,
+- T019 ACTIVE: version 0.3/artifact 3, examples/specification, reports, generated code,
   full Windows/Linux validation and installed-package smoke tests. Depends on T018.

@@ -31,6 +31,13 @@ class Returned(Exception):
         self.value = value
 
 
+@dataclass(frozen=True)
+class SearchOracle:
+    parameter: ir.Symbol
+    body: ir.Block
+    result: ir.Expression
+
+
 class Constructor:
     def __init__(self, program: ir.Program):
         self.program = program
@@ -178,6 +185,32 @@ class Constructor:
             if left.stage == right.stage == ir.Stage.STATIC:
                 return self.literal(expression, matches(left.value, right.value, left.type, right.type))
             return self.membership(expression, left, right)
+        if op == "search":
+            collection = self.expression(expression.arguments[0])
+            if collection.type.quantum and collection.op not in {"load", "index"}:
+                collection = self.materialize(collection, "$search_collection")
+            if collection.shape is None or collection.shape == 0:
+                self.fail("Q2001", "search requires a nonempty collection of known length", expression)
+            shape = None
+            if expression.type.name == "qustring":
+                shapes = self.element_shapes(collection)
+                if shapes is None or None in shapes or len(set(shapes)) != 1:
+                    self.fail("Q2001", "search requires string entries with the same known length", expression)
+                shape = shapes[0]
+            if collection.stage == ir.Stage.STATIC:
+                for value in collection.value:
+                    self.validate_quantum_constant(value, expression.type, expression)
+            parameter = self.symbol("$search_element", expression.type, expression.span)
+            parent_output, parent_owned = self.output, self.owned
+            self.output, self.owned = [], set()
+            try:
+                result = self.call(self.functions[expression.value],
+                                   (self.load(parameter, ir.Stage.QUANTUM, shape),), expression)
+                oracle = SearchOracle(parameter, ir.Block(expression.span, tuple(self.output)), result)
+            finally:
+                self.output, self.owned = parent_output, parent_owned
+            return replace(expression, arguments=(collection,), value=oracle, shape=shape,
+                           dependencies=collection.dependencies)
         if op.startswith("binary:"):
             operator = op.split(":", 1)[1]
             left = self.expression(expression.arguments[0])

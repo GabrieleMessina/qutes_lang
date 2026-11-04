@@ -7,7 +7,7 @@ Runtime-classical predicates use immutable measurement snapshots for feedforward
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any
 
 from qutes import construction, ir
@@ -15,7 +15,8 @@ from qutes.cleanup import CleanupEvent, Scheduler, Storage
 from qutes.config import CompilerConfig
 from qutes.diagnostics import DiagnosticError, Span
 from qutes.feedforward import predicate as runtime_predicate
-from qutes.gates import Gate, Measurement, conditioned, controlled
+from qutes.gates import Gate, Measurement, conditioned, controlled, inverse
+from qutes.search import schedule, uniform_index
 from qutes.values import EncodedString, SignedInteger, TextEncoding
 
 
@@ -71,6 +72,8 @@ class Allocation:
     bits: tuple[int, ...]
     released: bool
     span: Span
+    retained_index_bits: tuple[int, ...] = ()
+    scratch_bits: tuple[int, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -82,6 +85,10 @@ class Collection:
 class View:
     storage: Storage
     bits: tuple[int, ...]
+
+    @property
+    def id(self):
+        return self.storage.id
 
 
 def storage_ids(value):
@@ -102,6 +109,7 @@ class Program:
     cleanup_events: tuple[CleanupEvent, ...]
     result: Result
     cleanup_verified: bool = True
+    searches: tuple[dict, ...] = ()
 
     def to_qiskit(self):
         from qutes.qiskit_backend import emit_operations
@@ -119,6 +127,8 @@ class Lowerer:
         self.controls: tuple[tuple[int, bool], ...] = ()
         self.conditions = ()
         self.lengths: dict[int, int] = {}
+        self.searches = []
+        self.search_layouts = {}
 
     def fail(self, node, message, code="Q2001"):
         raise DiagnosticError(code, message, node.span)
@@ -136,14 +146,15 @@ class Lowerer:
             index = expression.arguments[1].value
             if isinstance(collection, Collection):
                 return collection.elements[index]
-            if isinstance(collection, Storage) and expression.arguments[0].type.name == "qustring":
+            if isinstance(collection, (Storage, View)) and expression.arguments[0].type.name == "qustring":
                 width = self.config.quchar_bits
-                return View(collection, collection.bits[index * width:(index + 1) * width])
+                return View(collection.storage if isinstance(collection, View) else collection,
+                            collection.bits[index * width:(index + 1) * width])
             self.fail(expression, "invalid quantum collection reference")
         if expression.op not in {"load", "move"}:
             self.fail(expression, f"circuit lowering for {expression.op} references is not implemented yet")
         value = self.bindings[expression.symbol.id]
-        if not isinstance(value, (Storage, Collection)) or any(self.scheduler.storages[i].released for i in storage_ids(value)):
+        if not isinstance(value, (Storage, Collection, View)) or any(self.scheduler.storages[i].released for i in storage_ids(value)):
             self.fail(expression, "quantum storage is unavailable", "Q3001")
         return value
 
@@ -314,6 +325,8 @@ class Lowerer:
         return target
 
     def create(self, expression, name):
+        if expression.op == "search":
+            return self.create_search(expression, name)
         if expression.type.array:
             if expression.op in {"load", "move"}:
                 return self.copy_value(self.reference(expression), expression.type, name, expression)
@@ -338,6 +351,92 @@ class Lowerer:
             self.lengths[target.id] = self.text_length(expression)
         self.release_temporaries(temporaries)
         return target
+
+    def create_search(self, expression, name):
+        if self.controls or self.conditions:
+            self.fail(expression, "search cannot prepare state under dynamic control", "Q2004")
+        collection = expression.arguments[0]
+        count = collection.shape
+        width = self.width(expression.type, expression)
+        index_width = (count - 1).bit_length()
+        try:
+            phases = schedule(count, self.config.search_failure_probability, self.config.max_evaluation_steps)
+        except ValueError as error:
+            self.fail(expression, str(error), "Q4001")
+        oracle = expression.value
+        child = Lowerer(self.program)
+        argument = child.allocate(expression.type, "$oracle_argument", expression)
+        child.scheduler.initialize(argument, (), external=True)
+        child.bindings[oracle.parameter.id] = argument
+        if expression.type.name == "qustring":
+            child.lengths[argument.id] = expression.shape
+        child.block(oracle.body)
+        result = child.reference(oracle.result)
+        operations = tuple(child.scheduler.operations)
+        if len(result.bits) != 1 or any(not isinstance(g, Gate) or g.kind in {"h", "ry", "phase"}
+                                       or g.classical_controls or g.conditions for g in operations):
+            self.fail(expression, "oracle must compute a reversible basis predicate", "Q2004")
+        # Bound both retained workspace and repeated gate expansion before emitting.
+        gate_bound = (len(operations) * 2 + count * width * 2 + count * 2 + 4) * max(1, len(phases)) + count * width
+        if gate_bound + child.scheduler.qubit_count > self.config.max_evaluation_steps - self.scheduler.work:
+            self.fail(expression, "search circuit expansion exceeds the construction budget", "Q4001")
+        owner = self.scheduler.allocate(width + index_width + child.scheduler.qubit_count, name, expression.span)
+        self.scheduler.tick(owner, len(owner.bits))
+        self.frames[-1].add(owner.id)
+        visible = View(owner, owner.bits[:width])
+        indices = owner.bits[width:width + index_width]
+        work = owner.bits[width + index_width:]
+        self.search_layouts[owner.id] = (indices, work)
+        mapping = dict(enumerate(work))
+        body = tuple(replace(g, targets=tuple(mapping[b] for b in g.targets),
+                             inputs=tuple(mapping[b] for b in g.inputs),
+                             controls=tuple((mapping[b], expected) for b, expected in g.controls)) for g in operations)
+        flag = mapping[result.bits[0]]
+        element = View(owner, tuple(mapping[b] for b in argument.bits))
+        if collection.stage == ir.Stage.STATIC:
+            sources = []
+            for value in collection.value:
+                literal = ir.Expression(expression.span, expression.type.classical, ir.Stage.STATIC, "literal", value=value)
+                lift = ir.Expression(expression.span, expression.type, ir.Stage.QUANTUM, "lift", (literal,))
+                sources.append(self.encoded_constant(lift))
+        else:
+            data = self.reference(collection)
+            if isinstance(data, Collection):
+                sources = data.elements
+            else:
+                sources = [View(data.storage if isinstance(data, View) else data,
+                                data.bits[i * width:(i + 1) * width]) for i in range(count)]
+
+        def gather(target):
+            gates = []
+            for i, source in enumerate(sources):
+                controls = tuple((bit, bool((i >> j) & 1)) for j, bit in enumerate(indices))
+                gates.extend(controlled(g, controls) for g in self.copy_gates(target, source, expression.span))
+            return tuple(gates)
+
+        access = gather(element)
+        compute = access + body
+        preparation = uniform_index(indices, count, expression.span)
+        gates = list(preparation)
+        for alpha, beta in phases:
+            gates.extend(compute)
+            gates.append(Gate("phase", (flag,), angle=beta, span=expression.span))
+            gates.extend(inverse(compute))
+            gates.extend(inverse(preparation))
+            gates.append(Gate("x", (indices[0],), span=expression.span))
+            gates.append(Gate("phase", (indices[0],), controls=tuple((b, False) for b in indices[1:]),
+                              angle=-alpha, span=expression.span))
+            gates.append(Gate("x", (indices[0],), span=expression.span))
+            gates.extend(preparation)
+        gates.extend(gather(visible))
+        self.scheduler.initialize_replayable(owner, tuple(gates))
+        if expression.type.name == "qustring":
+            self.lengths[owner.id] = expression.shape
+        self.searches.append({"entries": count, "oracle_calls": 2 * len(phases),
+                              "failure_probability": self.config.search_failure_probability,
+                              "retained_index_qubits": index_width, "workspace_qubits": len(work),
+                              "algorithm": "yoder-low-chuang", "access": "linear-controlled-copy"})
+        return visible
 
     def release_temporaries(self, temporaries):
         self.scheduler.release_scope(set().union(*(storage_ids(value) for value in temporaries)))
@@ -449,10 +548,10 @@ class Lowerer:
                 if self.contains(expression, target):
                     gates, temporaries = self.self_update(expression, target)
                     if gates:
-                        self.scheduler.update(target, self.gated(gates))
+                        self.scheduler.update(target.storage if isinstance(target, View) else target, self.gated(gates))
                 else:
                     gates, temporaries = self.preparation(expression, target)
-                    self.scheduler.overwrite(target, gates, controls=self.controls, conditions=self.conditions)
+                    self.scheduler.overwrite(target.storage if isinstance(target, View) else target, gates, controls=self.controls, conditions=self.conditions)
                 self.release_temporaries(temporaries)
                 if target_expression.type.name == "qustring":
                     self.lengths[target.id] = self.text_length(expression)
@@ -472,7 +571,7 @@ class Lowerer:
                 condition = statement.expressions[0]
                 if condition.stage == ir.Stage.QUANTUM:
                     predicate, temporaries = self.operand(condition)
-                    if not isinstance(predicate, Storage) or len(predicate.bits) != 1:
+                    if not isinstance(predicate, (Storage, View)) or len(predicate.bits) != 1:
                         self.fail(condition, "quantum condition must occupy one qubit")
                 else:
                     predicate = runtime_predicate(self.runtime(condition))
@@ -515,10 +614,12 @@ class Lowerer:
         # Escaping helper results and computed arguments used anonymously remain
         # compiler temporaries; they must not become silently retained garbage.
         scheduler.release_scope(self.frames[0] - self.script_values)
-        allocations = tuple(Allocation(item.id, item.name, item.bits, item.released, item.span)
+        allocations = tuple(Allocation(item.id, item.name, item.bits, item.released, item.span,
+                                       *self.search_layouts.get(item.id, ((), ())))
                             for item in scheduler.storages)
         return Program(self.config, tuple(scheduler.operations), scheduler.qubit_count,
-                       scheduler.classical_bit_count, allocations, tuple(scheduler.events), result)
+                       scheduler.classical_bit_count, allocations, tuple(scheduler.events), result,
+                       searches=tuple(self.searches))
 
 
 def lower(program: construction.Program) -> Program:

@@ -438,3 +438,24 @@ Search and release integration remain unimplemented.
 Membership checkpoint: 694 full Windows tests pass (V016). T017 DONE; T018
 ACTIVE. Reviewed implementation and grammar diff; no changes to user snapshots
 or untracked grammar/.antlr. Search and release are still outstanding.
+
+### 2026-11-04 — KB-017 automatic collection search
+
+Implemented named oracle validation and transitive purity checks; construction
+specializes classical captures and compiles one reusable quantum-element oracle.
+Added backend-neutral RY/phase gates, exact non-power-of-two index preparation,
+and Yoder-Low-Chuang amplification with failure default 0.01. Selection index and
+zero workspace belong to the result allocation; a visible view exposes only its
+value. Replayable preparations record input versions and retain measurement/live
+dependency guards. Added resource/algorithm reports and emitted phase operations.
+
+Initial tests had six fixture failures (out-of-range 2-bit threshold and reserved
+input identifier), fixed without changing language behavior. A direct probe first
+loaded the installed 0.2 wheel; corrected to explicitly import checkout src.
+The first Git staging attempt was denied by filesystem permissions; approved
+local Git retry committed membership as 5197bf5. No remote operation.
+
+Full suite: 744 passed, then added independent complex reference-entangled search
+check: 51 search tests passed. Search state phases, duplicates, branch-conditioned
+success, zero scratch, changed-input cleanup and impossible measured cleanup are
+covered. Release/artifact migration and Linux distribution checks remain T019.

@@ -148,6 +148,10 @@ class Checker:
                     target = node.callee.identifier
                     if target in self.functions:
                         graph[name].append((target, node))
+                    if target == Builtin.SEARCH and len(node.arguments) == 2 and isinstance(node.arguments[1], ast.Name):
+                        oracle = node.arguments[1].identifier
+                        if oracle in self.functions:
+                            graph[name].append((oracle, node))
         visiting, finished = set(), set()
 
         def visit(name, depth=0):
@@ -476,6 +480,37 @@ class Checker:
         if not isinstance(node.callee, ast.Name):
             self.fail("Q2002", "only named functions and builtins can be called", node.callee)
         name = node.callee.identifier
+        if name == Builtin.SEARCH:
+            if len(node.arguments) != 2 or not isinstance(node.arguments[1], ast.Name):
+                self.fail("Q2001", "search requires a collection and a named oracle function", node)
+            if self.dynamic_depth or self.coherent_depth or self.dynamic_outers:
+                self.fail("Q2004", "search cannot prepare state under dynamic control", node)
+            collection = self.expression(node.arguments[0])
+            if not is_sequence(collection.type):
+                self.fail("Q2001", "search requires an array or string", node)
+            if collection.stage == ir.Stage.RUNTIME:
+                self.fail("Q2003", "search cannot use runtime-classical collections", node)
+            quantum_name = {v: k for k, v in ir.QUANTUM_TO_CLASSICAL.items()}[collection.type.element.classical.name]
+            element_type = ir.Type(quantum_name)
+            oracle_name = node.arguments[1].identifier
+            oracle = self.functions.get(oracle_name)
+            if oracle is None:
+                self.fail("Q2002", f"unknown search oracle {oracle_name!r}", node.arguments[1])
+            if (len(oracle.parameters) != 1 or self.type(oracle.parameters[0].type) != element_type
+                    or self.type(oracle.return_type, allow_void=True) != ir.Type("qubit")):
+                self.fail("Q2001", f"search oracle must take one {element_type} parameter and return qubit", node)
+            instance = self.function_instance(oracle_name, ((ir.Stage.QUANTUM, None),))
+            for effect in instance.effects:
+                if effect in {"measure", "prepare", "search"} or effect.startswith("write:"):
+                    self.fail("Q2004", "search oracle must be a pure basis predicate without measurement, preparation, search, or global writes", node)
+                if effect.startswith("read:"):
+                    identifier = int(effect.split(":")[1])
+                    binding = next(b for b in self.scopes[0].values() if b.symbol.id == identifier)
+                    if binding.stage != ir.Stage.STATIC:
+                        self.fail("Q2004", "search oracle captures must be construction-time classical values", node)
+            self.effects.update(instance.effects | {"prepare", "search"})
+            value = self.make(node, element_type, ir.Stage.QUANTUM, "search", (collection,), value=instance.key)
+            return replace(value, effects=value.effects | instance.effects | {"prepare", "search"})
         if name == Builtin.SUPERPOSITION:
             if node.arguments or not allow_prepare or expected not in (ir.Type("qubit"), ir.Type("quint")):
                 self.fail("Q2001", "superposition() requires an initializing qubit or quint declaration", node)

@@ -3,6 +3,7 @@
 from dataclasses import asdict, dataclass, fields
 from pathlib import Path
 from typing import Any, Mapping
+import math
 import tomllib
 
 
@@ -25,6 +26,7 @@ class CompilerConfig:
     max_loop_iterations: int = 10_000
     max_evaluation_steps: int = 100_000
     max_classical_bits: int = 65_536
+    search_failure_probability: float = 0.01
 
     def __post_init__(self) -> None:
         for name in (
@@ -35,6 +37,9 @@ class CompilerConfig:
             if type(value) is not int or value < 1:
                 raise ValueError(f"{name} must be a positive integer")
         validate_alphabet(self.alphabet)
+        failure = self.search_failure_probability
+        if type(failure) not in (int, float) or not math.isfinite(failure) or not 0 < failure < 1:
+            raise ValueError("search_failure_probability must be finite and strictly between zero and one")
 
     @property
     def quchar_bits(self) -> int:

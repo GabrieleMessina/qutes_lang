@@ -8,6 +8,7 @@ class Builtin(StrEnum):
     MEASURE = "measure"
     ROTATE_LEFT = "rotateLeft"
     ROTATE_RIGHT = "rotateRight"
+    SEARCH = "search"
 
 
 CLASSICAL_TYPES = frozenset({"bool", "int", "char", "string", "void"})

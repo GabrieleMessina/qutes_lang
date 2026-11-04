@@ -60,7 +60,7 @@ def python_source(compilation: Compilation) -> str:
                 condition_names[id(condition)] = name
                 lines.extend(condition_function(condition, name))
     lines.extend(["def _specialized_circuit():", "    from qiskit import QuantumCircuit",
-                  "    from qiskit.circuit.library import HGate, ModularAdderGate, SwapGate, XGate",
+                  "    from qiskit.circuit.library import HGate, ModularAdderGate, SwapGate, XGate, RYGate, PhaseGate",
                   "    from qiskit.circuit.classical import expr",
                   f"    qc = QuantumCircuit({program.qubit_count}, {program.classical_bit_count})"])
     for operation in program.operations:
@@ -80,6 +80,8 @@ def python_source(compilation: Compilation) -> str:
                 gate = f"ModularAdderGate({len(application.targets)})"
                 if application.inverse:
                     gate += ".inverse()"
+            elif application.kind in {"ry", "phase"}:
+                gate = f"{'RYGate' if application.kind == 'ry' else 'PhaseGate'}({application.angle!r})"
             else:
                 gate = {"x": "XGate()", "h": "HGate()", "swap": "SwapGate()"}[application.kind]
             if application.controls:

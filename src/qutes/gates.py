@@ -7,6 +7,7 @@ These operations never measure, reset, or discard quantum information.
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
+import math
 
 from qutes.classical import Predicate
 from qutes.diagnostics import Span
@@ -23,9 +24,10 @@ class Gate:
     span: Span | None = None
     classical_controls: tuple[tuple[int, bool], ...] = ()
     conditions: tuple[tuple[Predicate, bool], ...] = ()
+    angle: float = 0.0
 
     def __post_init__(self):
-        if self.kind not in {"x", "h", "copy", "add", "add_constant", "rotate"}:
+        if self.kind not in {"x", "h", "copy", "add", "add_constant", "rotate", "ry", "phase"}:
             raise ValueError(f"unknown reversible operation {self.kind}")
         if not self.targets or len(set(self.targets)) != len(self.targets):
             raise ValueError("operation needs distinct target bits")
@@ -47,6 +49,8 @@ class Gate:
             raise ValueError("control values must be Boolean")
         if type(self.amount) is not int:
             raise ValueError("operation amount must be an integer")
+        if type(self.angle) not in (int, float) or not math.isfinite(self.angle):
+            raise ValueError("operation angle must be finite")
         if any(type(bit) is not int or bit < 0 or type(value) is not bool
                for bit, value in self.classical_controls):
             raise ValueError("classical controls require nonnegative bits and Boolean values")

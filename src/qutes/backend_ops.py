@@ -12,6 +12,7 @@ class Application:
     inputs: tuple[int, ...] = ()
     controls: tuple[tuple[int, bool], ...] = ()
     inverse: bool = False
+    angle: float = 0.0
 
     @property
     def qubits(self):
@@ -29,7 +30,8 @@ def applications(operation: Gate):
             if bit in controls and not controls[bit]:
                 return
             controls[bit] = True
-        yield Application(kind, tuple(targets), controls=tuple(controls.items()))
+        yield Application(kind, tuple(targets), controls=tuple(controls.items()),
+                          angle=-operation.angle if operation.inverse else operation.angle)
 
     def constant(amount, extra=()):
         amount %= 1 << len(operation.targets)
@@ -39,7 +41,7 @@ def applications(operation: Gate):
                     yield from application("x", (operation.targets[index],), (*extra, *operation.targets[offset:index]))
                 yield from application("x", (operation.targets[offset],), extra)
 
-    if operation.kind in {"x", "h"}:
+    if operation.kind in {"x", "h", "ry", "phase"}:
         for target in operation.targets:
             yield from application(operation.kind, (target,))
     elif operation.kind == "copy":

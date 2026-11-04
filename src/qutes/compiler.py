@@ -53,6 +53,9 @@ def resources(program: Program, span):
             if counts["operand_references"] > program.config.max_evaluation_steps:
                 raise DiagnosticError("Q4001", "backend expansion exceeds the construction budget", operation.span or span)
     return {**counts, "allocated_qubits": program.qubit_count,
+            "search_oracle_calls": sum(item["oracle_calls"] for item in program.searches),
+            "retained_search_index_qubits": sum(len(item.retained_index_bits) for item in program.allocations if not item.released),
+            "search_workspace_qubits": sum(len(item.scratch_bits) for item in program.allocations),
             "classical_bits": program.classical_bit_count,
             "scheduled_operations": len(program.operations),
             "cleanup_events": len(program.cleanup_events),
@@ -99,6 +102,7 @@ def compile_source(source: str, *, path="<input>", inputs=None, config=None) -> 
                 "build_sha256": hashlib.sha256(json_text(identity).encode("utf-8")).hexdigest(),
                 "dependency_versions": dependency_versions(), "result_layout": ir.to_dict(program.result),
                 "resources": resources(program, syntax.span),
+                "searches": list(program.searches),
                 "allocations": ir.to_dict(program.allocations), "cleanup": ir.to_dict(program.cleanup_events),
                 "construction": {"evaluation_steps": constructed.evaluation_steps,
                                  "loop_iterations": constructed.loop_iterations}}

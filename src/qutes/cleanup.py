@@ -46,6 +46,7 @@ class Storage:
     external: bool = False
     checkpoint: Checkpoint | None = None
     coherence_lost: bool = False
+    replayable: bool = False
 
 
 @dataclass(frozen=True)
@@ -114,7 +115,7 @@ class Scheduler:
         if target.history or target.version != -1 or target.released:
             raise ValueError("storage already initialized")
         dependencies = self.dependencies(gates, target)
-        target.root = external or any(gate.kind == "h" for gate in gates)
+        target.root = external or any(gate.kind in {"h", "ry"} for gate in gates)
         target.external = external
         if target.root and dependencies:
             self.fail("superposition preparation cannot depend on quantum inputs", target)
@@ -125,11 +126,25 @@ class Scheduler:
     def update(self, target: Storage, gates: tuple[Gate, ...]):
         if target.released or target.version != len(target.history) - 1 or target.version < 0:
             raise ValueError("cannot update unavailable storage")
-        if any(gate.kind == "h" for gate in gates):
+        if any(gate.kind in {"h", "ry"} for gate in gates):
             self.fail("an update cannot introduce a new superposition", target)
         dependencies = self.dependencies(gates, target)
         target.history.append(Step(gates, dependencies))
         target.version += 1
+        self.emit(gates, target)
+
+    def initialize_replayable(self, target: Storage, gates: tuple[Gate, ...]):
+        """Compiler-owned unitary preparation, with explicit versioned inputs.
+
+        Unlike an external root, its entire preparation and private workspace are
+        known. Measurement and live dependents still prohibit erasure.
+        """
+        if target.history or target.version != -1 or target.released:
+            raise ValueError("storage already initialized")
+        dependencies = self.dependencies(gates, target)
+        target.root = target.replayable = True
+        target.history.append(Step(gates, dependencies))
+        target.version = 0
         self.emit(gates, target)
 
     def emit(self, gates: tuple[Gate, ...], target: Storage):
@@ -169,7 +184,7 @@ class Scheduler:
             self.fail("quantum cleanup dependency nesting limit exceeded", target, "Q4001")
         if not -1 <= version < len(target.history):
             raise ValueError("unknown storage version")
-        if target.root and target.version == -1 and target.checkpoint is None:
+        if target.root and not target.replayable and target.version == -1 and target.checkpoint is None:
             self.fail(f"cannot recreate the independent quantum state of {target.name}", target)
         self.active_moves.add(key)
         try:
@@ -282,7 +297,7 @@ class Scheduler:
             self.fail(f"cannot overwrite the unknown quantum value of {target.name}; use a reversible update", target)
         if target.released or target.version < 0:
             raise ValueError("cannot overwrite unavailable storage")
-        if any(gate.kind == "h" for gate in preparation):
+        if any(gate.kind in {"h", "ry"} for gate in preparation):
             self.fail("superposition is an initializer, not a reset operation", target)
         self.dependencies(preparation, target)
         before = tuple(storage.version for storage in self.storages)

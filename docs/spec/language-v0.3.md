@@ -1,6 +1,6 @@
 # Language contract, version 0.3 (implementation in progress)
 
-Extends language-v0.2.md. Membership is implemented; search is being implemented.
+Extends language-v0.2.md. Membership and search are implemented; release validation is pending.
 This document does not imply that the release checkpoint has passed.
 
 ## Membership
@@ -20,7 +20,7 @@ any quantum operand yields qubit. Measured/runtime operands are deferred.
 Operands evaluate once, left to right. Matching preserves branch amplitudes and
 does not measure, reset, or amplify. Work qubits are uncomputed automatically.
 
-## Approved search contract (pending implementation)
+## Search contract
 
 `search(collection, oracle)` accepts a named pure one-element quantum predicate
 returning qubit. It returns the selected quantum value, retaining its index as
