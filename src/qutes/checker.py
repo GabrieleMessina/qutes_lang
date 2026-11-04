@@ -12,6 +12,7 @@ from qutes.config import CompilerConfig
 from qutes.diagnostics import DiagnosticError, Span
 from qutes.values import SignedInteger, TextEncoding
 from qutes.vocabulary import Builtin
+from qutes.membership import is_sequence, pattern_is_element, matches
 
 
 @dataclass
@@ -293,13 +294,23 @@ class Checker:
             result = self.make(node, operand.type, operand.stage, "unary", (operand,),
                                value=value, known=operand.known, operator=operator)
         elif isinstance(node, ast.Binary):
+            if node.operator == "in" and isinstance(node.left, ast.ArrayLiteral) and not node.left.elements:
+                right = self.expression(node.right, ir.Type("int", True) if isinstance(node.right, ast.ArrayLiteral) and not node.right.elements else None)
+                if not is_sequence(right.type):
+                    self.fail("Q2001", "the right operand of in must be an array or string", node.right)
+                left = self.expression(node.left, ir.Type(right.type.element.classical.name, True))
+                result = self.binary(node, left, right)
+                return self.coerce(result, expected, node) if expected else result
             left = self.expression(node.left)
             shorted = left.type == ir.Type("bool") and left.known and (
                 (node.operator == "&&" and not left.value) or (node.operator == "||" and left.value))
             before_right, before_effects = self.snapshot(), set(self.effects)
             self.deferred_faults += int(shorted)
             try:
-                right = self.expression(node.right)
+                empty_type = None
+                if node.operator == "in" and isinstance(node.right, ast.ArrayLiteral) and not node.right.elements:
+                    empty_type = ir.Type((left.type.element if is_sequence(left.type) else left.type).classical.name, True)
+                right = self.expression(node.right, empty_type)
             finally:
                 self.deferred_faults -= int(shorted)
                 if shorted:
@@ -398,6 +409,18 @@ class Checker:
 
     def binary(self, node, left, right):
         operator = node.operator
+        if operator == "in":
+            try:
+                pattern_is_element(left.type, right.type)
+            except ValueError as error:
+                self.fail("Q2001", str(error), node)
+            if ir.Stage.RUNTIME in {left.stage, right.stage}:
+                self.fail("Q2003", "membership on runtime-classical data is deferred", node)
+            stage = _merge_stage((left, right))
+            known = stage == ir.Stage.STATIC and left.known and right.known
+            return self.make(node, ir.Type("qubit" if stage == ir.Stage.QUANTUM else "bool"), stage,
+                             "membership", (left, right), known=known,
+                             value=matches(left.value, right.value, left.type, right.type) if known else None)
         if left.type.quantum or right.type.quantum:
             target = left.type if left.type.quantum else right.type
             left, right = self.coerce(left, target, node.left), self.coerce(right, target, node.right)
@@ -611,8 +634,8 @@ class Checker:
                 return ir.Statement(node.span, "for", (condition,), blocks), False
         if isinstance(node, ast.Foreach):
             collection = self.expression(node.collection)
-            if not collection.type.array:
-                self.fail("Q2001", "foreach requires an array", node.collection)
+            if not is_sequence(collection.type):
+                self.fail("Q2001", "foreach requires an array or string", node.collection)
             type_ = self.type(node.type)
             if type_ != collection.type.element:
                 self.fail("Q2001", "foreach binding must match the element type", node.type)

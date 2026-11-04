@@ -373,3 +373,14 @@ Python 3.12 is configured in CI but not run locally. Hosted CI has not run; no r
 or push exists. No hardware validation, formal proof or independent human review.
 User experiment snapshots.qut is preserved; canonical tutorial tests run the new
 measurement_snapshots.qut. No semantic tests use a legacy main-execution adapter.
+
+## V016 — 2026-11-04 membership checkpoint
+
+Windows project Python 3.13.5. Commands:
+- `.venv/Scripts/python.exe tools/check.py -q tests/test_membership.py`: 28 passed,
+  15.40s; artifacts/checks/run-hkmyce4j.
+- `.venv/Scripts/python.exe tools/check.py -q`: 694 passed, 40.50s;
+  artifacts/checks/run-0ezaqi_y.
+- `tools/generate_parser.py --jar artifacts/antlr/antlr-4.13.2-complete.jar --java
+  "C:/Program Files/Android/openjdk/jdk-21.0.8/bin/java.exe"` regenerated sources.
+- `git diff --check`: passed. Linux and 0.3 distribution validation pending.

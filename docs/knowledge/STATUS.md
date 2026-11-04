@@ -1,6 +1,8 @@
 # Current status
 
-Updated: 2026-11-02, checkpoint KB-015. The approved Qutes 0.2 increment is complete.
+Updated: 2026-11-04. Qutes 0.3 membership/search increment is ACTIVE.
+T017 membership passed 694 Windows tests and is complete; T018 search is ACTIVE
+and T019 integration/release remains TODO. The delivered 0.2 baseline follows.
 Package: 0.2.0.dev0. Language: 0.2. Generated artifact schema: 2.
 Active contract: [language-v0.2](../spec/language-v0.2.md).
 
@@ -64,9 +66,8 @@ It still defines main; add an explicit call to execute it under 0.2. The canonic
 script tutorial/tests use examples/measurement_snapshots.qut. Do not overwrite or
 stage the experiment during future work. Inspect git status/log before continuing.
 
-T014-T016 are DONE. No implementation task remains from the approved increment.
-Start future work from a new user request. Keep the knowledge base and coherent
-commits current; never restore automatic main execution or consuming measurement.
+T014-T016 are DONE. Current authorized work is T017-T019 (see TASKS).
+Next: implement oracle search and retained selection ownership. Preserve ordinary main and non-consuming measurement.
 
 Limits remain: conditional measurement, runtime arithmetic/indices/loops, recursion,
 mutable parameters, hardware and multi-stage hybrid orchestration are deferred.

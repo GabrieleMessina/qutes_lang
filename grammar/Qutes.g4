@@ -25,7 +25,7 @@ expression: logicalOr;
 logicalOr: logicalAnd ('||' logicalAnd)*;
 logicalAnd: equality ('&&' equality)*;
 equality: comparison (('==' | '!=') comparison)*;
-comparison: addition (('<' | '<=' | '>' | '>=') addition)*;
+comparison: addition (('<' | '<=' | '>' | '>=' | 'in') addition)*;
 addition: multiplication (('+' | '-') multiplication)*;
 multiplication: unary (('*' | '/' | '%') unary)*;
 unary: ('!' | '-' | '+')* postfix;

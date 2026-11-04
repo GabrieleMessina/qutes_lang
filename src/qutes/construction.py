@@ -12,6 +12,7 @@ from typing import Any
 from qutes import ir
 from qutes.diagnostics import DiagnosticError
 from qutes.values import SignedInteger, TextEncoding
+from qutes.membership import matches, pattern_is_element
 
 
 @dataclass(frozen=True)
@@ -172,6 +173,11 @@ class Constructor:
         if op == "call":
             arguments = tuple(self.expression(argument) for argument in expression.arguments)
             return self.call(self.functions[expression.value], arguments, expression)
+        if op == "membership":
+            left, right = (self.expression(argument) for argument in expression.arguments)
+            if left.stage == right.stage == ir.Stage.STATIC:
+                return self.literal(expression, matches(left.value, right.value, left.type, right.type))
+            return self.membership(expression, left, right)
         if op.startswith("binary:"):
             operator = op.split(":", 1)[1]
             left = self.expression(expression.arguments[0])
@@ -246,6 +252,75 @@ class Constructor:
                 TextEncoding(self.config.alphabet, self.config.qustring_capacity).encode_string(value)
         except ValueError as error:
             self.fail("Q2001", str(error), node)
+
+    def membership(self, source, left, right):
+        # Operands are evaluated once before expanding the position comparisons.
+        def stable(value):
+            if value.type.quantum and value.op not in {"load", "index"}:
+                return self.materialize(value, "$membership_input")
+            return value
+        left, right = stable(left), stable(right)
+        scalar = pattern_is_element(left.type, right.type)
+        count = 1 if scalar else left.shape
+        if count is None or right.shape is None:
+            self.fail("Q2003", "membership requires known sequence lengths", source)
+        self.step(source, max(1, right.shape - count + 1) * max(1, count))
+
+        def constant(value):
+            return self.literal(source, value, ir.Type("bool"))
+
+        def combine(op, items):
+            if not items:
+                return constant(op == "&&")
+            while len(items) > 1:
+                merged = []
+                for i in range(0, len(items), 2):
+                    if i + 1 == len(items):
+                        merged.append(items[i])
+                        continue
+                    a, b = items[i:i + 2]
+                    if a.stage == b.stage == ir.Stage.STATIC:
+                        merged.append(constant((a.value and b.value) if op == "&&" else (a.value or b.value)))
+                    else:
+                        merged.append(binary(op, a, b))
+                items = merged
+            return items[0]
+
+        def lift(value, type_):
+            if value.type == type_:
+                return value
+            self.validate_quantum_constant(value.value, type_, source)
+            return ir.Expression(source.span, type_, ir.Stage.QUANTUM, "lift", (value,), shape=value.shape)
+
+        def binary(op, a, b):
+            target = a.type if a.type.quantum else b.type
+            a, b = lift(a, target), lift(b, target)
+            return ir.Expression(source.span, ir.Type("qubit"), ir.Stage.QUANTUM, "binary:" + op,
+                                 (a, b), dependencies=a.dependencies | b.dependencies)
+
+        def equal(a, b):
+            if a.type.classical.name == "string":
+                if a.shape != b.shape:
+                    return constant(False)
+                return combine("&&", [equal(self.index_value(a, j, source), self.index_value(b, j, source))
+                                       for j in range(a.shape)])
+            character = a.type.classical.name == "char"
+            if character and a.stage == ir.Stage.STATIC and a.value == "?":
+                return constant(True)
+            if a.stage == b.stage == ir.Stage.STATIC:
+                return constant(a.value == b.value)
+            result = binary("==", a, b)
+            if character and a.type.quantum and "?" in self.config.alphabet:
+                wildcard = self.literal(source, "?", ir.Type("char"))
+                result = combine("||", [binary("==", a, wildcard), result])
+            return result
+
+        windows = []
+        for i in range(right.shape - count + 1):
+            windows.append(combine("&&", [equal(left if scalar else self.index_value(left, j, source),
+                                                self.index_value(right, i + j, source)) for j in range(count)]))
+        result = combine("||", windows)
+        return lift(result, ir.Type("qubit"))
 
     def classical_binary(self, expression, operator, a, b):
         if operator in {"/", "%"} and b == 0:

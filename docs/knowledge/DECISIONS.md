@@ -159,3 +159,19 @@ conversation examples suggesting measurement consumption are superseded by D007.
 - D063 (distribution): ANTLR whitespace normalization is deterministic across OSes;
   generated Python is compiler source, not an ignored build product. Java is needed
   only for regeneration; core installations depend solely on the Python runtime.
+
+- D064 (user approved): `in` is coherent membership/contiguous sequence matching;
+  strings are character sequences for sequence operations, not assignment aliases
+  of char arrays. Left text `?` matches one character, including quantum patterns.
+- D065 (user approved): `search(collection, oracle)` searches entries, not the
+  support of a whole candidate array. A named pure oracle receives one quantum
+  element and returns qubit. Return a quantum selected value, retain the index,
+  and measure explicitly. Equal string entry lengths initially; empty input fails.
+- D066 (user approved): automatic Yoder-Low-Chuang fixed-point amplification,
+  configurable failure probability default 0.01. Guarantee is conditional on an
+  existing match in each data branch. No hidden measurement, retries, enumeration,
+  or no-match proof. Duplicate positions retain their weight. Account for linear
+  indexed-access circuit cost rather than promising end-to-end speedup.
+- D067 (implementation): `[] in []` uses an empty int sequence context, since no
+  values constrain the type; other empty literals infer from the opposite operand.
+  Existing declaration rules for uncontextualized empty arrays remain unchanged.

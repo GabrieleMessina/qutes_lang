@@ -424,3 +424,17 @@ Only the delivery changes belong in this commit; the snapshots experiment is
 excluded. No compiler changes or additional packaging were needed on resume.
 The staged diff exposed an encoding change to punctuation in historical records;
 restored it and verified both documents retain the complete original 0.1 records.
+
+### 2026-11-04 — KB-016 membership implementation underway
+
+Resumed KB-015 baseline and approved 0.3 plan. Preserved snapshots.qut and newly
+observed untracked grammar/.antlr directory. Implemented independent membership
+semantics, asymmetric typing, bounded window expansion through reversible Boolean
+comparisons, wildcard handling, and string foreach. Regenerated ANTLR from the
+pinned jar. Initial 28 focused tests pass (run-hkmyce4j, 15.40s). A combined test/
+ledger patch failed its ledger context check; reapplied test file separately.
+Search and release integration remain unimplemented.
+
+Membership checkpoint: 694 full Windows tests pass (V016). T017 DONE; T018
+ACTIVE. Reviewed implementation and grammar diff; no changes to user snapshots
+or untracked grammar/.antlr. Search and release are still outstanding.
