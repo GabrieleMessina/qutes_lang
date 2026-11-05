@@ -4,7 +4,7 @@ Qutes lets you express quantum computations using typed values, functions,
 assignments, and familiar control flow. Its compiler builds Qiskit circuits and
 cleans temporary quantum storage automatically when it can establish a safe
 schedule. V1 is a local simulator research implementation. It does not provide
-a search/optimization algorithm library or promise a speedup for ordinary code.
+a broad optimization algorithm library or promise a speedup for ordinary code.
 
 ## Install and run
 
@@ -209,14 +209,18 @@ normal checking/Python generation still do not require a backend installation.
 Image export is headless and does not open windows or require a LaTeX installation.
 
 Each compilation has one circuit for its bound script inputs. Files are named
-`SOURCE-BUILDHASH.png` (or `.svg`), so different inputs/settings can share a folder.
-Repeating the same build replaces its image atomically. Other files remain intact.
+`SOURCE-BUILDHASH-VIEWHASH.png` (or `.svg`), so different inputs/settings can share a folder.
+Repeating the same build and view replaces that image atomically. Other files remain intact.
 With `--json`, text diagrams go to stderr, and stdout includes the image path in
 `circuit_diagram.image` alongside the normal JSON result.
 
-Both views show the complete compiler-emitted circuit, including measurement and
-automatic cleanup, before simulator/device-specific gate decomposition. They do
-not run extra simulations. `run` renders after a successful execution; `check`
+Both views default to named source-level operation/function boxes. Use `--unfold 1`
+(or another depth), `--unfold all`, and optionally `--unfold-only compare,myFunction`
+to reveal detail. `explain` lists selectors. Measurement/runtime branches remain
+visible, and cleanup markers identify zeroed wires separately from restored inputs.
+Markers exist only in diagrams. Direct/generated executable circuits keep their
+operation structure and receive named registers. The [CLI walkthrough](cli-walkthrough.md)
+shows every command and view option. Drawing does not run extra simulations. `run` renders after a successful execution; `check`
 lets you inspect a circuit without executing it. Idle/reserved wires remain visible.
 Images fold long circuits into rows; excessive image dimensions receive Q4001
 (40 million estimated pixels or 32,000 pixels on either side at 120 dpi).

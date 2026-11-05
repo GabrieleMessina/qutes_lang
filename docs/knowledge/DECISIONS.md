@@ -202,3 +202,13 @@ conversation examples suggesting measurement consumption are superseded by D007.
   once when alphabet contains ?, without changing encoding or rejecting valid use.
 - D075 (user approved): retain language 0.3/artifact schema 3; additive provenance
   and warnings metadata. Archive historical roadmap and move contracts into specs.
+
+- D076 (implementation of approved rendering scope): view options belong to the
+  renderer/CLI, not CompilerConfig/build identity. Image filenames include a view
+  hash. Mixed functions retain measurements/control flow and fold reversible parts.
+- D077 (correctness): each cleanup annotation links to a distinct region ID, even
+  when zero-operation events share spans/names/ranges. Inverse oracle cleanup is
+  labeled recomputation and never receives a false zero-state marker.
+- D078 (resource guard): preflight wide lazy backend definitions conservatively
+  before generation, then charge expanded instruction/wire references incrementally.
+  Exhaustion is Q4001, never silent truncation. No new wire allocation or reuse.

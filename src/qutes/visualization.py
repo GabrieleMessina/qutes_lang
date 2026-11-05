@@ -5,6 +5,8 @@ from pathlib import Path
 import re
 import sys
 import tempfile
+import hashlib
+from qutes.serialization import json_text
 
 from qutes.diagnostics import DiagnosticError, Position, Span
 
@@ -29,11 +31,12 @@ def write_text(text, stream):
         boxes.update({ord("═"): "="})
         boxes.update({ord(char): "|" for char in "│┃║"})
         boxes.update({ord("■"): "o", ord("«"): "<", ord("»"): ">"})
+        boxes[ord("░")] = ":"
         text = text.translate(boxes).encode(encoding, errors="replace").decode(encoding)
     print(text, file=stream)
 
 
-def save_image(circuit, compilation, directory, image_format):
+def save_image(circuit, compilation, directory, image_format, options):
     try:
         import matplotlib
         # This compiler feature writes files only; it must not open GUI windows.
@@ -45,7 +48,8 @@ def save_image(circuit, compilation, directory, image_format):
 
     directory = Path(directory)
     stem = re.sub(r"[^A-Za-z0-9._-]", "_", Path(compilation.source_path).stem).strip("._") or "circuit"
-    filename = f"{stem}-{compilation.metadata['build_sha256'][:12]}.{image_format}"
+    view_hash = hashlib.sha256(json_text(options).encode("utf-8")).hexdigest()[:8]
+    filename = f"{stem}-{compilation.metadata['build_sha256'][:12]}-{view_hash}.{image_format}"
     target = directory / filename
     figure = None
     temporary = None
@@ -79,7 +83,8 @@ def save_image(circuit, compilation, directory, image_format):
             temporary.unlink(missing_ok=True)
 
 
-def render(compilation, *, print_circuit=False, directory=None, image_format="png", stream=None):
+def render(compilation, *, print_circuit=False, directory=None, image_format="png", stream=None,
+           unfold=0, unfold_only=None):
     """Render final compiler output, before backend-specific transpilation.
 
     One circuit exists per compilation/input binding. File names include the build
@@ -89,11 +94,18 @@ def render(compilation, *, print_circuit=False, directory=None, image_format="pn
     if image_format not in {"png", "svg"}:
         raise failure(compilation, "Q5003", "circuit image format must be png or svg")
     if not print_circuit and directory is None:
+        if unfold != 0 or unfold_only is not None:
+            raise failure(compilation, "Q5003", "unfold options require printed or saved diagram output")
         return None
-    circuit, _ = compilation.build()
     stream = sys.stdout if stream is None else stream
     try:
-        image = save_image(circuit, compilation, directory, image_format) if directory is not None else None
+        from qutes.diagrams import build_diagram, view_options
+        try:
+            options = view_options(unfold, unfold_only)
+        except (ValueError, TypeError, AttributeError) as error:
+            raise failure(compilation, "Q5003", str(error)) from None
+        circuit = build_diagram(compilation, **options)
+        image = save_image(circuit, compilation, directory, image_format, options) if directory is not None else None
         if print_circuit:
             if not circuit.num_qubits and not circuit.num_clbits:
                 drawing = "(No quantum operations or measurements.)"
@@ -101,8 +113,9 @@ def render(compilation, *, print_circuit=False, directory=None, image_format="pn
                 text = circuit.draw(output="text", fold=100, idle_wires=True, cregbundle=False, reverse_bits=False, expr_len=80)
                 text.encoding = "utf-8"
                 drawing = str(text)
-            write_text("Final compiler circuit (before backend decomposition):\n" + drawing, stream)
-        return {"stage": "compiler-output", "printed": print_circuit, "image": str(image) if image else None}
+            write_text("Final compiler circuit (presentation view; cleanup markers are annotations):\n" + drawing, stream)
+        return {"stage": "compiler-output", "printed": print_circuit, "image": str(image) if image else None,
+                "view": options}
     except DiagnosticError:
         raise
     except ImportError as error:

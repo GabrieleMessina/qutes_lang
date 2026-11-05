@@ -579,3 +579,38 @@ visualization run: 75 passed (run-k5klc840). Classical binding updates and array
 permutation ranges are recorded, not simulated. Example 12 retains 19 wires and
 51 gate applications. Next T023: consume regions in a separate drawing circuit;
 fold only reversible segments and leave measurement/runtime conditions visible.
+
+## KB-022 - 2026-11-05 hierarchical diagrams and final validation
+
+Completed T023: separate drawing circuits with compact source blocks, numeric/all
+unfolding and optional function/kind filters. Ancestor paths reveal selected blocks
+while unrelated siblings stay folded. Measurement/runtime conditions remain visible.
+Oracle source regions and bindings are imported for each forward/inverse search
+invocation; inverse cleanup is recomputation. Cleanup markers distinguish zeroed
+wires from touched/restored inputs. Exact event IDs fix coincident zero-length
+cleanup ranges. Rendering options participate only in view/image identity.
+
+Added incremental and conservative preflight limits for lazy backend decomposition;
+no silently weakened views. Indexed name lookup and monotone suffix counters avoid
+quadratic register-name scans for repeated locals. A 500-local compile probe passed.
+New operator tests compare full phases (not equivalence up to global phase), selected
+search views, quantum-collection correlations and zero scratch; dynamic view execution
+preserves decoded results. Legacy artifact-v3 modules without new fields still run.
+
+Intermediate attempts: a new diagram test had an extra closing parenthesis and
+failed collection (run-47d1kmne); corrected, then 43 passed (run-y6oqm3yl). An ad hoc
+adder-definition printing probe hit the Windows cp1252 console; later probes only
+printed operation counts. Expanded adder/search views reach U/CX. Successive focused
+runs: 40 passed (run-9e_6i0w5), 28 passed (run-w93xzb_w), 46 passed (run-1ib411za).
+Full intermediate runs passed 852 and then 856 each platform; final audit added
+zero-cost-event identity and wide-definition preflight tests: 858 each platform.
+
+All 13 documented Qutes walkthrough commands and generated module execution pass.
+Named compact example 15 and expanded example 24 images inspected and legible;
+PNG/SVG, image variants and bounded exports tested. Docs links checked. Historical
+roadmap links corrected after relocation; MANIFEST now includes example READMEs.
+Audit: docs/readability-audit.md. Final wheel rebuilt/installed in project Windows
+and Linux environments, smoke checks pass; dependencies unchanged. Knowledge base
+and handoff updated. Third local checkpoint completes the plan; no push or hardware
+run, no claim of independent human review. Physical reuse and text preparation
+remain deferred by user choice. Next action: wait for a new user request.

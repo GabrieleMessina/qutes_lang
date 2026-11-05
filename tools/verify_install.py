@@ -14,6 +14,8 @@ def main():
     from qutes.codegen import write_python
     from qutes.compiler import compile_source, dependency_versions
     from qutes.config import CompilerConfig
+    from qutes.visualization import render
+    import io
 
     root = Path(__file__).resolve().parents[1]
     installed = Path(qutes.__file__).resolve()
@@ -33,6 +35,13 @@ def main():
         cli = json.loads(result.stdout)
         assert cli["outcomes"] == [{"value": [2, 3], "count": 8, "probability": 1.0}]
         compilation = compile_source(source.read_text(), inputs={"start": 2}, config=CompilerConfig(quint_bits=3))
+        circuit, _ = compilation.build()
+        assert circuit.qregs[0].name == "n"
+        assert circuit.cregs[0].name == "before"
+        text = io.StringIO()
+        view = render(compilation, print_circuit=True, stream=text, unfold=1, unfold_only="add")
+        assert view["view"] == {"unfold": 1, "unfold_only": ["add"]}
+        assert "n_0" in text.getvalue()
         artifact = folder / "generated.py"
         write_python(compilation, artifact)
         spec = importlib.util.spec_from_file_location("generated_smoke", artifact)
@@ -54,7 +63,7 @@ def main():
         assert search_result['build']['searches'][0]['entries'] == 3
     report = {"python": platform.python_version(), "platform": platform.platform(), "qutes": qutes.__version__,
               "installed_path": str(installed), "dependencies": dependency_versions(),
-              "isolated_cli": "passed", "generated_module_respecialization": "passed",
+              "isolated_cli": "passed", "named_registers_and_selective_diagram": "passed", "generated_module_respecialization": "passed",
               "search_generated_module_respecialization": "passed"}
     target = output / ("windows.json" if sys.platform == "win32" else "linux.json")
     target.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")

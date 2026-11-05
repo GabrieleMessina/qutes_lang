@@ -115,6 +115,7 @@ class Program:
     regions: tuple[Region, ...] = ()
     source_mappings: tuple[SourceMapping, ...] = ()
     registers: tuple[Register, ...] = ()
+    embedded_cleanup_annotations: tuple[dict, ...] = ()
 
     def to_qiskit(self):
         from qutes.qiskit_backend import emit_operations
@@ -137,6 +138,7 @@ class Lowerer:
         self.source_mappings = []
         self.mapping_frames = []
         self.context = []
+        self.embedded_cleanup_annotations = []
 
     def fail(self, node, message, code="Q2001"):
         raise DiagnosticError(code, message, node.span)
@@ -432,9 +434,12 @@ class Lowerer:
         compute = access + body
         preparation = uniform_index(indices, count, expression.span)
         gates = list(preparation)
+        oracle_occurrences = []
         for alpha, beta in phases:
+            oracle_occurrences.append((len(gates) + len(access), False))
             gates.extend(compute)
             gates.append(Gate("phase", (flag,), angle=beta, span=expression.span))
+            oracle_occurrences.append((len(gates), True))
             gates.extend(inverse(compute))
             gates.extend(inverse(preparation))
             gates.append(Gate("x", (indices[0],), span=expression.span))
@@ -443,7 +448,42 @@ class Lowerer:
             gates.append(Gate("x", (indices[0],), span=expression.span))
             gates.extend(preparation)
         gates.extend(gather(visible))
+        operation_start = len(self.scheduler.operations)
         self.scheduler.initialize_replayable(owner, tuple(gates))
+        # Preserve the oracle's source tree for every forward/inverse invocation.
+        # Its work wires are slices of the retained owner, never new allocations.
+        for occurrence, (offset, backwards) in enumerate(oracle_occurrences):
+            ids = {}
+            for region in child.scheduler.regions:
+                start, end = region.operation_start, region.operation_end
+                if backwards:
+                    start, end = len(operations) - end, len(operations) - start
+                identifier = len(self.scheduler.regions)
+                ids[region.id] = identifier
+                self.scheduler.regions.append(replace(region, id=identifier,
+                    parent=ids[region.parent] if region.parent is not None else self.scheduler.region_stack[-1],
+                    operation_start=operation_start + offset + start,
+                    operation_end=operation_start + offset + end,
+                    inverse=backwards,
+                    kind="recompute" if backwards and region.kind == "cleanup" else region.kind))
+            # Forward oracle cleanup returns scratch to zero. The inverse performs
+            # recomputation instead, so must never be marked as a zeroing event.
+            if not backwards:
+                for event in child.scheduler.events:
+                    self.embedded_cleanup_annotations.append({"name": event.name, "region": ids[event.region],
+                        "operation_start": operation_start + offset + event.operation_start,
+                        "operation_end": operation_start + offset + event.operation_end,
+                        "zero_bits": tuple(mapping[b] for b in child.scheduler.storages[event.storage].bits),
+                        "restored_bits": tuple(sorted({mapping[b]
+                            for op in operations[event.operation_start:event.operation_end]
+                            for b in op.bits if b not in child.scheduler.storages[event.storage].bits}))})
+            for binding in child.source_mappings:
+                start, end = binding.operation_start, binding.operation_end
+                if backwards:
+                    start, end = len(operations) - end, len(operations) - start
+                self.source_mappings.append(replace(binding, bits=tuple(mapping[b] for b in binding.bits),
+                    operation_start=operation_start + offset + start, operation_end=operation_start + offset + end,
+                    context=f"search#{owner.id}/oracle#{occurrence}/" + binding.context))
         if expression.type.name == "qustring":
             self.lengths[owner.id] = expression.shape
         self.searches.append({"entries": count, "oracle_calls": 2 * len(phases),
@@ -709,7 +749,8 @@ class Lowerer:
                        scheduler.classical_bit_count, allocations, tuple(scheduler.events), result,
                        searches=tuple(self.searches), regions=tuple(scheduler.regions),
                        source_mappings=tuple(self.source_mappings),
-                       registers=registers(allocations, self.source_mappings, scheduler.classical_bit_count))
+                       registers=registers(allocations, self.source_mappings, scheduler.classical_bit_count),
+                       embedded_cleanup_annotations=tuple(self.embedded_cleanup_annotations))
 
 
 def lower(program: construction.Program) -> Program:

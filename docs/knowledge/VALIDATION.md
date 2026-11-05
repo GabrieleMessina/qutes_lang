@@ -505,3 +505,42 @@ Windows Python 3.13.5, pinned Qiskit 2.3.0/Aer 0.17.2.
   membership provenance, zero/restored wires and unchanged example-12 resources.
 - Earlier 109/2 failed representation assertions and fixes recorded in KB-021.
   Full cross-platform validation is still pending T023; no wire reuse introduced.
+
+## V022 - 2026-11-05 final readability validation
+
+Python 3.13.5 on Windows 11 and Debian/WSL, Qiskit 2.3.0, Aer 0.17.2, NumPy 2.1.3,
+ANTLR runtime 4.13.2; language 0.3, artifact 3, package 0.3.0.dev0 unchanged.
+
+- `.venv/Scripts/python.exe tools/check.py -q`: **858 passed**, 58.95s;
+  artifacts/checks/run-vojkmdco.
+- `wsl.exe -d Debian -- /mnt/c/Users/gabry/Work/Quantum/qutes_lang_chatgpt/artifacts/linux-venv/bin/python /mnt/c/Users/gabry/Work/Quantum/qutes_lang_chatgpt/tools/check.py -q`:
+  **858 passed**, 82.16s; artifacts/checks/run-3uds1wvr.
+- Focused source tests and superseded intermediate runs recorded in KB-022.
+  test_diagrams verifies exact complex operators, selected oracle phases, quantum
+  collection statevectors/correlations, zero scratch, dynamic execution, depth,
+  selector errors, image identity, zero-cost cleanup and lazy-decomposition budgets.
+- All 13 `qutes ...` lines in docs/cli-walkthrough.md executed via tools/qutes.py;
+  generated `python artifacts/tour.qiskit.py --shots 64 --seed 17` also passed.
+  Markdown file targets in changed guides/spec references/archive resolve.
+- `.venv/Scripts/qutes.exe check examples/language/15_coherent_if.qut --unfold 1
+  --print-circuit --json` passed against installed wheel; JSON stdout stored at
+  artifacts/installed-diagram.json. Diagram remains on stderr.
+- Ad hoc compile of `for(int i=0;i<500;i++) { qubit temporary=false; }`:
+  500 unique register names and exact cleanup annotations, zero execution gates.
+- Visual inspection: artifacts/readability-preview/15_coherent_if-74c0905e31a4-64eeb63a.png
+  and 24_quantum_functions-b10fd174aae1-125722a6.png; names, source blocks and separate
+  cleanup/restored-input labels legible. Existing image tests cover PNG and SVG.
+- With workspace TEMP/TMP, `python -m pip wheel --no-build-isolation --no-deps . -w dist`
+  built final qutes_lang-0.3.0.dev0-py3-none-any.whl, SHA256
+  80d322734ea83532cc1a4c5953830c718a9762a70376c84ef67e45edd5d2bc36.
+  Installed via `python -m pip install --no-deps --force-reinstall WHEEL` in each
+  project environment. `python -I tools/verify_install.py` passes Windows/Linux
+  CLI, named registers, selective diagrams and generated input respecialization.
+  Reports: artifacts/installation/windows.json and linux.json. `python -m pip check`
+  passes both environments; no dependency changes. No global installation.
+- Source distribution rebuilt using setuptools.build_meta.build_sdist, inspected
+  for new guides/contracts/archive/tour README/diagram module. Wheel module bytes
+  compared with src/qutes/**/*.py. `git diff --check` passes.
+
+No hosted CI, hardware execution, Python 3.12 run, or independent human review.
+Wire reuse remains deferred; rendered annotations never enter executable circuits.

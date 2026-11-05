@@ -101,3 +101,14 @@ scheduled-operation ranges and function invocation contexts. Cleanup annotations
 distinguish zeroed target wires from temporarily restored dependency wires.
 Construction `bind` annotations carry names only, not additional computation.
 This metadata is additive to artifact 3 and does not change language semantics.
+
+
+Qutes console/image views fold source operations by default. `--unfold N|all`
+reveals source and then backend levels; optional `--unfold-only` selects comma-
+separated kinds/functions, opening their ancestor paths. Source mappings and
+regions are presentation metadata, not gates. Measurement and runtime control
+remain visible. Cleanup markers are confined to diagrams; executable gates and
+measurement ordering are unchanged. Image names include view hashes; build IDs do
+not depend on rendering options. Alphabet warning QW0001 is nonfatal and does not
+alter settings. CLI JSON and compilation metadata expose warnings without printing
+from the Python compilation API. See the CLI walkthrough for interfaces and limits.

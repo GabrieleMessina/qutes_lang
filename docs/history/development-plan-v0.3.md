@@ -20,10 +20,10 @@ measurement/reset, mixed quantum lengths, or full match enumeration are included
 Updated: 2026-10-31
 
 Status: V1 research implementation completed at KB-011; see the
-[release audit](docs/release-audit.md) for requirement coverage and evidence.
+[release audit](../release-audit.md) for requirement coverage and evidence.
 This document supersedes the earlier conversational plan where they differ.
-See [current status](docs/knowledge/STATUS.md) for implemented capabilities and
-[the ledger](docs/knowledge/LEDGER.md) for progress; roadmap items are not claims
+See [current status](../knowledge/STATUS.md) for implemented capabilities and
+[the ledger](../knowledge/LEDGER.md) for progress; roadmap items are not claims
 of existing compiler support.
 
 ## 1. Goal and release boundary

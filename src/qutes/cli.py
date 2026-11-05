@@ -75,6 +75,8 @@ def argument_parser():
             sub.add_argument("--print-circuit", action="store_true", help="print the final compiler circuit (stderr with --json)")
             sub.add_argument("--save-circuit", type=Path, metavar="FOLDER", help="save a circuit image in this folder (created if needed)")
             sub.add_argument("--circuit-format", choices=("png", "svg"), help="image format for --save-circuit; default: png")
+            sub.add_argument("--unfold", metavar="N|all", help="diagram expansion depth; default: 0 (compact)")
+            sub.add_argument("--unfold-only", metavar="NAMES", help="comma-separated operation/function selectors; requires --unfold")
         if command == "build":
             sub.add_argument("-o", "--output", type=Path, help="output module; default: SOURCE.qiskit.py")
             sub.add_argument("--force", action="store_true", help="replace an existing non-generated output file")
@@ -112,10 +114,8 @@ def explain(metadata):
         context = mapping["context"] + "/" if mapping["context"] else ""
         kind = "snapshot bits" if mapping["classical"] else "wires"
         print(f"  Binding {context}{mapping['name']}: {kind} {mapping['bits']}; operations [{mapping['operation_start']}, {mapping['operation_end']})")
-    for event in metadata["cleanup"]:
-        allocation = metadata["allocations"][event["storage"]]
-        restored = [bit for version in event["restored_inputs"] for bit in metadata["allocations"][version["storage"]]["bits"]]
-        print(f"  Cleanup {event['name']}: operations [{event['operation_start']}, {event['operation_end']}); zero wires {allocation['bits']}; restored inputs {restored}")
+    for event in metadata.get("cleanup_annotations", ()):
+        print(f"  Cleanup {event['name']}: operations [{event['operation_start']}, {event['operation_end']}); zero wires {list(event['zero_bits'])}; restored inputs {list(event['restored_bits'])}")
     print(f"Result layout: {json_text(metadata['result_layout'])}")
 
 
@@ -124,6 +124,15 @@ def main(arguments: list[str] | None = None) -> int:
     options = parser.parse_args(arguments)
     if getattr(options, "circuit_format", None) and options.save_circuit is None:
         parser.error("--circuit-format requires --save-circuit FOLDER")
+    if getattr(options, "unfold", None) is not None or getattr(options, "unfold_only", None) is not None:
+        if not (options.print_circuit or options.save_circuit is not None):
+            parser.error("--unfold and --unfold-only require --print-circuit or --save-circuit")
+        from qutes.diagrams import view_options
+        try:
+            view = view_options(options.unfold if options.unfold is not None else 0, options.unfold_only)
+            options.unfold, options.unfold_only = view["unfold"], view["unfold_only"]
+        except (ValueError, TypeError) as error:
+            parser.error(str(error))
     try:
         try:
             with options.source.open(encoding="utf-8", newline="") as stream:
@@ -169,6 +178,7 @@ def main(arguments: list[str] | None = None) -> int:
             from qutes.visualization import render
             payload["circuit_diagram"] = render(compilation, print_circuit=options.print_circuit,
                 directory=options.save_circuit, image_format=options.circuit_format or "png",
+                unfold=options.unfold if options.unfold is not None else 0, unfold_only=options.unfold_only,
                 stream=sys.stderr if options.json else sys.stdout)
         payload["warnings"] = warnings
         if options.json:

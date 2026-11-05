@@ -82,3 +82,21 @@ def test_classical_snapshot_rebinding_closes_old_mapping():
     mappings = [m for m in c.program.source_mappings if m.name == "result"]
     assert len(mappings) == 2 and mappings[0].bits != mappings[1].bits
     assert mappings[0].operation_end == mappings[1].operation_start
+
+
+@pytest.mark.backend
+def test_legacy_v3_module_without_presentation_fields_still_runs():
+    from dataclasses import replace
+    c = compile_source(
+        'input int start; quint n=start; return measure(n);', inputs={"start": 1}, config=CompilerConfig(quint_bits=3))
+    legacy_metadata = {k: v for k, v in c.metadata.items() if k not in
+                       {"registers", "source_mappings", "regions", "cleanup_annotations", "warnings"}}
+    source = python_source(replace(c, metadata=legacy_metadata))
+    lines = source.splitlines()
+    lines = [line for line in lines if "qc.add_register(" not in line]
+    source = "\n".join(lines).replace("qc = QuantumCircuit()", "qc = QuantumCircuit(3, 3)")
+    namespace = {"__name__": "legacy_generated"}
+    exec(source, namespace)
+    assert namespace["build"]()[0].qregs[0].name == "q"
+    assert namespace["run"](shots=4)["outcomes"][0]["value"] == 1
+    assert namespace["run"]({"start": 2}, shots=4)["outcomes"][0]["value"] == 2

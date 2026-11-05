@@ -42,7 +42,34 @@ Images require the visualization extra; no simulator is run to draw a circuit.
 ```text
 qutes check examples/language/12_quantum_ordering.qut --print-circuit
 qutes check examples/language/15_coherent_if.qut --save-circuit artifacts/tour-circuits --circuit-format svg
+qutes check examples/language/12_quantum_ordering.qut --print-circuit --unfold 1
+qutes check examples/language/15_coherent_if.qut --print-circuit --unfold all
+qutes check examples/language/24_quantum_functions.qut --print-circuit --unfold 1 --unfold-only next
 ```
+
+The default view folds source operations/functions into boxes. `--unfold N`
+opens N levels, first source blocks and then Qiskit definitions. `all` opens all
+definitions to elementary gates (typically U and CX). Measurements and runtime
+branches remain visible, even in functions. `--unfold-only compare,next` selects
+operation kinds or named functions; enclosing paths open while unrelated siblings
+stay folded. `explain` lists selectors. Every matching occurrence is selected,
+including named oracle calls inside search and their labeled inverse operations.
+
+`clean |0>` marks wires restored to zero; `inputs restored` marks touched dependency
+wires returned to their earlier state. These markers are diagram annotations,
+not executable resets or barriers. A folded parent reports its internal cleanup
+count; unfold it to see the timing and wires. Inverse oracle cleanup is shown as
+recomputation and is never incorrectly labeled as zeroing.
+
+Register names identify physical storage. `explain` shows other source names and
+their operation ranges: aliases, readonly parameters and returned values do not
+necessarily get independent wires. Array entries and repeated locals use unique
+names; search keeps separate value, index and workspace register names.
+
+Image names include both build and view hashes, so compact and expanded views
+coexist. Drawing options do not change build identity or the execution circuit.
+Use `qutes.visualization.render(compilation, print_circuit=True, unfold=1,
+unfold_only="compare,next")` from Python for the same view controls.
 
 Example 12 reserves 19 qubits, 16 eventually cleaned, and needs **8 MiB** for the
 statevector alone. Cleanup restores temporary storage to zero, but the current

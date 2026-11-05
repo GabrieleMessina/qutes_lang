@@ -1,8 +1,9 @@
 # Current status
 
-Updated: 2026-11-05. Circuit readability increment ACTIVE (T021-T023).
-T021-T022 complete at KB-020/021. Next: T023 hierarchical rendering and full validation.
-Qutes 0.3 and the language tour remain delivered at KB-019.
+Updated: 2026-11-05, checkpoint KB-022. Circuit readability increment COMPLETE.
+T021-T023 delivered; T024 physical wire reuse remains explicitly deferred.
+Named registers, source/alias ranges, compact diagrams, selective unfolding,
+cleanup annotations, resource units, wildcard warnings and CLI guidance are ready.
 T020 delivers 38 independent examples, all executed within 24 qubits (maximum 21).
 User-authorized config.py, .gitignore and snapshots.qut edits are included unchanged.
 Current defaults: 4-bit quint and alphabet ABC. The tour explicitly uses 3-bit/AB?.
@@ -29,6 +30,13 @@ Active contract: [language-v0.3](../spec/language-v0.3.md), extending 0.2.
   parameters, coherent control, classical loops and non-consuming measurement remain.
 
 ## Validation
+
+- KB-022: full Windows **858 passed**, 58.95s (run-vojkmdco); Debian/WSL
+  **858 passed**, 82.16s (run-3uds1wvr). Final wheel installed/smoke-tested on both;
+  source/wheel contents verified. See V022 and ../readability-audit.md.
+- Diagram full-operator/phase tests, quantum collection statevectors, scratch,
+  dynamic measurement execution, image variants, budgets, aliases and legacy-v3
+  modules pass. All 38 tour examples still execute within 24 qubits (maximum 21).
 
 - KB-019: full Windows suite **814 passed**, 63.61s (run-dn9pqzbu); full Debian/WSL
   suite **814 passed**, 85.09s (run-372bgprl). Includes all 38 examples at 64 shots,
@@ -68,16 +76,18 @@ review. Backend pins remain Qiskit 2.3.0, Aer 0.17.2, NumPy 2.1.3, ANTLR 4.13.2.
 
 ## Handoff and limitations
 
-T017-T020 are DONE. Readability work is tracked separately below.
+T017-T023 are DONE. No required work remains for the approved readability plan.
 For the next request, inspect git status/log and the active contract before editing.
 Do not restore automatic main execution or consuming measurement.
 
 The user-authorized snapshot experiment is included as supplied: it defines main
 without calling it, so produces no output. grammar/.antlr is now ignored. No remote
 was added and nothing was pushed. For examples start at examples/language/README.md.
-Use tools/qutes.py for current checkout behavior; installed wheels from KB-018 retain
-the old defaults until rebuilt. Tour config makes its examples independent of these.
-Next action: T021-T023 as above; no external blocker.
+Current wheel is installed in both project Windows and Debian environments.
+Try `.venv/Scripts/qutes.exe check examples/language/12_quantum_ordering.qut
+--print-circuit --unfold 1`; add `--unfold-only compare` to select comparisons.
+See docs/cli-walkthrough.md for all modes and render APIs. No blockers. Next action:
+take a new user request; do not begin deferred T024 without new authorization.
 
 The 99% ideal success bound requires a match in the relevant data branch. No-match
 branches can return nonmatching candidates. Quantum data can become entangled with

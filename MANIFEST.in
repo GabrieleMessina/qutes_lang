@@ -1,6 +1,6 @@
 include AGENTS.md DEVELOPMENT_PLAN.md requirements-dev.lock
 recursive-include docs *.md *.ebnf
-recursive-include examples *.qut *.toml *.json
+recursive-include examples *.qut *.toml *.json *.md
 recursive-include tests *.py *.qut *.json
 recursive-include experiments *.py
 include tools/*.py

@@ -60,6 +60,7 @@ class CleanupEvent:
     operation_end: int
     restored_inputs: tuple[Version, ...]
     span: Span
+    region: int | None = None
 
 
 class Scheduler:
@@ -314,7 +315,8 @@ class Scheduler:
         touched = {self.bit_owner[bit] for gate in self.operations[start:] for bit in gate.bits}
         touched.discard(target.id)
         self.events.append(CleanupEvent(target.id, target.name, before[target.id], start,
-                                        len(self.operations), tuple(Version(i, before[i]) for i in sorted(touched)), target.span))
+                                        len(self.operations), tuple(Version(i, before[i]) for i in sorted(touched)), target.span,
+                                        region=self.region_stack[-1]))
 
     def overwrite(self, target: Storage, preparation: tuple[Gate, ...], *, controls=(), conditions=()):
         """Erase a basis-derived old value and initialize its replacement atomically.
