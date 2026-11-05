@@ -194,3 +194,11 @@ conversation examples suggesting measurement consumption are superseded by D007.
   with its own adjacent config (3-bit quint, alphabet AB?, capacity 2, limit 24).
   This makes runnable examples independent of global default changes. Existing
   examples and the user's snapshot experiment remain in place.
+
+- D073 (user approved, 2026-11-05): circuit folding is presentation-only; executable
+  circuit structure stays unchanged except named registers. Include depth/filter
+  unfolding and cleanup annotations. Defer physical wire reuse.
+- D074 (user approved): wildcard predicates do not prepare superpositions. Warn
+  once when alphabet contains ?, without changing encoding or rejecting valid use.
+- D075 (user approved): retain language 0.3/artifact schema 3; additive provenance
+  and warnings metadata. Archive historical roadmap and move contracts into specs.

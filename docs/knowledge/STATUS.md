@@ -1,6 +1,8 @@
 # Current status
 
-Updated: 2026-11-05, checkpoint KB-019. Qutes 0.3 and the language tour are complete.
+Updated: 2026-11-05. Circuit readability increment ACTIVE (T021-T023).
+T021 complete at KB-020/V020 (92 focused tests). Next: T022 provenance, names and aliases.
+Qutes 0.3 and the language tour remain delivered at KB-019.
 T020 delivers 38 independent examples, all executed within 24 qubits (maximum 21).
 User-authorized config.py, .gitignore and snapshots.qut edits are included unchanged.
 Current defaults: 4-bit quint and alphabet ABC. The tour explicitly uses 3-bit/AB?.
@@ -66,7 +68,7 @@ review. Backend pins remain Qiskit 2.3.0, Aer 0.17.2, NumPy 2.1.3, ANTLR 4.13.2.
 
 ## Handoff and limitations
 
-T017-T020 are DONE. No required work remains from these requests.
+T017-T020 are DONE. Readability work is tracked separately below.
 For the next request, inspect git status/log and the active contract before editing.
 Do not restore automatic main execution or consuming measurement.
 
@@ -75,7 +77,7 @@ without calling it, so produces no output. grammar/.antlr is now ignored. No rem
 was added and nothing was pushed. For examples start at examples/language/README.md.
 Use tools/qutes.py for current checkout behavior; installed wheels from KB-018 retain
 the old defaults until rebuilt. Tour config makes its examples independent of these.
-Next action: take a new user request; no pending implementation task or blocker.
+Next action: T021-T023 as above; no external blocker.
 
 The 99% ideal success bound requires a match in the relevant data branch. No-match
 branches can return nonmatching candidates. Quantum data can become entangled with

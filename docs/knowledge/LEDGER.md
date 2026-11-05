@@ -549,3 +549,15 @@ all example docs/tests plus the three authorized user files form one local commi
 A Windows-default-encoding documentation update failed; recovered the untouched
 ledger history from HEAD, retained the new entry, and used explicit UTF-8 thereafter.
 No push, compiler feature change, package rebuild, hardware run or human review.
+
+## KB-020 - 2026-11-05 reporting and CLI guidance
+
+Resumed clean d9fdd05, read active contracts/knowledge base, and implemented the
+first approved readability checkpoint. Added exact-integer binary storage units,
+nonfatal QW0001 in CLI/API metadata, and a targeted quantum-wildcard diagnostic.
+No alphabet mutation or state preparation. Added seven-mode command walkthrough;
+archived the full old roadmap, extracted core value contracts, and updated active
+references. No grammar or execution changes. Initial exploration PowerShell brace
+expansion and cp1252 Qiskit drawing probes failed; retried with explicit paths and
+UTF-8. Focused suite: 92 passed. Next T022 retains source provenance through inlining
+and lowering, then T023 will consume that information for diagram-only folding.

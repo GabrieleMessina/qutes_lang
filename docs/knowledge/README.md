@@ -8,7 +8,7 @@ Read in this order:
 3. [DECISIONS](DECISIONS.md): user choices versus working defaults.
 4. [LEDGER](LEDGER.md): chronological work and findings, including failures.
 5. [VALIDATION](VALIDATION.md): reproducible checks and their limitations.
-6. [Development plan](../../DEVELOPMENT_PLAN.md): the full intended product.
+6. [Development plan](../../DEVELOPMENT_PLAN.md): the short product roadmap (contracts live in the specification).
 
 Authority: current user instructions > recorded user decisions > active language
 specification > roadmap > examples. Conflicts must be recorded and resolved, not

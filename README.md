@@ -39,6 +39,7 @@ execution requires Qiskit/Aer. The tested backend pins are Qiskit 2.3.0, Aer 0.1
 and NumPy 2.1.3.
 
 - [User guide and generated-module API](docs/guide.md)
+- [All seven CLI modes](docs/cli-walkthrough.md)
 - [Runnable examples](examples/)
 - [Complete language tour: 38 runnable examples, all within 24 qubits](examples/language/README.md)
 - [Language contract](docs/spec/language-v0.3.md) and [grammar](docs/spec/grammar.ebnf)

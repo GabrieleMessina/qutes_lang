@@ -26,7 +26,7 @@
 
 ## Implementation and validation
 
-- Follow `DEVELOPMENT_PLAN.md`; maintain familiar assignment and non-consuming
+- Follow the active language specification and `DEVELOPMENT_PLAN.md` roadmap; maintain familiar assignment and non-consuming
   measurement. No function-only evolution rule and no use-after-measurement error.
 - Separate parsing, typing/staging, cleanup, circuit lowering, and execution.
 - Keep the reference semantics independent of backend circuit construction.

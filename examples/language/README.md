@@ -151,3 +151,7 @@ including the backend's post-transpilation check. To rerun it:
 
 The examples complement the [language contract](../../docs/spec/language-v0.3.md).
 They deliberately demonstrate supported operations rather than programs that fail.
+
+The intentional `?` alphabet entry triggers QW0001: these examples store quantum
+wildcard markers. Classical wildcard patterns alone do not need that entry.
+See [CLI walkthrough](../../docs/cli-walkthrough.md) for all seven command modes.

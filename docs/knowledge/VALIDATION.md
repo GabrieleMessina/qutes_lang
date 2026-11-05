@@ -482,3 +482,13 @@ on disk to assign A? but its catalog still expected AB. Preserved the source and
 corrected expected outputs/docs. Final runs supersede these failures. KB-019 records
 an initial incorrect ad hoc import, corrected before the direct execution check.
 No hardware, hosted CI, independent human review or new package-install validation.
+
+## V020 - 2026-11-05 reporting and documentation
+
+Windows Python 3.13.5; unchanged pinned dependencies.
+`.venv/Scripts/python.exe tools/check.py -q tests/test_readability_reporting.py tests/test_values.py tests/test_delivery.py tests/test_cli.py`:
+92 passed, 17.93s; artifacts/checks/run-7xdbn37f. Covers units, huge symbolic
+estimates, CLI warning deduplication/JSON, silent Python API, existing encoding,
+delivery and command behavior. `git diff --check` passed. Walkthrough commands
+executed through tools/qutes.py against the checkout, plus generated module.
+Final complete cross-platform/package checks are reserved for checkpoint T023.

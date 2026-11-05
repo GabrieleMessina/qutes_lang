@@ -14,6 +14,7 @@ from qutes.diagnostics import DiagnosticError, Position, Span
 from qutes.parser import parse
 from qutes.serialization import json_text, load_json
 from qutes.syntax import to_dict
+from qutes.reporting import configuration_warnings, storage_size
 
 
 def diagnostic(code, message, path):
@@ -96,7 +97,7 @@ def explain(metadata):
     print(f"Snapshot bits: {cost['classical_bits']}; cleanup events: {cost['cleanup_events']}")
     print(f"Gate applications: {cost['gate_applications']}; library adders: {cost['library_adders']} (before backend decomposition)")
     estimate = cost["statevector_bytes"]
-    print(f"Statevector storage alone: {estimate if estimate is not None else '2^' + str(cost['statevector_bytes_power_of_two'])} bytes; backend overhead is additional")
+    print(f"Statevector storage alone: {storage_size(estimate, cost['statevector_bytes_power_of_two'])}; backend overhead is additional")
     print(f"Simulation limit: {cost['simulation_limit_qubits']} qubits; within limit: {cost['simulation_within_limit']}")
     print("Inputs are construction-time values; quantum conditions stay coherent; measured conditions use snapshots.")
     for allocation in metadata["allocations"]:
@@ -116,13 +117,18 @@ def main(arguments: list[str] | None = None) -> int:
                 source = stream.read()
         except (OSError, UnicodeError) as error:
             raise diagnostic("Q0001", f"cannot read UTF-8 source: {error}", options.source) from None
+        config = None if options.command == "parse" else configuration(options)
+        warnings = configuration_warnings(config) if config else []
+        if not options.json:
+            for warning in warnings:
+                print(f"{warning['code']}: warning: {warning['message']}\nHelp: {warning['help']}", file=sys.stderr)
         if options.command in {"parse", "analyze", "construct"}:
             syntax = parse(source, str(options.source))
             if options.command == "parse":
                 payload = {"stage": "syntax-only", "program": to_dict(syntax)}
                 message = f"Syntax OK: {len(syntax.functions)} function(s). Types and quantum safety have NOT been checked."
             else:
-                typed = analyze(syntax, configuration(options))
+                typed = analyze(syntax, config)
                 if options.command == "analyze":
                     payload = {"stage": "types-stages-effects", "program": ir.to_dict(typed)}
                     message = "Analysis OK: names, types, stages, and effects. Quantum cleanup and build-time bounds have NOT been verified."
@@ -130,10 +136,11 @@ def main(arguments: list[str] | None = None) -> int:
                     constructed = construct(typed, input_values(options))
                     payload = {"stage": "construction", "program": ir.to_dict(constructed)}
                     message = f"Construction OK: {constructed.loop_iterations} expanded iterations; quantum cleanup has NOT been verified."
+            payload["warnings"] = warnings
             print(json_text(payload) if options.json else message)
             return 0
 
-        compilation = compile_source(source, path=str(options.source), inputs=input_values(options), config=configuration(options))
+        compilation = compile_source(source, path=str(options.source), inputs=input_values(options), config=config)
         metadata = compilation.metadata
         if options.command == "run":
             payload = compilation.run(shots=options.shots, seed=options.seed)
@@ -150,6 +157,7 @@ def main(arguments: list[str] | None = None) -> int:
             payload["circuit_diagram"] = render(compilation, print_circuit=options.print_circuit,
                 directory=options.save_circuit, image_format=options.circuit_format or "png",
                 stream=sys.stderr if options.json else sys.stdout)
+        payload["warnings"] = warnings
         if options.json:
             print(json_text(payload))
         else:
@@ -169,7 +177,7 @@ def main(arguments: list[str] | None = None) -> int:
         return 0
     except DiagnosticError as error:
         if options.json:
-            print(json_text({"diagnostics": [item.to_dict() for item in error.diagnostics]}))
+            print(json_text({"diagnostics": [item.to_dict() for item in error.diagnostics], "warnings": locals().get("warnings", [])}))
         else:
             print(error.render(locals().get("source")), file=sys.stderr)
         return 1

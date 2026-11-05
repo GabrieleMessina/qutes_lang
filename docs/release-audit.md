@@ -55,7 +55,7 @@ No hosted CI, remote push, hardware validation, formal proof or human review is 
 ### Original V1 audit
 
 Date: 2026-10-31. Package: 0.1.0.dev0; language contract: 0.1.
-The evidence below concerns the V1 boundary in DEVELOPMENT_PLAN.md, not the later
+The evidence below concerns the V1 boundary in [the archived plan](history/development-plan-v0.3.md), not the later
 hybrid/hardware roadmap. This is an automated implementation and verification
 audit, not a claim of independent human review or formal proof of the compiler.
 

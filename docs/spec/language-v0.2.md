@@ -51,7 +51,7 @@ because the source uses normal assignment syntax.
 
 ## Values, operations, and staging
 
-Use the type/assignment/measurement contract in DEVELOPMENT_PLAN.md. Construction-
+Use the type/assignment/measurement contract in [core value semantics](value-semantics.md). Construction-
 time classical int is arbitrary precision. Division truncates toward zero and
 remainder has the dividend's sign. Division by zero is a diagnostic. Boolean
 conditions do not accept integer truthiness. No implicit quantum-to-classical

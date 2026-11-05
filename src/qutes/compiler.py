@@ -14,6 +14,7 @@ from qutes.gates import Measurement
 from qutes.lowering import Program, lower
 from qutes.parser import parse
 from qutes.serialization import json_text
+from qutes.reporting import configuration_warnings
 
 LANGUAGE_VERSION = "0.3"
 ARTIFACT_VERSION = 3
@@ -104,6 +105,7 @@ def compile_source(source: str, *, path="<input>", inputs=None, config=None) -> 
                 "resources": resources(program, syntax.span),
                 "searches": list(program.searches),
                 "allocations": ir.to_dict(program.allocations), "cleanup": ir.to_dict(program.cleanup_events),
+                "warnings": configuration_warnings(config),
                 "construction": {"evaluation_steps": constructed.evaluation_steps,
                                  "loop_iterations": constructed.loop_iterations}}
     return Compilation(source, path, constructed.inputs, program, metadata)

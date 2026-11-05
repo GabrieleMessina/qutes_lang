@@ -90,6 +90,8 @@ class TextEncoding:
         try:
             return self.alphabet.index(character)
         except ValueError:
+            if character == "?":
+                raise ValueError("'?' is not in the configured alphabet: storing a quantum wildcard marker requires an alphabet entry; use a classical pattern such as \"A?\" in text for alphabet-independent matching. '?' does not prepare a superposition") from None
             raise ValueError(f"{character!r} is not in the configured alphabet") from None
 
     def decode_character(self, code: int) -> str:

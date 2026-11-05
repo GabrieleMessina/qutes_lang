@@ -104,3 +104,11 @@ source packaging and requirement audit. All commits local; user experiments pres
   explicit config/input fixture, coverage/output catalog and linked guide. All run
   under the 24-qubit cap. Full Windows/Linux suites: 814 passed each. Includes the
   user's explicitly authorized config, ignore-file and snapshot edits.
+
+## Circuit readability and CLI guidance
+
+- T021 DONE (KB-020/V020): resource units, wildcard warnings, CLI walkthrough, roadmap consolidation.
+- T022 ACTIVE: source provenance, named registers, aliases, cleanup annotations.
+- T023 TODO: hierarchical diagrams, selective unfolding, integration and validation.
+- T024 DEFERRED by user: safe lifetime-based wire reuse; cleaned storage may still
+  be reconstructed for later cleanup, so release alone is not a reuse proof.
