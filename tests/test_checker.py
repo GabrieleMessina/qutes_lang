@@ -76,7 +76,7 @@ def test_quantum_operator_restrictions_and_range():
     for expression in ["q - 1", "q * 2", "q / 2", "-q", "!q", "q < 128"]:
         rejects(f" quint q=1; quint other={expression}; return 0; ", "Q2001")
     rejects(' quint q=1; q++; return 0; ', "Q2001")
-    check(' quint q=-128; q=q+(-1); return measure(q); ')
+    check(' quint q=-128; q=q+(-1); return measure(q); ', quint_bits=8)
 
 
 def test_readonly_and_lexical_scopes():
@@ -115,7 +115,7 @@ def test_prepare_effect_propagates_through_helpers():
 def test_dynamic_branch_effects_and_shape_joins():
     rejects(' qubit q=superposition(); int i=0; if(q) { i=1; } return i; ', "Q2004")
     rejects(' qubit q=superposition(); qustring s="A"; if(q) { s="AB"; } return measure(s); ', "Q2004")
-    check(' qubit q=superposition(); qustring s="A"; if(q) { s="AB"; } else { s="CD"; } return measure(s); ')
+    check(' qubit q=superposition(); qustring s="A"; if(q) { s="AB"; } else { s="CD"; } return measure(s); ', alphabet="ABCD")
     check(' qubit q=superposition(); quint total=0; if(q) { for(int i=0; i<3; i++) { total+=i; } } return measure(total); ')
 
 

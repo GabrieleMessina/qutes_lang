@@ -1,0 +1,6 @@
+bool ready = true;
+bool stopped = false;
+// Short-circuiting skips the unused division by zero.
+bool skipped = false && (1 / 0 == 0);
+return [ready && !stopped, stopped || ready, 2 == 2, 2 != 3,
+        2 < 3, 2 <= 2, 3 > 2, 3 >= 3, skipped];

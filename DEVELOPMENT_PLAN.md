@@ -81,7 +81,7 @@ in the specification before implementing a different behavior.
 - Keep the original V1 read-only function parameter model. Functions may return
   new quantum values; explicit mutation parameters are a later extension unless
   the specification review changes this choice.
-- Default integer width: 8 bits. Default alphabet: ASCII in code-point order.
+- Default integer width: 4 bits. Default alphabet: ABC (user update, 2026-11-04).
   Default quantum string capacity: 2 characters.
 - Default simulator qubit limit: 24, configurable. Generation of larger circuits
   is allowed; local execution checks limits before simulation.
@@ -211,7 +211,7 @@ runtime indices. `foreach` exposes a read-only element view without allocating a
 copy per iteration. Use indexed assignment to update elements.
 
 The alphabet contains at least two distinct Unicode scalar values in explicit
-order; default ASCII contains 128. Use the minimum whole number of bits needed
+order; the current default ABC contains three. Use the minimum whole number of bits needed
 for its codes. Reject unsupported literals, duplicate entries, and unused codes
 at decoding. No automatic normalization or general Unicode text processing is
 implied by custom characters.

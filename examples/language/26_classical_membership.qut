@@ -1,0 +1,5 @@
+return [3 in [1, 3, 5], [2, 3] in [1, 2, 3], [1, 3] in [1, 2, 3],
+        'B' in "ABC", "BC" in "ABCD", ['B', 'C'] in "ABCD",
+        "BC" in ['A', 'B', 'C'], "B" in ["AB", "BC"],
+        ["AB", "CD"] in ["XY", "AB", "CD"], "A?C" in "XABCY",
+        "" in "", [] in [], 1 in [], "ABC" in "AB", "AA" in "AAA"];

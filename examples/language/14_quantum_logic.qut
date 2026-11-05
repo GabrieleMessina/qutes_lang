@@ -1,0 +1,9 @@
+qubit first = superposition();
+qubit second = true;
+qubit opposite = !first;
+qubit both = first && second;
+qubit either = first || second;
+qubit equal = first == second;
+qubit different = first != second;
+return [measure(opposite), measure(both), measure(either),
+        measure(equal), measure(different)];

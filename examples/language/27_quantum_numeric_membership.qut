@@ -1,0 +1,4 @@
+quint number = superposition();
+qubit found = number in [0, 2];
+int observed = measure(number);
+return [measure(found), observed == 0 || observed == 2];

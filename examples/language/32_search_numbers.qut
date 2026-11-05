@@ -1,0 +1,4 @@
+qubit accepts(quint number) { return number == 1; }
+int[] numbers = [0, 1, 1];
+quint candidate = search(numbers, accepts);
+return measure(candidate);

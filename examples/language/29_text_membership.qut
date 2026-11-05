@@ -1,0 +1,3 @@
+qustring text = "AB";
+qubit found = "A?" in text;
+return measure(found);

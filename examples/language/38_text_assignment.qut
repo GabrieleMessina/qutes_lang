@@ -1,0 +1,6 @@
+// Whole strings can be replaced, including a different known logical length.
+// Individual characters of a string are readonly: use quchar[] for indexed edits.
+qustring text = "AB";
+string before = measure(text);
+text = "B";
+return [before, measure(text)];

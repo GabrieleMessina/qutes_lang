@@ -1,0 +1,5 @@
+qubit accepts(qubit value) { return value; }
+qubit seed = superposition();
+qubit[] values = [seed, !seed];
+qubit candidate = search(values, accepts);
+return measure(candidate);

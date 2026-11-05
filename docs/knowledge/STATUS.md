@@ -1,6 +1,9 @@
 # Current status
 
-Updated: 2026-11-04, checkpoint KB-018. The approved Qutes 0.3 increment is complete.
+Updated: 2026-11-05, checkpoint KB-019. Qutes 0.3 and the language tour are complete.
+T020 delivers 38 independent examples, all executed within 24 qubits (maximum 21).
+User-authorized config.py, .gitignore and snapshots.qut edits are included unchanged.
+Current defaults: 4-bit quint and alphabet ABC. The tour explicitly uses 3-bit/AB?.
 Package: 0.3.0.dev0. Language: 0.3. Generated artifact schema: 3.
 Active contract: [language-v0.3](../spec/language-v0.3.md), extending 0.2.
 
@@ -25,6 +28,12 @@ Active contract: [language-v0.3](../spec/language-v0.3.md), extending 0.2.
 
 ## Validation
 
+- KB-019: full Windows suite **814 passed**, 63.61s (run-dn9pqzbu); full Debian/WSL
+  suite **814 passed**, 85.09s (run-372bgprl). Includes all 38 examples at 64 shots,
+  seed 17. Tour guide links/counts and documented CLI inputs/config verified.
+- V019 records current validation. The following packaging evidence is from KB-018;
+  installed wheels were not rebuilt for the later user default changes.
+
 - Full Windows Python 3.13.5 suite: **775 passed**, 52.95s;
   artifacts/checks/run-nou9xgzv.
 - Full Debian/WSL Python 3.13.5 suite: **775 passed**, 71.23s;
@@ -41,7 +50,7 @@ Active contract: [language-v0.3](../spec/language-v0.3.md), extending 0.2.
 ## Resume and demo commands
 
 ```powershell
-& .\.venv\Scripts\qutes.exe run examples/search.qut --alphabet AB --shots 64 --seed 17
+& .\.venv\Scripts\python.exe tools/qutes.py run examples/language/33_search_strings.qut --shots 64 --seed 17
 & .\.venv\Scripts\qutes.exe explain examples/search_numbers.qut
 & .\.venv\Scripts\qutes.exe check examples/search.qut --alphabet AB --print-circuit
 & .\.venv\Scripts\python.exe tools/check.py -q
@@ -57,12 +66,16 @@ review. Backend pins remain Qiskit 2.3.0, Aer 0.17.2, NumPy 2.1.3, ANTLR 4.13.2.
 
 ## Handoff and limitations
 
-T017-T019 are DONE. No required implementation work remains from this increment.
+T017-T020 are DONE. No required work remains from these requests.
 For the next request, inspect git status/log and the active contract before editing.
 Do not restore automatic main execution or consuming measurement.
 
-User-modified examples/snapshots.qut and untracked grammar/.antlr are preserved,
-excluded from feature commits. No remote was added and nothing was pushed.
+The user-authorized snapshot experiment is included as supplied: it defines main
+without calling it, so produces no output. grammar/.antlr is now ignored. No remote
+was added and nothing was pushed. For examples start at examples/language/README.md.
+Use tools/qutes.py for current checkout behavior; installed wheels from KB-018 retain
+the old defaults until rebuilt. Tour config makes its examples independent of these.
+Next action: take a new user request; no pending implementation task or blocker.
 
 The 99% ideal success bound requires a match in the relevant data branch. No-match
 branches can return nonmatching candidates. Quantum data can become entangled with

@@ -1,0 +1,5 @@
+qubit accepts(quint number) { return number < 0; }
+quint candidate = search([0, 1, 1], accepts);
+qubit found = accepts(candidate);
+// No entry is negative. Search does not invent a match or throw a not-found error.
+return measure(found);

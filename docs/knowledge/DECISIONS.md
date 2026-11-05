@@ -185,3 +185,12 @@ conversation examples suggesting measurement consumption are superseded by D007.
 - D070 (implementation): conservatively preflight classical membership comparisons
   and charge quantum character expansion to existing construction work budgets.
   Pure known Boolean factors simplify without changing operand evaluation order.
+
+- D071 (user edit and explicit commit authorization, 2026-11-04): default quint
+  width is now 4 and alphabet ABC, superseding D011's original 8-bit/ASCII defaults.
+  Include the user's config.py, .gitignore and snapshots.qut edits in this delivery;
+  preserve their content. The ignore change excludes grammar/.antlr.
+- D072 (implementation): place the complete operation tour in examples/language
+  with its own adjacent config (3-bit quint, alphabet AB?, capacity 2, limit 24).
+  This makes runnable examples independent of global default changes. Existing
+  examples and the user's snapshot experiment remain in place.

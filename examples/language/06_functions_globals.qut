@@ -1,0 +1,7 @@
+int total = 1;
+advance(); // A function can be called before its definition.
+void advance() { total += 2; return; }
+int twice(int value) { return value + value; }
+int main() { return twice(total); }
+// main is an ordinary function: this explicit call executes it.
+return main();

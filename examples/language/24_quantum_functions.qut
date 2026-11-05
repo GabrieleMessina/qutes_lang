@@ -1,0 +1,8 @@
+quint next(quint value) {
+    // Parameters are readonly; a returned expression may evolve a new value.
+    quint temporary = value + 1;
+    return temporary + 1;
+}
+quint original = 0;
+quint result = next(original);
+return [measure(original), measure(result)];

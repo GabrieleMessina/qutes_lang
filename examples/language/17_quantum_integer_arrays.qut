@@ -1,0 +1,8 @@
+quint[] values = new quint[2];
+values[0] = 1;
+values[1] = 2;
+quint[] saved = values;
+values[0] += 1;
+quint total = 0;
+foreach (quint value in saved) { total += value; }
+return [measure(values[0]), measure(saved[0]), measure(total)];

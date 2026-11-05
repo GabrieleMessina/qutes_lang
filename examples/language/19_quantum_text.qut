@@ -1,0 +1,8 @@
+quchar letter = 'A';
+qustring text = "AB";
+bool characterDiffers = measure(letter != 'B');
+bool textMatches = measure(text == "AB");
+bool textDiffers = measure(text != "AA");
+char last = measure(text[1]);
+return [characterDiffers, textMatches, textDiffers,
+        last == 'B', text.Length == 2];

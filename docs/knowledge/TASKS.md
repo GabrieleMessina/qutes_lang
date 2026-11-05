@@ -97,3 +97,10 @@ source/wheel packaging and active 0.2 documentation verified. No hosted CI run.
 T017-T019 complete at KB-018 / V018: 775 tests on each platform, installed 0.3
 wheel/CLI/search checks, artifact migration, core-only compile, parser reproduction,
 source packaging and requirement audit. All commits local; user experiments preserved.
+
+## Language operation examples
+
+- T020 DONE (KB-019/V019): 38 independent operation examples, maximum 21 qubits,
+  explicit config/input fixture, coverage/output catalog and linked guide. All run
+  under the 24-qubit cap. Full Windows/Linux suites: 814 passed each. Includes the
+  user's explicitly authorized config, ignore-file and snapshot edits.

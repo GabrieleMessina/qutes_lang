@@ -169,7 +169,7 @@ max_simulation_qubits = 24
 max_simulation_shots = 1000000
 ```
 
-Defaults are eight-bit quint, ASCII alphabet, text capacity two, 24 simulator
+Defaults are four-bit quint, alphabet `ABC`, text capacity two, 24 simulator
 qubits, and at most one million shots per call. Construction limits are 10,000
 loop iterations, 100,000 evaluation/expansion work units, and 65,536 classical
 integer bits. Each limit is configurable. Resource diagnostics do not wrap values

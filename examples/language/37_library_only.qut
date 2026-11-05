@@ -1,0 +1,3 @@
+// This definition is valid, but does not execute unless called.
+int main() { return 42; }
+// Add 'return main();' to execute it and produce a value.

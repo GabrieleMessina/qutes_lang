@@ -18,8 +18,9 @@ def validate_alphabet(alphabet: str) -> None:
 
 @dataclass(frozen=True)
 class CompilerConfig:
-    quint_bits: int = 8
-    alphabet: str = "".join(chr(code) for code in range(128))
+    quint_bits: int = 4
+    # alphabet: str = "".join(chr(code) for code in range(128))
+    alphabet: str = "ABC"
     qustring_capacity: int = 2
     max_simulation_qubits: int = 24
     max_simulation_shots: int = 1_000_000

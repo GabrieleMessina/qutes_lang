@@ -1,0 +1,5 @@
+qubit coin = superposition();
+qubit copy = coin; // A correlated copy, not an independent random coin.
+bool before = measure(coin);
+coin = !coin;
+return [before, measure(copy), measure(coin)];

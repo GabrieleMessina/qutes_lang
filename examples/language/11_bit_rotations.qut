@@ -1,0 +1,6 @@
+// These rotate the bits; they are not zero-filling shifts.
+quint number = 1;
+number = rotateLeft(number, 1);
+int left = measure(number);
+number = rotateRight(number, 1);
+return [left, measure(number)];

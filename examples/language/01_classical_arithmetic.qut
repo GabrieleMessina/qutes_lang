@@ -1,0 +1,8 @@
+// Classical integers do not use qubits. Division truncates toward zero.
+int number = 7;
+number += 2;
+number -= 1;
+number++;
+number--;
+return [number, +number, -number, 2 + 3 * 4, (2 + 3) * 4,
+        number - 3, -7 / 3, -7 % 3];

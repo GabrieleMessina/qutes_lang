@@ -1,0 +1,6 @@
+qubit coin = superposition();
+qubit[] pattern = [true, true];
+qubit[] values = [coin, true, coin];
+// When coin is true, both windows match; they do not cancel.
+qubit found = pattern in values;
+return [measure(coin), measure(found)];

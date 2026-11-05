@@ -1,0 +1,3 @@
+qubit accepts(quchar letter) { return letter == 'B'; }
+quchar candidate = search("ABA", accepts);
+return measure(candidate);

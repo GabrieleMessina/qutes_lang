@@ -510,3 +510,42 @@ User snapshots.qut and untracked grammar/.antlr remain excluded.
 Source archive rebuilt and inspected successfully. Third checkpoint contains
 release integration, compatibility, audit fixes, examples and full validation
 evidence. No required work remains; future work starts from a new user request.
+
+### 2026-11-04/05 - KB-019 language operation tour
+
+
+Resumed KB-018 and inspected grammar, vocabulary, active specs and acceptance
+cases. User requested examples for every supported operation within 24 qubits,
+then explicitly authorized committing their config.py (4-bit/ABC defaults),
+.gitignore and snapshots.qut edits. Preserved these three edited files as supplied.
+
+Added 38 independent examples in examples/language, explicit adjacent config,
+all-classical input JSON, coverage/output catalog, and README with per-example
+qubit counts and expected outputs. Coverage includes scalar types, arithmetic,
+logic/comparisons, arrays/text, scripts/globals/functions, all control-flow forms,
+superposition, measurement/feedforward, rotations, cleanup, generic membership,
+quantum wildcard patterns and search over scalar/text/quantum collections.
+Examples compile to 0-21 qubits; all 38 executed successfully at 64 shots, seed 17
+(39 tests including catalog completeness, run-iwrb6snr). Guide links were checked;
+corrected an initial relative-link depth error before publication.
+
+Full regression run-pr215uh3: 812 passed, 2 failed. Both tests implicitly assumed
+old defaults (-128 requires 8 bits; CD requires D in the alphabet). Made those two
+semantic tests request their intended width/alphabet explicitly, preserving the
+new user defaults. No compiler behavior was changed by the example work. Updated
+current default descriptions in the guide/roadmap. Final regressions pending.
+
+Follow-up run-01c8sgfw: 813 passed, 1 failed. Example 22 had changed on disk to
+assign "A?" while its catalog still expected "AB". Preserved the source edit and
+updated the catalog/guide; direct execution confirmed ["A?", "B"]. The stricter
+JSON comparison also distinguishes bool from int outputs. An initial ad hoc probe
+used a nonexistent top-level import; reran with qutes.compiler/qutes.config.
+Final Windows run-dn9pqzbu: 814 passed (63.61s). Verified all 38 documented qubit
+counts against compilation (maximum 21), all tour guide links, and documented CLI
+input execution/search explanation with automatic adjacent-config discovery.
+
+Final Linux run-372bgprl: 814 passed (85.09s). Completed T020 and current handoff;
+all example docs/tests plus the three authorized user files form one local commit.
+A Windows-default-encoding documentation update failed; recovered the untouched
+ledger history from HEAD, retained the new entry, and used explicit UTF-8 thereafter.
+No push, compiler feature change, package rebuild, hardware run or human review.

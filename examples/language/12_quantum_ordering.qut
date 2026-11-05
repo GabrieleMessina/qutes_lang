@@ -1,0 +1,3 @@
+quint number = -1;
+return [measure(number < 0), measure(number <= -1),
+        measure(number > 0), measure(number >= -1)];

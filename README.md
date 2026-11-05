@@ -40,6 +40,7 @@ and NumPy 2.1.3.
 
 - [User guide and generated-module API](docs/guide.md)
 - [Runnable examples](examples/)
+- [Complete language tour: 38 runnable examples, all within 24 qubits](examples/language/README.md)
 - [Language contract](docs/spec/language-v0.3.md) and [grammar](docs/spec/grammar.ebnf)
 - [Knowledge base and handoff](docs/knowledge/README.md)
 - [Current status and validation limits](docs/knowledge/STATUS.md)

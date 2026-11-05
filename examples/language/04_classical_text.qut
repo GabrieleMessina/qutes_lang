@@ -1,0 +1,7 @@
+// Classical text is not restricted to the quantum alphabet.
+char newline = '\n';
+char omega = '\u03A9';
+string text = "A\nB";
+string quoted = "\"AB\"";
+return [newline == text[1], omega == 'Ω', text.Length == 3,
+        quoted[0] == '"', "AB" != "BA"];

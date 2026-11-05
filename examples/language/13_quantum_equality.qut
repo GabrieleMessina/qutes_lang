@@ -1,0 +1,2 @@
+quint number = 2;
+return [measure(number == 2), measure(number != 1)];

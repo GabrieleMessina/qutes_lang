@@ -1,0 +1,5 @@
+// Three-bit signed integers range from -4 through 3.
+quint number = superposition();
+int before = measure(number);
+number = number + 2;
+return [before, measure(number)];

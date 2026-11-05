@@ -1,0 +1,682 @@
+{
+  "description": "Runnable Qutes 0.3 feature tour. outputs lists allowed results, not guaranteed frequencies; preferred marks amplified search matches.",
+  "shots": 64,
+  "seed": 17,
+  "examples": [
+    {
+      "file": "01_classical_arithmetic.qut",
+      "title": "Classical integer arithmetic",
+      "features": [
+        "int",
+        "+",
+        "-",
+        "unary +",
+        "unary -",
+        "*",
+        "/",
+        "%",
+        "=",
+        "+=",
+        "-=",
+        "++",
+        "--"
+      ],
+      "outputs": [
+        [
+          8,
+          8,
+          -8,
+          14,
+          20,
+          5,
+          -2,
+          -1
+        ]
+      ]
+    },
+    {
+      "file": "02_classical_logic.qut",
+      "title": "Boolean logic and comparisons",
+      "features": [
+        "bool",
+        "!",
+        "&&",
+        "||",
+        "==",
+        "!=",
+        "<",
+        "<=",
+        ">",
+        ">="
+      ],
+      "outputs": [
+        [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          false
+        ]
+      ]
+    },
+    {
+      "file": "03_classical_arrays.qut",
+      "title": "Arrays, indexing, copying and length",
+      "features": [
+        "array literals",
+        "new",
+        "indexing",
+        "indexed assignment",
+        ".Length",
+        "array assignment"
+      ],
+      "outputs": [
+        [
+          1,
+          3,
+          3,
+          4,
+          3
+        ]
+      ]
+    },
+    {
+      "file": "04_classical_text.qut",
+      "title": "Characters, strings and escapes",
+      "features": [
+        "char",
+        "string",
+        "text indexing",
+        "text equality",
+        "escapes"
+      ],
+      "outputs": [
+        [
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      ]
+    },
+    {
+      "file": "05_control_flow.qut",
+      "title": "If, else, while, for and foreach",
+      "features": [
+        "if",
+        "else if",
+        "else",
+        "while",
+        "for",
+        "foreach",
+        "block scope"
+      ],
+      "outputs": [
+        11
+      ]
+    },
+    {
+      "file": "06_functions_globals.qut",
+      "title": "Functions, globals, explicit main and returns",
+      "features": [
+        "functions",
+        "void",
+        "return",
+        "globals",
+        "forward calls",
+        "main"
+      ],
+      "outputs": [
+        6
+      ]
+    },
+    {
+      "file": "07_inputs.qut",
+      "title": "All classical input types",
+      "features": [
+        "input",
+        "classical scalar inputs",
+        "classical array inputs"
+      ],
+      "outputs": [
+        [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      ],
+      "inputs": "07_inputs.json"
+    },
+    {
+      "file": "08_qubit_snapshots.qut",
+      "title": "Superposition, correlated copies and measurement",
+      "features": [
+        "qubit",
+        "superposition()",
+        "quantum value copy",
+        "measure()",
+        "post-measurement evolution"
+      ],
+      "outputs": [
+        [
+          false,
+          false,
+          true
+        ],
+        [
+          true,
+          true,
+          false
+        ]
+      ]
+    },
+    {
+      "file": "09_quint_superposition.qut",
+      "title": "Signed quantum integers and wraparound",
+      "features": [
+        "quint",
+        "superposition()",
+        "signed wraparound",
+        "post-measurement addition"
+      ],
+      "outputs": [
+        [
+          -4,
+          -2
+        ],
+        [
+          -3,
+          -1
+        ],
+        [
+          -2,
+          0
+        ],
+        [
+          -1,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          2,
+          -4
+        ],
+        [
+          3,
+          -3
+        ]
+      ]
+    },
+    {
+      "file": "10_quantum_addition.qut",
+      "title": "Register and constant addition",
+      "features": [
+        "quantum +",
+        "quantum +=",
+        "negative constant addition"
+      ],
+      "outputs": [
+        [
+          3,
+          1,
+          3
+        ]
+      ]
+    },
+    {
+      "file": "11_bit_rotations.qut",
+      "title": "Left and right bit rotation",
+      "features": [
+        "rotateLeft()",
+        "rotateRight()"
+      ],
+      "outputs": [
+        [
+          2,
+          1
+        ]
+      ]
+    },
+    {
+      "file": "12_quantum_ordering.qut",
+      "title": "Signed quantum ordering comparisons",
+      "features": [
+        "quantum <",
+        "quantum <=",
+        "quantum >",
+        "quantum >="
+      ],
+      "outputs": [
+        [
+          true,
+          true,
+          false,
+          true
+        ]
+      ]
+    },
+    {
+      "file": "13_quantum_equality.qut",
+      "title": "Quantum integer equality",
+      "features": [
+        "quantum ==",
+        "quantum !="
+      ],
+      "outputs": [
+        [
+          true,
+          true
+        ]
+      ]
+    },
+    {
+      "file": "14_quantum_logic.qut",
+      "title": "Coherent Boolean operations",
+      "features": [
+        "quantum !",
+        "quantum &&",
+        "quantum ||",
+        "qubit equality"
+      ],
+      "outputs": [
+        [
+          true,
+          false,
+          true,
+          false,
+          true
+        ],
+        [
+          false,
+          true,
+          true,
+          true,
+          false
+        ]
+      ]
+    },
+    {
+      "file": "15_coherent_if.qut",
+      "title": "Quantum-controlled if and else",
+      "features": [
+        "quantum if",
+        "quantum else"
+      ],
+      "outputs": [
+        -1,
+        1
+      ]
+    },
+    {
+      "file": "16_measurement_feedforward.qut",
+      "title": "Classical control after measurement",
+      "features": [
+        "runtime comparisons",
+        "runtime Boolean logic",
+        "measurement feedforward"
+      ],
+      "outputs": [
+        1,
+        2
+      ]
+    },
+    {
+      "file": "17_quantum_integer_arrays.qut",
+      "title": "Quantum arrays and readonly iteration",
+      "features": [
+        "quint[]",
+        "new quantum array",
+        "quantum indexed update",
+        "quantum foreach",
+        "quantum array copy"
+      ],
+      "outputs": [
+        [
+          2,
+          1,
+          3
+        ]
+      ]
+    },
+    {
+      "file": "18_quantum_boolean_arrays.qut",
+      "title": "Correlated Boolean arrays",
+      "features": [
+        "qubit[]",
+        "quantum array assignment",
+        "whole-array measurement"
+      ],
+      "outputs": [
+        [
+          false,
+          true
+        ],
+        [
+          true,
+          false
+        ]
+      ]
+    },
+    {
+      "file": "19_quantum_text.qut",
+      "title": "Quantum characters and strings",
+      "features": [
+        "quchar",
+        "qustring",
+        "quantum text ==",
+        "quantum text !=",
+        "text snapshots"
+      ],
+      "outputs": [
+        [
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      ]
+    },
+    {
+      "file": "20_quantum_text_iteration.qut",
+      "title": "Iterating through a quantum string",
+      "features": [
+        "qustring foreach",
+        "quchar comparisons"
+      ],
+      "outputs": [
+        true
+      ]
+    },
+    {
+      "file": "21_quantum_character_arrays.qut",
+      "title": "Editable arrays of characters",
+      "features": [
+        "quchar[]",
+        "character indexed assignment"
+      ],
+      "outputs": [
+        [
+          "B",
+          "B"
+        ]
+      ]
+    },
+    {
+      "file": "22_quantum_string_arrays.qut",
+      "title": "Arrays of quantum strings",
+      "features": [
+        "qustring[]",
+        "string element replacement"
+      ],
+      "outputs": [
+        [
+          "A?",
+          "B"
+        ]
+      ]
+    },
+    {
+      "file": "23_automatic_cleanup.qut",
+      "title": "Scoped quantum temporaries",
+      "features": [
+        "automatic uncomputation",
+        "versioned cleanup"
+      ],
+      "outputs": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "file": "24_quantum_functions.qut",
+      "title": "Quantum function arguments and returns",
+      "features": [
+        "quantum function return",
+        "readonly parameter"
+      ],
+      "outputs": [
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    {
+      "file": "25_measurement_helpers.qut",
+      "title": "Measurement inside a helper",
+      "features": [
+        "measurement helper"
+      ],
+      "outputs": [
+        [
+          1,
+          2
+        ]
+      ]
+    },
+    {
+      "file": "26_classical_membership.qut",
+      "title": "All classical membership shapes",
+      "features": [
+        "scalar in array",
+        "sequence in array",
+        "char in string",
+        "string in string",
+        "string/char[] matching",
+        "string in string[]",
+        "string[] in string[]",
+        "wildcards",
+        "empty patterns"
+      ],
+      "outputs": [
+        [
+          true,
+          true,
+          false,
+          true,
+          true,
+          true,
+          true,
+          false,
+          true,
+          true,
+          true,
+          true,
+          false,
+          false,
+          true
+        ]
+      ]
+    },
+    {
+      "file": "27_quantum_numeric_membership.qut",
+      "title": "Membership of a superposed number",
+      "features": [
+        "quantum scalar in classical array"
+      ],
+      "outputs": [
+        [
+          false,
+          false
+        ],
+        [
+          true,
+          true
+        ]
+      ]
+    },
+    {
+      "file": "28_quantum_sequence_membership.qut",
+      "title": "Quantum arrays and overlapping matches",
+      "features": [
+        "quantum sequence in quantum array",
+        "overlapping membership"
+      ],
+      "outputs": [
+        [
+          false,
+          false
+        ],
+        [
+          true,
+          true
+        ]
+      ]
+    },
+    {
+      "file": "29_text_membership.qut",
+      "title": "Classical patterns in quantum text",
+      "features": [
+        "classical pattern in quantum string"
+      ],
+      "outputs": [
+        true
+      ]
+    },
+    {
+      "file": "30_quantum_wildcards.qut",
+      "title": "A wildcard stored in a quantum character",
+      "features": [
+        "quantum wildcard pattern"
+      ],
+      "outputs": [
+        [
+          false,
+          false
+        ],
+        [
+          true,
+          true
+        ]
+      ]
+    },
+    {
+      "file": "31_quantum_text_pattern.qut",
+      "title": "A quantum string pattern and text entries",
+      "features": [
+        "quantum string in classical string[]"
+      ],
+      "outputs": [
+        true
+      ]
+    },
+    {
+      "file": "32_search_numbers.qut",
+      "title": "Search with duplicate positions",
+      "features": [
+        "search()",
+        "numeric oracle",
+        "non-power-of-two search",
+        "duplicates"
+      ],
+      "outputs": [
+        0,
+        1
+      ],
+      "preferred": [
+        1
+      ]
+    },
+    {
+      "file": "33_search_strings.qut",
+      "title": "Search with a text-pattern oracle",
+      "features": [
+        "string search",
+        "membership oracle"
+      ],
+      "outputs": [
+        "AA",
+        "AB",
+        "BB"
+      ],
+      "preferred": [
+        "AB",
+        "BB"
+      ]
+    },
+    {
+      "file": "34_search_characters.qut",
+      "title": "Search through characters of a string",
+      "features": [
+        "character search"
+      ],
+      "outputs": [
+        "A",
+        "B"
+      ],
+      "preferred": [
+        "B"
+      ]
+    },
+    {
+      "file": "35_search_quantum_collection.qut",
+      "title": "Search an existing quantum collection",
+      "features": [
+        "Boolean search",
+        "quantum collection search"
+      ],
+      "outputs": [
+        false,
+        true
+      ],
+      "preferred": [
+        true
+      ]
+    },
+    {
+      "file": "36_search_no_matches.qut",
+      "title": "Explicitly check whether a candidate matches",
+      "features": [
+        "no-match search",
+        "checking a search result"
+      ],
+      "outputs": [
+        false
+      ]
+    },
+    {
+      "file": "37_library_only.qut",
+      "title": "Function-only file without automatic execution",
+      "features": [
+        "function-only scripts",
+        "no implicit output"
+      ],
+      "outputs": [
+        null
+      ]
+    },
+    {
+      "file": "38_text_assignment.qut",
+      "title": "Whole-string assignment and snapshot lengths",
+      "features": [
+        "whole-string assignment",
+        "logical length changes",
+        "immutable text snapshots"
+      ],
+      "outputs": [
+        [
+          "AB",
+          "B"
+        ]
+      ]
+    }
+  ]
+}

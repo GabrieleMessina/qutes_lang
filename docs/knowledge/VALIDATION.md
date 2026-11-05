@@ -450,3 +450,35 @@ Source distribution: `setuptools.build_meta.build_sdist("dist")` passed;
 artifacts/sdist-v03.log. Verified dist/qutes_lang-0.3.0.dev0.tar.gz includes the
 authoritative grammar/hash, regeneration tool, active spec, compiler modules,
 search tests and examples.
+
+
+## V019 - 2026-11-05 language operation tour and user defaults
+
+Environment: Windows 11 and Debian/WSL, Python 3.13.5; backend pins unchanged from
+V018. Tests import the current checkout. No installed-wheel rebuild in this batch.
+
+- `.venv/Scripts/python.exe tools/check.py -q tests/test_language_examples.py`:
+  initial 39 passed, 6.67s (run-iwrb6snr).
+- `.venv/Scripts/python.exe tools/check.py -q`: final **814 passed**, 63.61s;
+  artifacts/checks/run-dn9pqzbu.
+- `wsl.exe -d Debian -- /mnt/c/Users/gabry/Work/Quantum/qutes_lang_chatgpt/artifacts/linux-venv/bin/python /mnt/c/Users/gabry/Work/Quantum/qutes_lang_chatgpt/tools/check.py -q`:
+  **814 passed**, 85.09s; artifacts/checks/run-372bgprl.
+- The 38 tour examples run at 64 shots/seed 17 with explicit adjacent qutes.toml.
+  Each stays under 24 qubits including backend decomposition; maximum allocated 21.
+  JSON output comparisons preserve type distinctions. Search sampling threshold is
+  a smoke check only; mathematical/statevector checks remain in the existing suite.
+- `.venv/Scripts/python.exe tools/qutes.py run examples/language/07_inputs.qut --inputs examples/language/07_inputs.json --shots 64 --seed 17`:
+  [true,true,true,true,true,true] in all 64 shots.
+- `.venv/Scripts/python.exe tools/qutes.py explain examples/language/33_search_strings.qut`:
+  13 qubits, 4 oracle calls, 2 retained index qubits, 7 workspace qubits, limit 24.
+  Confirms automatic discovery of the adjacent tour config.
+- Ad hoc compile audit compared all 38 guide qubit counts to compiler reports and
+  resolved every Markdown link in the tour guide: passed. `git diff --check` passed.
+
+Earlier full runs: run-pr215uh3 had 812 passed/2 failed because two tests depended
+on former 8-bit/ASCII defaults; those tests now explicitly request their intended
+width/alphabet. run-01c8sgfw had 813 passed/1 failed because example 22 was edited
+on disk to assign A? but its catalog still expected AB. Preserved the source and
+corrected expected outputs/docs. Final runs supersede these failures. KB-019 records
+an initial incorrect ad hoc import, corrected before the direct execution check.
+No hardware, hosted CI, independent human review or new package-install validation.
