@@ -10,9 +10,11 @@ This module has no Qiskit dependency and never substitutes measurement for clean
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from contextlib import contextmanager
 
 from qutes.diagnostics import DiagnosticError, Span
 from qutes.gates import Gate, Measurement, conditioned, controlled, inverse
+from qutes.provenance import Region
 
 
 @dataclass(frozen=True)
@@ -71,6 +73,25 @@ class Scheduler:
         self.max_steps = max_steps
         self.work = 0
         self.active_moves: set[tuple[int, int]] = set()
+        self.regions = []
+        self.region_stack = []
+
+    @contextmanager
+    def region(self, kind, label, span):
+        identifier = len(self.regions)
+        parent = self.region_stack[-1] if self.region_stack else None
+        start = len(self.operations)
+        self.regions.append(None)
+        self.region_stack.append(identifier)
+        try:
+            yield
+        except BaseException:
+            del self.regions[identifier:]
+            raise
+        else:
+            self.regions[identifier] = Region(identifier, parent, kind, label, start, len(self.operations), span)
+        finally:
+            self.region_stack.pop()
 
     def fail(self, message: str, storage: Storage, code="Q3001"):
         raise DiagnosticError(code, message, storage.span)
@@ -273,6 +294,10 @@ class Scheduler:
                     self.fail(f"cannot clean {target.name}: live value {source.name} still depends on its quantum state", target)
 
     def release(self, target: Storage):
+        with self.region("cleanup", target.name, target.span):
+            self._release(target)
+
+    def _release(self, target: Storage):
         if target.released or target.version < 0:
             raise ValueError("storage already released or uninitialized")
         self._root_guard(target)

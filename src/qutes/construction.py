@@ -189,7 +189,7 @@ class Constructor:
             if left.stage == right.stage == ir.Stage.STATIC:
                 self.step(expression, work_bound(left.value, right.value, left.type, right.type))
                 return self.literal(expression, matches(left.value, right.value, left.type, right.type))
-            return self.membership(expression, left, right)
+            return replace(self.membership(expression, left, right), presentation="membership")
         if op == "search":
             collection = self.expression(expression.arguments[0])
             if collection.type.quantum and collection.op not in {"load", "index"}:
@@ -412,7 +412,7 @@ class Constructor:
         for statement in block.statements:
             self.statement(statement)
 
-    def region(self, block, kind="block"):
+    def region(self, block, kind="block", aliases=()):
         previous_output, previous_owned = self.output, self.owned
         self.output, self.owned = [], set()
         returned = None
@@ -428,7 +428,7 @@ class Constructor:
             escapes = (returned.value,)
             self.owned.update(owned & set(returned.value.dependencies))
         self.output.append(ir.Statement(block.span, "scope", escapes,
-                                        (ir.Block(block.span, child),), operator=kind))
+                                        (ir.Block(block.span, child),), operator=kind, aliases=aliases))
         if returned:
             raise returned
 
@@ -441,6 +441,9 @@ class Constructor:
             value = self.expression(statement.expressions[0])
             if value.type.quantum:
                 value = self.materialize(value, statement.symbol.name)
+            else:
+                self.output.append(ir.Statement(statement.span, "bind", (value,), symbol=statement.symbol,
+                    operator="global" if statement.symbol.id in self.global_ids else None))
             self.environment[statement.symbol.id] = value
         elif op == "assign":
             target_source, value_source = statement.expressions
@@ -476,6 +479,9 @@ class Constructor:
                 updated = value
             if target_source.op == "load":
                 self.environment[target_source.symbol.id] = updated
+                if not target.type.quantum:
+                    self.output.append(ir.Statement(statement.span, "bind", (updated,), symbol=target_source.symbol,
+                        operator="global" if target_source.symbol.id in self.global_ids else None))
             elif target_source.op == "index":
                 if not target.type.quantum:
                     if base.stage == ir.Stage.STATIC and value.stage == ir.Stage.STATIC:
@@ -516,7 +522,7 @@ class Constructor:
                 self.iteration(statement)
                 item = self.index_value(collection, index, statement)
                 self.environment[statement.symbol.id] = item
-                self.region(statement.blocks[0], "iteration")
+                self.region(statement.blocks[0], "iteration", aliases=((statement.symbol.name, item),))
         else:
             raise AssertionError(op)
 
@@ -585,7 +591,8 @@ class Constructor:
             self.environment, self.output, self.owned = parent_environment, parent_output, parent_owned
             self.call_depth -= 1
         escapes = () if result is None or not result.type.quantum else (result,)
-        self.output.append(ir.Statement(source.span, "scope", escapes, (body,), operator="function"))
+        self.output.append(ir.Statement(source.span, "scope", escapes, (body,), operator="function",
+            source_name=function.name, aliases=tuple((p.name, a) for p, a in zip(function.parameters, normalized, strict=True))))
         if result is None:
             return ir.Expression(source.span, ir.Type("void"), ir.Stage.STATIC, "literal", known=True)
         return replace(result, span=source.span)

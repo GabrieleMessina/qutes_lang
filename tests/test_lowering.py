@@ -162,7 +162,7 @@ def test_source_generated_qiskit_executes_snapshots_and_evolution():
     results = simulator.run(compiled, shots=16, seed_simulator=17).result()
     counts = results.get_counts()
     assert len(counts) == 1
-    assert program.result.decode(int(next(iter(counts)), 2)) == [5, 7]
+    assert program.result.decode(int(next(iter(counts)).replace(" ", ""), 2)) == [5, 7]
 
 
 def test_feedforward_uses_stable_classical_snapshot_conditions():

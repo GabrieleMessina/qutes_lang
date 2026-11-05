@@ -66,6 +66,7 @@ class Expression:
     shape: int | None = None
     dependencies: frozenset[int] = frozenset()
     effects: frozenset[str] = frozenset()
+    presentation: str | None = None
 
 
 @dataclass(frozen=True)
@@ -83,6 +84,8 @@ class Statement:
     blocks: tuple[Block, ...] = ()
     symbol: Symbol | None = None
     operator: str | None = None
+    source_name: str | None = None
+    aliases: tuple[tuple[str, Expression], ...] = ()
 
 
 @dataclass(frozen=True)

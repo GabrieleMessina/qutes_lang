@@ -72,12 +72,27 @@ def emit_gates(qubit_count: int, operations: tuple[Gate, ...] | list[Gate]):
     return circuit
 
 
+def named_circuit(qubit_count, classical_bit_count, registers=()):
+    from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
+
+    if not registers:
+        return QuantumCircuit(qubit_count, classical_bit_count)
+    circuit = QuantumCircuit()
+    for register in registers:
+        cls = ClassicalRegister if register.classical else QuantumRegister
+        circuit.add_register(cls(len(register.bits), register.name))
+    assert circuit.num_qubits == qubit_count and circuit.num_clbits == classical_bit_count
+    assert [b for r in registers if not r.classical for b in r.bits] == list(range(qubit_count))
+    assert [b for r in registers if r.classical for b in r.bits] == list(range(classical_bit_count))
+    return circuit
+
+
 def emit_operations(qubit_count: int, classical_bit_count: int,
-                    operations: tuple[Gate | Measurement, ...] | list[Gate | Measurement]):
+                    operations: tuple[Gate | Measurement, ...] | list[Gate | Measurement], *, registers=()):
     """Emit scheduled operations, including explicit measurements and snapshot use."""
     from qiskit import QuantumCircuit
 
-    circuit = QuantumCircuit(qubit_count, classical_bit_count)
+    circuit = named_circuit(qubit_count, classical_bit_count, registers)
     for operation in operations:
         if isinstance(operation, Measurement):
             circuit.measure(operation.qubits, operation.classical_bits)

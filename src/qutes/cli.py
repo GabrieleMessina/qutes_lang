@@ -103,6 +103,19 @@ def explain(metadata):
     for allocation in metadata["allocations"]:
         status = "cleaned" if allocation["released"] else "live at shot end"
         print(f"  {allocation['name']}: wires {allocation['bits']}, {status}")
+    selectors = sorted({r["label"] if r["kind"] == "function" else r["kind"] for r in metadata.get("regions", ())})
+    if selectors:
+        print("Diagram selectors: " + ", ".join(selectors))
+    for mapping in metadata.get("source_mappings", ()):
+        if mapping["name"].startswith("$"):
+            continue
+        context = mapping["context"] + "/" if mapping["context"] else ""
+        kind = "snapshot bits" if mapping["classical"] else "wires"
+        print(f"  Binding {context}{mapping['name']}: {kind} {mapping['bits']}; operations [{mapping['operation_start']}, {mapping['operation_end']})")
+    for event in metadata["cleanup"]:
+        allocation = metadata["allocations"][event["storage"]]
+        restored = [bit for version in event["restored_inputs"] for bit in metadata["allocations"][version["storage"]]["bits"]]
+        print(f"  Cleanup {event['name']}: operations [{event['operation_start']}, {event['operation_end']}); zero wires {allocation['bits']}; restored inputs {restored}")
     print(f"Result layout: {json_text(metadata['result_layout'])}")
 
 

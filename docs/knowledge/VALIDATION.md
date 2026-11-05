@@ -492,3 +492,16 @@ estimates, CLI warning deduplication/JSON, silent Python API, existing encoding,
 delivery and command behavior. `git diff --check` passed. Walkthrough commands
 executed through tools/qutes.py against the checkout, plus generated module.
 Final complete cross-platform/package checks are reserved for checkpoint T023.
+
+## V021 - 2026-11-05 provenance and named circuits
+
+Windows Python 3.13.5, pinned Qiskit 2.3.0/Aer 0.17.2.
+- `.venv/Scripts/python.exe tools/check.py -q tests/test_lowering.py tests/test_construction.py tests/test_cleanup.py tests/test_language_examples.py tests/test_search.py tests/test_delivery.py`:
+  257 passed, 19.87s; run-k_x9s2k9.
+- `.venv/Scripts/python.exe tools/check.py -q tests/test_provenance.py tests/test_construction.py tests/test_search_delivery.py tests/test_visualization.py`:
+  75 passed, 5.80s; run-k5klc840 after final binding-range changes.
+- Covers direct/generated circuit equality, decoded snapshots, collisions, aliases,
+  returned storage, permutations/foreach views, search partitions, region nesting,
+  membership provenance, zero/restored wires and unchanged example-12 resources.
+- Earlier 109/2 failed representation assertions and fixes recorded in KB-021.
+  Full cross-platform validation is still pending T023; no wire reuse introduced.

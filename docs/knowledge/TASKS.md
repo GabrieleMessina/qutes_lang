@@ -108,7 +108,7 @@ source packaging and requirement audit. All commits local; user experiments pres
 ## Circuit readability and CLI guidance
 
 - T021 DONE (KB-020/V020): resource units, wildcard warnings, CLI walkthrough, roadmap consolidation.
-- T022 ACTIVE: source provenance, named registers, aliases, cleanup annotations.
-- T023 TODO: hierarchical diagrams, selective unfolding, integration and validation.
+- T022 DONE (KB-021/V021): source provenance, named registers, aliases, cleanup annotations.
+- T023 ACTIVE: hierarchical diagrams, selective unfolding, integration and validation.
 - T024 DEFERRED by user: safe lifetime-based wire reuse; cleaned storage may still
   be reconstructed for later cleanup, so release alone is not a reuse proof.

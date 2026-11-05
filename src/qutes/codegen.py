@@ -59,10 +59,13 @@ def python_source(compilation: Compilation) -> str:
                 name = f"_condition_{len(condition_names)}"
                 condition_names[id(condition)] = name
                 lines.extend(condition_function(condition, name))
-    lines.extend(["def _specialized_circuit():", "    from qiskit import QuantumCircuit",
+    lines.extend(["def _specialized_circuit():", "    from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister",
                   "    from qiskit.circuit.library import HGate, ModularAdderGate, SwapGate, XGate, RYGate, PhaseGate",
                   "    from qiskit.circuit.classical import expr",
-                  f"    qc = QuantumCircuit({program.qubit_count}, {program.classical_bit_count})"])
+                  "    qc = QuantumCircuit()"])
+    for register in program.registers:
+        kind = "ClassicalRegister" if register.classical else "QuantumRegister"
+        lines.append(f"    qc.add_register({kind}({len(register.bits)}, {register.name!r}))")
     for operation in program.operations:
         if operation.span:
             start = operation.span.start

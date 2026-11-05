@@ -77,7 +77,7 @@ def test_snapshots_and_post_measurement_update_stay_symbolic():
     assert measurements[0].expressions[0].arguments[0].symbol == measurements[1].expressions[0].arguments[0].symbol
     assert result.result.stage == ir.Stage.RUNTIME
     assert not result.result.known
-    assert [s.op for s in operations] == ["let", "let", "assign", "let"]
+    assert [s.op for s in operations if s.op != "bind"] == ["let", "let", "assign", "let"]
 
 
 def test_quantum_loop_body_references_fresh_local_storage_each_iteration():

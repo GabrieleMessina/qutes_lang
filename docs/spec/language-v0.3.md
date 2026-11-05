@@ -90,3 +90,14 @@ source. Rebuild with `qutes build SOURCE.qut`. Existing 0.2 source remains valid
 except that `search` is now a reserved builtin name. The Python compilation and
 generated build/run interfaces remain available. Both configuration and phase
 angles participate in deterministic generation; config participates in build ID.
+
+
+## Presentation metadata
+
+Named Qiskit registers partition existing physical wires in their original order;
+source aliases never allocate extra wires. Search value, retained index and work
+have separate register names but one owner. Source mappings record half-open
+scheduled-operation ranges and function invocation contexts. Cleanup annotations
+distinguish zeroed target wires from temporarily restored dependency wires.
+Construction `bind` annotations carry names only, not additional computation.
+This metadata is additive to artifact 3 and does not change language semantics.

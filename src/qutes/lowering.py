@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 from typing import Any
+from contextlib import nullcontext
 
 from qutes import construction, ir
 from qutes.cleanup import CleanupEvent, Scheduler, Storage
@@ -17,6 +18,7 @@ from qutes.diagnostics import DiagnosticError, Span
 from qutes.feedforward import predicate as runtime_predicate
 from qutes.gates import Gate, Measurement, conditioned, controlled, inverse
 from qutes.search import schedule, uniform_index
+from qutes.provenance import Region, SourceMapping, Register, expression_kind, registers
 from qutes.values import EncodedString, SignedInteger, TextEncoding
 
 
@@ -110,10 +112,13 @@ class Program:
     result: Result
     cleanup_verified: bool = True
     searches: tuple[dict, ...] = ()
+    regions: tuple[Region, ...] = ()
+    source_mappings: tuple[SourceMapping, ...] = ()
+    registers: tuple[Register, ...] = ()
 
     def to_qiskit(self):
         from qutes.qiskit_backend import emit_operations
-        return emit_operations(self.qubit_count, self.classical_bit_count, self.operations)
+        return emit_operations(self.qubit_count, self.classical_bit_count, self.operations, registers=self.registers)
 
 
 class Lowerer:
@@ -129,6 +134,9 @@ class Lowerer:
         self.lengths: dict[int, int] = {}
         self.searches = []
         self.search_layouts = {}
+        self.source_mappings = []
+        self.mapping_frames = []
+        self.context = []
 
     def fail(self, node, message, code="Q2001"):
         raise DiagnosticError(code, message, node.span)
@@ -325,6 +333,12 @@ class Lowerer:
         return target
 
     def create(self, expression, name):
+        kind = expression_kind(expression)
+        context = self.scheduler.region(kind, expression.op, expression.span) if kind else nullcontext()
+        with context:
+            return self._create(expression, name)
+
+    def _create(self, expression, name):
         if expression.op == "search":
             return self.create_search(expression, name)
         if expression.type.array:
@@ -509,107 +523,176 @@ class Lowerer:
                               alphabet=collection.alphabet, capacity=collection.capacity)
         return Result(expression.type, expression.op, arguments, expression.value)
 
-    def block(self, block):
-        for statement in block.statements:
-            op = statement.op
-            if op == "let":
-                expression = statement.expressions[0]
-                if expression.op == "measure":
-                    source = self.reference(expression.arguments[0])
-                    value = self.measure_value(source, expression.arguments[0].type, expression)
-                elif expression.op == "move":
-                    value = self.reference(expression)
-                elif expression.type.quantum:
-                    value = self.create(expression, statement.symbol.name)
-                else:
-                    value = self.runtime(expression)
-                self.bindings[statement.symbol.id] = value
-                if len(self.frames) == 1 and statement.symbol.type.quantum and not statement.symbol.name.startswith("$"):
-                    self.script_values.update(storage_ids(value))
-            elif op == "assign":
-                target_expression, expression = statement.expressions
-                target = self.reference(target_expression)
-                if isinstance(target, Collection):
-                    if expression.op in {"load", "move"} and self.reference(expression) is target:
-                        continue
-                    # An unconditional permutation can transfer the existing
-                    # element storage. Other value copies own different storage;
-                    # current index views resolve through this array binding.
-                    if not self.controls and not self.conditions and expression.op == "array" and all(
-                            item.op in {"load", "move", "index"} for item in expression.arguments):
-                        reordered = tuple(self.reference(item) for item in expression.arguments)
-                        if (len(reordered) == len(target.elements) and all(isinstance(item, Storage) for item in reordered)
-                                and {item.id for item in reordered} == {item.id for item in target.elements}):
-                            self.bindings[target_expression.symbol.id] = Collection(reordered)
-                            continue
-                    replacement = self.create(expression, "$array_value")
-                    for old, new in zip(target.elements, replacement.elements, strict=True):
-                        self.scheduler.overwrite(old, self.copy_gates(old, new, expression.span),
-                                                 controls=self.controls, conditions=self.conditions)
-                        if expression.type.name == "qustring":
-                            self.lengths[old.id] = self.lengths[new.id]
-                    self.release_temporaries((replacement,))
-                    continue
-                if self.contains(expression, target):
-                    gates, temporaries = self.self_update(expression, target)
-                    if gates:
-                        self.scheduler.update(target.storage if isinstance(target, View) else target, self.gated(gates))
-                else:
-                    gates, temporaries = self.preparation(expression, target)
-                    self.scheduler.overwrite(target.storage if isinstance(target, View) else target, gates, controls=self.controls, conditions=self.conditions)
-                self.release_temporaries(temporaries)
-                if target_expression.type.name == "qustring":
-                    self.lengths[target.id] = self.text_length(expression)
-            elif op == "scope":
-                self.frames.append(set())
-                self.block(statement.blocks[0])
-                escapes = set()
-                for expression in statement.expressions:
-                    # Nested return expressions can refer to more than one local.
-                    for identifier in expression.dependencies:
-                        value = self.bindings.get(identifier)
-                        escapes.update(storage_ids(value))
-                owned = self.frames.pop()
-                self.scheduler.release_scope(owned - escapes)
-                self.frames[-1].update(owned & escapes)
-            elif op == "if":
-                condition = statement.expressions[0]
-                if condition.stage == ir.Stage.QUANTUM:
-                    predicate, temporaries = self.operand(condition)
-                    if not isinstance(predicate, (Storage, View)) or len(predicate.bits) != 1:
-                        self.fail(condition, "quantum condition must occupy one qubit")
-                else:
-                    predicate = runtime_predicate(self.runtime(condition))
-                    self.scheduler.work += sum(1 for _ in predicate.nodes())
-                    if self.scheduler.work > self.scheduler.max_steps:
-                        self.fail(condition, "classical predicate construction budget exceeded", "Q4001")
-                    temporaries = ()
-                previous = self.controls
-                previous_conditions = self.conditions
-                before_lengths = self.lengths.copy()
-                branch_lengths = []
-                try:
-                    for block, expected in zip(statement.blocks, (True, False), strict=True):
-                        self.lengths = before_lengths.copy()
-                        if condition.stage == ir.Stage.QUANTUM:
-                            self.controls = (*previous, (predicate.bits[0], expected))
-                        else:
-                            self.conditions = (*previous_conditions, (predicate, expected))
-                        self.frames.append(set())
-                        self.block(block)
-                        self.scheduler.release_scope(self.frames.pop())
-                        branch_lengths.append(self.lengths.copy())
-                finally:
-                    self.controls = previous
-                    self.conditions = previous_conditions
-                for identifier in before_lengths:
-                    a, b = (lengths[identifier] for lengths in branch_lengths)
-                    if a != b:
-                        self.fail(statement, "dynamic branches disagree on string length", "Q2004")
-                    self.lengths[identifier] = a
-                self.release_temporaries(temporaries)
+    def map_value(self, name, value, span, frame=-1, context=None):
+        if isinstance(value, Collection):
+            for i, item in enumerate(value.elements):
+                self.map_value(f"{name}[{i}]", item, span, frame, context)
+            return
+        if isinstance(value, Result):
+            if value.op == "array":
+                for i, item in enumerate(value.arguments):
+                    self.map_value(f"{name}[{i}]", item, span, frame, context)
+                return
+            if value.op != "snapshot":
+                return
+        bits = value.bits
+        if not bits:
+            return
+        index = len(self.source_mappings)
+        self.source_mappings.append(SourceMapping(name, bits, isinstance(value, Result),
+            len(self.scheduler.operations), -1, "/".join(self.context) if context is None else context, span))
+        self.mapping_frames[frame].append(index)
+
+    def map_expression(self, name, expression, span):
+        value = self.reference(expression) if expression.type.quantum else self.runtime(expression)
+        self.map_value(name, value, span)
+
+    def block(self, block, aliases=()):
+        self.mapping_frames.append([])
+        try:
+            for name, expression in aliases:
+                self.map_expression(name, expression, expression.span)
+            for statement in block.statements:
+                kind, label = None, ""
+                if statement.op == "scope" and statement.operator == "function":
+                    kind, label = "function", statement.source_name
+                elif statement.op == "if":
+                    kind, label = "if", "if"
+                elif statement.op == "assign":
+                    kind = expression_kind(statement.expressions[1])
+                    label = statement.expressions[1].op
+                region = self.scheduler.region(kind, label, statement.span) if kind else nullcontext()
+                with region:
+                    self.statement(statement)
+        finally:
+            for index in self.mapping_frames.pop():
+                if self.source_mappings[index].operation_end == -1:
+                    self.source_mappings[index] = replace(self.source_mappings[index], operation_end=len(self.scheduler.operations))
+
+    def statement(self, statement):
+        op = statement.op
+        if op == "bind":
+            frame = 0 if statement.operator == "global" else -1
+            name = statement.symbol.name
+            for index in self.mapping_frames[frame]:
+                mapping = self.source_mappings[index]
+                if (mapping.name == name or mapping.name.startswith(name + "[")) and mapping.operation_end == -1:
+                    self.source_mappings[index] = replace(mapping, operation_end=len(self.scheduler.operations))
+            self.map_value(name, self.runtime(statement.expressions[0]), statement.span, frame,
+                           "" if frame == 0 else None)
+        elif op == "let":
+            expression = statement.expressions[0]
+            if expression.op == "measure":
+                source = self.reference(expression.arguments[0])
+                value = self.measure_value(source, expression.arguments[0].type, expression)
+            elif expression.op == "move":
+                value = self.reference(expression)
+            elif expression.type.quantum:
+                value = self.create(expression, statement.symbol.name)
             else:
-                self.fail(statement, f"circuit lowering for {op} statements is not implemented yet")
+                value = self.runtime(expression)
+            self.bindings[statement.symbol.id] = value
+            self.map_value(statement.symbol.name, value, statement.span)
+            if len(self.frames) == 1 and statement.symbol.type.quantum and not statement.symbol.name.startswith("$"):
+                self.script_values.update(storage_ids(value))
+        elif op == "assign":
+            target_expression, expression = statement.expressions
+            target = self.reference(target_expression)
+            if isinstance(target, Collection):
+                if expression.op in {"load", "move"} and self.reference(expression) is target:
+                    return
+                # An unconditional permutation can transfer the existing
+                # element storage. Other value copies own different storage;
+                # current index views resolve through this array binding.
+                if not self.controls and not self.conditions and expression.op == "array" and all(
+                        item.op in {"load", "move", "index"} for item in expression.arguments):
+                    reordered = tuple(self.reference(item) for item in expression.arguments)
+                    if (len(reordered) == len(target.elements) and all(isinstance(item, Storage) for item in reordered)
+                            and {item.id for item in reordered} == {item.id for item in target.elements}):
+                        self.bindings[target_expression.symbol.id] = Collection(reordered)
+                        prefix = target_expression.symbol.name
+                        owner_frame, owner_context = -1, None
+                        for frame_number, frame in enumerate(self.mapping_frames):
+                            for index in tuple(frame):
+                                mapping = self.source_mappings[index]
+                                if (mapping.name.startswith(prefix + "[") and mapping.operation_end == -1
+                                        and mapping.bits in [item.bits for item in target.elements]):
+                                    owner_frame, owner_context = frame_number, mapping.context
+                                    self.source_mappings[index] = replace(mapping, operation_end=len(self.scheduler.operations))
+                        self.map_value(prefix, Collection(reordered), statement.span, owner_frame, owner_context)
+                        return
+                replacement = self.create(expression, "$array_value")
+                for old, new in zip(target.elements, replacement.elements, strict=True):
+                    self.scheduler.overwrite(old, self.copy_gates(old, new, expression.span),
+                                             controls=self.controls, conditions=self.conditions)
+                    if expression.type.name == "qustring":
+                        self.lengths[old.id] = self.lengths[new.id]
+                self.release_temporaries((replacement,))
+                return
+            if self.contains(expression, target):
+                gates, temporaries = self.self_update(expression, target)
+                if gates:
+                    self.scheduler.update(target.storage if isinstance(target, View) else target, self.gated(gates))
+            else:
+                gates, temporaries = self.preparation(expression, target)
+                self.scheduler.overwrite(target.storage if isinstance(target, View) else target, gates, controls=self.controls, conditions=self.conditions)
+            self.release_temporaries(temporaries)
+            if target_expression.type.name == "qustring":
+                self.lengths[target.id] = self.text_length(expression)
+        elif op == "scope":
+            self.frames.append(set())
+            if statement.source_name:
+                self.context.append(f"{statement.source_name}#{self.scheduler.region_stack[-1]}")
+            self.block(statement.blocks[0], statement.aliases)
+            if statement.source_name:
+                self.context.pop()
+            escapes = set()
+            for expression in statement.expressions:
+                # Nested return expressions can refer to more than one local.
+                for identifier in expression.dependencies:
+                    value = self.bindings.get(identifier)
+                    escapes.update(storage_ids(value))
+            owned = self.frames.pop()
+            self.scheduler.release_scope(owned - escapes)
+            self.frames[-1].update(owned & escapes)
+        elif op == "if":
+            condition = statement.expressions[0]
+            if condition.stage == ir.Stage.QUANTUM:
+                predicate, temporaries = self.operand(condition)
+                if not isinstance(predicate, (Storage, View)) or len(predicate.bits) != 1:
+                    self.fail(condition, "quantum condition must occupy one qubit")
+            else:
+                predicate = runtime_predicate(self.runtime(condition))
+                self.scheduler.work += sum(1 for _ in predicate.nodes())
+                if self.scheduler.work > self.scheduler.max_steps:
+                    self.fail(condition, "classical predicate construction budget exceeded", "Q4001")
+                temporaries = ()
+            previous = self.controls
+            previous_conditions = self.conditions
+            before_lengths = self.lengths.copy()
+            branch_lengths = []
+            try:
+                for block, expected in zip(statement.blocks, (True, False), strict=True):
+                    self.lengths = before_lengths.copy()
+                    if condition.stage == ir.Stage.QUANTUM:
+                        self.controls = (*previous, (predicate.bits[0], expected))
+                    else:
+                        self.conditions = (*previous_conditions, (predicate, expected))
+                    self.frames.append(set())
+                    self.block(block)
+                    self.scheduler.release_scope(self.frames.pop())
+                    branch_lengths.append(self.lengths.copy())
+            finally:
+                self.controls = previous
+                self.conditions = previous_conditions
+            for identifier in before_lengths:
+                a, b = (lengths[identifier] for lengths in branch_lengths)
+                if a != b:
+                    self.fail(statement, "dynamic branches disagree on string length", "Q2004")
+                self.lengths[identifier] = a
+            self.release_temporaries(temporaries)
+        else:
+            self.fail(statement, f"circuit lowering for {op} statements is not implemented yet")
 
     def run(self):
         self.block(self.program.body)
@@ -624,7 +707,9 @@ class Lowerer:
                             for item in scheduler.storages)
         return Program(self.config, tuple(scheduler.operations), scheduler.qubit_count,
                        scheduler.classical_bit_count, allocations, tuple(scheduler.events), result,
-                       searches=tuple(self.searches))
+                       searches=tuple(self.searches), regions=tuple(scheduler.regions),
+                       source_mappings=tuple(self.source_mappings),
+                       registers=registers(allocations, self.source_mappings, scheduler.classical_bit_count))
 
 
 def lower(program: construction.Program) -> Program:

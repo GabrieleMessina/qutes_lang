@@ -1,7 +1,7 @@
 # Current status
 
 Updated: 2026-11-05. Circuit readability increment ACTIVE (T021-T023).
-T021 complete at KB-020/V020 (92 focused tests). Next: T022 provenance, names and aliases.
+T021-T022 complete at KB-020/021. Next: T023 hierarchical rendering and full validation.
 Qutes 0.3 and the language tour remain delivered at KB-019.
 T020 delivers 38 independent examples, all executed within 24 qubits (maximum 21).
 User-authorized config.py, .gitignore and snapshots.qut edits are included unchanged.

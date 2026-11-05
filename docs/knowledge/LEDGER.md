@@ -561,3 +561,21 @@ references. No grammar or execution changes. Initial exploration PowerShell brac
 expansion and cp1252 Qiskit drawing probes failed; retried with explicit paths and
 UTF-8. Focused suite: 92 passed. Next T022 retains source provenance through inlining
 and lowering, then T023 will consume that information for diagram-only folding.
+
+## KB-021 - 2026-11-05 source provenance and register names
+
+T022 implemented: backend-neutral operation regions, source binding ranges,
+function/foreach aliases and return moves, deterministic named registers including
+search value/index/work partitions and measurement snapshots. Direct/generated
+circuits preserve flattened wire order. Existing runtime already strips Qiskit's
+inter-register count spaces. Added cleanup annotation data identifying zeroed and
+restored wires. Explain lists selectors, bindings and cleanup ranges.
+
+First focused run: 109 passed/2 failed (run-dk8f5iof): a test decoded raw multi-register
+counts without removing spaces, and a construction test counted presentation-only
+bind annotations as computation. Updated those assertions without changing results.
+Next run: 257 passed (run-k_x9s2k9); final provenance/construction/search delivery/
+visualization run: 75 passed (run-k5klc840). Classical binding updates and array
+permutation ranges are recorded, not simulated. Example 12 retains 19 wires and
+51 gate applications. Next T023: consume regions in a separate drawing circuit;
+fold only reversible segments and leave measurement/runtime conditions visible.
