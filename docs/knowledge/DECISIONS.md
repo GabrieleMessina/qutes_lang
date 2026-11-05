@@ -212,3 +212,12 @@ conversation examples suggesting measurement consumption are superseded by D007.
 - D078 (resource guard): preflight wide lazy backend definitions conservatively
   before generation, then charge expanded instruction/wire references incrementally.
   Exhaustion is Q4001, never silent truncation. No new wire allocation or reuse.
+
+- D079 (user approved, 2026-11-05): implement fixed-schedule certified-zero wire
+  allocation first; do not reschedule cleanup or introduce measurement/reset.
+  Reconstructed logical values receive new lifetime epochs. This supersedes the
+  physical-reuse deferral in D073/D078. Default physical diagrams, optional logical.
+- D080 (implementation of approved plan): semantic zero certificates are distinct
+  from presentation annotations and published only after successful transactions.
+  Unknown/nonzero state remains allocated; last use or measurement is insufficient.
+  New builds will use artifact 4; preserve artifact 3 cached execution compatibility.

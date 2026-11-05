@@ -3,7 +3,7 @@
 Every accepted update has a recorded inverse and versions of its read operands.
 Cleanup temporarily restores those versions, applies the inverse, then restores
 the current inputs. Temporary restoration may not read the value being erased.
-Physical wires remain reserved so a released basis computation can be recomputed.
+Logical wires remain distinct so a released basis computation can be recomputed.
 This module has no Qiskit dependency and never substitutes measurement for cleanup.
 """
 
@@ -15,6 +15,7 @@ from contextlib import contextmanager
 from qutes.diagnostics import DiagnosticError, Span
 from qutes.gates import Gate, Measurement, conditioned, controlled, inverse
 from qutes.provenance import Region
+from qutes.wires import ZeroCertificate
 
 
 @dataclass(frozen=True)
@@ -49,6 +50,7 @@ class Storage:
     checkpoint: Checkpoint | None = None
     coherence_lost: bool = False
     replayable: bool = False
+    zero_workspace: tuple[int, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -76,6 +78,22 @@ class Scheduler:
         self.active_moves: set[tuple[int, int]] = set()
         self.regions = []
         self.region_stack = []
+        self.zero_certificates: list[ZeroCertificate] = []
+
+    def certify_zero(self, bits, start, reason):
+        """Publish only at a successfully completed scheduling transaction."""
+        if bits:
+            self.zero_certificates.append(ZeroCertificate(
+                tuple(sorted(bits)), len(self.operations), start, reason))
+
+    def certify_restored(self, before, start):
+        touched = {self.bit_owner[b] for op in self.operations[start:] for b in op.bits}
+        for identifier in sorted(touched):
+            storage = self.storages[identifier]
+            if storage.version == before[identifier] == -1:
+                self.certify_zero(storage.bits, start, "restored-zero-dependency")
+            elif storage.zero_workspace:
+                self.certify_zero(storage.zero_workspace, start, "restored-search-workspace")
 
     @contextmanager
     def region(self, kind, label, span):
@@ -155,7 +173,7 @@ class Scheduler:
         target.version += 1
         self.emit(gates, target)
 
-    def initialize_replayable(self, target: Storage, gates: tuple[Gate, ...]):
+    def initialize_replayable(self, target: Storage, gates: tuple[Gate, ...], *, zero_workspace=()):
         """Compiler-owned unitary preparation, with explicit versioned inputs.
 
         Unlike an external root, its entire preparation and private workspace are
@@ -164,10 +182,15 @@ class Scheduler:
         if target.history or target.version != -1 or target.released:
             raise ValueError("storage already initialized")
         dependencies = self.dependencies(gates, target)
+        if not set(zero_workspace) <= set(target.bits):
+            raise ValueError("workspace must belong to its preparation")
+        start = len(self.operations)
         target.root = target.replayable = True
+        target.zero_workspace = tuple(zero_workspace)
         target.history.append(Step(gates, dependencies))
         target.version = 0
         self.emit(gates, target)
+        self.certify_zero(target.zero_workspace, start, "search-preparation")
 
     def emit(self, gates: tuple[Gate, ...], target: Storage):
         self.tick(target, max(1, len(gates)))
@@ -312,6 +335,8 @@ class Scheduler:
                 storage.version = version
             raise
         target.released = True
+        self.certify_zero(target.bits, start, "cleanup")
+        self.certify_restored(before, start)
         touched = {self.bit_owner[bit] for gate in self.operations[start:] for bit in gate.bits}
         touched.discard(target.id)
         self.events.append(CleanupEvent(target.id, target.name, before[target.id], start,
@@ -360,6 +385,7 @@ class Scheduler:
         dependencies = self.dependencies(gates, target, auxiliary=True)
         target.history.append(Step(gates, dependencies))
         target.version += 1
+        self.certify_restored(before, start)
 
     def release_scope(self, identifiers: set[int]):
         """Prefer reverse allocation order, retrying after dependents are cleaned."""

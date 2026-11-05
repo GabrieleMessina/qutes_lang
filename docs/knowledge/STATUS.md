@@ -1,7 +1,11 @@
 # Current status
 
-Updated: 2026-11-05, checkpoint KB-022. Circuit readability increment COMPLETE.
-T021-T023 delivered; T024 physical wire reuse remains explicitly deferred.
+Updated: 2026-11-05, checkpoint KB-023. Wire reuse increment IN PROGRESS.
+T021-T023 delivered; T024 authorized and ACTIVE. See docs/wire-reuse-plan.md.
+First checkpoint adds semantic zero certificates and independently checked lifetime
+allocation. Execution still uses logical wires until checkpoint 2; no user-facing
+reuse setting yet. Next: integrate physical schedule/config/artifact 4, retaining
+logical program for views, then complete diagrams, reporting and distribution.
 Named registers, source/alias ranges, compact diagrams, selective unfolding,
 cleanup annotations, resource units, wildcard warnings and CLI guidance are ready.
 T020 delivers 38 independent examples, all executed within 24 qubits (maximum 21).
@@ -76,7 +80,7 @@ review. Backend pins remain Qiskit 2.3.0, Aer 0.17.2, NumPy 2.1.3, ANTLR 4.13.2.
 
 ## Handoff and limitations
 
-T017-T023 are DONE. No required work remains for the approved readability plan.
+T017-T023 are DONE. Readability is complete; T024 wire reuse is now active.
 For the next request, inspect git status/log and the active contract before editing.
 Do not restore automatic main execution or consuming measurement.
 
@@ -87,13 +91,13 @@ Current wheel is installed in both project Windows and Debian environments.
 Try `.venv/Scripts/qutes.exe check examples/language/12_quantum_ordering.qut
 --print-circuit --unfold 1`; add `--unfold-only compare` to select comparisons.
 See docs/cli-walkthrough.md for all modes and render APIs. No blockers. Next action:
-take a new user request; do not begin deferred T024 without new authorization.
+continue T024 checkpoint 2 from docs/wire-reuse-plan.md; authorization is present.
 
 The 99% ideal success bound requires a match in the relevant data branch. No-match
 branches can return nonmatching candidates. Quantum data can become entangled with
 results. Search strings require equal entry lengths; no runtime indices, mixed
 quantum lengths, custom domain preparation, hybrid retries or match enumeration.
 Observed local selection state may be impossible to clean and fails explicitly.
-Physical work wires remain reserved; large circuits may exceed simulation limits.
+Execution still reserves logical work wires until T024 integration is complete.
 No hardware validation, human review, formal proof, or hosted CI run is claimed.
 Python 3.12 is configured in CI but has not been locally tested.

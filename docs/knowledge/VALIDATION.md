@@ -544,3 +544,13 @@ ANTLR runtime 4.13.2; language 0.3, artifact 3, package 0.3.0.dev0 unchanged.
 
 No hosted CI, hardware execution, Python 3.12 run, or independent human review.
 Wire reuse remains deferred; rendered annotations never enter executable circuits.
+
+## V023 - 2026-11-05 allocation foundation
+
+Windows Python 3.13.5, existing pinned dependencies.
+`.venv/Scripts/python.exe tools/check.py -q tests/test_wires.py tests/test_cleanup.py tests/test_search.py tests/test_lowering.py`:
+**133 passed**, 5.58s; artifacts/checks/run-s58tv4om. Earlier two Measurement
+field-access failures corrected (KB-023). Independent complex state comparison
+checks final live logical-to-physical mapping and zero released state, including
+reference entanglement and later reconstruction. This is checkpoint-1 evidence,
+not full execution/CLI/diagram/distribution validation. Those remain required.

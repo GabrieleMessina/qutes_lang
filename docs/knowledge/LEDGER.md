@@ -614,3 +614,20 @@ and Linux environments, smoke checks pass; dependencies unchanged. Knowledge bas
 and handoff updated. Third local checkpoint completes the plan; no push or hardware
 run, no claim of independent human review. Physical reuse and text preparation
 remain deferred by user choice. Next action: wait for a new user request.
+
+## KB-023 - 2026-11-05 certified-zero lifetime foundation
+
+Resumed 3063a7f and inspected KB/contracts/scheduler. Preserved untracked user image
+12_quantum_ordering-1c59c0354694-64eeb63a.png. Prior planning literature and approved
+choices consolidated in docs/wire-reuse-plan.md. Implemented transaction-end zero
+certificates for cleanup, restored zero dependencies, overwrite and search workspace.
+Added fixed-schedule lifetime epochs, deterministic lowest-free-wire allocation,
+coverage/collision/handoff verifier, and quantum-only operation remapping. Logical
+program/execution remains unchanged in this checkpoint; integration is next.
+
+Initial run-pwtqj7sa: 131 passed/2 failed, because Measurement exposes qubits rather
+than Gate.bits. Added explicit operation-kind dispatch; run-s58tv4om 133 passed.
+Tests demonstrate example12 19->10 with 29 operations unchanged, zero-only dead
+storage elision, live-zero retention, measured state retention, atomic certificates,
+reconstruction and arbitrary complex amplitudes with an external reference.
+No simulator, reset or measurement is introduced by the allocation pass.

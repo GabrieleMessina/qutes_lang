@@ -20,6 +20,7 @@ from qutes.gates import Gate, Measurement, conditioned, controlled, inverse
 from qutes.search import schedule, uniform_index
 from qutes.provenance import Region, SourceMapping, Register, expression_kind, registers
 from qutes.values import EncodedString, SignedInteger, TextEncoding
+from qutes.wires import ZeroCertificate
 
 
 @dataclass(frozen=True)
@@ -116,6 +117,7 @@ class Program:
     source_mappings: tuple[SourceMapping, ...] = ()
     registers: tuple[Register, ...] = ()
     embedded_cleanup_annotations: tuple[dict, ...] = ()
+    zero_certificates: tuple[ZeroCertificate, ...] = ()
 
     def to_qiskit(self):
         from qutes.qiskit_backend import emit_operations
@@ -449,7 +451,7 @@ class Lowerer:
             gates.extend(preparation)
         gates.extend(gather(visible))
         operation_start = len(self.scheduler.operations)
-        self.scheduler.initialize_replayable(owner, tuple(gates))
+        self.scheduler.initialize_replayable(owner, tuple(gates), zero_workspace=work)
         # Preserve the oracle's source tree for every forward/inverse invocation.
         # Its work wires are slices of the retained owner, never new allocations.
         for occurrence, (offset, backwards) in enumerate(oracle_occurrences):
@@ -750,7 +752,8 @@ class Lowerer:
                        searches=tuple(self.searches), regions=tuple(scheduler.regions),
                        source_mappings=tuple(self.source_mappings),
                        registers=registers(allocations, self.source_mappings, scheduler.classical_bit_count),
-                       embedded_cleanup_annotations=tuple(self.embedded_cleanup_annotations))
+                       embedded_cleanup_annotations=tuple(self.embedded_cleanup_annotations),
+                       zero_certificates=tuple(scheduler.zero_certificates))
 
 
 def lower(program: construction.Program) -> Program:
