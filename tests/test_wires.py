@@ -141,3 +141,10 @@ def test_disabled_allocator_preserves_identity_and_is_deterministic():
     baseline = allocate(ops, 2, proofs, (1,), enabled=False)
     assert baseline.physical_count == 2
     assert remap(ops, baseline) == ops
+
+
+def test_wide_noop_lifetimes_are_bounded_before_materialization():
+    with pytest.raises(DiagnosticError, match="wire allocation references") as error:
+        compile_source('quint n=1; for(int i=0;i<20;i++){n+=0;}',
+                       config=CompilerConfig(quint_bits=64, max_evaluation_steps=500))
+    assert error.value.code == "Q4001"

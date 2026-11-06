@@ -1,9 +1,8 @@
 # Qutes language tour
 
-These 38 small programs cover the operations implemented in Qutes 0.3. Each file
+These 39 small programs cover the operations implemented in Qutes 0.3. Each file
 is independent. All have been executed with the supplied configuration and the
-24-qubit simulator limit; the largest currently uses **21 qubits**. Counts include
-reserved work qubits, even after cleanup. Classical-only programs use zero qubits.
+24-qubit simulator limit; the largest currently uses **15 qubits**. Counts describe physical wires after certified-zero reuse. Classical-only programs use zero qubits.
 
 ## Run an example
 
@@ -64,9 +63,9 @@ ordinary candidate that can be checked with the oracle.
 | [09_quint_superposition.qut](09_quint_superposition.qut) | quint, superposition(), signed wraparound, post-measurement addition | 3 | `[sample, sample + 2]`, wrapping into -4..3 |
 | [10_quantum_addition.qut](10_quantum_addition.qut) | quantum +, quantum +=, negative constant addition | 9 | `[3, 1, 3]` |
 | [11_bit_rotations.qut](11_bit_rotations.qut) | rotateLeft(), rotateRight() | 3 | `[2, 1]` |
-| [12_quantum_ordering.qut](12_quantum_ordering.qut) | quantum <, quantum <=, quantum >, quantum >= | 19 | `[true, true, false, true]` |
-| [13_quantum_equality.qut](13_quantum_equality.qut) | quantum ==, quantum != | 11 | All 2 results are `true` |
-| [14_quantum_logic.qut](14_quantum_logic.qut) | quantum !, quantum &&, quantum &#124;&#124;, qubit equality | 9 | `[true, false, true, false, true]` or `[false, true, true, true, false]` |
+| [12_quantum_ordering.qut](12_quantum_ordering.qut) | quantum <, quantum <=, quantum >, quantum >= | 10 | `[true, true, false, true]` |
+| [13_quantum_equality.qut](13_quantum_equality.qut) | quantum ==, quantum != | 8 | All 2 results are `true` |
+| [14_quantum_logic.qut](14_quantum_logic.qut) | quantum !, quantum &&, quantum &#124;&#124;, qubit equality | 8 | `[true, false, true, false, true]` or `[false, true, true, true, false]` |
 | [15_coherent_if.qut](15_coherent_if.qut) | quantum if, quantum else | 4 | `-1` or `1` |
 | [16_measurement_feedforward.qut](16_measurement_feedforward.qut) | runtime comparisons, runtime Boolean logic, measurement feedforward | 4 | `1` or `2` |
 
@@ -76,8 +75,8 @@ ordinary candidate that can be checked with the oracle.
 | --- | --- | ---: | --- |
 | [17_quantum_integer_arrays.qut](17_quantum_integer_arrays.qut) | quint[], new quantum array, quantum indexed update, quantum foreach, quantum array copy | 15 | `[2, 1, 3]` |
 | [18_quantum_boolean_arrays.qut](18_quantum_boolean_arrays.qut) | qubit[], quantum array assignment, whole-array measurement | 5 | `[false, true]` or `[true, false]` |
-| [19_quantum_text.qut](19_quantum_text.qut) | quchar, qustring, quantum text ==, quantum text !=, text snapshots | 21 | All 5 results are `true` |
-| [20_quantum_text_iteration.qut](20_quantum_text_iteration.qut) | qustring foreach, quchar comparisons | 11 | `true` |
+| [19_quantum_text.qut](19_quantum_text.qut) | quchar, qustring, quantum text ==, quantum text !=, text snapshots | 13 | All 5 results are `true` |
+| [20_quantum_text_iteration.qut](20_quantum_text_iteration.qut) | qustring foreach, quchar comparisons | 8 | `true` |
 | [21_quantum_character_arrays.qut](21_quantum_character_arrays.qut) | quchar[], character indexed assignment | 4 | `["B", "B"]` |
 | [22_quantum_string_arrays.qut](22_quantum_string_arrays.qut) | qustring[], string element replacement | 8 | `["A?", "B"]` |
 | [23_automatic_cleanup.qut](23_automatic_cleanup.qut) | automatic uncomputation, versioned cleanup | 9 | `[0, 2]` |
@@ -89,21 +88,21 @@ ordinary candidate that can be checked with the oracle.
 | Example | Operations | Qubits | Expected result |
 | --- | --- | ---: | --- |
 | [26_classical_membership.qut](26_classical_membership.qut) | scalar in array, sequence in array, char in string, string in string, string/char[] matching, string in string[], string[] in string[], wildcards, empty patterns | 0 | `false` at positions 3, 8, 13, 14; all others `true` |
-| [27_quantum_numeric_membership.qut](27_quantum_numeric_membership.qut) | quantum scalar in classical array | 12 | `[false, false]` or `[true, true]` |
-| [28_quantum_sequence_membership.qut](28_quantum_sequence_membership.qut) | quantum sequence in quantum array, overlapping membership | 17 | `[false, false]` or `[true, true]` |
-| [29_text_membership.qut](29_text_membership.qut) | classical pattern in quantum string | 7 | `true` |
-| [30_quantum_wildcards.qut](30_quantum_wildcards.qut) | quantum wildcard pattern | 10 | `[false, false]` or `[true, true]` |
-| [31_quantum_text_pattern.qut](31_quantum_text_pattern.qut) | quantum string in classical string[] | 19 | `true` |
+| [27_quantum_numeric_membership.qut](27_quantum_numeric_membership.qut) | quantum scalar in classical array | 9 | `[false, false]` or `[true, true]` |
+| [28_quantum_sequence_membership.qut](28_quantum_sequence_membership.qut) | quantum sequence in quantum array, overlapping membership | 13 | `[false, false]` or `[true, true]` |
+| [29_text_membership.qut](29_text_membership.qut) | classical pattern in quantum string | 6 | `true` |
+| [30_quantum_wildcards.qut](30_quantum_wildcards.qut) | quantum wildcard pattern | 8 | `[false, false]` or `[true, true]` |
+| [31_quantum_text_pattern.qut](31_quantum_text_pattern.qut) | quantum string in classical string[] | 11 | `true` |
 
 ### Automatic search
 
 | Example | Operations | Qubits | Expected result |
 | --- | --- | ---: | --- |
-| [32_search_numbers.qut](32_search_numbers.qut) | search(), numeric oracle, non-power-of-two search, duplicates | 12 | Usually `1`; a nonmatch is possible |
-| [33_search_strings.qut](33_search_strings.qut) | string search, membership oracle | 13 | Usually `"AB"` or `"BB"`; a nonmatch is possible |
-| [34_search_characters.qut](34_search_characters.qut) | character search | 9 | Usually `"B"`; a nonmatch is possible |
+| [32_search_numbers.qut](32_search_numbers.qut) | search(), numeric oracle, non-power-of-two search, duplicates | 10 | Usually `1`; a nonmatch is possible |
+| [33_search_strings.qut](33_search_strings.qut) | string search, membership oracle | 10 | Usually `"AB"` or `"BB"`; a nonmatch is possible |
+| [34_search_characters.qut](34_search_characters.qut) | character search | 8 | Usually `"B"`; a nonmatch is possible |
 | [35_search_quantum_collection.qut](35_search_quantum_collection.qut) | Boolean search, quantum collection search | 7 | Usually `true`; a nonmatch is possible |
-| [36_search_no_matches.qut](36_search_no_matches.qut) | no-match search, checking a search result | 16 | `false` |
+| [36_search_no_matches.qut](36_search_no_matches.qut) | no-match search, checking a search result | 10 | `false` |
 
 ### Scripts and text assignment
 
@@ -155,3 +154,15 @@ They deliberately demonstrate supported operations rather than programs that fai
 The intentional `?` alphabet entry triggers QW0001: these examples store quantum
 wildcard markers. Classical wildcard patterns alone do not need that entry.
 See [CLI walkthrough](../../docs/cli-walkthrough.md) for all seven command modes.
+
+## Wire reuse
+
+[39_wire_reuse.qut](39_wire_reuse.qut) creates 12 successive temporaries. Its
+39 logical qubits use **6 physical wires** and return `-3`. Run it normally;
+`--no-wire-reuse` exceeds the 24-qubit simulator limit. Cleanup schedules and gate
+order are unchanged. Reconstructed values receive new lifetimes when needed.
+
+Use `--print-circuit --wire-view logical` for separate source storage lines, or
+the default physical view for shared `work_N` wires and reuse annotations.
+`--unfold 1` reveals source detail in either view. Example 12 now uses 10 physical
+wires (19 logical), reducing statevector storage from 8 MiB to 16 KiB.

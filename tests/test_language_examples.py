@@ -1,5 +1,6 @@
 """The published language tour must execute within its advertised 24-qubit cap."""
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -16,6 +17,17 @@ def test_catalog_lists_every_runnable_tour_file():
     assert {case["file"] for case in CATALOG["examples"]} == {p.name for p in ROOT.glob("*.qut")}
     assert len(CATALOG["examples"]) == len({case["file"] for case in CATALOG["examples"]})
     assert CompilerConfig.load(ROOT / "qutes.toml").max_simulation_qubits == 24
+
+
+def test_reuse_example_only_fits_limit_with_reuse():
+    config = CompilerConfig.load(ROOT / "qutes.toml")
+    source = (ROOT / "39_wire_reuse.qut").read_text()
+    enabled = compile_source(source, config=config)
+    disabled = compile_source(source, config=replace(config, wire_reuse=False))
+    assert enabled.program.qubit_count == 6
+    assert disabled.program.qubit_count == 39
+    assert enabled.metadata["resources"]["simulation_within_limit"]
+    assert not disabled.metadata["resources"]["simulation_within_limit"]
 
 
 @pytest.mark.backend

@@ -144,9 +144,9 @@ unknown superposition with `number = 0` would erase information, and `number +=
 number` is not an ordinary reversible in-place addition. These receive `Q3001`.
 The compiler never inserts hidden measurement or reset to make them work.
 
-The script's explicitly named quantum values remain live until the shot ends. Cleaned
-wires are still reserved in V1 to allow historical recomputation, so a temporary
-can increase the reported qubit count even after it is cleaned.
+The script's explicitly named quantum values remain live until the shot ends. Certified-zero
+work wires are reused by later computations. Historical recomputation starts a new
+lifetime and reacquires zeroed wires. Measurement alone never permits reuse.
 
 Use `qutes check FILE` for complete compilation checks and `qutes explain FILE`
 to inspect storage, snapshots, cleanup counts, and estimated circuit size.
@@ -167,6 +167,7 @@ alphabet = " ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 qustring_capacity = 2
 max_simulation_qubits = 24
 max_simulation_shots = 1000000
+wire_reuse = true
 ```
 
 Defaults are four-bit quint, alphabet `ABC`, text capacity two, 24 simulator
@@ -174,8 +175,11 @@ qubits, and at most one million shots per call. Construction limits are 10,000
 loop iterations, 100,000 evaluation/expansion work units, and 65,536 classical
 integer bits. Each limit is configurable. Resource diagnostics do not wrap values
 or silently truncate work. Statevector memory alone grows as `16 * 2^qubits`
-bytes; backend overhead is additional. Reports count reserved wires and gate
-applications before device decomposition, not physical hardware costs.
+bytes; backend overhead is additional. Reports distinguish logical allocations
+from physical wire width and count gates before device decomposition. Set
+`wire_reuse = false`, pass `--no-wire-reuse`, or use `CompilerConfig(wire_reuse=False)`
+for baseline allocation. Reuse affects build identity; it never changes the
+scheduled operation order or inserts measurement/reset.
 
 Declare external values at the top level, for example `input int count;`.
 Supply them through a JSON object:
@@ -214,10 +218,12 @@ Repeating the same build and view replaces that image atomically. Other files re
 With `--json`, text diagrams go to stderr, and stdout includes the image path in
 `circuit_diagram.image` alongside the normal JSON result.
 
-Both views default to named source-level operation/function boxes. Use `--unfold 1`
+The physical view is the default; `--wire-view logical` shows original source
+storage instead of shared wires. Both views use source-level operation/function boxes. Use `--unfold 1`
 (or another depth), `--unfold all`, and optionally `--unfold-only compare,myFunction`
 to reveal detail. `explain` lists selectors. Measurement/runtime branches remain
 visible, and cleanup markers identify zeroed wires separately from restored inputs.
+Shared wires have stable `work_N` names and `reuse` handoff labels.
 Markers exist only in diagrams. Direct/generated executable circuits keep their
 operation structure and receive named registers. The [CLI walkthrough](cli-walkthrough.md)
 shows every command and view option. Drawing does not run extra simulations. `run` renders after a successful execution; `check`
@@ -236,6 +242,9 @@ python artifacts/loops.py --shots 32 --seed 7
 Create the output directory first. Generation does not need Qiskit installed.
 Generated Python contains readable circuit construction, embedded source, settings,
 bound inputs, result layout, source/build hashes, versions, and resource metadata.
+New modules use schema 4; schema-3 cached modules remain executable. Rebuilding
+adds reuse; changed-input specialization follows the recorded config (missing
+wire_reuse in legacy config uses the current default).
 Existing Qutes-generated outputs are replaced atomically; unrelated files require
 an explicit `--force`. The source file is never overwritten.
 

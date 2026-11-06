@@ -41,7 +41,7 @@ and NumPy 2.1.3.
 - [User guide and generated-module API](docs/guide.md)
 - [All seven CLI modes](docs/cli-walkthrough.md)
 - [Runnable examples](examples/)
-- [Complete language tour: 38 runnable examples, all within 24 qubits](examples/language/README.md)
+- [Complete language tour: 39 runnable examples, all within 24 qubits](examples/language/README.md)
 - [Language contract](docs/spec/language-v0.3.md) and [grammar](docs/spec/grammar.ebnf)
 - [Knowledge base and handoff](docs/knowledge/README.md)
 - [Current status and validation limits](docs/knowledge/STATUS.md)
@@ -54,7 +54,8 @@ V1 runs on a local ideal simulator. Hybrid multi-job pipelines, measurement-driv
 loops, general runtime arithmetic, hardware jobs, and a large algorithm library
 belong to later milestones. Some cleanup dependency patterns are conservatively
 rejected with a source diagnostic. No hidden measurement/reset substitutes for
-uncomputation. Cleaned wires remain reserved and are included in resource reports.
+uncomputation. Certified-zero wires are reused after cleanup; reports distinguish logical storage
+from physical circuit width. Use `--no-wire-reuse` for the original allocation.
 
 Quantum values are not unrestricted classical mutable values: copying correlates
 basis values, quantum branches preserve coherence, and unsafe erasure is rejected.
@@ -91,7 +92,8 @@ The alphabet override keeps the string example small enough to simulate. Search
 requires equal-length string entries. A search result retains an internal index;
 measurement can make local cleanup impossible, which is reported explicitly.
 See the [0.3 contract](docs/spec/language-v0.3.md) for oracle effects and ownership.
-Rebuild older generated Python modules with `qutes build` for artifact schema 3.
+New generated modules use artifact schema 4. Schema-3 modules remain executable;
+rebuild with `qutes build` to enable physical wire reuse.
 
 ## Development and verification
 

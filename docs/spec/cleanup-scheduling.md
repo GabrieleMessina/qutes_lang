@@ -7,12 +7,12 @@ for the exact supported subset and API.
 
 ## Storage and history
 
-Each allocation owns distinct physical bits, ordered least-significant first.
+Each allocation owns distinct logical bits, ordered least-significant first.
 Version -1 means all-zero storage. Initialization creates version 0; every update
 records a reversible gate sequence and the exact versions of its other operands.
 All later versions remain available as recipes, not additional physical copies.
-The current implementation reserves physical bits for the whole circuit, including
-released values; reuse/allocation optimization is a later task.
+After scheduling, [certified-zero wire allocation](wire-allocation.md) maps logical
+lifetimes onto physical wires. Later reconstruction uses a new lifetime.
 
 Allowed primitive operations are X, H preparation, correlated XOR copy, modular
 addition, constant addition, and rotation. Controls have explicit true/false
@@ -23,7 +23,7 @@ duplicating an operand when a control bit is also part of an addition source.
 
 To undo a recorded update, restore the recorded versions of its inputs temporarily,
 apply its inverse, and restore those inputs to their current versions. Released
-basis-derived values can be recomputed into their reserved zero bits and cleaned
+basis-derived values can be recomputed into fresh certified-zero physical wires and cleaned
 again. Temporary input restoration may neither mutate nor read the value being
 erased. This prevents cyclic schedules such as erasing `b` after `b = a; a += b`.
 

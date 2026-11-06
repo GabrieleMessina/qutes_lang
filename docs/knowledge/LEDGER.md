@@ -655,3 +655,54 @@ Next: exhaustive view/report checks, joint measured/unmeasured state checks, 24-
 reuse example, active specs/docs/counts, Windows/Linux/parser/installed validation.
 Preserve the untracked root PNG and snapshots.qut. Current installed wheels still
 precede wire reuse; use tools/qutes.py against checkout until rebuilding packages.
+
+## KB-025 - 2026-11-06 wire reuse delivery validation
+
+Completed physical/logical diagram/report guidance, exact logical/physical resource
+distinctions, stable handoff labels and empty-marker protection. Added joint
+classical/remaining-quantum branch checks and both-view operator/image/CLI tests.
+New tour39 uses 6 physical wires for 39 logical and returns -3; all 39 examples
+execute under 24 (largest physical width15). Updated active docs/spec/roadmap and
+added wire-allocation contract and wire-reuse-audit requirement evidence.
+
+Focused run-_b8350rt: 34 passed/1 invalid fixture (n=t created a forbidden cleanup
+cycle). Kept Q3001 semantics and changed fixture to reversible n+=1; run-uf2n0x1_
+87 passed. An ad hoc tour-count documentation script used Windows default decoding
+and rejected a Unicode char fixture; no docs were written before failure. Retried
+with explicit UTF-8, checked all table counts and local links successfully.
+
+Full Windows run-zg8e_zot: 906 passed, 81.98s. Debian run-9oamdb49: 906 passed,
+96.61s. Parser reproduction passed. All 17 walkthrough commands passed. Inspected
+artifacts/wire-preview/12_quantum_ordering-6bc8b9eac72f-5b224130.png: physical
+work wires, cleanup and reuse handoffs legible. Rendering adds no executable gates.
+
+Built/installed final source wheel in project Windows/Linux environments. Initial
+installed verifier assumed one contiguous n register for input2; first-use physical
+allocation legitimately yields indexed n registers. Corrected verifier to accept
+source-indexed names under the approved naming contract; both installed smoke runs
+then passed, including reused execution and logical views. Core-only installation
+compiles with empty PATH and no Qiskit, emits artifact4 and reports Q5001 for build.
+Dependencies consistent on both platforms. The final audit follow-up below
+supersedes these initial full-test/package results.
+
+Final delivery audit is docs/wire-reuse-audit.md. Preserve snapshots.qut and root
+untracked PNG. No remote/push or user-file deletion. Remaining future choices are
+cleanup rescheduling, dirty ancilla and hardware-aware placement, outside this
+increment. Next request can start from KB-025; no required wire-reuse task remains.
+
+Final audit follow-up: allocation materialization needed its own early reference
+bound because repeated wide no-op gates may emit no backend operations. Added
+Q4001 preflight over live/operation/proof references and a regression. Converted
+private workspace membership to a set to avoid quadratic wide-storage scans.
+Focused run-clza2c6j:47 passed; final focused run-qv2or_fx:103 passed. A compile-only
+20,000-bit single-entry search probe returned 40,001 logical/20,000 physical in
+0.83s without simulation (initial ad hoc expectation incorrectly included an index
+bit for N=1; corrected observation, no compiler change).
+
+Final complete source: Windows run-917rvzk8 **907 passed**,78.79s; Debian
+run-hh5g0qad **907 passed**,96.02s. Supersedes successful intermediate907 runs
+4zwbd261/gt05by5g before the workspace lookup refactor. Final wheel SHA256
+dea2099d260ae46c3a23cf5526d459cf4de9c0c960c75a5c46ac53bf39844af4 installed and
+smoked in Windows/Linux/core environments; both installed verifiers pass. Source
+archive and wheel bytes checked again after final documentation. All required
+work complete; the third coherent local commit closes T024, with no push.

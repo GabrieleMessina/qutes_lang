@@ -64,18 +64,37 @@ recomputation and is never incorrectly labeled as zeroing.
 Register names identify physical storage. `explain` shows other source names and
 their operation ranges: aliases, readonly parameters and returned values do not
 necessarily get independent wires. Array entries and repeated locals use unique
-names; search keeps separate value, index and workspace register names.
+names. With reuse, exclusive wires keep source names where possible and shared
+wires use `work_N`. `reuse` labels identify handoffs; folded blocks show hidden
+reuse counts. `explain` lists logical-to-physical intervals and their zero proofs.
 
 Image names include both build and view hashes, so compact and expanded views
 coexist. Drawing options do not change build identity or the execution circuit.
 Use `qutes.visualization.render(compilation, print_circuit=True, unfold=1,
-unfold_only="compare,next")` from Python for the same view controls.
+unfold_only="compare,next", wire_view="physical")` from Python for the same view controls.
 
-Example 12 reserves 19 qubits, 16 eventually cleaned, and needs **8 MiB** for the
-statevector alone. Cleanup restores temporary storage to zero, but the current
-allocator does not reuse those wires: later cleanup may reconstruct an older value.
-Backend overhead is additional. Compile success does not imply a large circuit
-fits the simulator; `run` checks the limit before and after backend decomposition.
+Example 12 uses **10 physical qubits** for 19 logical qubits, including 16 cleaned
+logical qubits and 7 physical wires free at the end. Statevector storage is **16 KiB**
+(8 MiB with reuse disabled). Backend overhead is additional. Cleanup scheduling
+and operation order are unchanged; later reconstruction receives a new lifetime.
+Reduced width does not guarantee better hardware depth or execution time.
+
+```text
+qutes check examples/language/12_quantum_ordering.qut --print-circuit --wire-view logical --unfold 1
+qutes explain examples/language/12_quantum_ordering.qut --no-wire-reuse
+qutes run examples/language/39_wire_reuse.qut --shots 64 --seed 17
+```
+
+The last example returns `-3`, using 6 physical qubits for 39 logical qubits.
+`--no-wire-reuse` retains all 39 and cannot run under the default 24-qubit cap.
+`--wire-reuse` enables reuse explicitly. These flags override `wire_reuse` in
+TOML; Python uses `CompilerConfig(wire_reuse=False)`. Unlike allocation settings,
+`--wire-view physical|logical` changes only diagrams/image names, requires diagram
+output, and does not change build identity. Empty zero-only locals may disappear
+from physical views; logical views retain their cleanup annotations.
+
+Compile success does not imply a large circuit fits the simulator; `run` checks
+physical width before and after backend decomposition.
 
 ## Generated modules
 

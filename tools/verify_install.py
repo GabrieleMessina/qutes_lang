@@ -36,7 +36,7 @@ def main():
         assert cli["outcomes"] == [{"value": [2, 3], "count": 8, "probability": 1.0}]
         compilation = compile_source(source.read_text(), inputs={"start": 2}, config=CompilerConfig(quint_bits=3))
         circuit, _ = compilation.build()
-        assert circuit.qregs[0].name == "n"
+        assert all(register.name == "n" or register.name.startswith("n_") for register in circuit.qregs)
         assert circuit.cregs[0].name == "before"
         text = io.StringIO()
         view = render(compilation, print_circuit=True, stream=text, unfold=1, unfold_only="add")
@@ -61,10 +61,17 @@ def main():
         assert sum(item['count'] for item in search_result['outcomes'] if item['value']) >= 28
         assert search_result['build']['artifact_schema'] == 4
         assert search_result['build']['searches'][0]['entries'] == 3
+        reuse = compile_source('quint n=1; for(int i=0;i<12;i++){quint t=n+1; n+=1;} return measure(n);',
+                               config=CompilerConfig(quint_bits=3))
+        assert reuse.metadata['resources']['allocated_qubits'] == 6
+        assert reuse.metadata['resources']['logical_allocated_qubits'] == 39
+        assert reuse.run(shots=8)['outcomes'][0]['value'] == -3
+        logical_view = render(reuse, print_circuit=True, stream=io.StringIO(), wire_view='logical')
+        assert logical_view['view']['wire_view'] == 'logical'
     report = {"python": platform.python_version(), "platform": platform.platform(), "qutes": qutes.__version__,
               "installed_path": str(installed), "dependencies": dependency_versions(),
               "isolated_cli": "passed", "named_registers_and_selective_diagram": "passed", "generated_module_respecialization": "passed",
-              "search_generated_module_respecialization": "passed"}
+              "search_generated_module_respecialization": "passed", "physical_wire_reuse_and_logical_view": "passed"}
     target = output / ("windows.json" if sys.platform == "win32" else "linux.json")
     target.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report, indent=2))

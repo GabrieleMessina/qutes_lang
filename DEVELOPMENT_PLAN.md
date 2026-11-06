@@ -11,14 +11,14 @@ express values and computations; the compiler manages circuits and uncomputation
 
 ## Current increment
 
-Improve circuit register names, source-level diagrams, cleanup annotations,
-unfolding controls, resource formatting, and CLI guidance. Rendering must preserve
-execution semantics. Wildcard matching remains distinct from state preparation.
-See T021-T023 in the knowledge base for delivery checkpoints.
+Implement certified-zero physical wire reuse after complete cleanup scheduling,
+with unchanged operations/order, default physical diagrams and optional logical
+views. See [the implementation plan](docs/wire-reuse-plan.md) and T024 in the
+knowledge base for actual delivery status. Existing circuit readability is complete.
 
 ## Future work
 
-- Safe physical reuse of zeroed wires after their final required lifetime.
+- Cleanup rescheduling, memory-budget recomputation and hardware-aware allocation.
 - Explicit preparation of quantum text distributions.
 - Hybrid quantum/classical pipelines and runtime-dependent iteration.
 - Broader arithmetic and collection capabilities, with explicit semantic contracts.

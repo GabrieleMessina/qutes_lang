@@ -1,9 +1,11 @@
 """Create an executable physical view without mutating logical construction."""
 from collections import defaultdict
 from dataclasses import replace
+from itertools import chain
 
 from qutes.provenance import Register
-from qutes.wires import allocate, remap
+from qutes.wires import allocate, remap, quantum_bits
+from qutes.diagnostics import DiagnosticError
 
 
 def physical_registers(registers, allocation):
@@ -43,8 +45,19 @@ def physical_registers(registers, allocation):
 
 
 def physical_program(logical):
+    workspace = {bit for storage in logical.allocations for bit in storage.scratch_bits}
     live = tuple(bit for storage in logical.allocations if not storage.released
-                 for bit in storage.bits if bit not in storage.scratch_bits)
+                 for bit in storage.bits if bit not in workspace)
+    # A scheduled no-op can still reference a wide value. Bound lifetime/proof
+    # materialization independently of the later elementary backend expansion.
+    work = 0
+    sizes = chain((len(live),), (len(quantum_bits(op)) for op in logical.operations),
+                  (len(proof.bits) for proof in logical.zero_certificates))
+    for size in sizes:
+        work += size
+        if work > logical.config.max_evaluation_steps:
+            raise DiagnosticError("Q4001", "wire allocation references exceed the construction budget",
+                                  logical.allocations[0].span)
     allocation = allocate(logical.operations, logical.qubit_count, logical.zero_certificates,
                           live, enabled=logical.config.wire_reuse)
     return replace(logical, operations=remap(logical.operations, allocation),

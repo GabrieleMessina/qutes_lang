@@ -110,7 +110,7 @@ source packaging and requirement audit. All commits local; user experiments pres
 - T021 DONE (KB-020/V020): resource units, wildcard warnings, CLI walkthrough, roadmap consolidation.
 - T022 DONE (KB-021/V021): source provenance, named registers, aliases, cleanup annotations.
 - T023 DONE (KB-022/V022, 858 tests each platform): hierarchical diagrams, selective unfolding, integration and validation.
-- T024 ACTIVE: certified-zero lifetimes and wire reuse (authorized 2026-11-05).
-  Checkpoints 1-2 implemented: certificates/epochs/verifier, physical execution,
-  config/artifact 4 and compatibility tests. Next: complete physical/logical view
-  tests, reports/docs/tour and full cross-platform/installed validation.
+- T024 DONE (KB-025/V025): certified-zero reuse, multi-epoch reconstruction,
+  physical execution/config/artifact4 with legacy3 support, physical/logical views,
+  reports and 39-example tour. Full Windows/Linux 907 each; installed/core/parser
+  checks pass. See docs/wire-reuse-audit.md. Scheduling/routing/dirty ancilla deferred.

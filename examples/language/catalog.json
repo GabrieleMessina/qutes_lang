@@ -677,6 +677,12 @@
           "B"
         ]
       ]
+    },
+    {
+      "file": "39_wire_reuse.qut",
+      "outputs": [
+        -3
+      ]
     }
   ]
 }

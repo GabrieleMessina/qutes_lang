@@ -50,8 +50,9 @@ circuit = program.to_qiskit()
 
 All lexical-scope temporaries must be clean before leaving their scope. The script's
 explicitly named values are live circuit outputs until shot completion; they are not
-silently reset by source lowering. Released storage remains physically reserved
-so historical recipes can be reconstructed. This increases qubit requirements.
+silently reset by source lowering. Logical storage histories remain available for reconstruction. Public compilation
+then applies [physical wire allocation](wire-allocation.md); this low-level `lower`
+API intentionally returns the unallocated logical program.
 Anonymous helper results/computed arguments must be cleaned too; an escaping
 helper result does not automatically become a user-owned script value.
 
@@ -63,8 +64,8 @@ function ownership, measurement checkpoints, and explicit unsafe cleanup errors.
 
 ## Resource and delivery boundaries
 
-Physical wire reuse remains deferred; reports count all reserved wires. Delivery
-now includes deterministic Python artifacts, resource reports, and bounded Aer execution.
+Physical reuse occurs after scheduling. Reports distinguish logical storage from
+physical width; simulation budgets use physical width. Delivery includes deterministic Python artifacts, resource reports, and bounded Aer execution.
 Unsupported lowering produces a source-located diagnostic; it is never ignored.
 The core lowering API does not by itself satisfy release readiness.
 

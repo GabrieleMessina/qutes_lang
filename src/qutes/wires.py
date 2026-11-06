@@ -133,12 +133,16 @@ def allocate(operations, logical_count, certificates, live_bits, *, enabled=True
 
 def verify(allocation, operations, live_bits, *, initial_bits=()):
     """Check coverage, certified handoffs and collisions independently of the heap."""
+    if allocation.operation_count != len(operations):
+        raise ValueError("allocation operation count does not match the schedule")
     expected = lifetimes(operations, allocation.logical_count, allocation.certificates,
                          live_bits, initial_bits=initial_bits)
     if tuple(replace(item, physical=-1) for item in allocation.intervals) != expected:
         raise ValueError("allocation does not cover the certified logical lifetimes")
     physical = defaultdict(list)
     for interval in allocation.intervals:
+        if not allocation.enabled and interval.physical != interval.logical:
+            raise ValueError("disabled reuse must retain the logical wire order")
         if not 0 <= interval.physical < allocation.physical_count:
             raise ValueError("allocation refers to unknown physical wire")
         physical[interval.physical].append(interval)

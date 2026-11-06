@@ -100,3 +100,37 @@ def test_config_cli_identity_limits_and_respecialization(tmp_path, capsys):
     for invalid in (1, "false", None):
         with pytest.raises(ValueError, match="Boolean"):
             CompilerConfig(wire_reuse=invalid)
+
+
+@pytest.mark.parametrize("source", [
+    'qubit source=superposition(); qubit retained=source; '
+    '{ qubit t=source; bool before=measure(t); } '
+    '{ qubit other=!source; } bool result=measure(source); source=!source; '
+    'if(result) { retained=!retained; }',
+    'qubit good(qubit x){return x;} qubit source=superposition(); '
+    'qubit[] data=[source,!source]; qubit selected=search(data,good); '
+    'bool before=measure(selected); selected=!selected; { qubit t=!source; }',
+    'qubit predicate=superposition(); quint n=0; '
+    'if(predicate) { quint t=n+1; n+=1; } else { quint t=n+-1; n+=-1; } '
+    'bool observed=measure(predicate); if(observed) { quint t=n+1; n+=1; }',
+])
+def test_joint_classical_and_remaining_quantum_state(source):
+    from tests.test_measurement_cleanup import branches_for
+    program = compile_source(source, config=CONFIG).program
+    logical = program.logical_program
+    physical_branches = {branch.snapshots: branch for branch in branches_for(program)}
+    logical_branches = {branch.snapshots: branch for branch in branches_for(logical)}
+    assert physical_branches.keys() == logical_branches.keys()
+    live = {bit for a in logical.allocations if not a.released for bit in a.bits if bit not in a.scratch_bits}
+    lookup = program.wire_allocation.lookup()
+    for snapshots, expected_branch in logical_branches.items():
+        actual = physical_branches[snapshots]
+        assert actual.probability == pytest.approx(expected_branch.probability)
+        expected = np.zeros_like(actual.state)
+        for index, amplitude in enumerate(expected_branch.state):
+            if any(index >> bit & 1 for bit in range(logical.qubit_count) if bit not in live):
+                assert abs(amplitude) < 1e-10
+            else:
+                physical_index = sum(((index >> bit) & 1) << lookup.at(bit, len(program.operations)) for bit in live)
+                expected[physical_index] = amplitude
+        np.testing.assert_allclose(actual.state, expected, atol=1e-10)

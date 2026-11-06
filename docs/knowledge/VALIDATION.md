@@ -565,3 +565,42 @@ generated/direct equality, legacy schema 3, config switches, physical simulation
 limits, measured snapshots/feedforward and existing view/image tests. Earlier
 failed/intermediate runs recorded in KB-024. `git diff --check` passes.
 Full Windows/Linux/release acceptance remains checkpoint 3.
+
+## V025 - 2026-11-06 final wire reuse validation
+
+Windows11 and Debian/WSL, Python3.13.5; Qiskit2.3.0, Aer0.17.2, NumPy2.1.3,
+ANTLR4.13.2 unchanged. Language0.3/package0.3.0.dev0/artifact4 with v3 compatibility.
+
+- `.venv/Scripts/python.exe tools/check.py -q`: **907 passed**, 78.79s;
+  artifacts/checks/run-917rvzk8.
+- `wsl.exe -d Debian -- /mnt/c/Users/gabry/Work/Quantum/qutes_lang_chatgpt/artifacts/linux-venv/bin/python /mnt/c/Users/gabry/Work/Quantum/qutes_lang_chatgpt/tools/check.py -q`:
+  **907 passed**, 96.02s; artifacts/checks/run-hh5g0qad.
+- `.venv/Scripts/python.exe tools/check.py -q tests/test_wire_execution.py tests/test_wire_views.py tests/test_language_examples.py tests/test_wires.py`:
+  87 passed, 10.46s; run-uf2n0x1_. Earlier fixture correction in KB-025.
+- With workspace-local TEMP/TMP, `.venv/Scripts/python.exe tools/generate_parser.py --jar artifacts/antlr/antlr-4.13.2-complete.jar --java "C:/Program Files/Android/openjdk/jdk-21.0.8/bin/java.exe" --check`: pass.
+- All 17 commands in docs/cli-walkthrough.md executed with tools/qutes.py (generated
+  module with source PYTHONPATH); artifacts/wire-walkthrough.json records each exit0.
+  Tour resource-count and active-document link audits pass. PNG inspected as KB-025.
+- `.venv/Scripts/python.exe -m pip wheel --no-build-isolation --no-deps . -w dist`
+  with workspace TEMP/TMP: qutes_lang-0.3.0.dev0-py3-none-any.whl, SHA256
+  dea2099d260ae46c3a23cf5526d459cf4de9c0c960c75a5c46ac53bf39844af4.
+  Installed via `python -m pip install --no-deps --force-reinstall WHEEL` in project
+  Windows, Debian and Windows core-only environments. No global install.
+- `.venv/Scripts/python.exe -I tools/verify_install.py` and Linux equivalent pass;
+  artifacts/installation/windows.json and linux.json. Includes CLI, generated input
+  changes, named/indexed registers, selective diagrams, 39->6 reuse and logical view.
+  Initial verifier naming assumption fixed as KB-025; no compiler change required.
+- `python -m pip check` passes Windows/Linux. Core-only Python with PATH empty
+  compiles 39->6 and generates artifact4 without Java/Qiskit; build reports Q5001.
+- Source archive built with setuptools.build_meta.build_sdist('dist'); wheel source
+  bytes and source archive coverage checked at final commit. `git diff --check` passes.
+
+No hosted CI, hardware, Python3.12 execution or independent human review.
+All simulation limits remain enforced; reduced physical width is not a promise
+of hardware speedup. Logical allocated IDs cannot directly index physical states.
+
+Final source includes the independent allocation reference preflight and linear
+workspace membership lookup. Focused command
+`.venv/Scripts/python.exe tools/check.py -q tests/test_wire_execution.py tests/test_wires.py tests/test_search.py tests/test_wire_views.py`:
+103 passed,7.25s,run-qv2or_fx. KB-025 records superseded907 runs and the wide
+compile-only probe. No simulation was attempted for that oversized probe.

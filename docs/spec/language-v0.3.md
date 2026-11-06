@@ -2,7 +2,7 @@
 
 Extends [language-v0.2](language-v0.2.md), retaining scripts, inputs, functions,
 assignment and non-consuming measurement. See the knowledge base for validation
-evidence and environment limits. Package 0.3.0.dev0; generated artifact schema 3.
+evidence and environment limits. Package 0.3.0.dev0; generated artifact schema 4.
 
 ## Membership
 
@@ -84,7 +84,9 @@ for local simulation.
 
 ## Distribution and compatibility
 
-Generated modules import `qutes.artifact_v3`. Modules generated under 0.1 or 0.2
+New generated modules import `qutes.artifact_v4`. Existing schema-3 modules keep
+their original executable circuits through `qutes.artifact_v3`; changed inputs
+respecialize with the current compiler. Modules generated under 0.1 or 0.2
 fail with a rebuild instruction before executing or specializing their embedded
 source. Rebuild with `qutes build SOURCE.qut`. Existing 0.2 source remains valid
 except that `search` is now a reserved builtin name. The Python compilation and
@@ -94,13 +96,16 @@ angles participate in deterministic generation; config participates in build ID.
 
 ## Presentation metadata
 
-Named Qiskit registers partition existing physical wires in their original order;
+Named Qiskit registers partition the physical wire order after allocation;
 source aliases never allocate extra wires. Search value, retained index and work
-have separate register names but one owner. Source mappings record half-open
+retain distinct logical identities but one owner. Shared physical wires use stable
+work names; exclusive wires retain source names where their physical order permits. Source mappings record half-open
 scheduled-operation ranges and function invocation contexts. Cleanup annotations
 distinguish zeroed target wires from temporarily restored dependency wires.
 Construction `bind` annotations carry names only, not additional computation.
-This metadata is additive to artifact 3 and does not change language semantics.
+Artifact 4 explicitly distinguishes logical allocation/source IDs from physical
+operation/register IDs. See [wire allocation](wire-allocation.md) for intervals,
+proofs, config switches and physical/logical diagram contracts.
 
 
 Qutes console/image views fold source operations by default. `--unfold N|all`
