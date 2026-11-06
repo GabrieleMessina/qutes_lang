@@ -74,7 +74,8 @@ def test_quantum_collection_non_power_of_two_phases_and_scratch():
     for depth, selectors in [(0, None), (1, "accepts"), ("all", None)]:
         actual = Statevector.from_instruction(build_diagram(c, unfold=depth, unfold_only=selectors)).data
         assert np.allclose(actual, expected, atol=1e-10)
-        scratch = [b for allocation in c.program.allocations for b in allocation.scratch_bits]
+        live = {i.physical for i in c.program.wire_allocation.intervals if i.end > len(c.program.operations)}
+        scratch = set(range(c.program.qubit_count)) - live
         assert sum(abs(actual[i]) ** 2 for i in range(len(actual)) if any(i >> b & 1 for b in scratch)) < 1e-12
 
 
@@ -96,17 +97,17 @@ def test_units_and_restored_wires_marked_separately():
     text = labels(build_diagram(c, unfold="all"))
     assert any("clean |0>" in s for s in text)
     assert "inputs restored" in text
-    assert c.metadata["resources"]["wire_reuse"] is False
+    assert c.metadata["resources"]["wire_reuse"] is True
 
 
 def test_zero_operation_cleanup_has_marker():
-    c = compile('{ quint empty=0; }')
+    c = compile_source('{ quint empty=0; }', config=CompilerConfig(quint_bits=2, wire_reuse=False))
     view = build_diagram(c)
     assert any("clean |0>: empty" == s for s in labels(view))
 
 
 def test_same_named_zero_length_cleanup_events_are_distinct():
-    c = compile('for(int i=0;i<3;i++) { quint empty=0; }')
+    c = compile_source('for(int i=0;i<3;i++) { quint empty=0; }', config=CompilerConfig(quint_bits=2, wire_reuse=False))
     view = build_diagram(c)
     markers = [item for item in view.data if item.operation.name == "barrier"]
     assert len(markers) == 3

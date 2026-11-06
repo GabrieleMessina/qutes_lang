@@ -16,9 +16,10 @@ from qutes.parser import parse
 from qutes.serialization import json_text
 from qutes.reporting import configuration_warnings
 from qutes.provenance import cleanup_annotations
+from qutes.physical import physical_program, handoffs
 
 LANGUAGE_VERSION = "0.3"
-ARTIFACT_VERSION = 3
+ARTIFACT_VERSION = 4
 
 
 def dependency_versions():
@@ -32,6 +33,10 @@ def dependency_versions():
 
 
 def resources(program: Program, span):
+    logical = program.logical_program or program
+    allocation = program.wire_allocation
+    live_physical = {item.physical for item in allocation.intervals
+                     if item.end > len(program.operations)} if allocation else set(range(program.qubit_count))
     counts = {"gate_applications": 0, "library_adders": 0, "operand_references": 0,
               "measurement_bits": 0, "max_quantum_controls": 0, "classical_guarded_operations": 0,
               "classical_expression_nodes": 0}
@@ -62,7 +67,12 @@ def resources(program: Program, span):
             "scheduled_operations": len(program.operations),
             "cleanup_events": len(program.cleanup_events),
             "cleaned_qubits_at_end": sum(len(item.bits) for item in program.allocations if item.released),
-            "wire_reuse": False,
+            "logical_allocated_qubits": logical.qubit_count,
+            "physical_qubits": program.qubit_count,
+            "peak_allocated_qubits": program.qubit_count,
+            "saved_qubits": logical.qubit_count - program.qubit_count,
+            "physical_zero_qubits_at_end": program.qubit_count - len(live_physical),
+            "wire_reuse": program.config.wire_reuse,
             "simulation_limit_qubits": program.config.max_simulation_qubits,
             "simulation_within_limit": program.qubit_count <= program.config.max_simulation_qubits,
             "statevector_bytes": 1 << (program.qubit_count + 4) if program.qubit_count <= 60 else None,
@@ -92,7 +102,7 @@ def compile_source(source: str, *, path="<input>", inputs=None, config=None) -> 
     try:
         syntax = parse(source, path)
         constructed = construct(analyze(syntax, config), inputs)
-        program = lower(constructed)
+        program = physical_program(lower(constructed))
     except DiagnosticError as error:
         for item in error.diagnostics:
             item.source = source
@@ -108,6 +118,11 @@ def compile_source(source: str, *, path="<input>", inputs=None, config=None) -> 
                 "allocations": ir.to_dict(program.allocations), "cleanup": ir.to_dict(program.cleanup_events),
                 "warnings": configuration_warnings(config),
                 "registers": ir.to_dict(program.registers),
+                "logical_registers": ir.to_dict(program.logical_program.registers),
+                "wire_allocation": ir.to_dict(program.wire_allocation),
+                "wire_handoffs": list(handoffs(program)),
+                "allocation_coordinate_system": "logical",
+                "source_mapping_coordinate_system": "logical",
                 "source_mappings": ir.to_dict(program.source_mappings),
                 "regions": ir.to_dict(program.regions),
                 "cleanup_annotations": list(cleanup_annotations(program)),

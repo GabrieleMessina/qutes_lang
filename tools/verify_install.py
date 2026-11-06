@@ -40,7 +40,7 @@ def main():
         assert circuit.cregs[0].name == "before"
         text = io.StringIO()
         view = render(compilation, print_circuit=True, stream=text, unfold=1, unfold_only="add")
-        assert view["view"] == {"unfold": 1, "unfold_only": ["add"]}
+        assert view["view"] == {"unfold": 1, "unfold_only": ["add"], "wire_view": "physical"}
         assert "n_0" in text.getvalue()
         artifact = folder / "generated.py"
         write_python(compilation, artifact)
@@ -59,7 +59,7 @@ def main():
         search_spec.loader.exec_module(search_module)
         search_result = search_module.run({"values": [True, True, False]}, shots=32, seed=17)
         assert sum(item['count'] for item in search_result['outcomes'] if item['value']) >= 28
-        assert search_result['build']['artifact_schema'] == 3
+        assert search_result['build']['artifact_schema'] == 4
         assert search_result['build']['searches'][0]['entries'] == 3
     report = {"python": platform.python_version(), "platform": platform.platform(), "qutes": qutes.__version__,
               "installed_path": str(installed), "dependencies": dependency_versions(),

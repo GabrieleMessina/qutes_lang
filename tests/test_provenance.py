@@ -52,7 +52,7 @@ def test_search_storage_partition_and_classical_name_collision():
     c = compile('qubit accepts(quint n) { return n==1; } quint chosen=search([0,1],accepts); int chosen_index=measure(chosen); return chosen_index;')
     circuit, _ = c.build()
     names = [r.name for r in circuit.qregs]
-    assert names[:3] == ["chosen", "chosen_index", "chosen_work"]
+    assert [r.name for r in c.program.logical_program.registers if not r.classical][:3] == ["chosen", "chosen_index", "chosen_work"]
     assert circuit.cregs[0].name == "chosen_index_2"
     assert sum(r.size for r in circuit.qregs) == c.program.qubit_count
 
@@ -60,7 +60,8 @@ def test_search_storage_partition_and_classical_name_collision():
 def test_comparison_cleanup_ranges_and_preserved_resources():
     p = Path("examples/language/12_quantum_ordering.qut")
     c = compile_source(p.read_text(), config=CompilerConfig.load(p.parent / "qutes.toml"))
-    assert c.program.qubit_count == 19
+    assert c.program.logical_program.qubit_count == 19
+    assert c.program.qubit_count == 10
     assert c.metadata["resources"]["gate_applications"] == 51
     assert len([r for r in c.program.regions if r.kind == "compare"]) == 4
     assert len(cleanup_annotations(c.program)) == 8
@@ -91,7 +92,9 @@ def test_legacy_v3_module_without_presentation_fields_still_runs():
         'input int start; quint n=start; return measure(n);', inputs={"start": 1}, config=CompilerConfig(quint_bits=3))
     legacy_metadata = {k: v for k, v in c.metadata.items() if k not in
                        {"registers", "source_mappings", "regions", "cleanup_annotations", "warnings"}}
-    source = python_source(replace(c, metadata=legacy_metadata))
+    legacy_metadata["artifact_schema"] = 3
+    legacy_metadata["config"].pop("wire_reuse", None)
+    source = python_source(replace(c, metadata=legacy_metadata)).replace("qutes.artifact_v4", "qutes.artifact_v3")
     lines = source.splitlines()
     lines = [line for line in lines if "qc.add_register(" not in line]
     source = "\n".join(lines).replace("qc = QuantumCircuit()", "qc = QuantumCircuit(3, 3)")

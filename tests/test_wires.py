@@ -29,7 +29,7 @@ def allocation_for(scheduler):
 
 def test_example_12_fixed_schedule_reuses_comparison_work():
     path = Path("examples/language/12_quantum_ordering.qut")
-    program = compile_source(path.read_text(), config=CompilerConfig.load(path.parent / "qutes.toml")).program
+    program = compile_source(path.read_text(), config=CompilerConfig.load(path.parent / "qutes.toml")).program.logical_program
     live = tuple(b for a in program.allocations if not a.released for b in a.bits)
     allocation = allocate(program.operations, program.qubit_count, program.zero_certificates, live)
     assert allocation.logical_count == 19

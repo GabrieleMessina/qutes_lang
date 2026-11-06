@@ -28,8 +28,11 @@ class CompilerConfig:
     max_evaluation_steps: int = 100_000
     max_classical_bits: int = 65_536
     search_failure_probability: float = 0.01
+    wire_reuse: bool = True
 
     def __post_init__(self) -> None:
+        if type(self.wire_reuse) is not bool:
+            raise ValueError("wire_reuse must be a Boolean")
         for name in (
             "quint_bits", "qustring_capacity", "max_simulation_qubits", "max_simulation_shots",
             "max_loop_iterations", "max_evaluation_steps", "max_classical_bits",

@@ -67,6 +67,10 @@ def argument_parser():
             sub.add_argument("--config", type=Path, help="explicit config; otherwise read source-adjacent qutes.toml")
             for key in CompilerConfig.__dataclass_fields__:
                 flag = "--max-qubits" if key == "max_simulation_qubits" else "--" + key.replace("_", "-")
+                if key == "wire_reuse":
+                    sub.add_argument(flag, action=argparse.BooleanOptionalAction, default=None,
+                                     help="reuse certified-zero work wires (default: enabled)")
+                    continue
                 argument_type = str if key == "alphabet" else float if key == "search_failure_probability" else int
                 sub.add_argument(flag, dest=key, type=argument_type, help=f"override {key}")
         if command not in {"parse", "analyze"}:
@@ -77,6 +81,8 @@ def argument_parser():
             sub.add_argument("--circuit-format", choices=("png", "svg"), help="image format for --save-circuit; default: png")
             sub.add_argument("--unfold", metavar="N|all", help="diagram expansion depth; default: 0 (compact)")
             sub.add_argument("--unfold-only", metavar="NAMES", help="comma-separated operation/function selectors; requires --unfold")
+            sub.add_argument("--wire-view", choices=("physical", "logical"),
+                             help="diagram wires: physical (default) or logical source storage")
         if command == "build":
             sub.add_argument("-o", "--output", type=Path, help="output module; default: SOURCE.qiskit.py")
             sub.add_argument("--force", action="store_true", help="replace an existing non-generated output file")
@@ -95,7 +101,10 @@ def explain(metadata):
               f"{search['retained_index_qubits']} retained index qubits, "
               f"{search['workspace_qubits']} workspace qubits; linear controlled access")
     print(f"Build: {metadata['build_sha256']}")
-    print(f"Reserved qubits: {cost['allocated_qubits']} (including {cost['cleaned_qubits_at_end']} cleaned; wires are not reused)")
+    print(f"Reserved physical qubits: {cost['allocated_qubits']}; logical qubits: {cost['logical_allocated_qubits']}; "
+          f"saved: {cost['saved_qubits']}; wire reuse: {cost['wire_reuse']}")
+    print(f"Logical qubits cleaned: {cost['cleaned_qubits_at_end']}; "
+          f"physical wires free at end: {cost['physical_zero_qubits_at_end']}")
     print(f"Snapshot bits: {cost['classical_bits']}; cleanup events: {cost['cleanup_events']}")
     print(f"Gate applications: {cost['gate_applications']}; library adders: {cost['library_adders']} (before backend decomposition)")
     estimate = cost["statevector_bytes"]
@@ -104,7 +113,15 @@ def explain(metadata):
     print("Inputs are construction-time values; quantum conditions stay coherent; measured conditions use snapshots.")
     for allocation in metadata["allocations"]:
         status = "cleaned" if allocation["released"] else "live at shot end"
-        print(f"  {allocation['name']}: wires {allocation['bits']}, {status}")
+        print(f"  {allocation['name']}: logical wires {allocation['bits']}, {status}")
+    intervals = metadata.get("wire_allocation", {}).get("intervals", ())
+    for interval in intervals:
+        print(f"  Logical {interval['logical']} epoch {interval['epoch']} -> physical {interval['physical']}; "
+              f"operations [{interval['start']}, {interval['end']}); zero certificate {interval['certificate']}")
+    used_logical = {item["logical"] for item in intervals}
+    omitted = [bit for item in metadata["allocations"] for bit in item["bits"] if bit not in used_logical]
+    if omitted and cost["wire_reuse"]:
+        print(f"  Unused zero-only logical wires omitted: {omitted}")
     selectors = sorted({r["label"] if r["kind"] == "function" else r["kind"] for r in metadata.get("regions", ())})
     if selectors:
         print("Diagram selectors: " + ", ".join(selectors))
@@ -112,7 +129,7 @@ def explain(metadata):
         if mapping["name"].startswith("$"):
             continue
         context = mapping["context"] + "/" if mapping["context"] else ""
-        kind = "snapshot bits" if mapping["classical"] else "wires"
+        kind = "snapshot bits" if mapping["classical"] else "logical wires"
         print(f"  Binding {context}{mapping['name']}: {kind} {mapping['bits']}; operations [{mapping['operation_start']}, {mapping['operation_end']})")
     for event in metadata.get("cleanup_annotations", ()):
         print(f"  Cleanup {event['name']}: operations [{event['operation_start']}, {event['operation_end']}); zero wires {list(event['zero_bits'])}; restored inputs {list(event['restored_bits'])}")
@@ -124,6 +141,8 @@ def main(arguments: list[str] | None = None) -> int:
     options = parser.parse_args(arguments)
     if getattr(options, "circuit_format", None) and options.save_circuit is None:
         parser.error("--circuit-format requires --save-circuit FOLDER")
+    if getattr(options, "wire_view", None) and not (options.print_circuit or options.save_circuit is not None):
+        parser.error("--wire-view requires --print-circuit or --save-circuit")
     if getattr(options, "unfold", None) is not None or getattr(options, "unfold_only", None) is not None:
         if not (options.print_circuit or options.save_circuit is not None):
             parser.error("--unfold and --unfold-only require --print-circuit or --save-circuit")
@@ -179,6 +198,7 @@ def main(arguments: list[str] | None = None) -> int:
             payload["circuit_diagram"] = render(compilation, print_circuit=options.print_circuit,
                 directory=options.save_circuit, image_format=options.circuit_format or "png",
                 unfold=options.unfold if options.unfold is not None else 0, unfold_only=options.unfold_only,
+                wire_view=options.wire_view or "physical",
                 stream=sys.stderr if options.json else sys.stdout)
         payload["warnings"] = warnings
         if options.json:

@@ -111,6 +111,6 @@ source packaging and requirement audit. All commits local; user experiments pres
 - T022 DONE (KB-021/V021): source provenance, named registers, aliases, cleanup annotations.
 - T023 DONE (KB-022/V022, 858 tests each platform): hierarchical diagrams, selective unfolding, integration and validation.
 - T024 ACTIVE: certified-zero lifetimes and wire reuse (authorized 2026-11-05).
-  Checkpoint 1 implemented: certificates, lifetime epochs, allocator/verifier and
-  focused phase/reference tests. Next: physical execution, config/artifact 4, then
-  physical/logical diagrams, reporting, documentation and full delivery validation.
+  Checkpoints 1-2 implemented: certificates/epochs/verifier, physical execution,
+  config/artifact 4 and compatibility tests. Next: complete physical/logical view
+  tests, reports/docs/tour and full cross-platform/installed validation.

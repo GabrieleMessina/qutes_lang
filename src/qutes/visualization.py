@@ -84,7 +84,7 @@ def save_image(circuit, compilation, directory, image_format, options):
 
 
 def render(compilation, *, print_circuit=False, directory=None, image_format="png", stream=None,
-           unfold=0, unfold_only=None):
+           unfold=0, unfold_only=None, wire_view="physical"):
     """Render final compiler output, before backend-specific transpilation.
 
     One circuit exists per compilation/input binding. File names include the build
@@ -94,14 +94,14 @@ def render(compilation, *, print_circuit=False, directory=None, image_format="pn
     if image_format not in {"png", "svg"}:
         raise failure(compilation, "Q5003", "circuit image format must be png or svg")
     if not print_circuit and directory is None:
-        if unfold != 0 or unfold_only is not None:
-            raise failure(compilation, "Q5003", "unfold options require printed or saved diagram output")
+        if unfold != 0 or unfold_only is not None or wire_view != "physical":
+            raise failure(compilation, "Q5003", "unfold and wire-view options require printed or saved diagram output")
         return None
     stream = sys.stdout if stream is None else stream
     try:
         from qutes.diagrams import build_diagram, view_options
         try:
-            options = view_options(unfold, unfold_only)
+            options = view_options(unfold, unfold_only, wire_view)
         except (ValueError, TypeError, AttributeError) as error:
             raise failure(compilation, "Q5003", str(error)) from None
         circuit = build_diagram(compilation, **options)

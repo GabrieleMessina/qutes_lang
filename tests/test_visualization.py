@@ -34,7 +34,7 @@ def test_print_option_on_all_full_commands_preserves_json(command, tmp_path, cap
     assert main(options) == 0
     output = capsys.readouterr()
     payload = load_json(output.out)
-    assert payload["circuit_diagram"] == {"stage": "compiler-output", "printed": True, "image": None, "view": {"unfold": 0, "unfold_only": []}}
+    assert payload["circuit_diagram"] == {"stage": "compiler-output", "printed": True, "image": None, "view": {"unfold": 0, "unfold_only": [], "wire_view": "physical"}}
     assert "Final compiler circuit" in output.err and "If-0" in output.err
     assert "H" in output.err and "M" in output.err
     if command == "run":

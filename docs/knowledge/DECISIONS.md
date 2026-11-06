@@ -221,3 +221,9 @@ conversation examples suggesting measurement consumption are superseded by D007.
   from presentation annotations and published only after successful transactions.
   Unknown/nonzero state remains allocated; last use or measurement is insufficient.
   New builds will use artifact 4; preserve artifact 3 cached execution compatibility.
+
+- D081 (implementation): Program operations/registers/qubit_count are physical after
+  compile_source; logical_program retains the original schedule. Allocation/source
+  binding metadata explicitly labels its logical coordinate system. Snapshot IDs
+  and result layouts remain classical and unchanged. Diagram annotations map at
+  the outgoing lifetime boundary and omit zero-only allocations with no wires.

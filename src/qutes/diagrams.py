@@ -6,6 +6,7 @@ from qutes.diagnostics import DiagnosticError
 from qutes.gates import Measurement
 from qutes.provenance import cleanup_annotations
 from qutes.qiskit_backend import append_gate, named_circuit
+from qutes.physical import handoffs
 
 
 def unfold_depth(value):
@@ -18,20 +19,24 @@ def unfold_depth(value):
     return value
 
 
-def view_options(unfold=0, unfold_only=None):
+def view_options(unfold=0, unfold_only=None, wire_view="physical"):
+    if wire_view not in {"physical", "logical"}:
+        raise ValueError("wire-view must be physical or logical")
     unfold = unfold_depth(unfold)
     if isinstance(unfold_only, str):
         unfold_only = unfold_only.split(",")
     selectors = tuple(sorted(set(item.strip() for item in (unfold_only or ()))))
     if selectors and (not all(selectors) or unfold == 0):
         raise ValueError("unfold-only requires nonempty selector names and positive/all unfolding")
-    return {"unfold": unfold, "unfold_only": list(selectors)}
+    return {"unfold": unfold, "unfold_only": list(selectors), "wire_view": wire_view}
 
 
 class DiagramBuilder:
     def __init__(self, compilation, options):
         self.compilation = compilation
         self.program = compilation.program
+        if options["wire_view"] == "logical" and self.program.logical_program is not None:
+            self.program = self.program.logical_program
         self.options = options
         self.regions = self.program.regions
         self.children = {}
@@ -63,6 +68,23 @@ class DiagramBuilder:
         self.work = 0
         self.limit = self.program.config.max_evaluation_steps
         self.circuit = named_circuit(self.program.qubit_count, self.program.classical_bit_count, self.program.registers)
+        self.handoffs = {}
+        for event in handoffs(self.program):
+            self.handoffs.setdefault(event["operation"], []).append(event)
+        self.marked_handoffs = set()
+        self.handoff_prefix = [0]
+        for index in range(len(self.program.operations) + 1):
+            self.handoff_prefix.append(self.handoff_prefix[-1] + len(self.handoffs.get(index, ())))
+
+    def handoff(self, index):
+        if index in self.marked_handoffs:
+            return
+        self.marked_handoffs.add(index)
+        events = self.handoffs.get(index, ())
+        if events:
+            self.tick(len(events))
+            names = ", ".join(event["name"] for event in events)
+            self.circuit.barrier(*(event["physical"] for event in events), label="reuse: " + names)
 
     def fail(self, message, code="Q5003"):
         raise DiagnosticError(code, message, self.program.allocations[0].span if self.program.allocations else self._empty_span())
@@ -128,6 +150,7 @@ class DiagramBuilder:
             self.elementary(circuit, item.operation, qs, cs, self.lower_depth(depth), nesting + 1)
 
     def operation(self, index, depth):
+        self.handoff(index)
         operation = self.program.operations[index]
         if isinstance(operation, Measurement):
             self.tick(len(operation.qubits))
@@ -164,6 +187,10 @@ class DiagramBuilder:
         bits = sorted({bit for op in operations for bit in op.bits})
         if not bits:
             return
+        self.handoff(start)
+        hidden = self.handoff_prefix[end] - self.handoff_prefix[start + 1]
+        if hidden:
+            label += f" (+{hidden} reuse)"
         mapping = {bit: i for i, bit in enumerate(bits)}
         local = QuantumCircuit(len(bits))
         for op in operations:
@@ -211,15 +238,17 @@ class DiagramBuilder:
             event = self.annotation_by_region.get(region.id)
             if event is not None:
                 self.tick(len(event["zero_bits"]) + len(event["restored_bits"]))
-                self.circuit.barrier(*event["zero_bits"], label="clean |0>: " + event["name"].lstrip("$"))
+                if event["zero_bits"]:
+                    self.circuit.barrier(*event["zero_bits"], label="clean |0>: " + event["name"].lstrip("$"))
                 if event["restored_bits"]:
                     self.circuit.barrier(*event["restored_bits"], label="inputs restored")
 
     def build(self):
         depth = 0 if self.options["unfold_only"] else self.options["unfold"]
         self.contents(None, 0, len(self.program.operations), depth)
+        self.handoff(len(self.program.operations))
         return self.circuit
 
 
-def build_diagram(compilation, *, unfold=0, unfold_only=None):
-    return DiagramBuilder(compilation, view_options(unfold, unfold_only)).build()
+def build_diagram(compilation, *, unfold=0, unfold_only=None, wire_view="physical"):
+    return DiagramBuilder(compilation, view_options(unfold, unfold_only, wire_view)).build()

@@ -41,7 +41,7 @@ def test_generated_script_inputs_and_version_metadata():
     exec(python_source(compilation), namespace)
     result = namespace['run']({'count':3}, shots=2)
     assert result['outcomes'][0]['value'] == 3
-    assert result['build']['artifact_schema'] == 3
+    assert result['build']['artifact_schema'] == 4
     assert result['build']['language_version'] == '0.3'
     assert result['build']['compiler_version'] == '0.3.0.dev0'
 

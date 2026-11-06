@@ -12,7 +12,7 @@ from qutes.compiler import compile_source
 from qutes.config import CompilerConfig
 from qutes.diagnostics import DiagnosticError
 from qutes.runtime import ResultLayout, execute
-from qutes.artifact_v3 import layout_from_metadata
+from qutes.artifact_v4 import layout_from_metadata
 from qutes.serialization import integer_text, json_text, load_json, parse_integer
 
 ROOT = Path(__file__).parent / "acceptance"
@@ -122,7 +122,7 @@ def test_compilation_and_python_generation_do_not_import_backend(monkeypatch, tm
 
 
 def test_resource_report_counts_reserved_storage_and_preflights_before_builder():
-    compilation = compiled(' quint q=1; { quint temporary=q+1; } return measure(q); ', max_simulation_qubits=3)
+    compilation = compiled(' quint q=1; { quint temporary=q+1; } return measure(q); ', max_simulation_qubits=3, wire_reuse=False)
     cost = compilation.metadata["resources"]
     assert cost["allocated_qubits"] > cost["cleaned_qubits_at_end"] > 0
     assert not cost["wire_reuse"] and not cost["simulation_within_limit"]
@@ -243,7 +243,7 @@ def test_cli_check_build_explain_and_config_precedence(tmp_path, capsys):
     assert main(["explain", str(source), "--quint-bits", "4", "--json"]) == 0
     assert load_json(capsys.readouterr().out)["resources"]["allocated_qubits"] == 4
     assert main(["explain", str(source)]) == 0
-    assert "wires are not reused" in capsys.readouterr().out
+    assert "wire reuse: True" in capsys.readouterr().out
     assert main(["run", str(source), "--json"]) == 1
     assert load_json(capsys.readouterr().out)["diagnostics"][0]["code"] == "Q4001"
 

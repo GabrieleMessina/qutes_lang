@@ -554,3 +554,14 @@ field-access failures corrected (KB-023). Independent complex state comparison
 checks final live logical-to-physical mapping and zero released state, including
 reference entanglement and later reconstruction. This is checkpoint-1 evidence,
 not full execution/CLI/diagram/distribution validation. Those remain required.
+
+## V024 - 2026-11-06 physical execution checkpoint
+
+Windows Python 3.13.5, unchanged backend pins.
+`.venv/Scripts/python.exe tools/check.py -q tests/test_wire_execution.py tests/test_wires.py tests/test_delivery.py tests/test_diagrams.py tests/test_search.py tests/test_scripts.py tests/test_provenance.py tests/test_visualization.py tests/test_artifact_v2.py tests/test_search_delivery.py`:
+**240 passed**, 20.59s, artifacts/checks/run-ow5c4uz6. Covers mapped full complex
+search/reference states, free scratch, cleanup proof prefixes, input specialization,
+generated/direct equality, legacy schema 3, config switches, physical simulation
+limits, measured snapshots/feedforward and existing view/image tests. Earlier
+failed/intermediate runs recorded in KB-024. `git diff --check` passes.
+Full Windows/Linux/release acceptance remains checkpoint 3.

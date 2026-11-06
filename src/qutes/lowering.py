@@ -20,7 +20,7 @@ from qutes.gates import Gate, Measurement, conditioned, controlled, inverse
 from qutes.search import schedule, uniform_index
 from qutes.provenance import Region, SourceMapping, Register, expression_kind, registers
 from qutes.values import EncodedString, SignedInteger, TextEncoding
-from qutes.wires import ZeroCertificate
+from qutes.wires import ZeroCertificate, WireAllocation
 
 
 @dataclass(frozen=True)
@@ -118,6 +118,10 @@ class Program:
     registers: tuple[Register, ...] = ()
     embedded_cleanup_annotations: tuple[dict, ...] = ()
     zero_certificates: tuple[ZeroCertificate, ...] = ()
+    # Physical programs retain their complete logical source representation.
+    # Allocations/certificates on either view describe logical storage identities.
+    logical_program: Program | None = None
+    wire_allocation: WireAllocation | None = None
 
     def to_qiskit(self):
         from qutes.qiskit_backend import emit_operations

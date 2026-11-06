@@ -631,3 +631,27 @@ Tests demonstrate example12 19->10 with 29 operations unchanged, zero-only dead
 storage elision, live-zero retention, measured state retention, atomic certificates,
 reconstruction and arbitrary complex amplitudes with an external reference.
 No simulator, reset or measurement is introduced by the allocation pass.
+
+## KB-024 - 2026-11-06 physical execution and artifact compatibility
+
+Connected the allocator after complete lowering; retain Program.logical_program
+for source identities and use remapped operations/registers for direct/generated
+execution. Added strict Boolean wire_reuse configuration (default true), CLI
+positive/negative flags, physical memory/limit accounting, interval/proof metadata
+and artifact_v4. artifact_v3 remains supported without silently reinterpreting
+cached circuits; changed inputs respecialize through the current compiler.
+Basic physical/logical view selection and diagram handoff annotations were wired
+during integration; final targeted view coverage/documentation remains checkpoint 3.
+
+Focused run-8b_kgp7n: 108 passed. Initial run-_xut9u6p had 107/1 failure: a new
+2-bit test used out-of-range literal +2; changed to -2. Full run-v9brsams had
+850/31 failures: stale schema assertions and tests reading logical indices directly
+from physical statevectors. Updated assertions to explicit mapping, preserving
+independent expected amplitudes/search reflections; no execution algorithm changed.
+run-w4b095x4: 147 passed. Full run-lnrddums: 880/1, old explain wording assertion;
+updated for enabled reuse. No full cross-platform/package completion claim yet.
+
+Next: exhaustive view/report checks, joint measured/unmeasured state checks, 24-qubit
+reuse example, active specs/docs/counts, Windows/Linux/parser/installed validation.
+Preserve the untracked root PNG and snapshots.qut. Current installed wheels still
+precede wire reuse; use tools/qutes.py against checkout until rebuilding packages.

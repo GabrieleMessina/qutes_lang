@@ -13,14 +13,24 @@ def build(source, **settings):
     return compile_source(source, config=CompilerConfig(quint_bits=2, alphabet="AB", **settings))
 
 
+def final_bits(program, bits):
+    lookup = program.wire_allocation.lookup()
+    return [lookup.at(bit, len(program.operations)) for bit in bits]
+
+
+def assert_free_zero(program, state):
+    live = {i.physical for i in program.wire_allocation.intervals if i.end > len(program.operations)}
+    for bit in set(range(program.qubit_count)) - live:
+        assert state.probabilities([bit])[1] < 1e-12
+
+
 def probabilities(compilation, name="result"):
     program = compilation.program
     state = Statevector.from_instruction(program.to_qiskit())
     owner = next(a for a in program.allocations if a.name == name)
     width = len(owner.bits) - len(owner.retained_index_bits) - len(owner.scratch_bits)
-    for scratch in owner.scratch_bits:
-        assert state.probabilities([scratch])[1] < 1e-12
-    return state.probabilities(list(owner.bits[:width]))
+    assert_free_zero(program, state)
+    return state.probabilities(final_bits(program, owner.bits[:width]))
 
 
 @pytest.mark.parametrize("n", [1,2,3,4,5])
@@ -43,7 +53,7 @@ def test_duplicate_positions_have_equal_weight():
     c = build('qubit good(quint x){return x>0;} quint result=search([1,1,-1],good);')
     owner = c.program.allocations[0]
     s = Statevector.from_instruction(c.program.to_qiskit())
-    p = s.probabilities(list(owner.retained_index_bits))
+    p = s.probabilities(final_bits(c.program, owner.retained_index_bits))
     assert p[0] == pytest.approx(p[1])
     assert p[0] + p[1] >= .99
     assert p[3] < 1e-12
@@ -64,9 +74,9 @@ def test_quantum_collection_keeps_branch_weights_and_entanglement():
     s = Statevector.from_instruction(c.program.to_qiskit())
     result = next(a for a in c.program.allocations if a.name == 'result')
     assert s.probabilities([0]) == pytest.approx([.5,.5])
-    assert s.probabilities([result.bits[0]])[1] >= .99
+    assert s.probabilities(final_bits(c.program, [result.bits[0]]))[1] >= .99
     # Each collection branch has a different matching position.
-    joint = s.probabilities([0, result.retained_index_bits[0]])
+    joint = s.probabilities(final_bits(c.program, [0, result.retained_index_bits[0]]))
     assert joint[1] + joint[2] >= .99
 
 
@@ -75,7 +85,7 @@ def test_no_match_data_branches_are_not_amplified_away():
     owner = next(a for a in c.program.allocations if a.name == 'result')
     s = Statevector.from_instruction(c.program.to_qiskit())
     assert s.probabilities([0]) == pytest.approx([.5,.5])
-    assert s.probabilities([owner.bits[0]]) == pytest.approx([.5,.5])
+    assert s.probabilities(final_bits(c.program, [owner.bits[0]])) == pytest.approx([.5,.5])
 
 
 def test_scope_cleanup_and_returned_ownership():
@@ -140,8 +150,7 @@ def test_search_cleanup_restores_changed_input_versions():
     c = build('qubit seed=superposition(); qubit[] data=[seed,!seed]; qubit good(qubit x){return x;} {qubit local=search(data,good); data[0]=!data[0];}')
     s = Statevector.from_instruction(c.program.to_qiskit())
     owner = next(a for a in c.program.allocations if a.name == 'local')
-    for bit in owner.bits:
-        assert s.probabilities([bit])[1] < 1e-12
+    assert_free_zero(c.program, s)
     assert s.probabilities([0]) == pytest.approx([.5,.5])
 
 
@@ -165,7 +174,7 @@ def test_classical_capture_changes_across_calls():
     s = Statevector.from_instruction(c.program.to_qiskit())
     for name, expected in [('first',0),('second',1)]:
         owner = next(a for a in c.program.allocations if a.name == name)
-        assert s.probabilities(list(owner.bits[:2]))[expected] >= .99
+        assert s.probabilities(final_bits(c.program, owner.bits[:2]))[expected] >= .99
 
 
 def test_full_complex_state_with_external_reference_and_clean_workspace():
@@ -175,7 +184,8 @@ def test_full_complex_state_with_external_reference_and_clean_workspace():
     c = build('qubit seed=superposition(); qubit[] data=[seed,!seed]; qubit good(qubit x){return x;} qubit result=search(data,good);')
     p = c.program
     owner = next(a for a in p.allocations if a.name == 'result')
-    data = [next(a for a in p.allocations if a.name == f'data[{i}]').bits[0] for i in range(2)]
+    data = final_bits(p, [next(a for a in p.allocations if a.name == f'data[{i}]').bits[0] for i in range(2)])
+    index_bit, value_bit = final_bits(p, [owner.retained_index_bits[0], owner.bits[0]])
     reference = p.qubit_count
     initial = random_state(2)
     qc = QuantumCircuit(reference + 1)
@@ -199,7 +209,7 @@ def test_full_complex_state_with_external_reference_and_clean_workspace():
             for index in (0,1):
                 value = seed if index == 0 else 1-seed
                 position = seed | (ref<<reference) | (seed<<data[0]) | ((1-seed)<<data[1])
-                position |= index<<owner.retained_index_bits[0] | value<<owner.bits[0]
+                position |= index<<index_bit | value<<value_bit
                 expected[position] = initial[seed+2*ref]*selected[index]
     np.testing.assert_allclose(actual, expected, atol=1e-10)
 

@@ -1,17 +1,17 @@
 # Current status
 
-Updated: 2026-11-05, checkpoint KB-023. Wire reuse increment IN PROGRESS.
+Updated: 2026-11-06, checkpoint KB-024. Wire reuse increment IN PROGRESS.
 T021-T023 delivered; T024 authorized and ACTIVE. See docs/wire-reuse-plan.md.
-First checkpoint adds semantic zero certificates and independently checked lifetime
-allocation. Execution still uses logical wires until checkpoint 2; no user-facing
-reuse setting yet. Next: integrate physical schedule/config/artifact 4, retaining
-logical program for views, then complete diagrams, reporting and distribution.
+Physical execution/configuration/artifact 4 integrated, default wire_reuse=true.
+Logical schedules retained; basic physical/logical views and handoffs are present.
+Next checkpoint: targeted diagram/report/joint-state coverage, documentation/tour,
+then full Windows/Linux/parser/package validation. Installed wheels are still old.
 Named registers, source/alias ranges, compact diagrams, selective unfolding,
 cleanup annotations, resource units, wildcard warnings and CLI guidance are ready.
 T020 delivers 38 independent examples, all executed within 24 qubits (maximum 21).
 User-authorized config.py, .gitignore and snapshots.qut edits are included unchanged.
 Current defaults: 4-bit quint and alphabet ABC. The tour explicitly uses 3-bit/AB?.
-Package: 0.3.0.dev0. Language: 0.3. Generated artifact schema: 3.
+Package: 0.3.0.dev0. Language: 0.3. Generated artifact schema: 4 (legacy 3 adapter retained).
 Active contract: [language-v0.3](../spec/language-v0.3.md), extending 0.2.
 
 ## Delivered
@@ -91,13 +91,13 @@ Current wheel is installed in both project Windows and Debian environments.
 Try `.venv/Scripts/qutes.exe check examples/language/12_quantum_ordering.qut
 --print-circuit --unfold 1`; add `--unfold-only compare` to select comparisons.
 See docs/cli-walkthrough.md for all modes and render APIs. No blockers. Next action:
-continue T024 checkpoint 2 from docs/wire-reuse-plan.md; authorization is present.
+continue T024 checkpoint 3 from docs/wire-reuse-plan.md; authorization is present.
 
 The 99% ideal success bound requires a match in the relevant data branch. No-match
 branches can return nonmatching candidates. Quantum data can become entangled with
 results. Search strings require equal entry lengths; no runtime indices, mixed
 quantum lengths, custom domain preparation, hybrid retries or match enumeration.
 Observed local selection state may be impossible to clean and fails explicitly.
-Execution still reserves logical work wires until T024 integration is complete.
+Execution now reuses certified-zero wires. Final validation/documentation pending.
 No hardware validation, human review, formal proof, or hosted CI run is claimed.
 Python 3.12 is configured in CI but has not been locally tested.

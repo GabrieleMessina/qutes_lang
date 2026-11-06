@@ -110,10 +110,13 @@ def test_global_updates_cleanup_and_complex_amplitudes():
     amplitudes = random_state(4, seed=71)
     initial = np.zeros(2**(program.qubit_count+1), dtype=complex)
     expected = np.zeros_like(initial)
+    lookup = program.wire_allocation.lookup()
+    def field(value, bits):
+        return sum(((value >> i) & 1) << lookup.at(b, len(program.operations)) for i, b in enumerate(bits))
     for index, amplitude in enumerate(amplitudes):
         root, reference = index & 7, index >> 3
         initial[root | (reference << program.qubit_count)] = amplitude
-        expected[((root-2)&7) | (((root+1)&7)<<3) | (reference<<program.qubit_count)] = amplitude
+        expected[field((root-2)&7, (0,1,2)) | field((root+1)&7, (3,4,5)) | (reference<<program.qubit_count)] = amplitude
     from qiskit import QuantumCircuit
     circuit = QuantumCircuit(program.qubit_count+1)
     circuit.compose(program.to_qiskit(), qubits=range(program.qubit_count), inplace=True)

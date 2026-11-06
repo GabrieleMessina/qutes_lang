@@ -100,6 +100,18 @@ def registers(allocations, mappings, classical_count):
 
 
 def cleanup_annotations(program):
+    if program.logical_program is not None:
+        logical = cleanup_annotations(program.logical_program)
+        if not program.wire_allocation.enabled:
+            return logical
+        lookup = program.wire_allocation.lookup()
+        def outgoing(bits, boundary):
+            return tuple(sorted({physical for bit in bits
+                                 if (physical := lookup.ending(bit, boundary)) is not None}))
+        return tuple({**event,
+                      "zero_bits": outgoing(event["zero_bits"], event["operation_end"]),
+                      "restored_bits": outgoing(event["restored_bits"], event["operation_end"])}
+                     for event in logical)
     return tuple({"name": event.name, "region": event.region, "operation_start": event.operation_start,
                   "operation_end": event.operation_end,
                   "zero_bits": program.allocations[event.storage].bits,
