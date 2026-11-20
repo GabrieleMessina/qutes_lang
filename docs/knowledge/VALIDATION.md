@@ -715,3 +715,5 @@ semantics and changed-input rejection are tested before compiler invocation.
 
 V031 (Windows, Python 3.13.5): python tools/check.py -q passed 1032 in 97.93s (run-f1eopz74), including all 50 tour programs. python tools/verify_walkthrough.py passed 26. Executed the notebook code cells in order with PYTHONIOENCODING=utf-8 and release src on PYTHONPATH; both matching and opposite correlations passed on Aer.
 Import diff flags three inherited blank lines at EOF, two in byte-reproducible ANTLR output. Retained source bytes.
+
+Clean 0.4.0 wheel installation: artifacts/rc-env/Scripts/python.exe -I tools/verify_install.py passed; pip check clean. First hosted run 44784591985 rejected workflow YAML before jobs; block-quoted the pip filter containing a colon.
