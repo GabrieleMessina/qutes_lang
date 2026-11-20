@@ -289,3 +289,5 @@ D095 (user): preserve the original rewrite commits via a merge on qutes2.0 and r
 D096 (user): publish compiler package 2.0.0 and align website/download labels; rename the website branch to qutes2.0. Dispatch website workflows without waiting. Use a distinct immutable 2.0.0 release tag for the new package. Keep language-contract version 0.4 and artifact schema 5 compatible.
 
 D099 (user): ship portable one-folder distributions of the full 2.0.0 CLI with CPU Aer and image export. Attach them to the existing language release. Website publication is separate.
+
+D101 (user): publish the corrected first-run defaults under new asset names on release 2.0.0. Keep the website local for review. Use ABC for ordinary examples and explicitly opt in to AB? for examples 22 and 30, which store the marker.

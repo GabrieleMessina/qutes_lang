@@ -6,7 +6,8 @@ On Windows, use `.\.venv\Scripts\qutes.exe` in place of `qutes`. On Linux, use
 `qutes` with `.\.venv\Scripts\python.exe tools/qutes.py`.
 
 The examples discover their adjacent configuration automatically and stay below
-24 qubits. Their intentional `?` alphabet entry produces a nonfatal QW0001 warning.
+24 qubits. The default tour alphabet is `ABC`. Examples 22 and 30 store a quantum
+wildcard and use the explicit option `--alphabet "AB?"`, which produces QW0001.
 Warnings go to stderr; `--json` includes structured warnings in its JSON output.
 
 | Command | When to use it | What success establishes |

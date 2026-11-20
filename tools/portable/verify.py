@@ -42,6 +42,8 @@ def verify(archive, work):
                                 encoding="utf-8", errors="replace", timeout=120, stdin=subprocess.DEVNULL)
         if (result.returncode == 0) != success:
             raise RuntimeError(f"{args} returned {result.returncode}\n{result.stdout}\n{result.stderr}")
+        if "QW0001" in result.stderr:
+            raise AssertionError(f"Unexpected wildcard warning from {args}: {result.stderr}")
         return result.stdout
 
     assert cli("--version").strip() == "2.0.0"
@@ -49,6 +51,9 @@ def verify(archive, work):
     receipt = json.loads((installed / "build-info.json").read_text(encoding="utf-8"))
     assert receipt["wheel_sha256"] == "289dfafbab44ccf25d685e4fd28384021947b97c87a4abe1a27821938d27f6d7"
     bell = installed / "examples/bell.qut"
+    assert "QW0001" not in cli("check", bell, "--json")
+    assert "QW0001" in cli("check", bell, "--alphabet", "AB?", "--json")
+
     def run(source):
         return json.loads(cli("run", source, "--shots", "64", "--seed", "17", "--json"))["outcomes"]
 

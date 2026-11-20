@@ -135,3 +135,5 @@ T033 DONE: migrate both website release URLs, verify the pinned bytes, deploy to
 T034 DONE: published compiler 2.0.0 and matching downloads, renamed website branch to qutes2.0, verified locally and dispatched website deployment without waiting for hosted completion.
 
 T037 DONE: five native portable archives, checksum manifest and platform chooser are public on the existing 2.0.0 release. See KB040 and V039.
+
+T039 ACTIVE: verify and publish revision r2 of the portable, starter and teaching downloads; refresh the GitHub release description.
