@@ -127,3 +127,5 @@ source packaging and requirement audit. All commits local; user experiments pres
 Contract: docs/spec/language-v0.4.md. Parsing/probes do not constitute delivery.
 
 T030 DONE: import, resources, release metadata and validated notebook. T031 DONE: pinned browser compiler and resource bundle, four verified starters, learning paths, standalone downloads, three browser engines, cross-backend checks, Firebase preview and live publication. See KB034/V033.
+
+T032 DONE: publish qutes2.0 with both original histories, move the existing release to tag 2.0, verify assets and remove v0.4.0. See KB035 and V034.

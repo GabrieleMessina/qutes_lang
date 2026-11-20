@@ -1,8 +1,8 @@
 # Current status
 
-Qutes 0.4.0 is public. The release compiler is language 0.4, artifact schema 5, from the validated rewrite e1c78a8. The published language tag v0.4.0 resolves to a78cc16ec2192aa19f3147aa5e154a68db4f78c4 on the release branch. The original MIT license, citation and publication credits are retained.
+The public Git tag `2.0` identifies merge 6bc0ecf on `qutes2.0`. Its second parent e1c78a8 brings in all 30 original rewrite commits; its tree matches first parent d4410ae. The downloadable compiler package is 0.4.0, language 0.4, artifact schema 5. The published bundle was built at a78cc16. The original MIT license, citation and publication credits are retained.
 
-- [Release and downloads](https://github.com/GabrieleMessina/qutes_lang/releases/tag/v0.4.0)
+- [Release and downloads](https://github.com/GabrieleMessina/qutes_lang/releases/tag/2.0)
 - [Live playground](https://qutes-lang.web.app/play.html) with Teach, Build and Inspect routes.
 - [Resources](../../resources/README.md) in the language repository root tree.
 - [Language 0.4 specification](../spec/language-v0.4.md), [compiler audit](../v04-audit.md), and [release integration](../release-0.4.md).
@@ -17,6 +17,6 @@ The two repositories use separate release branches. Website builds verify the re
 
 ## Resume
 
-T030 and T031 are complete. Next action is to triage onboarding feedback via the issue link on the site. No implementation or deployment blockers remain for this release.
+T030–T032 are complete. The legacy starter URL returned HTTP 404 after retagging. The website's starter link and release lock require the new tag URL before its next build. The existing hosted browser runtime uses a local copy of the pinned bundle.
 
 From the language checkout, use Python 3.12 or 3.13 in a virtual environment. Install dependencies with `python -m pip install -r requirements-dev.lock`, run `python tools/check.py -q` and `python tools/verify_walkthrough.py`. From the website checkout use `npm ci`, `python scripts/build.py`, and the browser checks documented there. Exact verification runs and failed attempts are in VALIDATION and LEDGER.
