@@ -133,3 +133,5 @@ T032 DONE: publish qutes2.0 with both original histories, move the existing rele
 T033 DONE: migrate both website release URLs, verify the pinned bytes, deploy to Firebase preview and production, and exercise the public download and playground.
 
 T034 DONE: published compiler 2.0.0 and matching downloads, renamed website branch to qutes2.0, verified locally and dispatched website deployment without waiting for hosted completion.
+
+T037 ACTIVE: backfill the existing 2.0.0 release with five native portable archives after fresh-runner verification. Start with Windows, then both Mac and Linux architectures.

@@ -1,0 +1,63 @@
+name: Build and test one portable target
+on:
+  workflow_call:
+    inputs:
+      runner:
+        required: true
+        type: string
+      target:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ${{ inputs.runner }}
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Fetch published compiler wheel
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release download 2.0.0 --repo GabrieleMessina/qutes_lang --pattern qutes_lang-2.0.0-py3-none-any.whl --dir wheels
+      - name: Build archive from verified wheel
+        shell: bash
+        run: |
+          python -m venv .venv
+          if [[ "$RUNNER_OS" == Windows ]]; then py=.venv/Scripts/python; else py=.venv/bin/python; fi
+          "$py" tools/portable/build.py wheels/qutes_lang-2.0.0-py3-none-any.whl dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: portable-${{ inputs.target }}
+          path: dist/qutes-2.0.0-${{ inputs.target }}.*
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
+
+  verify:
+    needs: build
+    runs-on: ${{ inputs.runner }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: tools/portable
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: portable-${{ inputs.target }}
+          path: archive
+      - name: Run extracted executable in a clean project directory
+        shell: bash
+        run: python -I tools/portable/verify.py archive/qutes-2.0.0-${{ inputs.target }}.*

@@ -287,3 +287,5 @@ D094 (implementation): distribute 0.4.0 via versioned GitHub release assets. Web
 D095 (user): preserve the original rewrite commits via a merge on qutes2.0 and replace Git tag v0.4.0 with 2.0. Use the release tree as the merge result. The package version and bundle build revision identify the existing verified assets.
 
 D096 (user): publish compiler package 2.0.0 and align website/download labels; rename the website branch to qutes2.0. Dispatch website workflows without waiting. Use a distinct immutable 2.0.0 release tag for the new package. Keep language-contract version 0.4 and artifact schema 5 compatible.
+
+D099 (user): ship portable one-folder distributions of the full 2.0.0 CLI with CPU Aer and image export. Attach them to the existing language release. Website publication is separate.
