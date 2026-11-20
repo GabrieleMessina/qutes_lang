@@ -884,3 +884,5 @@ KB040 completion: release workflow 44809167547 completed successfully from d314f
 KB042: the compiler already defaults to ABC; the example settings overrode it with AB?. Corrected the shared configuration, scoped the opt-in to two tour entries, and prepared revisioned archives built from the original published compiler wheel.
 
 KB042 completion: GitHub run 44813512817 attached seven r2 archives and their checksum file under new names, verified their public bytes and updated the release description. All pre-existing asset IDs and hashes were preserved.
+
+KB044: migrated native packaging to the exact compiler Git commit. Removed the obsolete distribution builders and updated the notebook and source documentation. The separately maintained local website now builds a browser runtime directly from checksum-pinned language source and parser code. The live site still links to retired files. The owner chose to keep it local.

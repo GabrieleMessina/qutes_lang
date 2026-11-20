@@ -49,7 +49,8 @@ def verify(archive, work):
     assert cli("--version").strip() == "2.0.0"
     assert (installed / "licenses/Python-LICENSE.txt").stat().st_size > 100
     receipt = json.loads((installed / "build-info.json").read_text(encoding="utf-8"))
-    assert receipt["wheel_sha256"] == "289dfafbab44ccf25d685e4fd28384021947b97c87a4abe1a27821938d27f6d7"
+    assert receipt["compiler_commit"] == "0367b5211448681485d5943586846997bcff2087"
+    assert receipt["version"] == receipt["dependencies"]["qutes-lang"] == "2.0.0"
     bell = installed / "examples/bell.qut"
     assert "QW0001" not in cli("check", bell, "--json")
     assert "QW0001" in cli("check", bell, "--alphabet", "AB?", "--json")

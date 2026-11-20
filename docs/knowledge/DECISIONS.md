@@ -291,3 +291,5 @@ D096 (user): publish compiler package 2.0.0 and align website/download labels; r
 D099 (user): ship portable one-folder distributions of the full 2.0.0 CLI with CPU Aer and image export. Attach them to the existing language release. Website publication is separate.
 
 D101 (user): publish the corrected first-run defaults under new asset names on release 2.0.0. Keep the website local for review. Use ABC for ordinary examples and explicitly opt in to AB? for examples 22 and 30, which store the marker.
+
+D102 (user, active): the only uploaded 2.0.0 release assets should be the five revision r2 native platforms and one checksum file. This supersedes the asset retention part of D101. Keep all website changes local until the owner approves publication.

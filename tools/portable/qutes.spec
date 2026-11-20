@@ -1,4 +1,4 @@
-"""PyInstaller one-folder CLI, using the installed release wheel."""
+"""PyInstaller one-folder CLI, using the compiler installed from the release commit."""
 from importlib.metadata import distribution
 from pathlib import Path
 

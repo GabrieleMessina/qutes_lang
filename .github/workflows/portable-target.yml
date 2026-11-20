@@ -24,16 +24,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Fetch published compiler wheel
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh release download 2.0.0 --repo GabrieleMessina/qutes_lang --pattern qutes_lang-2.0.0-py3-none-any.whl --dir wheels
-      - name: Build archive from verified wheel
+      - name: Build archive from pinned compiler source
         shell: bash
         run: |
           python -m venv .venv
           if [[ "$RUNNER_OS" == Windows ]]; then py=.venv/Scripts/python; else py=.venv/bin/python; fi
-          "$py" tools/portable/build.py wheels/qutes_lang-2.0.0-py3-none-any.whl dist
+          "$py" tools/portable/build.py dist
       - uses: actions/upload-artifact@v4
         with:
           name: portable-${{ inputs.target }}

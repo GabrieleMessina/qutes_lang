@@ -1,11 +1,16 @@
 name: Portable Qutes 2.0.0
 on:
   push:
-    branches: [codex/portable-cli-2.0-r2]
+    branches: [qutes2.0]
     paths:
       - '.github/workflows/portable*.yml'
       - 'tools/portable/**'
   workflow_dispatch:
+    inputs:
+      publish:
+        description: Attach the verified archives to the release
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -34,7 +39,7 @@ jobs:
 
   publish:
     needs: [windows, other-platforms]
-    if: github.repository == 'GabrieleMessina/qutes_lang' && github.ref == 'refs/heads/codex/portable-cli-2.0-r2'
+    if: inputs.publish && github.repository == 'GabrieleMessina/qutes_lang' && github.ref == 'refs/heads/qutes2.0'
     permissions:
       contents: write
     runs-on: ubuntu-22.04
@@ -52,12 +57,6 @@ jobs:
           pattern: portable-*
           merge-multiple: true
           path: artifacts/verified
-      - name: Build teaching and starter downloads from the published wheels
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release download 2.0.0 --repo GabrieleMessina/qutes_lang --pattern qutes-resources-2.0.0.zip --dir artifacts
-          python tools/build_resource_bundle.py artifacts/verified/qutes-resources-2.0.0-r2.zip --reuse-2-0-0-wheels artifacts/qutes-resources-2.0.0.zip --starter-output artifacts/verified/qutes-starter-2.0.0-r2.zip
       - name: Publish validated bytes and verify public downloads
         env:
           GH_TOKEN: ${{ github.token }}
