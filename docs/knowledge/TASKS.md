@@ -153,3 +153,5 @@ T042 DONE: production serves the reviewed website. All five platform links and c
 T043 DONE locally: the standalone playground download passed the isolated Qiskit/Aer acceptance test. CLI exports match the previous generator. Review the local playground before authorizing publication.
 
 T044 DONE: both qutes2.0 branches published in order, production promotion verified, and eight actual live browser exports executed in the isolated Qiskit/Aer environment. See KB047 and V046.
+
+T045 DONE: verified the new cache policy on preview and production, reused the unchanged runtime, and downloaded the standalone Bell program in a returning browser. The hosting workflow now runs these HTTP checks on subsequent releases.

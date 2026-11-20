@@ -305,3 +305,5 @@ D103 (user, active): publish the reviewed website from qutes2.0 to production. O
 D104 (user, active): the website exports the circuit for the current input binding as one editable Qiskit Python file. It must run with Qiskit and Aer alone. Preserve the CLI export and its input respecialization. Keep both repositories and the preview local until publication is authorized.
 
 D105 (user, active): publish the compiler to qutes2.0 before the website, deploy the website from its qutes2.0 branch, and execute the live playground download in an environment containing only Qiskit, Aer and their dependencies.
+
+D106 (user): deploy the returning-browser cache fix after verification. Stable website URLs require HTTP revalidation. The browser can reuse unchanged bytes with entity tags, and the fix preserves tutorial progress.
