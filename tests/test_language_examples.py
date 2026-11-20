@@ -17,7 +17,9 @@ CATALOG = json.loads((ROOT / "catalog.json").read_text(encoding="utf-8"))
 def test_catalog_lists_every_runnable_tour_file():
     assert {case["file"] for case in CATALOG["examples"]} == {p.name for p in ROOT.glob("*.qut")}
     assert len(CATALOG["examples"]) == len({case["file"] for case in CATALOG["examples"]})
-    assert CompilerConfig.load(ROOT / "qutes.toml").max_simulation_qubits == 24
+    config = CompilerConfig.load(ROOT / "qutes.toml")
+    assert config.max_simulation_qubits == 24
+    assert config.alphabet == CompilerConfig().alphabet == "ABC"
 
 
 def test_reuse_example_only_fits_limit_with_reuse():
@@ -37,7 +39,7 @@ def test_published_example_runs_with_expected_results_under_24_qubits(case):
     inputs = json.loads((ROOT / case["inputs"]).read_text(encoding="utf-8")) if "inputs" in case else {}
     compilation = compile_source((ROOT / case["file"]).read_text(encoding="utf-8"),
                                  path=str(ROOT / case["file"]), inputs=inputs,
-                                 config=CompilerConfig.load(ROOT / "qutes.toml"))
+                                 config=CompilerConfig.load(ROOT / "qutes.toml", case.get("overrides")))
     assert compilation.program.qubit_count <= 24
     # run also enforces the limit after backend decomposition.
     result = compilation.run(shots=CATALOG["shots"], seed=CATALOG["seed"])

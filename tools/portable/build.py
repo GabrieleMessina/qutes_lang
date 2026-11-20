@@ -65,7 +65,7 @@ def build(wheel, output):
     install(wheel)
     operating_system = {"Windows": "windows", "Darwin": "macos", "Linux": "linux"}[platform.system()]
     arch = {"amd64": "x64", "x86_64": "x64", "arm64": "arm64", "aarch64": "arm64"}[platform.machine().lower()]
-    name = f"qutes-{VERSION}-{operating_system}-{arch}"
+    name = f"qutes-{VERSION}-r2-{operating_system}-{arch}"
     output.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="qutes-build-") as temp:
         work = Path(temp)
@@ -75,9 +75,9 @@ def build(wheel, output):
         (work / "dist" / "qutes").rename(folder)
         examples = folder / "examples"
         examples.mkdir()
-        # These resources must be the ones that accompanied the published wheel.
+        # Keep the compiler-era program and credits, and use this packaging revision’s defaults.
+        shutil.copyfile(ROOT / "examples/language/qutes.toml", examples / "qutes.toml")
         for dest, source in ((examples / "bell.qut", "examples/language/41_bell_gates.qut"),
-                             (examples / "qutes.toml", "examples/language/qutes.toml"),
                              (folder / "LICENSE", "LICENSE"), (folder / "CITATION.cff", "CITATION.cff")):
             dest.write_bytes(subprocess.check_output(["git", "show", f"{COMMIT}:{source}"], cwd=ROOT))
         copy_notices(folder)

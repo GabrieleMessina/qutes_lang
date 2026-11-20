@@ -21,11 +21,10 @@ also works. Add `--save-circuit artifacts/tour-circuits --circuit-format svg` to
 `check`, `build`, `run` or `explain` to save a diagram; image export needs the
 visualization extra. `build FILE -o artifacts/example.qiskit.py` generates Python.
 
-The CLI automatically reads the adjacent [qutes.toml](qutes.toml). No overrides or
-raised qubit limit are necessary. It fixes:
+The CLI automatically reads the adjacent [qutes.toml](qutes.toml). Its settings are:
 
 - Three-bit signed `quint`, ranging from **-4 to 3**, with wraparound arithmetic.
-- Quantum alphabet **AB?**, two qubits per character, and text capacity **2**.
+- Quantum alphabet **ABC**, two qubits per character, and text capacity **2**.
 - Simulator limit **24** and search failure bound **0.01**.
 
 These settings are specific to the tour. The compiler's current defaults are
@@ -151,8 +150,7 @@ including the backend's post-transpilation check. To rerun it:
 The examples complement the [language contract](../../docs/spec/language-v0.4.md).
 They deliberately demonstrate supported operations rather than programs that fail.
 
-The intentional `?` alphabet entry triggers QW0001: these examples store quantum
-wildcard markers. Classical wildcard patterns alone do not need that entry.
+Examples 22 and 30 store a quantum wildcard marker. Add `--alphabet "AB?"` when running either example, or pass its catalog `overrides` to `CompilerConfig.load`. QW0001 describes this opt-in setting. Classical wildcard patterns work with the default alphabet.
 See [CLI walkthrough](../../docs/cli-walkthrough.md) for all seven command modes.
 
 ## Wire reuse

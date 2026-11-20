@@ -886,3 +886,9 @@ KB040 Windows candidate: the fresh runner reached image export after Bell, phase
 KB040 completion: release workflow 44809167547 completed successfully from d314f6e. Windows x64 passed first, then the two macOS 15 and two Ubuntu 22.04 targets built and passed fresh-runner checks. The publisher verified all assets after download and added release instructions. Anonymous HTTPS requests confirmed working links. No website operation was performed.
 
 KB041: website commit 4dcc8c1 replaces the Python-first Build page with five platform downloads, extraction steps, shell commands, observed Bell output and a one-line edit. Optional Python, teaching and playground handoff paths remain accessible. Running the CLI exposed its example configuration warning, now explained below the commands. Local preview only.
+
+KB042: the compiler already defaults to ABC; the example settings overrode it with AB?. Corrected the shared configuration, scoped the opt-in to two tour entries, and prepared revisioned archives built from the original published compiler wheel.
+
+KB042 completion: GitHub run 44813512817 attached seven r2 archives and their checksum file under new names, verified their public bytes and updated the release description. All pre-existing asset IDs and hashes were preserved.
+
+KB043: the local website commit 8daa5d9 moves the primer into measurement and phase labs, removes output and edit sections from Build, updates the links and pins the published r2 teaching bundle. The local compilation of that ZIP had different archive bytes than the hosted version; all extracted files were identical. The preview uses the published checksum.

@@ -6,4 +6,4 @@ Run `qutes run examples/language/41_bell_gates.qut --shots 64 --seed 17`. To con
 
 Remove a semicolon, run `qutes check main.qut`, and use the location in the error to restore it. Add `not(bob);` before the return in the Bell program to reverse the correlation. Build editable Qiskit Python with `qutes build main.qut --config qutes.toml --inputs inputs.json -o bell.py`.
 
-Download the [standalone Bell starter](https://github.com/GabrieleMessina/qutes_lang/releases/download/2.0.0/qutes-starter.zip) for a ready-to-edit main.qut. To assemble the same starter from the release bundle, run `python resources/starters/build_starter.py dist/qutes-resources-2.0.0.zip dist/qutes-starter.zip` in the source checkout.
+Download the [standalone Bell starter](https://github.com/GabrieleMessina/qutes_lang/releases/download/2.0.0/qutes-starter-2.0.0-r2.zip) for a ready-to-edit main.qut. To assemble the same starter from the release bundle, run `python resources/starters/build_starter.py dist/qutes-resources-2.0.0-r2.zip dist/qutes-starter-2.0.0-r2.zip` in the source checkout.

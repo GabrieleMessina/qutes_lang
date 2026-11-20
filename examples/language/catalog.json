@@ -419,6 +419,7 @@
     },
     {
       "file": "22_quantum_string_arrays.qut",
+      "overrides": {"alphabet": "AB?"},
       "title": "Arrays of quantum strings",
       "features": [
         "qustring[]",
@@ -553,6 +554,7 @@
     },
     {
       "file": "30_quantum_wildcards.qut",
+      "overrides": {"alphabet": "AB?"},
       "title": "A wildcard stored in a quantum character",
       "features": [
         "quantum wildcard pattern"

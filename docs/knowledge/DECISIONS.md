@@ -295,3 +295,5 @@ D098 (user): expand Tutorial into a course, obtain a Sol agent review of the int
 D099 (user): ship portable one-folder distributions of the full 2.0.0 CLI with CPU Aer and image export. Attach them to the existing language release. Website publication is separate.
 
 D100 (user): make the website Build page the entry point for platform downloads and the first local program. Keep this website revision local until the owner reviews it. The portable archives are the main path and the Python starter remains available in a disclosure.
+
+D101 (user): publish the corrected first-run defaults under new asset names on release 2.0.0. Keep the website local for review. Use ABC for ordinary examples and explicitly opt in to AB? for examples 22 and 30, which store the marker.

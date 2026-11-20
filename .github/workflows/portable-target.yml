@@ -37,7 +37,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: portable-${{ inputs.target }}
-          path: dist/qutes-2.0.0-${{ inputs.target }}.*
+          path: dist/qutes-2.0.0-r2-${{ inputs.target }}.*
           if-no-files-found: error
           compression-level: 0
           retention-days: 7
@@ -60,4 +60,4 @@ jobs:
           path: archive
       - name: Run extracted executable in a clean project directory
         shell: bash
-        run: python -I tools/portable/verify.py archive/qutes-2.0.0-${{ inputs.target }}.*
+        run: python -I tools/portable/verify.py archive/qutes-2.0.0-r2-${{ inputs.target }}.*

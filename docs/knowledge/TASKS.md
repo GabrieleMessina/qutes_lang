@@ -141,3 +141,7 @@ T036 DONE locally: replaced the four-step tutorial with four modules and eight r
 T037 DONE: five native portable archives, checksum manifest and platform chooser are public on the existing 2.0.0 release. See KB040 and V039.
 
 T038 DONE locally: the Build page links five portable archives and guides readers through running and editing the bundled Bell program. Publication awaits owner review.
+
+T039 DONE: published the five portable archives, starter, teaching bundle, checksum manifest and revised description on release 2.0.0. See KB042 and V041.
+
+T040 DONE locally: simplify Tutorial and Build, and pin the preview to the r2 release. Publishing the website remains the owner's decision.
