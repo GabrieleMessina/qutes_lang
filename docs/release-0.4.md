@@ -7,7 +7,7 @@ The previous playground/Home.ipynb uses the legacy compiler entry point. The VS 
 Build from a clean release commit in an environment with the pinned build requirements and wheel installed:
 
 ```text
-python tools/build_resource_bundle.py dist/qutes-resources-0.4.0.zip
+python tools/build_resource_bundle.py dist/qutes-resources-2.0.0.zip
 ```
 
 The archive contains the compiler wheel, its parser runtime, the tour configuration, canonical examples, and resources. Publish these bytes once and pin the reported Git commit and archive SHA-256 in the website. Wheels can include build timestamps. Rebuilding the same source can produce a different archive hash.

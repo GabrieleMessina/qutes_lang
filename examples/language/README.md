@@ -1,6 +1,6 @@
 # Qutes language tour
 
-These 50 small programs cover the operations implemented in Qutes 0.4. Each file
+These 50 small programs cover the operations implemented in Qutes 2.0.0. Each file
 is independent. All have been executed with the supplied configuration and the
 24-qubit simulator limit; the largest currently uses **15 qubits**. Counts describe physical wires after certified-zero reuse. Classical-only programs use zero qubits.
 
@@ -167,7 +167,7 @@ the default physical view for shared `work_N` wires and reuse annotations.
 `--unfold 1` reveals source detail in either view. Example 12 now uses 10 physical
 wires (19 logical), reducing statevector storage from 8 MiB to 16 KiB.
 
-## Qutes 0.4 operations
+## Qutes 2.0.0 operations
 
 | Example | Operations | Expected output |
 | --- | --- | --- |

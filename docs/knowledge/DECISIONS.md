@@ -285,3 +285,5 @@ D093 (user): retain the two GitHub repositories, make isolated branches, keep th
 D094 (implementation): distribute 0.4.0 via versioned GitHub release assets. Website bundles Pyodide and a bounded physical-program executor. Reuse compiler result decoding; retain Aer and independent test oracles for verification. Deploy from a tested website tag after a Firebase preview.
 
 D095 (user): preserve the original rewrite commits via a merge on qutes2.0 and replace Git tag v0.4.0 with 2.0. Use the release tree as the merge result. The package version and bundle build revision identify the existing verified assets.
+
+D096 (user): publish compiler package 2.0.0 and align website/download labels; rename the website branch to qutes2.0. Dispatch website workflows without waiting. Use a distinct immutable 2.0.0 release tag for the new package. Keep language-contract version 0.4 and artifact schema 5 compatible.

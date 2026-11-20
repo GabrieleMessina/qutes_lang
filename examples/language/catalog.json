@@ -1,5 +1,5 @@
 {
-  "description": "Runnable Qutes 0.3 feature tour. outputs lists allowed results, not guaranteed frequencies; preferred marks amplified search matches.",
+  "description": "Runnable Qutes 2.0.0 feature tour. outputs lists allowed results, not guaranteed frequencies; preferred marks amplified search matches.",
   "shots": 64,
   "seed": 17,
   "examples": [

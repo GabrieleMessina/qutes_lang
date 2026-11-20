@@ -131,3 +131,5 @@ T030 DONE: import, resources, release metadata and validated notebook. T031 DONE
 T032 DONE: publish qutes2.0 with both original histories, move the existing release to tag 2.0, verify assets and remove v0.4.0. See KB035 and V034.
 
 T033 DONE: migrate both website release URLs, verify the pinned bytes, deploy to Firebase preview and production, and exercise the public download and playground.
+
+T034 ACTIVE: release compiler package 2.0.0, rebuild the wheel, starter and teaching bundle, and dispatch preview and production for website branch qutes2.0.

@@ -2,7 +2,7 @@
 
 Approved 2026-11-20. This is the active language contract. See the knowledge-base
 STATUS/VALIDATION for delivery evidence; unchanged script and search rules remain
-in [0.3](language-v0.3.md) and [0.2](language-v0.2.md). Package0.4.0.dev0, artifact5.
+in [0.3](language-v0.3.md) and [0.2](language-v0.2.md). Compiler package 2.0.0 implements this contract with artifact schema 5.
 The [guide](../guide.md) and [50-example tour](../../examples/language/README.md)
 provide syntax and expected outputs.
 

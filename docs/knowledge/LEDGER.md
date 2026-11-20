@@ -870,3 +870,5 @@ KB034: published the GitHub v0.4.0 release before promoting the website. Preview
 KB035: fetched e1c78a8 from the local rewrite checkout by object ID, joined histories using the ours merge strategy, and pushed qutes2.0. Moved release ID 453003397 and its three assets to tag 2.0 before deleting the old tag with an expected-object lease. The live website used hard-coded old URLs; site migration was raised separately.
 
 KB036: user approved migrating the website release links and redeploying. Website commit 0af23e4 uses release tag 2.0 for the starter and build-time resource download. Added the new promotion tag qutes-site-2.0 in place of the previous deployment trigger. Verified both archives and an edited Bell experiment on preview and production. This resolves the stale-link finding in KB035.
+
+KB037: renamed the website branch on GitHub using the branch rename API; verified local tracking and the original tip 0af23e4. Prepared new package metadata and public labels. Starter instructions now read the exact version from the input archive manifest.

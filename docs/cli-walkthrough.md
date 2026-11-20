@@ -111,7 +111,7 @@ decoded outcomes. Both accept `inputs={...}` to specialize an input-using progra
 Generated artifacts keep their bound inputs, compiler settings and result layout.
 See [the guide](guide.md#generated-python-and-future-pipelines) for API examples.
 
-## Qutes 0.4 walkthrough
+## Qutes 2.0.0 walkthrough
 
 These commands also work with `qutes.exe` on Windows. Preparation weights use
 explicit JSON real/imaginary components; the Python API additionally accepts
