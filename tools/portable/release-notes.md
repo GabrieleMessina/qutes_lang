@@ -1,6 +1,6 @@
 Qutes 2.0.0 compiles Qutes programs to Qiskit circuits. The portable CLI includes Python, the Qiskit Aer simulator and circuit-image export.
 
-**Download revision r2** uses `ABC` as the example alphabet. The bundled Bell program runs with the default settings. Tour examples 22 and 30 opt in to `--alphabet "AB?"` to demonstrate storing a wildcard in quantum data. The compiler wheel, language contract (0.4) and artifact schema (5) are the same as in the original 2.0.0 release.
+**Download revision r2** uses `ABC` as the example alphabet. The bundled Bell program runs with the default settings.
 
 ## Download the portable CLI
 
@@ -25,9 +25,3 @@ Extract the whole archive and open a terminal in the folder containing the execu
 ```
 
 The Windows executable is unsigned. The macOS builds have no Developer ID signature or Apple notarization. [SHA-256 checksums for r2](https://github.com/GabrieleMessina/qutes_lang/releases/download/2.0.0/qutes-2.0.0-r2-SHA256SUMS.txt)
-
-## Python and teaching downloads
-
-- [Bell starter project](https://github.com/GabrieleMessina/qutes_lang/releases/download/2.0.0/qutes-starter-2.0.0-r2.zip) — extract it, activate a Python 3.12 or 3.13 virtual environment, and run `python -m pip install --find-links wheels "qutes-lang[backend]==2.0.0"` from the project folder. Run `qutes run main.qut --shots 64`.
-- [Teaching bundle](https://github.com/GabrieleMessina/qutes_lang/releases/download/2.0.0/qutes-resources-2.0.0-r2.zip) — includes the 50-program tour, lesson, notebook, presentation and wheels.
-- [Compiler wheel](https://github.com/GabrieleMessina/qutes_lang/releases/download/2.0.0/qutes_lang-2.0.0-py3-none-any.whl) — for integrating Qutes into an existing Python environment.

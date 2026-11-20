@@ -16,8 +16,6 @@ ROOT = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
 VERSION = "2.0.0"
 COMMIT = "0367b5211448681485d5943586846997bcff2087"
-WHEEL = "qutes_lang-2.0.0-py3-none-any.whl"
-DIGEST = "289dfafbab44ccf25d685e4fd28384021947b97c87a4abe1a27821938d27f6d7"
 
 
 def sha256(path):
@@ -25,15 +23,17 @@ def sha256(path):
         return hashlib.file_digest(stream, "sha256").hexdigest()
 
 
-def install(wheel):
-    if wheel.name != WHEEL or sha256(wheel) != DIGEST:
-        raise ValueError("Expected the published Qutes 2.0.0 wheel and SHA-256")
+def install():
     if sys.prefix == sys.base_prefix or sys.version_info[:2] != (3, 12):
         raise ValueError("Build in an isolated Python 3.12 virtual environment")
-    subprocess.run([sys.executable, "-m", "pip", "install", "--only-binary=:all:", "--no-binary=pylatexenc",
-                    "-c", str(ROOT / "requirements-dev.lock"), "setuptools==72.1.0",
-                    "pyinstaller==6.16.0", "pyinstaller-hooks-contrib==2025.9",
-                    f"qutes-lang[backend,visualization] @ {wheel.resolve().as_uri()}"], check=True)
+    with tempfile.TemporaryDirectory() as temp:
+        source = Path(temp) / f"qutes-{VERSION}.zip"
+        subprocess.run(["git", "archive", "--format=zip", f"--prefix=qutes-{VERSION}/",
+                        "-o", str(source), COMMIT], cwd=ROOT, check=True)
+        subprocess.run([sys.executable, "-m", "pip", "install", "--only-binary=:all:", "--no-binary=pylatexenc",
+                        "-c", str(ROOT / "requirements-dev.lock"), "setuptools==72.1.0",
+                        "pyinstaller==6.16.0", "pyinstaller-hooks-contrib==2025.9",
+                        f"qutes-lang[backend,visualization] @ {source.as_uri()}"], check=True)
     subprocess.run([sys.executable, "-m", "pip", "check"], check=True)
 
 
@@ -61,8 +61,8 @@ def copy_notices(folder):
         raise FileNotFoundError("CPython distribution license")
 
 
-def build(wheel, output):
-    install(wheel)
+def build(output):
+    install()
     operating_system = {"Windows": "windows", "Darwin": "macos", "Linux": "linux"}[platform.system()]
     arch = {"amd64": "x64", "x86_64": "x64", "arm64": "arm64", "aarch64": "arm64"}[platform.machine().lower()]
     name = f"qutes-{VERSION}-r2-{operating_system}-{arch}"
@@ -82,7 +82,7 @@ def build(wheel, output):
             dest.write_bytes(subprocess.check_output(["git", "show", f"{COMMIT}:{source}"], cwd=ROOT))
         copy_notices(folder)
         shutil.copyfile(HERE / "QUICKSTART.md", folder / "README.md")
-        receipt = {"version": VERSION, "compiler_commit": COMMIT, "wheel_sha256": DIGEST,
+        receipt = {"version": VERSION, "compiler_commit": COMMIT,
                    "packaging_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
                    "system": platform.platform(), "architecture": arch, "python": platform.python_version(),
                    "dependencies": {d.metadata["Name"]: d.version for d in metadata.distributions()}}
@@ -101,7 +101,6 @@ def build(wheel, output):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("wheel", type=Path)
     parser.add_argument("output", type=Path)
     args = parser.parse_args()
-    build(args.wheel.resolve(), args.output.resolve())
+    build(args.output.resolve())

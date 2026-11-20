@@ -1,6 +1,6 @@
 # Current status
 
-GitHub release `2.0.0` publishes the wheel, teaching bundle and starter from 0367b52. The earlier Git tag `2.0` identifies merge 6bc0ecf on `qutes2.0`. Its second parent e1c78a8 brings in all 30 original rewrite commits; its tree matches first parent d4410ae. The 2.0.0 release uses package version 2.0.0, language contract 0.4 and artifact schema 5. The original MIT license, citation and publication credits are retained.
+GitHub release `2.0.0` distributes the full CLI for Windows x64, macOS ARM64 and x64, and Linux ARM64 and x64. The five r2 archives use compiler commit 0367b52 and ship ABC as the default example alphabet. The earlier Git tag `2.0` identifies merge 6bc0ecf on `qutes2.0`. Its second parent e1c78a8 brings in all 30 original rewrite commits; its tree matches first parent d4410ae. The 2.0.0 release uses package version 2.0.0, language contract 0.4 and artifact schema 5. The original MIT license, citation and publication credits are retained.
 
 - [Release and downloads](https://github.com/GabrieleMessina/qutes_lang/releases/tag/2.0.0)
 - [Live playground](https://qutes-lang.web.app/play.html) with Teach, Build and Inspect routes.
@@ -11,18 +11,14 @@ GitHub release `2.0.0` publishes the wheel, teaching bundle and starter from 036
 
 ## Working defaults and limits
 
-The 50-example tour runs locally. Four browser examples are verified. Edited sources execute on-device within the published limits of 10 physical qubits, 128 shots and a bounded work budget. Phase/correlation, cleanup, mid-circuit measurement, diagnostics, cancellation, project export and a clean Qiskit notebook are verified. Browser validation used Chromium, Firefox and Playwright WebKit. Native Safari was not exercised. Local execution uses the ideal Aer simulator.
+The 50-example tour runs locally. Four browser examples are verified. Edited sources execute on-device within the published limits of 10 physical qubits, 128 shots and a bounded work budget. Phase/correlation, cleanup, mid-circuit measurement, diagnostics, cancellation, Qiskit Python export and a clean Qiskit notebook are verified. Browser validation used Chromium, Firefox and Playwright WebKit. Native Safari was not exercised. Local execution uses the ideal Aer simulator.
 
-The two repositories use separate release branches. Website builds verify the resource archive checksum and compiler commit. The standalone starter is a companion release asset. Use resources/starters/build_starter.py to reproduce it from the published bundle. The existing website main branch still has its previous Firebase workflow; coordinate future merges and deployments with the release branch.
+Both repositories use their own `qutes2.0` branch. Native packaging installs the compiler from its exact Git release commit. The local website builds its browser compiler from checksum-pinned language source and parser code.
 
 ## Resume
 
-T030–T034 are complete through the requested deployment dispatch. Both repositories use qutes2.0. Website tag qutes-site-2.0.0 targets b480812 and pins the 2.0.0 release bundle. Preview and production workflows were dispatched without waiting for their outcome at user request. For a subsequent deployment audit, check the tag workflow and live manifest.
+For the CLI, start at the release page linked above. The repository keeps the example tour, notebook, presentations and lessons as editable sources. Windows binaries are unsigned. macOS binaries have no Developer ID signature or notarization.
 
-From the language checkout, use Python 3.12 or 3.13 in a virtual environment. Install dependencies with `python -m pip install -r requirements-dev.lock`, run `python tools/check.py -q` and `python tools/verify_walkthrough.py`. From the website checkout use `npm ci`, `python scripts/build.py`, and the browser checks documented there. Exact verification runs and failed attempts are in VALIDATION and LEDGER.
+The owner asked to keep all website changes local. The live Build page's starter link returns HTTP 404 and its hosted teaching ZIP still returns 200. The local Build page at http://127.0.0.1:4197/build.html offers the five platform downloads and their checksums. Review it before authorizing a deployment.
 
-Local website review checkpoint: website qutes2.0 at 8daa5d9 is four local commits ahead of origin. Review http://127.0.0.1:4197/tutorial.html and http://127.0.0.1:4197/build.html. Tutorial foundations are in the first two labs. Build contains platform downloads and first-run commands pinned to public r2 archives. Publication awaits owner review.
-
-Portable release checkpoint: T037 completed. The 2.0.0 GitHub release now offers the full portable CLI for Windows x64, macOS Intel and Apple Silicon, and Ubuntu-baseline Linux x64 and ARM64. Packaging run 44809167547 passed all five clean extractions, published the archives and successfully downloaded and hashed each public asset. For a future version, update the wheel identity, dependency lock, version, tag and target matrix before building new versioned assets. Windows binaries are unsigned and macOS binaries have no Developer ID signature or notarization.
-
-T039 release checkpoint: the GitHub release description points readers to the r2 downloads. Five native archives, the Python starter and the teaching bundle now default to ABC. Run 44813512817 verified every platform and the final public files. The published r2 resource SHA-256 is afc6dc2efcd9964dafbd03480679be6990856ffedabc9ef79703de47088dcf1b. Use this digest and the r2 resource URL when building a site preview.
+For language development, use Python 3.12 or 3.13 in a virtual environment and run `python tools/check.py -q`. For a website preview, use `npm ci` and `python scripts/build.py` in the website checkout. Verification history is in VALIDATION and LEDGER.

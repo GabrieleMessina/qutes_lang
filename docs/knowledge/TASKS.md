@@ -145,3 +145,5 @@ T038 DONE locally: the Build page links five portable archives and guides reader
 T039 DONE: published the five portable archives, starter, teaching bundle, checksum manifest and revised description on release 2.0.0. See KB042 and V041.
 
 T040 DONE locally: simplify Tutorial and Build, and pin the preview to the r2 release. Publishing the website remains the owner's decision.
+
+T041 DONE: release 2.0.0 has exactly the five r2 platform archives and their checksum file. Source instructions, native packaging, and the local website are updated. Next action is owner review before any website deployment. See KB044 and V043.
