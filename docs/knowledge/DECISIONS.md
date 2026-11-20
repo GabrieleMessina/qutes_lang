@@ -297,3 +297,5 @@ D102 (user, active): the only uploaded 2.0.0 release assets should be the five r
 D103 (user, active): publish the reviewed website from qutes2.0 to production. Offer the five r2 native archives and retire the old site-hosted teaching ZIP. Delete obsolete implementation branches in both repositories after checking ancestry and open pull requests.
 
 D104 (user, active): the website exports the circuit for the current input binding as one editable Qiskit Python file. It must run with Qiskit and Aer alone. Preserve the CLI export and its input respecialization. Keep both repositories and the preview local until publication is authorized.
+
+D105 (user, active): publish the compiler to qutes2.0 before the website, deploy the website from its qutes2.0 branch, and execute the live playground download in an environment containing only Qiskit, Aer and their dependencies.

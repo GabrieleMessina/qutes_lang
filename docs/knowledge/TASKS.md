@@ -143,3 +143,5 @@ T041 DONE: release 2.0.0 has exactly the five r2 platform archives and their che
 T042 DONE: production serves the reviewed website. All five platform links and checksums passed, the retired teaching ZIP returns 404, and merged Codex working branches were cleaned up in both repositories. See KB045 and V044.
 
 T043 DONE locally: the standalone playground download passed the isolated Qiskit/Aer acceptance test. CLI exports match the previous generator. Review the local playground before authorizing publication.
+
+T044 DONE: both qutes2.0 branches published in order, production promotion verified, and eight actual live browser exports executed in the isolated Qiskit/Aer environment. See KB047 and V046.

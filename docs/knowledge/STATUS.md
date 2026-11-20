@@ -7,7 +7,7 @@ GitHub release `2.0.0` distributes the full CLI for Windows x64, macOS ARM64 and
 - [Resources](../../resources/README.md) in the language repository root tree.
 - [Language 0.4 specification](../spec/language-v0.4.md), [compiler audit](../v04-audit.md), and [release integration](../release-0.4.md).
 - [Hosted compiler matrix](https://github.com/GabrieleMessina/qutes_lang/actions/runs/44785749075) passed 1,032 tests on each of Ubuntu and Windows with Python 3.12 and 3.13.
-- [Website production deployment](https://github.com/GabrieleMessina/qutes_website/actions/runs/44818550125) passed at website commit 0d0d46d on qutes2.0.
+- [Website production deployment](https://github.com/GabrieleMessina/qutes_website/actions/runs/44824624905) passed at website commit c55aa4c on qutes2.0.
 
 ## Working defaults and limits
 
@@ -17,7 +17,7 @@ Both repositories use their own `qutes2.0` branch. Native packaging installs the
 
 ## Resume
 
-The local website at http://127.0.0.1:4197/play.html#bell serves standalone Qiskit downloads at website commit c55aa4c, using compiler revision 5ee169d. The public website still serves its prior export. Next action is owner review. A later deployment must make the pinned compiler revision available before pushing the website.
+The live playground serves standalone Qiskit downloads from website commit c55aa4c and compiler revision 5ee169d. The production download test ran eight exported files with Qiskit 2.3.0 and Aer 0.17.2 in an isolated environment without Qutes. For the next paired rollout, publish the compiler first and verify the source pin before pushing the website.
 
 For the CLI, start at the release page linked above. The repository keeps the example tour, notebook, presentations and lessons as editable sources. Windows binaries are unsigned. macOS binaries have no Developer ID signature or notarization.
 
