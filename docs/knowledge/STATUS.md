@@ -19,6 +19,6 @@ Both repositories use their own `qutes2.0` branch. Native packaging installs the
 
 For the CLI, start at the release page linked above. The repository keeps the example tour, notebook, presentations and lessons as editable sources. Windows binaries are unsigned. macOS binaries have no Developer ID signature or notarization.
 
-The owner asked to keep all website changes local. The deployed site's direct GitHub download links can be stale until the owner approves deployment. The updated local Build page offers the five platform downloads and their checksums.
+The owner asked to keep all website changes local. The live Build page's starter link returns HTTP 404 and its hosted teaching ZIP still returns 200. The local Build page at http://127.0.0.1:4197/build.html offers the five platform downloads and their checksums. Review it before authorizing a deployment.
 
 For language development, use Python 3.12 or 3.13 in a virtual environment and run `python tools/check.py -q`. For a website preview, use `npm ci` and `python scripts/build.py` in the website checkout. Verification history is in VALIDATION and LEDGER.
