@@ -1,0 +1,4 @@
+int read(quint value) { return measure(value); }
+quint number = 1;
+if (true) { read(number); }
+return 0;

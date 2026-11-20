@@ -1,0 +1,5 @@
+readonly float scale = 2.0;
+complex value = complex(1.0, 2.0);
+complex[] numbers = [value, value / scale];
+// CLI/JSON outputs use explicit {real, imag} components.
+return numbers;

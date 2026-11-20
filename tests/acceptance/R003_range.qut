@@ -1,0 +1,1 @@
+quint number = 128; return measure(number);

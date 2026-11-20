@@ -1,0 +1,3 @@
+quchar initial = 'H';
+qustring word = "HI";
+return measure(word);

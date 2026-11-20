@@ -1,0 +1,7 @@
+// The tour uses three-bit signed integers (-4..3).
+quint a = -4;
+quint b = 1;
+quint difference = a - b; // Wraps to 3.
+quint negative = -a;      // The minimum integer negates to itself.
+a -= b;
+return [measure(difference), measure(negative), measure(a)];

@@ -1,0 +1,5 @@
+[qutes]
+quint_bits = 4
+alphabet = " ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+qustring_capacity = 2
+max_simulation_qubits = 24

@@ -1,0 +1,6 @@
+qubit choice = superposition();
+quint result = 0;
+// No measurement is performed to choose a branch.
+if (choice) { result += 1; }
+else { result += -1; }
+return measure(result);

@@ -1,0 +1,10 @@
+qubit[] bits = [false, false, false];
+qubit[] part = bits[1..3];
+bool[] bases = [true, false];
+foreach (qubit item, int i in part) {
+    // item and i are read-only; part remains a mutable reference.
+    if (bases[i]) { hadamard(part[i]); }
+}
+foreach (int i in 0..bits.Length) { not(bits[i]); }
+readonly qubit[] view = bits[0..3];
+return measure(view);

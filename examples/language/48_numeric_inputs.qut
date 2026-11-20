@@ -1,0 +1,6 @@
+input float angle;
+input complex[] weights;
+qubit value = superposition([false, true], amplitudes: weights);
+phase(value, angle);
+hadamard(value);
+return measure(value);

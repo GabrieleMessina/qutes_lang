@@ -1,0 +1,11 @@
+include AGENTS.md DEVELOPMENT_PLAN.md requirements-dev.lock
+recursive-include docs *.md *.ebnf
+recursive-include examples *.qut *.toml *.json *.md
+recursive-include tests *.py *.qut *.json
+recursive-include experiments *.py
+include tools/*.py
+recursive-include grammar *.g4 *.sha256
+include .github/workflows/*.yml
+
+include LICENSE CITATION.cff
+recursive-include resources *.md *.ipynb *.html *.vtt *.json

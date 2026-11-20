@@ -1,0 +1,13 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:20.000
+Predict the two measurements. After entangling Alice and Bob, they agree on each shot.
+
+00:00:20.000 --> 00:00:45.000
+Flip Bob before measurement. Now the two bits differ. Download this edit to run it locally.
+
+00:00:45.000 --> 00:01:10.000
+Twelve scoped temporaries give 39 logical qubits. The compiler reuses six physical wires.
+
+00:01:10.000 --> 00:01:30.000
+Teach the experiment, build a local project, or inspect the circuit in Qiskit.

@@ -1,8 +1,0 @@
-quint a = 3;
-quint b = -4;
-
-quint c = a - b;
-
-print a;
-print b;
-print c;

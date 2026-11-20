@@ -1,0 +1,456 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "id": "A001",
+      "file": "A001_self_assignment.qut",
+      "expect": "accept",
+      "config": {
+        "quint_bits": 4
+      },
+      "outputs": [
+        {
+          "value": 7,
+          "probability": 1
+        }
+      ]
+    },
+    {
+      "id": "A002",
+      "file": "A002_signed_wrap.qut",
+      "expect": "accept",
+      "config": {
+        "quint_bits": 3
+      },
+      "outputs": [
+        {
+          "value": -4,
+          "probability": 1
+        }
+      ]
+    },
+    {
+      "id": "A003",
+      "file": "A003_rotation.qut",
+      "expect": "accept",
+      "config": {
+        "quint_bits": 4
+      },
+      "outputs": [
+        {
+          "value": 6,
+          "probability": 1
+        }
+      ]
+    },
+    {
+      "id": "A004",
+      "file": "A004_snapshots.qut",
+      "expect": "accept",
+      "config": {
+        "quint_bits": 4
+      },
+      "outputs": [
+        {
+          "value": [
+            5,
+            7
+          ],
+          "probability": 1
+        }
+      ]
+    },
+    {
+      "id": "A005",
+      "file": "A005_repeat_measurement.qut",
+      "expect": "accept",
+      "outputs": [
+        {
+          "value": [
+            false,
+            false
+          ],
+          "probability": 0.5
+        },
+        {
+          "value": [
+            true,
+            true
+          ],
+          "probability": 0.5
+        }
+      ]
+    },
+    {
+      "id": "A006",
+      "file": "A006_correlated_copy.qut",
+      "expect": "accept",
+      "outputs": [
+        {
+          "value": [
+            false,
+            false
+          ],
+          "probability": 0.5
+        },
+        {
+          "value": [
+            true,
+            true
+          ],
+          "probability": 0.5
+        }
+      ]
+    },
+    {
+      "id": "A007",
+      "file": "A007_feedforward.qut",
+      "expect": "accept",
+      "config": {
+        "quint_bits": 3
+      },
+      "outputs": [
+        {
+          "value": 1,
+          "probability": 0.5
+        },
+        {
+          "value": 3,
+          "probability": 0.5
+        }
+      ]
+    },
+    {
+      "id": "A008",
+      "file": "A008_quantum_if.qut",
+      "expect": "accept",
+      "config": {
+        "quint_bits": 3
+      },
+      "outputs": [
+        {
+          "value": 1,
+          "probability": 0.5
+        },
+        {
+          "value": 2,
+          "probability": 0.5
+        }
+      ]
+    },
+    {
+      "id": "A009",
+      "file": "A009_scoped_cleanup.qut",
+      "expect": "accept",
+      "config": {
+        "quint_bits": 3
+      },
+      "outputs": [
+        {
+          "value": 0,
+          "probability": 0.875
+        },
+        {
+          "value": 1,
+          "probability": 0.125
+        }
+      ]
+    },
+    {
+      "id": "A010",
+      "file": "A010_functions.qut",
+      "expect": "accept",
+      "config": {
+        "quint_bits": 5
+      },
+      "outputs": [
+        {
+          "value": 8,
+          "probability": 1
+        }
+      ]
+    },
+    {
+      "id": "A011",
+      "file": "A011_for.qut",
+      "expect": "accept",
+      "config": {
+        "quint_bits": 4
+      },
+      "outputs": [
+        {
+          "value": 6,
+          "probability": 1
+        }
+      ]
+    },
+    {
+      "id": "A012",
+      "file": "A012_while.qut",
+      "expect": "accept",
+      "config": {
+        "quint_bits": 4
+      },
+      "outputs": [
+        {
+          "value": 6,
+          "probability": 1
+        }
+      ]
+    },
+    {
+      "id": "A013",
+      "file": "A013_foreach.qut",
+      "expect": "accept",
+      "config": {
+        "quint_bits": 4
+      },
+      "outputs": [
+        {
+          "value": 6,
+          "probability": 1
+        }
+      ]
+    },
+    {
+      "id": "A014",
+      "file": "A014_array_updates.qut",
+      "expect": "accept",
+      "config": {
+        "quint_bits": 3
+      },
+      "outputs": [
+        {
+          "value": [
+            0,
+            1,
+            2
+          ],
+          "probability": 1
+        }
+      ]
+    },
+    {
+      "id": "A015",
+      "file": "A015_text.qut",
+      "expect": "accept",
+      "config": {
+        "alphabet": "ABC",
+        "qustring_capacity": 3
+      },
+      "outputs": [
+        {
+          "value": "ABC",
+          "probability": 1
+        }
+      ]
+    },
+    {
+      "id": "A016",
+      "file": "A016_character.qut",
+      "expect": "accept",
+      "config": {
+        "alphabet": "ABC"
+      },
+      "outputs": [
+        {
+          "value": "C",
+          "probability": 1
+        }
+      ]
+    },
+    {
+      "id": "A017",
+      "file": "A017_empty_text.qut",
+      "expect": "accept",
+      "config": {
+        "alphabet": "ABC",
+        "qustring_capacity": 3
+      },
+      "outputs": [
+        {
+          "value": "",
+          "probability": 1
+        }
+      ]
+    },
+    {
+      "id": "R001",
+      "file": "R001_missing_semicolon.qut",
+      "expect": "reject",
+      "stage": "parse",
+      "code": "Q1002"
+    },
+    {
+      "id": "R002",
+      "file": "R002_invalid_escape.qut",
+      "expect": "reject",
+      "stage": "lex",
+      "code": "Q1001"
+    },
+    {
+      "id": "R003",
+      "file": "R003_range.qut",
+      "expect": "reject",
+      "stage": "type",
+      "code": "Q2001"
+    },
+    {
+      "id": "R004",
+      "file": "R004_unsafe_overwrite.qut",
+      "expect": "reject",
+      "stage": "cleanup",
+      "code": "Q3001"
+    },
+    {
+      "id": "R005",
+      "file": "R005_overlapping_add.qut",
+      "expect": "reject",
+      "stage": "cleanup",
+      "code": "Q3001"
+    },
+    {
+      "id": "R006",
+      "file": "R006_quantum_loop.qut",
+      "expect": "reject",
+      "stage": "stage",
+      "code": "Q2003"
+    },
+    {
+      "id": "R007",
+      "file": "R007_measured_loop.qut",
+      "expect": "reject",
+      "stage": "stage",
+      "code": "Q2003"
+    },
+    {
+      "id": "R008",
+      "file": "R008_predicate_mutation.qut",
+      "expect": "reject",
+      "stage": "effect",
+      "code": "Q2004"
+    },
+    {
+      "id": "R009",
+      "file": "R009_readonly_parameter.qut",
+      "expect": "reject",
+      "stage": "effect",
+      "code": "Q2004"
+    },
+    {
+      "id": "R010",
+      "file": "R010_measurement_helper.qut",
+      "expect": "reject",
+      "stage": "effect",
+      "code": "Q2004"
+    },
+    {
+      "id": "R011",
+      "construction_required": true,
+      "file": "R011_quantum_index.qut",
+      "expect": "reject",
+      "stage": "stage",
+      "code": "Q2003"
+    },
+    {
+      "id": "R012",
+      "file": "R012_alphabet.qut",
+      "expect": "reject",
+      "config": {
+        "alphabet": "ABC"
+      },
+      "stage": "type",
+      "code": "Q2001"
+    },
+    {
+      "id": "R013",
+      "file": "R013_string_capacity.qut",
+      "expect": "reject",
+      "config": {
+        "qustring_capacity": 2
+      },
+      "stage": "type",
+      "code": "Q2001"
+    },
+    {
+      "id": "R014",
+      "file": "R014_implicit_measurement.qut",
+      "expect": "reject",
+      "stage": "type",
+      "code": "Q2001"
+    },
+    {
+      "id": "R015",
+      "file": "R015_negative_rotation.qut",
+      "expect": "reject",
+      "stage": "type",
+      "code": "Q2001"
+    },
+    {
+      "id": "R016",
+      "file": "R016_conditional_measurement.qut",
+      "expect": "reject",
+      "stage": "effect",
+      "code": "Q2004"
+    },
+    {
+      "id": "A018",
+      "file": "A018_measurement_helper.qut",
+      "expect": "accept",
+      "config": {
+        "quint_bits": 3
+      },
+      "outputs": [
+        {
+          "value": [
+            1,
+            2
+          ],
+          "probability": 1
+        }
+      ]
+    },
+    {
+      "id": "A019",
+      "file": "A019_membership.qut",
+      "expect": "accept",
+      "outputs": [
+        {
+          "value": [
+            false,
+            false
+          ],
+          "probability": 0.5
+        },
+        {
+          "value": [
+            true,
+            true
+          ],
+          "probability": 0.5
+        }
+      ]
+    },
+    {
+      "id": "A020",
+      "file": "A020_search.qut",
+      "expect": "accept",
+      "config": {
+        "quint_bits": 2
+      },
+      "outputs": [
+        {
+          "value": 1,
+          "probability": 1
+        }
+      ]
+    },
+    {
+      "id": "R017",
+      "file": "R017_search_oracle.qut",
+      "expect": "reject",
+      "stage": "type",
+      "code": "Q2001"
+    }
+  ]
+}

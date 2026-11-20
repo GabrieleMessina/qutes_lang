@@ -1,0 +1,4 @@
+// Use a character array when individual characters must be updated.
+quchar[] letters = ['A', 'B'];
+letters[0] = 'B';
+return measure(letters);

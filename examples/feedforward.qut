@@ -1,0 +1,7 @@
+qubit choice = superposition();
+bool selected = measure(choice);
+qubit result = false;
+if (selected) {
+    result = true;
+}
+return [selected, measure(result)];

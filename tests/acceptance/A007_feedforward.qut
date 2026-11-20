@@ -1,0 +1,6 @@
+qubit choice = superposition();
+quint total = 0;
+bool selected = measure(choice);
+if (selected) { total += 2; }
+total += 1;
+return measure(total);

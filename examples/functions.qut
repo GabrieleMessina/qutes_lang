@@ -1,0 +1,6 @@
+quint next(quint value) {
+    return value + 1;
+}
+quint original = 2;
+quint result = next(original);
+return measure(result);

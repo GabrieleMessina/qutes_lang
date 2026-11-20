@@ -1,0 +1,6 @@
+quint[] numbers = [1, 2, 3];
+quint total = 0;
+foreach (quint number in numbers) {
+    total += number;
+}
+return measure(total);

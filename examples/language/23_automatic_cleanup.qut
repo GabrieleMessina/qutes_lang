@@ -1,0 +1,8 @@
+quint operand = 1;
+quint output = 0;
+{
+    quint temporary = operand + 1;
+    output += temporary;
+    operand += -1;
+} // The compiler cleans temporary, including its dependency on the old operand.
+return [measure(operand), measure(output)];

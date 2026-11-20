@@ -1,0 +1,1 @@
+quint change(quint value) { value += 1; return value; }  quint number = 1; quint result = change(number); return measure(result);

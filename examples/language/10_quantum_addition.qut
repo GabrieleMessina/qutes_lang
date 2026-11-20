@@ -1,0 +1,6 @@
+quint first = 1;
+quint second = 2;
+quint sum = first + second;
+first = first + second;
+second += -1; // Subtract a constant using addition of a negative integer.
+return [measure(first), measure(second), measure(sum)];

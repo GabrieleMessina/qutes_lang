@@ -1,0 +1,13 @@
+// Run with --inputs examples/language/07_inputs.json
+input int increment;
+input bool enabled;
+input char marker;
+input string label;
+input int[] numbers;
+input bool[] flags;
+input char[] letters;
+input string[] words;
+int original = increment;
+increment += 1; // Input variables are mutable; build metadata keeps original inputs.
+return [increment == original + 1, enabled, marker == letters[0],
+        label == words[0], numbers.Length == 2, flags[0]];

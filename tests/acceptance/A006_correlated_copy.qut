@@ -1,0 +1,5 @@
+qubit original = superposition();
+qubit copy = original;
+bool first = measure(original);
+bool second = measure(copy);
+return [first, second];

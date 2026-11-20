@@ -1,0 +1,11 @@
+input int count;
+quint number = 0;
+for (int i = 0; i < count; i++) {
+    number += 1;
+}
+int remaining = 2;
+while (remaining > 0) {
+    number = rotateLeft(number, 1);
+    remaining--;
+}
+return measure(number);

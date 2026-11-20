@@ -1,0 +1,11 @@
+int total = 0;
+for (int i = 0; i < 3; i++) { total += i; }
+int remaining = 2;
+while (remaining > 0) { total += 1; remaining--; }
+foreach (int value in [1, 2]) { total += value; }
+foreach (char letter in "AB") { total += 1; }
+if (total < 0) { total = -1; }
+else if (total == 10) { total += 1; }
+else { total = 0; }
+{ int total = 100; } // This block's local does not change the script global.
+return total;

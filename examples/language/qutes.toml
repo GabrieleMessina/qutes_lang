@@ -1,0 +1,6 @@
+[qutes]
+quint_bits = 3
+alphabet = "AB?"
+qustring_capacity = 2
+max_simulation_qubits = 24
+search_failure_probability = 0.01

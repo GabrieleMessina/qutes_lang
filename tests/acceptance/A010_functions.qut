@@ -1,0 +1,2 @@
+quint addOffset(quint value, int offset) { return value + offset; }
+quint original = 5; quint adjusted = addOffset(original, 3); return measure(adjusted);

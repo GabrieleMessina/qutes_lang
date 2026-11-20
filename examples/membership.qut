@@ -1,0 +1,5 @@
+int[] values = [1, 2, 3, 2, 3];
+bool containsPair = [2, 3] in values;
+quint number = 2;
+qubit present = number in values;
+return measure(present);

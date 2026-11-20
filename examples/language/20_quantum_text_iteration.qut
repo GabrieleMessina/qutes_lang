@@ -1,0 +1,6 @@
+qustring text = "AB";
+qubit found = false;
+foreach (quchar letter in text) {
+    if (letter == 'B') { found = !found; }
+}
+return measure(found);

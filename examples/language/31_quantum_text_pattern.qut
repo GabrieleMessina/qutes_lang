@@ -1,0 +1,3 @@
+qustring pattern = "A";
+qubit found = pattern in ["B", "A"];
+return measure(found);

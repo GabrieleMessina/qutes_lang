@@ -1,0 +1,5 @@
+int sample(quint value) { return measure(value); }
+quint number = 1;
+int before = sample(number);
+number += 1;
+return [before, sample(number)];

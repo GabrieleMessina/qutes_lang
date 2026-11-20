@@ -1,0 +1,5 @@
+qubit coin = superposition();
+quchar pattern = 'A';
+if (coin) { pattern = '?'; }
+qubit found = pattern in "B";
+return [measure(coin), measure(found)];

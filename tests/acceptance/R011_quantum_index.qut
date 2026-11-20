@@ -1,0 +1,1 @@
+quint[] values = [1, 2]; quint index = superposition(); return measure(values[index]);

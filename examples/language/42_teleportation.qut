@@ -1,0 +1,18 @@
+// Prepare a state with relative phase, then teleport it to bob.
+qubit message = false;
+hadamard(message);
+phase(message, pi / 3.0);
+qubit alice = false;
+qubit bob = false;
+hadamard(alice);
+if (alice) { not(bob); }
+if (message) { not(alice); }
+hadamard(message);
+bool first = measure(message);
+bool second = measure(alice);
+if (second) { not(bob); }
+if (first) { phaseFlip(bob); }
+// Undo the original preparation on bob: the result is always false.
+phase(bob, -pi / 3.0);
+hadamard(bob);
+return measure(bob);

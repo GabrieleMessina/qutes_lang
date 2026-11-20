@@ -1,0 +1,10 @@
+// Assignment shares; copy creates independent storage; rebinding keeps old aliases.
+void increment(mut int value) { value += 1; }
+void replaceArray(mut int[] values) { values = [9]; }
+int[] values = [1, 2, 3];
+int[] alias = values;
+int[] duplicate = copy(values);
+increment(alias[1]);
+replaceArray(values);
+readonly int[] view = alias[1..3];
+return [values[0], alias[1], duplicate[1], view.Length];

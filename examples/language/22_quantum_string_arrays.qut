@@ -1,0 +1,3 @@
+qustring[] words = ["A", "B"];
+words[0] = "A?";
+return measure(words);
