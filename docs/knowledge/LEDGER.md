@@ -882,3 +882,5 @@ KB040 Windows candidate: the fresh runner reached image export after Bell, phase
 KB040 completion: release workflow 44809167547 completed successfully from d314f6e. Windows x64 passed first, then the two macOS 15 and two Ubuntu 22.04 targets built and passed fresh-runner checks. The publisher verified all assets after download and added release instructions. Anonymous HTTPS requests confirmed working links. No website operation was performed.
 
 KB042: the compiler already defaults to ABC; the example settings overrode it with AB?. Corrected the shared configuration, scoped the opt-in to two tour entries, and prepared revisioned archives built from the original published compiler wheel.
+
+KB042 completion: GitHub run 44813512817 attached seven r2 archives and their checksum file under new names, verified their public bytes and updated the release description. All pre-existing asset IDs and hashes were preserved.

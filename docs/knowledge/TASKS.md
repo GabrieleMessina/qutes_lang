@@ -136,4 +136,4 @@ T034 DONE: published compiler 2.0.0 and matching downloads, renamed website bran
 
 T037 DONE: five native portable archives, checksum manifest and platform chooser are public on the existing 2.0.0 release. See KB040 and V039.
 
-T039 ACTIVE: verify and publish revision r2 of the portable, starter and teaching downloads; refresh the GitHub release description.
+T039 DONE: published the five portable archives, starter, teaching bundle, checksum manifest and revised description on release 2.0.0. See KB042 and V041.
