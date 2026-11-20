@@ -18,7 +18,19 @@ references and slices, weighted preparation, subtraction and coherent indexing.
 
 ## Getting started
 
-Use Python 3.12 or 3.13 and an isolated environment. Windows PowerShell:
+### Portable CLI
+
+Download the archive for your operating system and processor from the
+[Qutes 2.0.0 release](https://github.com/GabrieleMessina/qutes_lang/releases/tag/2.0.0).
+Extract the whole folder and open a terminal there. On Windows run
+`.\qutes.exe run examples\bell.qut`. On macOS and Linux run
+`./qutes run examples/bell.qut`. The portable CLI includes Python, the Aer
+simulator and circuit-image export. The included README explains how to use it
+from your own project directory.
+
+### Python environment
+
+For a source installation, use Python 3.12 or 3.13 and an isolated environment. Windows PowerShell:
 
 ```powershell
 python -m venv .venv

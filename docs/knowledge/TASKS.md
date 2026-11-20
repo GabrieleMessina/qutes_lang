@@ -134,4 +134,4 @@ T033 DONE: migrate both website release URLs, verify the pinned bytes, deploy to
 
 T034 DONE: published compiler 2.0.0 and matching downloads, renamed website branch to qutes2.0, verified locally and dispatched website deployment without waiting for hosted completion.
 
-T037 ACTIVE: backfill the existing 2.0.0 release with five native portable archives after fresh-runner verification. Start with Windows, then both Mac and Linux architectures.
+T037 DONE: five native portable archives, checksum manifest and platform chooser are public on the existing 2.0.0 release. See KB040 and V039.
