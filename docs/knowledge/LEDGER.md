@@ -860,3 +860,5 @@ core empty-PATH smoke passes. This supersedes the earlier wheel hash and1031 cou
 Source archive refreshed after final handoff edits. No implementation work remains.
 
 KB031: imported e1c78a8 from qutes_lang_chatgpt over origin/development; retained LICENSE and CITATION.cff. Audited legacy notebook, extension, wiki and setup in docs/release-0.4.md. Ran 1032 tests and 26 walkthrough commands. Notebook execution initially hit Windows console encoding on circuit printing; UTF-8 rerun passed.
+
+KB032: hosted build 44785282615 passed three matrix jobs. Windows 3.12 installed into runner Python and pip check detected an unrelated preinstalled pipx/packaging conflict. Run the unchanged pins in a fresh venv on each runner. Browser Chromium proved Bell edit, exported project and wire reuse; installed Aer reproduces the browser export (30 false/true, 34 true/false).
