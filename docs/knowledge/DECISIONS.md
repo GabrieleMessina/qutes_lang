@@ -293,3 +293,5 @@ D097 (user): keep inspection inside Playground, teach programmers via an editabl
 D098 (user): expand Tutorial into a course, obtain a Sol agent review of the interface and functionality, and keep the revision local pending an explicit publication instruction. Implementation choices: teach toward a two-part teleportation project, validate lab observations against browser execution, and save drafts, progress and the self-reviewed final report in the learner’s browser.
 
 D099 (user): ship portable one-folder distributions of the full 2.0.0 CLI with CPU Aer and image export. Attach them to the existing language release. Website publication is separate.
+
+D100 (user): make the website Build page the entry point for platform downloads and the first local program. Keep this website revision local until the owner reviews it. The portable archives are the main path and the Python starter remains available in a disclosure.
