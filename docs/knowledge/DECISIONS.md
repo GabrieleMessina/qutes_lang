@@ -281,3 +281,5 @@ conversation examples suggesting measurement consumption are superseded by D007.
   writes through the view and rebinding a readonly declaration remain forbidden.
 
 D093 (user): retain the two GitHub repositories, make isolated branches, keep the compiler at root and own reusable resources here. Website code is written fresh. Release uses MIT and static hosting.
+
+D094 (implementation): distribute 0.4.0 via versioned GitHub release assets. Website bundles Pyodide and a bounded physical-program executor. Reuse compiler result decoding; retain Aer and independent test oracles for verification. Deploy from a tested website tag after a Firebase preview.
