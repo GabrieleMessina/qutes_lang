@@ -299,3 +299,5 @@ D100 (user): make the website Build page the entry point for platform downloads 
 D101 (user): publish the corrected first-run defaults under new asset names on release 2.0.0. Keep the website local for review. Use ABC for ordinary examples and explicitly opt in to AB? for examples 22 and 30, which store the marker.
 
 D102 (user, active): the only uploaded 2.0.0 release assets should be the five revision r2 native platforms and one checksum file. This supersedes the asset retention part of D101. Keep all website changes local until the owner approves publication.
+
+D103 (user, active): publish the reviewed website from qutes2.0 to production. Offer the five r2 native archives and retire the old site-hosted teaching ZIP. Delete obsolete implementation branches in both repositories after checking ancestry and open pull requests.
