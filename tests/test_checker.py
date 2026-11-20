@@ -84,7 +84,10 @@ def test_readonly_and_lexical_scopes():
     rejects(' int[] a=[1]; foreach(int x in a) { x++; } return 0; ', "Q2004")
     check(' int a=1; { int a=2; } return a; ')
     rejects(' { int a=2; } return a; ', "Q2002")
-    rejects(' qubit[] bits=[true,false]; foreach(qubit bit in bits) { if(bit) { bits[0]=false; } } return 0; ', "Q2004")
+    # Concrete element overlap is checked while expanding the loop.
+    from qutes.construction import construct
+    with pytest.raises(DiagnosticError, match='Q2004'):
+        construct(check('qubit[] bits=[true,false]; foreach(qubit bit in bits) { if(bit) { bits[0]=false; } } return 0;'))
 
 
 def test_measurement_does_not_consume_and_preserves_stages():
@@ -129,7 +132,7 @@ def test_predicate_dependencies_and_loop_stage_changes():
 def test_arrays_strings_and_empty_context():
     check(' int[] a=[]; return a; ')
     rejects(' int[] a=[1,true]; return 0; ', "Q2001")
-    rejects(' int[] a=[1]; a=[1,2]; return 0; ', "Q2001")
+    check(' int[] a=[1]; a=[1,2]; return 0; ')
     rejects(' int[] a=[1]; return a[1]; ', "Q4001")
     rejects(' int[] a=new int[-1]; return 0; ', "Q4001")
     rejects(' int x=1; return x.Length; ', "Q2001")

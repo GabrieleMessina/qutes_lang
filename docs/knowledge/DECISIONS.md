@@ -227,3 +227,25 @@ conversation examples suggesting measurement consumption are superseded by D007.
   binding metadata explicitly labels its logical coordinate system. Snapshot IDs
   and result layouts remain classical and unchanged. Diagram annotations map at
   the outgoing lifetime boundary and omit zero-only allocations with no wires.
+
+- D082 (user approved,2026-11-20): language0.4 follows language-v0.4.md. Public
+  hadamard/not/phaseFlip/phase/swap use if for controlled operations. mut includes
+  classical/quantum parameters; readonly applies generally.
+- D083 (user approved): T[] arrays/slices share storage by default, copy explicitly
+  copies basis values. Text retains value semantics. Returned slices retain and
+  report the whole backing allocation. Supersedes implicit array-copy contracts.
+- D084 (user approved): float/complex, qubit/quint finite preparation, strict
+  normalization1e-12, static proven bounds for coherent reads, signed subtraction
+  and negation. Version0.4/artifact5; old3/4 cached execution remains, changed-input
+  respecialization requires rebuild.
+- D085 (implementation): existing variables named copy remain legal; call-position
+  copy resolves the new builtin. Avoid unrelated breakage in scalar-copy examples.
+
+- D086 (implementation): construction uses cells, array identities and views;
+  concrete element overlap checks occur during construction after loop expansion.
+  analyze remains an intermediate inspection, not a complete compilation check.
+  Slices/ranges were implemented in checkpoint1 because reference borrowing needs
+  concrete view regions. Mutable transitive rebinding disallows temporary slices.
+- D087 (implementation): array literal rebinding creates fresh storage, including
+  permutations; retained aliases keep old backing. Old conditional whole-array
+  replacement becomes element writes. Source mappings follow new allocation IDs.

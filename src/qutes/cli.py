@@ -106,6 +106,8 @@ def explain(metadata):
     print(f"Logical qubits cleaned: {cost['cleaned_qubits_at_end']}; "
           f"physical wires free at end: {cost['physical_zero_qubits_at_end']}")
     print(f"Snapshot bits: {cost['classical_bits']}; cleanup events: {cost['cleanup_events']}")
+    if cost.get("retained_array_qubits"):
+        print(f"Array slices retain {cost['retained_array_qubits']} additional backing qubits until their last reference is released")
     print(f"Gate applications: {cost['gate_applications']}; library adders: {cost['library_adders']} (before backend decomposition)")
     estimate = cost["statevector_bytes"]
     print(f"Statevector storage alone: {storage_size(estimate, cost['statevector_bytes_power_of_two'])}; backend overhead is additional")

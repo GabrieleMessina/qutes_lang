@@ -159,7 +159,7 @@ def test_runtime_text_index_and_array_snapshots_can_control_circuit():
 def test_runtime_array_replacement_is_guarded():
     program = compile_source("""
         qubit q=superposition(); bool selected=measure(q); quint[] values=[0,1];
-        if(selected) { values=[1,0]; } return measure(values);
+        if(selected) { values[0]=1; values[1]=0; } return measure(values);
     """, quint_bits=2)
     assert distribution(program) == pytest.approx({"[0, 1]": 0.5, "[1, 0]": 0.5})
     assert {tuple(value) for value, _ in executed_values(program)} == {(0, 1), (1, 0)}
@@ -173,8 +173,8 @@ def test_runtime_self_permutation_never_uses_unconditional_rebinding():
     try:
         program = compile_source(source, quint_bits=2)
     except DiagnosticError as error:
-        # The conservative scheduler may reject the temporary dependency cycle.
-        assert error.code == "Q3001"
+        # Reference rebinding is forbidden under runtime control.
+        assert error.code == "Q2004"
     else:
         assert distribution(program) == pytest.approx({"[0, 1]": 0.5, "[1, 0]": 0.5})
 

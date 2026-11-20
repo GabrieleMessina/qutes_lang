@@ -36,6 +36,7 @@ def json_text(value) -> str:
     if isinstance(value, int): return integer_text(value)
     if isinstance(value, str): return json.dumps(value, ensure_ascii=True)
     if isinstance(value, float): return json.dumps(value, allow_nan=False)
+    if isinstance(value, complex): return json_text({"real": value.real, "imag": value.imag})
     if isinstance(value, (tuple, list)):
         return "[" + ",".join(json_text(item) for item in value) + "]"
     if isinstance(value, dict):

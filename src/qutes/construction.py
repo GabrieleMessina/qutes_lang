@@ -13,6 +13,8 @@ from qutes import ir
 from qutes.diagnostics import DiagnosticError
 from qutes.values import SignedInteger, TextEncoding
 from qutes.membership import matches, pattern_is_element, work_bound
+from qutes.numeric import RANK, convert, divide, finite
+from qutes.references import Cell, ElementCell, ArrayObject, ArrayView
 
 
 @dataclass(frozen=True)
@@ -43,7 +45,10 @@ class Constructor:
         self.program = program
         self.config = program.config
         self.functions = {function.key: function for function in program.functions}
-        self.environment: dict[int, ir.Expression] = {}
+        self.environment: dict[int, Cell | ElementCell] = {}
+        self.arrays: list[ArrayObject] = []
+        self.protected_regions = []
+        self.read_borrows = []
         self.output: list[ir.Statement] = []
         self.owned: set[int] = set()
         self.symbol_sequence = 0
@@ -58,6 +63,94 @@ class Constructor:
     def fail(self, code, message, node):
         raise DiagnosticError(code, message, node.span)
 
+    def bind(self, identifier, value):
+        self.environment[identifier] = Cell(value)
+
+    def freeze(self, value):
+        """Capture an array's current contents for an operation, not its identity."""
+        if value.op != "array_ref":
+            return value
+        self.step(value, len(value.value.positions))
+        view = value.value
+        if value.type.quantum:
+            return replace(value, op="array_view", arguments=(view.owner.backing,), value=view.positions,
+                           dependencies=view.owner.backing.dependencies, readonly=view.readonly)
+        elements = view.elements
+        if all(item.stage == ir.Stage.STATIC for item in elements):
+            return self.literal(value, tuple(item.value for item in elements))
+        return replace(value, op="array", arguments=elements, value=None, stage=ir.Stage.RUNTIME,
+                       dependencies=frozenset().union(*(e.dependencies for e in elements)))
+
+    def array_value(self, value, name="$array", *, copy=False):
+        if value.op == "array_ref" and not copy:
+            return value
+        value = self.freeze(value)
+        if value.type.quantum:
+            backing = self.materialize(value, name)
+            elements = [self.index_value(backing, i, value) for i in range(value.shape)]
+        else:
+            backing = None
+            elements = [self.index_value(value, i, value) for i in range(value.shape)]
+        owner = ArrayObject(elements, backing)
+        self.arrays.append(owner)
+        return ir.Expression(value.span, value.type, value.stage, "array_ref",
+                             value=ArrayView(owner, tuple(range(len(elements)))), shape=len(elements),
+                             dependencies=backing.dependencies if backing else value.dependencies)
+
+    def readonly_value(self, value):
+        if value.op == "array_ref":
+            return replace(value, value=replace(value.value, readonly=True), readonly=True)
+        return value
+
+    def location(self, expression):
+        if expression.op == "slice":
+            return Cell(self.expression(expression))
+        if expression.op == "load":
+            cell = self.environment[expression.symbol.id]
+            if expression.symbol.readonly:
+                self.fail("Q2004", "cannot write through a readonly binding", expression)
+            return cell
+        if expression.op == "index":
+            base = self.expression(expression.arguments[0])
+            index = self.static_integer(self.expression(expression.arguments[1]), expression, "index")
+            if base.op != "array_ref":
+                self.fail("Q2001", "mutable indexed arguments require an array location", expression)
+            self.index_value(base, index, expression)
+            if base.value.readonly:
+                self.fail("Q2004", "cannot write through a readonly array reference", expression)
+            return ElementCell(base.value.owner, base.value.positions[index])
+        self.fail("Q2001", "mutable argument requires a variable or array element", expression)
+
+    def regions(self, value, cell=None):
+        if isinstance(cell, ElementCell):
+            return {(id(cell.owner), cell.index)}
+        if value.op == "array_ref":
+            self.step(value, len(value.value.positions))
+            return {(id(value.value.owner), i) for i in value.value.positions}
+        if value.op == "index" and value.arguments[0].type.array:
+            base = value.arguments[0]
+            owner = next((a for a in self.arrays if a.backing and a.backing.symbol.id == base.symbol.id), None)
+            return {(id(owner) if owner else ('q', base.symbol.id), value.arguments[1].value)}
+        if value.type.quantum and value.op in {"load", "move"}:
+            return {(('q', value.symbol.id), 0)}
+        return {(id(cell), 0)} if cell else set()
+
+    def check_write(self, cell, expression):
+        value = cell.value
+        if value.op == "array_ref" and value.value.readonly:
+            self.fail("Q2004", "cannot mutate a readonly array reference", expression)
+        regions = self.regions(value, cell)
+        if any(regions & forbidden for forbidden in (*self.protected_regions, *self.read_borrows)):
+            self.fail("Q2004", "write is protected by an active quantum condition or readonly borrow", expression)
+
+    def live_values(self):
+        return tuple(self.freeze(cell.value) for cell in self.environment.values() if cell.value.type.quantum)
+
+    def condition_regions(self, value):
+        if value.type.quantum and value.op in {"load", "move", "index"}:
+            return self.regions(value)
+        return set().union(*(self.condition_regions(a) for a in value.arguments))
+
     def step(self, node, amount=1):
         self.steps += amount
         if self.steps > self.config.max_evaluation_steps:
@@ -71,6 +164,10 @@ class Constructor:
 
     def literal(self, source, value, type_=None):
         type_ = type_ or source.type
+        try:
+            finite(value)
+        except ValueError as error:
+            self.fail("Q2001", str(error), source)
         shape = len(value) if type_.array or type_.name == "string" else None
         if type(value) is int and value.bit_length() > self.config.max_classical_bits:
             self.fail("Q4001", f"classical integer exceeds construction memory limit ({self.config.max_classical_bits} bits)", source)
@@ -101,6 +198,11 @@ class Constructor:
             return None
         if expression.op in {"load", "move"}:
             return self.array_shapes.get(expression.symbol.id)
+        if expression.op == "array_ref":
+            return tuple(item.shape for item in expression.value.elements)
+        if expression.op == "array_view":
+            shapes = self.element_shapes(expression.arguments[0])
+            return tuple(shapes[i] for i in expression.value) if shapes is not None else None
         if expression.op == "array":
             return tuple(self.value_shape(item) for item in expression.arguments)
         if expression.op == "new_array":
@@ -127,6 +229,11 @@ class Constructor:
                 self.fail("Q2001", f"input requires {type_}", node)
             self.step(node, len(value))
             return tuple(self.validate_input(item, type_.element, node) for item in value)
+        if type_.name in {"float", "complex"}:
+            try:
+                return convert(value, type_.name)
+            except ValueError as error:
+                self.fail("Q2001", str(error), node)
         expected = {"int": int, "bool": bool, "char": str, "string": str}.get(type_.name)
         if expected is None or type(value) is not expected:
             self.fail("Q2001", f"input requires {type_}", node)
@@ -154,6 +261,10 @@ class Constructor:
             self.statements(entry.body)
         except Returned as returned:
             result = returned.value
+        if result is not None:
+            result = self.freeze(result)
+        self.output.append(ir.Statement(entry.span, "roots", tuple(self.freeze(cell.value)
+            for identifier, cell in self.environment.items() if identifier in self.global_ids and cell.value.type.quantum)))
         if entry.return_type != ir.Type("void") and result is None:
             self.fail("Q2005", "script ended without a value", entry)
         return Program(self.program, ir.Block(entry.body.span, tuple(self.output)), result,
@@ -171,28 +282,62 @@ class Constructor:
             return self.expression_overrides[id(expression)]
         op = expression.op
         if op == "load":
-            value = self.environment[expression.symbol.id]
+            value = self.environment[expression.symbol.id].value
+            if value.op == "array_ref":
+                stage = ir.Stage.QUANTUM if value.type.quantum else ir.Stage.RUNTIME if any(e.stage == ir.Stage.RUNTIME for e in value.value.elements) else ir.Stage.STATIC
+                value = replace(value, stage=stage)
             return replace(value, span=expression.span, shape=self.value_shape(value))
         if op == "literal":
             return self.literal(expression, expression.value)
         if op == "superposition":
             return replace(expression, known=False)
         if op == "call":
-            arguments = tuple(self.expression(argument) for argument in expression.arguments)
-            return self.call(self.functions[expression.value], arguments, expression)
+            function = self.functions[expression.value]
+            arguments, locations = [], []
+            for parameter, argument in zip(function.parameters, expression.arguments, strict=True):
+                if not parameter.readonly and argument.op == "slice" and f"rebind:{parameter.id}" in function.effects:
+                    self.fail("Q2004", "cannot pass a temporary slice to a function that rebinds its parameter", argument)
+                cell = self.location(argument) if not parameter.readonly else None
+                arguments.append(cell.value if cell else self.expression(argument))
+                locations.append(cell)
+            return self.call(function, tuple(arguments), expression, tuple(locations))
+        if op == "copy":
+            return self.array_value(self.expression(expression.arguments[0]), "$copy", copy=True)
+        if op == "slice":
+            base = self.expression(expression.arguments[0])
+            start, end = (self.static_integer(self.expression(a), expression, "slice bound") for a in expression.arguments[1:])
+            if base.shape is None or not 0 <= start <= end <= base.shape:
+                self.fail("Q4001", "slice bounds must satisfy 0 <= start <= end <= Length", expression)
+            if base.type.array:
+                base = self.array_value(base)
+                view = replace(base.value, positions=base.value.positions[start:end])
+            else:
+                if base.type.quantum and base.op not in {"load", "index"}:
+                    base = self.materialize(base, "$text_view")
+                owner = ArrayObject([self.index_value(base, i, expression) for i in range(base.shape)], base if base.type.quantum else None)
+                self.arrays.append(owner)
+                view = ArrayView(owner, tuple(range(start, end)), True)
+            return replace(expression, op="array_ref", arguments=(), value=view, shape=end-start,
+                           dependencies=base.dependencies, readonly=view.readonly)
+        if op == "range":
+            start, end = (self.static_integer(self.expression(a), expression, "range bound") for a in expression.arguments)
+            if start > end:
+                self.fail("Q2001", "range start cannot exceed its end", expression)
+            self.step(expression, end-start)
+            return self.array_value(self.literal(expression, tuple(range(start, end))))
         if op == "membership":
-            left = self.expression(expression.arguments[0])
+            left = self.freeze(self.expression(expression.arguments[0]))
             if left.type.quantum and any(effect == "measure" or effect.startswith("write:")
                                          for effect in expression.arguments[1].effects):
                 left = self.materialize(left, "$membership_snapshot")
-            right = self.expression(expression.arguments[1])
+            right = self.freeze(self.expression(expression.arguments[1]))
             if left.stage == right.stage == ir.Stage.STATIC:
                 self.step(expression, work_bound(left.value, right.value, left.type, right.type))
                 return self.literal(expression, matches(left.value, right.value, left.type, right.type))
             return replace(self.membership(expression, left, right), presentation="membership")
         if op == "search":
-            collection = self.expression(expression.arguments[0])
-            if collection.type.quantum and collection.op not in {"load", "index"}:
+            collection = self.freeze(self.expression(expression.arguments[0]))
+            if collection.type.quantum and collection.op not in {"load", "index", "array_view"}:
                 collection = self.materialize(collection, "$search_collection")
             if collection.shape is None or collection.shape == 0:
                 self.fail("Q2001", "search requires a nonempty collection of known length", expression)
@@ -225,6 +370,8 @@ class Constructor:
             right = self.expression(expression.arguments[1])
             if left.stage == right.stage == ir.Stage.STATIC:
                 return self.classical_binary(expression, operator, left.value, right.value)
+            if ir.Stage.RUNTIME in {left.stage, right.stage} and operator in {"+", "-", "*", "/", "%"}:
+                self.fail("Q2003", "arithmetic on measurement results is deferred", expression)
             return self.rebuild(expression, (left, right))
         if op.startswith("unary:"):
             operand = self.expression(expression.arguments[0])
@@ -234,12 +381,20 @@ class Constructor:
             value = not operand.value if operator == "!" else (-operand.value if operator == "-" else operand.value)
             return self.literal(expression, value)
         arguments = tuple(self.expression(argument) for argument in expression.arguments)
+        if op in {"numeric_convert", "complex"}:
+            if any(a.stage != ir.Stage.STATIC for a in arguments):
+                self.fail("Q2003", "numeric values must be known during construction", expression)
+            try:
+                value = convert(arguments[0].value, expression.type.name) if op == "numeric_convert" else complex(*(a.value for a in arguments))
+                return self.literal(expression, finite(value))
+            except ValueError as error:
+                self.fail("Q2001", str(error), expression)
         if op == "lift":
-            value = arguments[0]
+            value = self.freeze(arguments[0])
             if value.stage != ir.Stage.STATIC:
                 self.fail("Q2003", "quantum initialization requires construction-time data", expression)
             self.validate_quantum_constant(value.value, expression.type, expression)
-            return self.rebuild(expression, arguments, shape=value.shape)
+            return self.rebuild(expression, (value,), shape=value.shape)
         if op == "array":
             if all(argument.stage == ir.Stage.STATIC for argument in arguments) and not expression.type.quantum:
                 return self.literal(expression, tuple(argument.value for argument in arguments))
@@ -251,7 +406,7 @@ class Constructor:
             self.step(expression, length)
             if expression.type.quantum:
                 return self.rebuild(expression, arguments, shape=length)
-            default = {"int": 0, "bool": False, "char": self.config.alphabet[0], "string": ""}[expression.type.name]
+            default = {"int": 0, "float": 0.0, "complex": 0j, "bool": False, "char": self.config.alphabet[0], "string": ""}[expression.type.name]
             return self.literal(expression, (default,) * length)
         if op == "length":
             collection = arguments[0]
@@ -268,8 +423,8 @@ class Constructor:
                 self.fail("Q2001", "rotation count cannot be negative", expression)
             return self.rebuild(expression, arguments)
         if op == "measure":
-            argument = arguments[0]
-            if argument.op not in {"load", "index"}:
+            argument = self.freeze(arguments[0])
+            if argument.op not in {"load", "index", "array_view"}:
                 argument = self.materialize(argument)
             measured = self.rebuild(expression, (argument,), shape=argument.shape)
             return self.materialize(measured, "$measurement")
@@ -294,7 +449,7 @@ class Constructor:
     def membership(self, source, left, right):
         # Operands are evaluated once before expanding the position comparisons.
         def stable(value):
-            if value.type.quantum and value.op not in {"load", "index"}:
+            if value.type.quantum and value.op not in {"load", "index", "array_view"}:
                 return self.materialize(value, "$membership_input")
             return value
         left, right = stable(left), stable(right)
@@ -372,8 +527,7 @@ class Constructor:
         elif operator == "-": value = a - b
         elif operator == "*": value = a * b
         elif operator in {"/", "%"}:
-            quotient = (abs(a) // abs(b)) * (-1 if (a < 0) != (b < 0) else 1)
-            value = quotient if operator == "/" else a - quotient * b
+            value = divide(a, b, operator == "%")
         elif operator == "&&": value = a and b
         elif operator == "||": value = a or b
         elif operator == "==": value = a == b
@@ -393,6 +547,10 @@ class Constructor:
     def index_value(self, collection, position, source):
         if collection.shape is None or not 0 <= position < collection.shape:
             self.fail("Q4001", "index is outside the collection", source)
+        if collection.op == "array_ref":
+            return collection.value.elements[position]
+        if collection.op == "array_view":
+            return self.index_value(collection.arguments[0], collection.value[position], source)
         if collection.stage == ir.Stage.STATIC:
             return self.literal(source, collection.value[position], collection.type.element)
         if collection.op == "array":
@@ -413,6 +571,7 @@ class Constructor:
             self.statement(statement)
 
     def region(self, block, kind="block", aliases=()):
+        outer_ids = set(self.environment)
         previous_output, previous_owned = self.output, self.owned
         self.output, self.owned = [], set()
         returned = None
@@ -423,9 +582,10 @@ class Constructor:
         finally:
             child, owned = tuple(self.output), self.owned
             self.output, self.owned = previous_output, previous_owned
-        escapes = ()
+        self.environment = {identifier: cell for identifier, cell in self.environment.items() if identifier in outer_ids}
+        escapes = self.live_values()
         if returned and returned.value is not None and returned.value.type.quantum:
-            escapes = (returned.value,)
+            escapes = (*escapes, self.freeze(returned.value))
             self.owned.update(owned & set(returned.value.dependencies))
         self.output.append(ir.Statement(block.span, "scope", escapes,
                                         (ir.Block(block.span, child),), operator=kind, aliases=aliases))
@@ -436,25 +596,28 @@ class Constructor:
         self.step(statement)
         op = statement.op
         if op == "input":
-            self.environment[statement.symbol.id] = self.input_values[statement.symbol.id]
+            value = self.input_values[statement.symbol.id]
+            self.bind(statement.symbol.id, self.array_value(value, statement.symbol.name) if value.type.array else value)
         elif op == "let":
             value = self.expression(statement.expressions[0])
-            if value.type.quantum:
+            if value.type.array:
+                value = self.array_value(value, statement.symbol.name)
+                if statement.symbol.readonly:
+                    value = self.readonly_value(value)
+            elif value.type.quantum:
                 value = self.materialize(value, statement.symbol.name)
-            else:
-                self.output.append(ir.Statement(statement.span, "bind", (value,), symbol=statement.symbol,
+            if not value.type.quantum:
+                self.output.append(ir.Statement(statement.span, "bind", (self.freeze(value),), symbol=statement.symbol,
                     operator="global" if statement.symbol.id in self.global_ids else None))
-            self.environment[statement.symbol.id] = value
+            elif value.type.array:
+                if value.value.owner.backing.symbol.name != statement.symbol.name:
+                    self.output.append(ir.Statement(statement.span, "alias", (self.freeze(value),), symbol=statement.symbol))
+            self.bind(statement.symbol.id, value)
         elif op == "assign":
             target_source, value_source = statement.expressions
-            base, index, base_source = None, None, None
-            if target_source.op == "index":
-                base_source, index_source = target_source.arguments
-                base = self.expression(base_source)
-                index = self.static_integer(self.expression(index_source), statement, "index")
-                target = self.index_value(base, index, target_source)
-            else:
-                target = self.expression(target_source)
+            cell = self.location(target_source)
+            self.check_write(cell, statement)
+            target = cell.value
             # Compound assignments share their target expression with the RHS IR.
             # Evaluate it once, including any helper used to compute an index.
             self.expression_overrides[id(target_source)] = target
@@ -462,37 +625,25 @@ class Constructor:
                 value = self.expression(value_source)
             finally:
                 del self.expression_overrides[id(target_source)]
-            if target.type.array and target.shape != value.shape:
-                self.fail("Q2001", "assignment cannot change array length", statement)
-            if target.type.quantum:
+            if target.type.array:
+                updated = self.array_value(value, "$rebound_array")
+            elif target.type.quantum:
                 self.output.append(ir.Statement(statement.span, "assign", (target, value), operator="="))
                 updated = replace(target, shape=value.shape)
-                if target.type.array:
-                    shapes = self.element_shapes(value)
-                    if shapes is not None:
-                        self.array_shapes[target.symbol.id] = shapes
-                elif base is not None and base.type.array and base.type.name == "qustring":
-                    shapes = list(self.element_shapes(base) or (None,) * base.shape)
-                    shapes[index] = value.shape
-                    self.array_shapes[base.symbol.id] = tuple(shapes)
+                if isinstance(cell, ElementCell) and target.type.name == "qustring":
+                    backing = cell.owner.backing
+                    shapes = list(self.array_shapes[backing.symbol.id])
+                    shapes[cell.index] = value.shape
+                    self.array_shapes[backing.symbol.id] = tuple(shapes)
             else:
                 updated = value
+            cell.value = updated
             if target_source.op == "load":
-                self.environment[target_source.symbol.id] = updated
+                if target.type.quantum and target.type.array:
+                    self.output.append(ir.Statement(statement.span, "alias", (self.freeze(updated),), symbol=target_source.symbol))
                 if not target.type.quantum:
-                    self.output.append(ir.Statement(statement.span, "bind", (updated,), symbol=target_source.symbol,
+                    self.output.append(ir.Statement(statement.span, "bind", (self.freeze(updated),), symbol=target_source.symbol,
                         operator="global" if target_source.symbol.id in self.global_ids else None))
-            elif target_source.op == "index":
-                if not target.type.quantum:
-                    if base.stage == ir.Stage.STATIC and value.stage == ir.Stage.STATIC:
-                        items = list(base.value)
-                        items[index] = value.value
-                        self.environment[base_source.symbol.id] = self.literal(base, tuple(items))
-                    else:
-                        items = tuple(self.index_value(base, i, statement) for i in range(base.shape))
-                        items = tuple(value if i == index else item for i, item in enumerate(items))
-                        self.environment[base_source.symbol.id] = replace(base, op="array", arguments=items, symbol=None,
-                            stage=ir.Stage.RUNTIME, known=False, value=None)
         elif op == "return":
             raise Returned(self.expression(statement.expressions[0]) if statement.expressions else None)
         elif op == "expr":
@@ -514,15 +665,22 @@ class Constructor:
                     self.statements(update)
         elif op == "foreach":
             collection = self.expression(statement.expressions[0])
-            if collection.type.quantum and collection.op not in {"load", "index"}:
+            if collection.type.array:
+                collection = self.array_value(collection, "$iteration_source")
+            elif collection.type.quantum and collection.op not in {"load", "index"}:
                 collection = self.materialize(collection, "$iteration_source")
             if collection.shape is None:
                 self.fail("Q2003", "foreach length must be known during construction", statement)
             for index in range(collection.shape):
                 self.iteration(statement)
                 item = self.index_value(collection, index, statement)
-                self.environment[statement.symbol.id] = item
+                self.bind(statement.symbol.id, item)
+                if statement.index_symbol:
+                    self.bind(statement.index_symbol.id, self.literal(collection, index, ir.Type("int")))
                 self.region(statement.blocks[0], "iteration", aliases=((statement.symbol.name, item),))
+            self.environment.pop(statement.symbol.id, None)
+            if statement.index_symbol:
+                self.environment.pop(statement.index_symbol.id, None)
         else:
             raise AssertionError(op)
 
@@ -532,48 +690,86 @@ class Constructor:
             self.region(statement.blocks[0 if condition.value else 1])
             return
         before = self.environment.copy()
+        before_values = {identifier: cell.value for identifier, cell in before.items()}
+        before_arrays = [(owner, list(owner.elements)) for owner in self.arrays]
         before_shapes = self.array_shapes.copy()
         parent_output, parent_owned = self.output, self.owned
-        branches, states, shape_states = [], [], []
+        branches, states, shape_states, array_states = [], [], [], []
+        prior_protected = self.protected_regions
+        if condition.stage == ir.Stage.QUANTUM:
+            self.protected_regions = prior_protected + [self.condition_regions(condition)]
         try:
             for block in statement.blocks:
                 self.output, self.owned = [], set()
                 self.environment = before.copy()
+                for identifier, cell in before.items():
+                    cell.value = before_values[identifier]
+                for owner, elements in before_arrays:
+                    owner.elements[:] = elements
                 self.array_shapes = before_shapes.copy()
                 self.statements(block)
                 branches.append(ir.Block(block.span, tuple(self.output)))
-                states.append(self.environment.copy())
+                states.append({identifier: cell.value for identifier, cell in self.environment.items()})
+                array_states.append([list(owner.elements) for owner, _ in before_arrays])
                 shape_states.append(self.array_shapes.copy())
         finally:
             self.output, self.owned = parent_output, parent_owned
             self.environment = before.copy()
+            for identifier, cell in before.items():
+                cell.value = before_values[identifier]
+            for owner, elements in before_arrays:
+                owner.elements[:] = elements
             self.array_shapes = before_shapes.copy()
+            self.protected_regions = prior_protected
         for identifier in before_shapes:
             a, b = (state[identifier] for state in shape_states)
             if a != b:
                 self.fail("Q2004", "dynamic branches disagree on string-array element lengths", statement)
             self.array_shapes[identifier] = a
-        for identifier, value in before.items():
+        for identifier, cell in before.items():
+            value = before_values[identifier]
             a, b = (state[identifier] for state in states)
             if a.shape != b.shape:
                 self.fail("Q2004", "dynamic branches disagree on collection/string length", statement)
             if value.type.quantum:
-                self.environment[identifier] = replace(value, shape=a.shape)
+                cell.value = replace(value, shape=a.shape)
+            elif a != value or b != value:
+                self.fail("Q2004", "dynamic branches cannot change classical state", statement)
+        for i, (owner, _) in enumerate(before_arrays):
+            a, b = array_states[0][i], array_states[1][i]
+            if any(x.shape != y.shape for x, y in zip(a, b, strict=True)):
+                self.fail("Q2004", "dynamic branches disagree on array element lengths", statement)
+            owner.elements[:] = a
         self.output.append(ir.Statement(statement.span, "if", (condition,), tuple(branches)))
 
-    def call(self, function, arguments, source):
+    def call(self, function, arguments, source, locations=()):
         self.step(source)
         if self.call_depth >= 64:
             self.fail("Q4001", "function inlining depth exceeded", source)
         self.call_depth += 1
         normalized = []
         for argument in arguments:
-            if argument.type.quantum and argument.op not in {"load", "index"}:
+            if argument.type.array:
+                argument = self.array_value(argument, "$argument")
+            elif argument.type.quantum and argument.op not in {"load", "index"}:
                 argument = self.materialize(argument, "$argument")
             normalized.append(argument)
         parent_environment, parent_output, parent_owned = self.environment, self.output, self.owned
+        if not locations:
+            locations = (None,) * len(arguments)
+        borrowed = [(self.regions(a, c), not p.readonly) for p, a, c in zip(function.parameters, normalized, locations, strict=True)]
+        for i, (region, mutable) in enumerate(borrowed):
+            for other, other_mutable in borrowed[:i]:
+                if (mutable or other_mutable) and region & other:
+                    self.fail("Q2004", "function arguments have overlapping mutable/readonly borrows", source)
+        for cell in locations:
+            if cell is not None:
+                self.check_write(cell, source)
         self.environment = {identifier: value for identifier, value in parent_environment.items() if identifier in self.global_ids}
-        self.environment.update({parameter.id: argument for parameter, argument in zip(function.parameters, normalized, strict=True)})
+        for parameter, argument, cell in zip(function.parameters, normalized, locations, strict=True):
+            self.environment[parameter.id] = cell if cell is not None else Cell(self.readonly_value(argument))
+        previous_borrows = self.read_borrows
+        self.read_borrows = previous_borrows + [region for (region, mutable), argument in zip(borrowed, normalized, strict=True) if not mutable and (argument.type.quantum or argument.type.array)]
         self.output, self.owned = [], set()
         result = None
         try:
@@ -581,7 +777,9 @@ class Constructor:
                 self.statements(function.body)
             except Returned as returned:
                 result = returned.value
-            if result is not None and result.type.quantum:
+            if result is not None and result.type.array:
+                result = self.array_value(result, "$return")
+            elif result is not None and result.type.quantum:
                 if result.op != "load" or result.symbol.id not in self.owned:
                     result = self.materialize(result, "$return")
                 result = replace(result, op="move")
@@ -590,9 +788,12 @@ class Constructor:
             parent_environment.update({identifier: value for identifier, value in self.environment.items() if identifier in self.global_ids})
             self.environment, self.output, self.owned = parent_environment, parent_output, parent_owned
             self.call_depth -= 1
-        escapes = () if result is None or not result.type.quantum else (result,)
+            self.read_borrows = previous_borrows
+        escapes = self.live_values()
+        if result is not None and result.type.quantum:
+            escapes = (self.freeze(result), *escapes)
         self.output.append(ir.Statement(source.span, "scope", escapes, (body,), operator="function",
-            source_name=function.name, aliases=tuple((p.name, a) for p, a in zip(function.parameters, normalized, strict=True))))
+            source_name=function.name, aliases=tuple((p.name, self.freeze(a)) for p, a in zip(function.parameters, normalized, strict=True))))
         if result is None:
             return ir.Expression(source.span, ir.Type("void"), ir.Stage.STATIC, "literal", known=True)
         return replace(result, span=source.span)

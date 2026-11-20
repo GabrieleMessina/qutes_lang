@@ -42,9 +42,9 @@ quint number=0; quint a=next(number); quint b=next(number); return measure(b);''
 def test_array_reordering_and_foreach_views():
     c = compile('quint[] values=[0,1]; values=[values[1],values[0]]; foreach(quint element in values) { quint copy=element+1; } return measure(values);')
     mappings = [m for m in c.program.source_mappings if m.name == "values[0]"]
-    assert [m.bits for m in mappings] == [(0, 1, 2), (3, 4, 5)]
+    assert [m.bits for m in mappings] == [(0, 1, 2), (6, 7, 8)]
     assert mappings[0].operation_end == mappings[1].operation_start
-    assert [m.bits for m in c.program.source_mappings if m.name == "element"] == [(3, 4, 5), (0, 1, 2)]
+    assert [m.bits for m in c.program.source_mappings if m.name == "element"] == [(6, 7, 8), (9, 10, 11)]
 
 
 @pytest.mark.backend

@@ -16,7 +16,7 @@ def build(source, **settings):
 
 def test_array_value_copy_preserves_old_values_after_indexed_updates():
     program = build("""
-        quint[] a=[1,2]; quint[] b=a; a[0]+=1; a[1]=1;
+        quint[] a=[1,2]; quint[] b=copy(a); a[0]+=1; a[1]=1;
         return [measure(a[0]),measure(a[1]),measure(b[0]),measure(b[1])];
     """)
     assert distribution(program) == pytest.approx({"[2, 1, 1, 2]": 1})
@@ -24,7 +24,7 @@ def test_array_value_copy_preserves_old_values_after_indexed_updates():
 
 def test_quantum_array_copies_keep_correlations_and_distinct_storage():
     program = build("""
-        qubit flag=superposition(); qubit[] values=[flag,flag]; qubit[] copy=values;
+        qubit flag=superposition(); qubit[] values=[flag,flag]; qubit[] copy=copy(values);
         values[0]=!values[0];
     """)
     expected = np.zeros(32, dtype=complex)
@@ -34,7 +34,7 @@ def test_quantum_array_copies_keep_correlations_and_distinct_storage():
 
 def test_whole_array_assignment_uses_value_copy():
     program = build("""
-        quint[] a=[1,-2]; quint[] b=[-1,0]; a=b; b[0]+=1;
+        quint[] a=[1,-2]; quint[] b=[-1,0]; a=copy(b); b[0]+=1;
         return [measure(a[0]),measure(a[1]),measure(b[0])];
     """, quint_bits=2)
     assert distribution(program) == pytest.approx({"[-1, 0, 0]": 1})
@@ -43,7 +43,7 @@ def test_whole_array_assignment_uses_value_copy():
 def test_conditional_array_assignment_preserves_unselected_array():
     program = build("""
         qubit flag=superposition(); quint[] values=[0,1];
-        if(flag) { values=[1,0]; }
+        if(flag) { values[0]=1; values[1]=0; }
         return measure(values);
     """, quint_bits=2)
     assert distribution(program) == pytest.approx({"[0, 1]": 0.5, "[1, 0]": 0.5})
@@ -141,13 +141,13 @@ def test_huge_quantum_allocation_fails_before_building_bit_tuple():
     assert error.value.code == "Q4001"
 
 
-def test_array_self_permutation_preserves_correlations_without_extra_storage():
+def test_array_literal_rebinding_preserves_correlations():
     program = build("""
         qubit a=superposition(); qubit b=superposition(); qubit[] values=[a,b];
         values=[values[1],values[0]];
         return [measure(a),measure(b),measure(values[0]),measure(values[1])];
     """)
-    assert program.qubit_count == 4
+    assert program.qubit_count == 6
     expected = {json.dumps([a,b,b,a]): 0.25 for a in (False,True) for b in (False,True)}
     assert distribution(program) == pytest.approx(expected)
 

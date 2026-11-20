@@ -604,3 +604,30 @@ workspace membership lookup. Focused command
 `.venv/Scripts/python.exe tools/check.py -q tests/test_wire_execution.py tests/test_wires.py tests/test_search.py tests/test_wire_views.py`:
 103 passed,7.25s,run-qv2or_fx. KB-025 records superseded907 runs and the wide
 compile-only probe. No simulation was attempted for that oversized probe.
+
+## V026 - 2026-11-20, partial 0.4 foundation
+
+Windows/Python3.13.5, existing pinned backend. Parser regenerated with
+.venv/Scripts/python.exe tools/generate_parser.py --jar artifacts/antlr/antlr-4.13.2-complete.jar --java "C:/Program Files/Android/openjdk/jdk-21.0.8/bin/java.exe"
+(TEMP/TMP workspace artifacts/install-temp).
+.venv/Scripts/python.exe tools/check.py -q tests/test_v04_types.py tests/test_parser.py tests/test_checker.py tests/test_construction.py tests/test_scripts.py
+242 passed,4.64s,run-x5g90cwn. Earlier failed228/3 run-cdm52k2i described KB026.
+No full suite/Linux/package claim yet; installed wheel remains0.3.
+
+V026 checkpoint evidence (supersedes foundation-only status):
+- .venv/Scripts/python.exe tools/check.py -q:932 passed,54.18s,run-tdlfjb20.
+- Focused checker/construction/membership/provenance/collections/feedforward/
+  scripts/tour/references suite:412 passed,31.28s,run-ttr0vcz5.
+- After transitive-rebind/retention assertions: tests/test_v04_references.py
+  tests/test_v04_types.py tests/test_search.py tests/test_readability_reporting.py:
+  97 passed,3.96s,run-6bpoiomx.
+- After final overflow and reference-budget guards: .venv/Scripts/python.exe
+  tools/check.py -q tests/test_v04_types.py tests/test_v04_references.py
+  tests/test_language_examples.py tests/test_search.py:126 passed,8.15s,run-bbmsj_9g.
+- wsl.exe -d Debian -- /mnt/c/Users/gabry/Work/Quantum/qutes_lang_chatgpt/artifacts/linux-venv/bin/python /mnt/c/Users/gabry/Work/Quantum/qutes_lang_chatgpt/tools/check.py -q tests/test_v04_references.py tests/test_v04_types.py:
+  25 passed,15.75s,run-wuz3y0nx (before final additional regressions). Initial
+  restricted launch Wsl/E_ACCESSDENIED; elevated retry succeeded.
+- Pinned parser --check passes with V026 command/environment. git diff --check
+  passes (Git warns about CRLF normalization only). Initial failures recorded KB026.
+No installation or complete0.4 validation yet. Package/artifact version migration
+and old artifact respecialization guard remain T029 before any release.

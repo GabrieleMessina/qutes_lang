@@ -67,6 +67,7 @@ class Expression:
     dependencies: frozenset[int] = frozenset()
     effects: frozenset[str] = frozenset()
     presentation: str | None = None
+    readonly: bool = False
 
 
 @dataclass(frozen=True)
@@ -86,6 +87,7 @@ class Statement:
     operator: str | None = None
     source_name: str | None = None
     aliases: tuple[tuple[str, Expression], ...] = ()
+    index_symbol: Symbol | None = None
 
 
 @dataclass(frozen=True)

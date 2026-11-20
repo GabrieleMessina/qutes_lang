@@ -6,6 +6,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass, fields, replace
 from typing import Any
 from difflib import get_close_matches
+import math
 
 from qutes import ir, syntax as ast
 from qutes.config import CompilerConfig
@@ -13,6 +14,7 @@ from qutes.diagnostics import DiagnosticError, Span
 from qutes.values import SignedInteger, TextEncoding
 from qutes.vocabulary import Builtin
 from qutes.membership import is_sequence, pattern_is_element, matches, work_bound
+from qutes.numeric import RANK, convert, divide, finite
 
 
 @dataclass
@@ -71,6 +73,7 @@ class Checker:
         self.global_ids = set()
         self.script_return_seen = False
         self.exit_globals = []
+        self.parameter_outputs = {}
 
     def fail(self, code: str, message: str, node, *, help=None) -> None:
         raise DiagnosticError(code, message, node if isinstance(node, Span) else node.span, help=help)
@@ -110,7 +113,7 @@ class Checker:
                 if isinstance(statement, ast.Input) and type_.quantum:
                     self.fail("Q2001", "inputs must be classical data", statement)
                 value = ir.Expression(statement.span, type_, ir.Stage.QUANTUM if type_.quantum else ir.Stage.STATIC, "global")
-                symbol = self.declare(statement.name, type_, value, statement)
+                symbol = self.declare(statement.name, type_, value, statement, readonly=getattr(statement, "readonly", False))
                 self.global_symbols[statement.name] = symbol
                 self.global_ids.add(symbol.id)
                 self.scopes[0][statement.name].initialized = False
@@ -203,7 +206,7 @@ class Checker:
                 type_ = self.type(parameter.type)
                 expression = ir.Expression(parameter.span, type_, stage, "parameter", shape=shape)
                 dependencies = aliases[index] if arguments else frozenset()
-                parameters.append(self.declare(parameter.name, type_, expression, parameter, readonly=True, alias_dependencies=dependencies))
+                parameters.append(self.declare(parameter.name, type_, expression, parameter, readonly=not parameter.mutable, alias_dependencies=dependencies))
             body = self.block(function.body, new_scope=False)
             if self.return_type.name != "void" and not body.returns:
                 self.fail("Q2005", f"function {name!r} must return a value on every path", function)
@@ -224,6 +227,7 @@ class Checker:
                                  stage, next(iter(shapes)) if len(shapes) == 1 else None,
                                  body, frozenset(self.effects))
             self.instances[cache_key] = result
+            self.parameter_outputs[key] = tuple(replace(self.scopes[1][p.name]) for p in function.parameters)
             return result
         finally:
             updated_globals = self.scopes[0]
@@ -247,7 +251,7 @@ class Checker:
                   help=self.suggestion(name, (key for scope in self.scopes for key in scope)))
 
     def declare(self, name, type_, expression, node, readonly=False, alias_dependencies=frozenset()):
-        if name in self.scopes[-1] or name in self.functions or name in set(Builtin):
+        if name in self.scopes[-1] or name in self.functions or name in (set(Builtin) - {Builtin.COPY}) or name == "pi":
             self.fail("Q2002", f"duplicate or reserved variable name {name!r}", node)
         symbol = ir.Symbol(self.sequence, name, type_, readonly, node.span)
         self.sequence += 1
@@ -278,17 +282,20 @@ class Checker:
             result = ir.Expression(node.span, ir.Type(node.kind), ir.Stage.STATIC, "literal",
                                    value=node.value, known=True, shape=shape)
         elif isinstance(node, ast.Name):
+            if node.identifier == "pi":
+                return self.coerce(ir.Expression(node.span, ir.Type("float"), ir.Stage.STATIC, "literal", value=math.pi, known=True), expected, node) if expected else ir.Expression(node.span, ir.Type("float"), ir.Stage.STATIC, "literal", value=math.pi, known=True)
             binding = self.binding(node.identifier, node)
             result = ir.Expression(node.span, binding.symbol.type, binding.stage, "load",
-                                   value=binding.value, symbol=binding.symbol, known=binding.known,
-                                   shape=binding.shape, dependencies=frozenset({binding.symbol.id}) | binding.alias_dependencies)
+                                   value=binding.value, symbol=binding.symbol, known=binding.known and not binding.symbol.type.array,
+                                   shape=binding.shape, dependencies=frozenset({binding.symbol.id}) | binding.alias_dependencies,
+                                   readonly=binding.symbol.readonly)
         elif isinstance(node, ast.Unary):
             operand = self.expression(node.operand)
             operator = node.operator
             if operator == "!":
                 if operand.type not in (ir.Type("bool"), ir.Type("qubit")):
                     self.fail("Q2001", "! requires a Boolean or qubit predicate", node)
-            elif operand.type != ir.Type("int"):
+            elif operand.type.array or operand.type.name not in RANK:
                 self.fail("Q2001", "unary numeric operators require classical integers", node)
             if operand.stage == ir.Stage.RUNTIME and operator != "!":
                 self.fail("Q2003", "arithmetic on measurement results is deferred", node)
@@ -355,9 +362,18 @@ class Checker:
                                ir.Stage.QUANTUM if element_type.quantum else ir.Stage.STATIC,
                                "new_array", (length,), shape=length.value if length.known else None)
         elif isinstance(node, ast.Index):
-            collection, index = self.expression(node.collection), self.expression(node.index)
+            collection = self.expression(node.collection)
             if not collection.type.array and collection.type.name not in {"string", "qustring"}:
                 self.fail("Q2001", "indexing requires an array or string", node.collection)
+            if isinstance(node.index, ast.Binary) and node.index.operator == "..":
+                start, end = self.expression(node.index.left), self.expression(node.index.right)
+                self.require_static_integer(start, node.index.left, "slice start")
+                self.require_static_integer(end, node.index.right, "slice end")
+                result = self.make(node, ir.Type(collection.type.element.name, True), collection.stage, "slice", (collection, start, end),
+                                   shape=end.value-start.value if start.known and end.known else None)
+                result = replace(result, readonly=collection.readonly or not collection.type.array)
+                return self.coerce(result, expected, node) if expected else result
+            index = self.expression(node.index)
             self.require_static_integer(index, node.index, "index")
             if index.known and (index.value < 0 or (collection.shape is not None and index.value >= collection.shape)):
                 self.fail("Q4001", "index is outside the collection", node.index)
@@ -387,6 +403,14 @@ class Checker:
     def coerce(self, value, target, node):
         if value.type == target:
             return value
+        if target is not None and not value.type.array and not target.array and value.type.name in RANK and target.name in RANK and RANK[value.type.name] < RANK[target.name]:
+            if value.stage != ir.Stage.STATIC:
+                self.fail("Q2003", "numeric conversion requires construction-time data", node)
+            try:
+                result = convert(value.value, target.name) if value.known else None
+            except ValueError as error:
+                self.fail("Q2001", str(error), node)
+            return self.make(node, target, ir.Stage.STATIC, "numeric_convert", (value,), value=result, known=value.known)
         if not target.quantum or value.type != target.classical:
             self.fail("Q2001", f"cannot use {value.type} where {target} is required", node)
         if value.stage != ir.Stage.STATIC:
@@ -413,6 +437,13 @@ class Checker:
 
     def binary(self, node, left, right):
         operator = node.operator
+        if operator == "..":
+            self.require_static_integer(left, node.left, "range start")
+            self.require_static_integer(right, node.right, "range end")
+            if left.known and right.known and left.value > right.value:
+                self.fail("Q2001", "range start cannot exceed its end", node)
+            return self.make(node, ir.Type("int", True), ir.Stage.STATIC, "range", (left, right),
+                             shape=right.value-left.value if left.known and right.known else None)
         if operator == "in":
             try:
                 pattern_is_element(left.type, right.type)
@@ -430,6 +461,9 @@ class Checker:
         if left.type.quantum or right.type.quantum:
             target = left.type if left.type.quantum else right.type
             left, right = self.coerce(left, target, node.left), self.coerce(right, target, node.right)
+        elif not left.type.array and not right.type.array and left.type.name in RANK and right.type.name in RANK:
+            target = max((left.type, right.type), key=lambda t: RANK[t.name])
+            left, right = self.coerce(left, target, node.left), self.coerce(right, target, node.right)
         if left.type != right.type or left.type.array:
             self.fail("Q2001", "operator requires matching scalar operand types", node)
         base = left.type.classical.name
@@ -442,11 +476,11 @@ class Checker:
                 self.fail("Q2001", "Boolean operators require Boolean operands", node)
             type_ = left.type
         elif operator in {"==", "!=", "<", "<=", ">", ">="}:
-            if base == "void" or (operator not in {"==", "!="} and base != "int"):
+            if base == "void" or (operator not in {"==", "!="} and base not in {"int", "float"}):
                 self.fail("Q2001", "this comparison is not supported for these operands", node)
             type_ = ir.Type("qubit" if stage == ir.Stage.QUANTUM else "bool")
         else:
-            if base != "int" or (stage == ir.Stage.QUANTUM and operator != "+"):
+            if base not in RANK or (stage == ir.Stage.QUANTUM and operator != "+") or (operator == "%" and base == "complex") or operator not in {"+", "-", "*", "/", "%"}:
                 self.fail("Q2001", "unsupported arithmetic operator for these operands", node)
             if stage == ir.Stage.RUNTIME:
                 self.fail("Q2003", "arithmetic on measurement results is deferred", node)
@@ -463,8 +497,7 @@ class Checker:
             elif operator == "-": value = a - b
             elif operator == "*": value = a * b
             elif operator in {"/", "%"}:
-                quotient = (abs(a) // abs(b)) * (-1 if (a < 0) != (b < 0) else 1)
-                value = quotient if operator == "/" else a - quotient * b
+                value = divide(a, b, operator == "%")
             elif operator == "&&": value = a and b
             elif operator == "||": value = a or b
             elif operator == "==": value = a == b
@@ -473,6 +506,10 @@ class Checker:
             elif operator == "<=": value = a <= b
             elif operator == ">": value = a > b
             elif operator == ">=": value = a >= b
+            try:
+                finite(value)
+            except ValueError as error:
+                self.fail("Q2001", str(error), node)
             if type(value) is int and value.bit_length() > 4096:
                 # Avoid unbounded constant folding here; elaboration owns evaluation.
                 known, value = False, None
@@ -482,6 +519,22 @@ class Checker:
         if not isinstance(node.callee, ast.Name):
             self.fail("Q2002", "only named functions and builtins can be called", node.callee)
         name = node.callee.identifier
+        if any(node.names) and name != Builtin.SUPERPOSITION:
+            self.fail("Q2001", "named arguments are supported only for superposition preparation", node)
+        if name == Builtin.COMPLEX:
+            if len(node.arguments) != 2:
+                self.fail("Q2001", "complex requires real and imaginary components", node)
+            arguments = tuple(self.expression(a, ir.Type("float")) for a in node.arguments)
+            return self.make(node, ir.Type("complex"), ir.Stage.STATIC, "complex", arguments,
+                             known=all(a.known for a in arguments),
+                             value=complex(*(a.value for a in arguments)) if all(a.known for a in arguments) else None)
+        if name == Builtin.COPY:
+            if len(node.arguments) != 1:
+                self.fail("Q2001", "copy requires one array or array slice", node)
+            argument = self.expression(node.arguments[0])
+            if not argument.type.array:
+                self.fail("Q2001", "copy requires an array or array slice", node)
+            return self.make(node, argument.type, argument.stage, "copy", (argument,), shape=argument.shape)
         if name == Builtin.SEARCH:
             if len(node.arguments) != 2 or not isinstance(node.arguments[1], ast.Name):
                 self.fail("Q2001", "search requires a collection and a named oracle function", node)
@@ -492,13 +545,16 @@ class Checker:
                 self.fail("Q2001", "search requires an array or string", node)
             if collection.stage == ir.Stage.RUNTIME:
                 self.fail("Q2003", "search cannot use runtime-classical collections", node)
-            quantum_name = {v: k for k, v in ir.QUANTUM_TO_CLASSICAL.items()}[collection.type.element.classical.name]
+            counterparts = {v: k for k, v in ir.QUANTUM_TO_CLASSICAL.items()}
+            if collection.type.element.classical.name not in counterparts:
+                self.fail("Q2001", "search elements require a supported quantum counterpart", node)
+            quantum_name = counterparts[collection.type.element.classical.name]
             element_type = ir.Type(quantum_name)
             oracle_name = node.arguments[1].identifier
             oracle = self.functions.get(oracle_name)
             if oracle is None:
                 self.fail("Q2002", f"unknown search oracle {oracle_name!r}", node.arguments[1])
-            if (len(oracle.parameters) != 1 or self.type(oracle.parameters[0].type) != element_type
+            if (len(oracle.parameters) != 1 or oracle.parameters[0].mutable or self.type(oracle.parameters[0].type) != element_type
                     or self.type(oracle.return_type, allow_void=True) != ir.Type("qubit")):
                 self.fail("Q2001", f"search oracle must take one {element_type} parameter and return qubit", node)
             instance = self.function_instance(oracle_name, ((ir.Stage.QUANTUM, None),))
@@ -549,7 +605,20 @@ class Checker:
             self.fail("Q2001", f"{name} expects {len(function.parameters)} arguments", node)
         arguments = tuple(self.expression(argument, self.type(parameter.type))
                           for argument, parameter in zip(node.arguments, function.parameters, strict=True))
+        for parameter, argument, value in zip(function.parameters, node.arguments, arguments, strict=True):
+            if parameter.mutable:
+                if value.op not in {"load", "index", "slice"}:
+                    self.fail("Q2001", "mutable arguments require the exact parameter type", argument)
+                self.mutable_target(argument)
         instance = self.function_instance(name, tuple((argument.stage, argument.shape) for argument in arguments), arguments)
+        for parameter, instance_parameter, argument, output in zip(function.parameters, instance.parameters, node.arguments, self.parameter_outputs[instance.key], strict=True):
+            if parameter.mutable:
+                binding = self.mutable_target(argument)
+                if f"rebind:{instance_parameter.id}" in instance.effects:
+                    self.effects.add(f"rebind:{binding.symbol.id}")
+                binding.known, binding.value = False, None
+                if isinstance(argument, ast.Name):
+                    binding.stage, binding.shape = output.stage, output.shape
         if self.coherent_depth and "prepare" in instance.effects:
             self.fail("Q2004", "this helper prepares quantum state inside a quantum condition", node)
         self.effects.update(instance.effects)
@@ -588,7 +657,7 @@ class Checker:
                 binding.initialized = True
                 binding.stage, binding.known, binding.value, binding.shape = value.stage, value.known, value.value, value.shape
             else:
-                symbol = self.declare(node.name, type_, value, node)
+                symbol = self.declare(node.name, type_, value, node, readonly=node.readonly)
             return ir.Statement(node.span, "let", (value,), symbol=symbol), False
         if isinstance(node, (ast.Assignment, ast.Update)):
             target = self.expression(node.target)
@@ -607,11 +676,13 @@ class Checker:
                 value = self.binary(proxy, target, right)
             # RHS calls can replace the shared global analysis environment.
             binding = self.mutable_target(node.target)
-            if target.type.array and target.shape is not None and value.shape is not None and target.shape != value.shape:
-                self.fail("Q2001", "array assignment cannot change its fixed length", node)
+            if target.type.array and self.dynamic_depth:
+                self.fail("Q2004", "dynamic branches cannot rebind array references", node)
             if isinstance(node.target, ast.Name):
                 binding.stage, binding.known = value.stage, value.known
                 binding.value, binding.shape = value.value, value.shape
+                if self.function and any(p.name == node.target.identifier and p.mutable for p in self.function.parameters):
+                    self.effects.add(f"rebind:{binding.symbol.id}")
             else:
                 # An indexed write changes the aggregate stage; keep its fixed shape.
                 binding.stage = _merge_stage((target, value))
@@ -681,23 +752,29 @@ class Checker:
                 element = ir.Expression(node.span, type_, collection.stage, "element")
                 symbol = self.declare(node.name, type_, element, node, readonly=True,
                                       alias_dependencies=collection.dependencies)
+                index_symbol = self.declare(node.index_name, ir.Type("int"), ir.Expression(node.span, ir.Type("int"), ir.Stage.STATIC, "iteration_index"), node, readonly=True) if node.index_name else None
                 body = self.block(node.body)
             self.invalidate_loop_constants()
-            return ir.Statement(node.span, "foreach", (collection,), (body,), symbol=symbol), False
+            return ir.Statement(node.span, "foreach", (collection,), (body,), symbol=symbol, index_symbol=index_symbol), False
         raise AssertionError(f"unhandled statement: {type(node).__name__}")
 
     def mutable_target(self, node):
         if isinstance(node, ast.Name):
             binding = self.binding(node.identifier, node)
-        elif isinstance(node, ast.Index) and isinstance(node.collection, ast.Name):
-            binding = self.binding(node.collection.identifier, node.collection)
+        elif isinstance(node, ast.Index):
+            base = node.collection
+            while isinstance(base, ast.Index):
+                base = base.collection
+            if not isinstance(base, ast.Name):
+                self.fail("Q2001", "mutation requires a variable or array view", node)
+            binding = self.binding(base.identifier, base)
             if not binding.symbol.type.array:
                 self.fail("Q2001", "only array elements support indexed assignment in V1", node)
         else:
             self.fail("Q2001", "assignment requires a variable or an array element", node)
         if binding.symbol.readonly:
             self.fail("Q2004", f"{binding.symbol.name!r} is a read-only parameter or iteration binding", node)
-        if binding.symbol.id in self.protected:
+        if binding.symbol.id in self.protected and not isinstance(node, ast.Index):
             self.fail("Q2004", f"{binding.symbol.name!r} is protected by an active quantum condition or read-only borrow", node)
         if binding.symbol.id in self.dynamic_outers and not binding.symbol.type.quantum:
             self.fail("Q2004", "dynamic branches cannot change outer classical state in V1", node)

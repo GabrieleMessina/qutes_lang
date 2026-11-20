@@ -114,3 +114,13 @@ source packaging and requirement audit. All commits local; user experiments pres
   physical execution/config/artifact4 with legacy3 support, physical/logical views,
   reports and 39-example tour. Full Windows/Linux 907 each; installed/core/parser
   checks pass. See docs/wire-reuse-audit.md. Scheduling/routing/dirty ancilla deferred.
+
+## Approved 0.4 increment
+
+- T025 DONE (KB026/V026): references/types, float/complex, readonly/mut, explicit copy, indexed foreach.
+- T026 ACTIVE: live operations, atomic effects and cleanup safeguards.
+- T027 TODO: sparse explicit preparation and signed subtraction/negation.
+- T028 PARTIAL: ranges/slices done with T025; bounded quantum indexing TODO.
+- T029 TODO: migration, artifact5, documentation and Windows/Linux/package validation.
+
+Contract: docs/spec/language-v0.4.md. Parsing/probes do not constitute delivery.

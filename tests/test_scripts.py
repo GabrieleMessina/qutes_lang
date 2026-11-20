@@ -65,7 +65,7 @@ def test_input_schema_errors(inputs):
     ('quint q=1; int sample(){return measure(q);} if(true){sample();}', 'Q2004'),
     ('quint q=1; int a(){return b();} int b(){return measure(q);} if(true){a();}', 'Q2004'),
     ('quint q=1; void f(quint p){q+=1;} f(q);', 'Q2004'),
-    ('quint[] qs=[1,2]; void f(quint p){qs[0]+=1;} f(qs[1]);', 'Q2004'),
+    ('quint[] qs=[1,2]; void f(quint p){qs[1]+=1;} f(qs[1]);', 'Q2004'),
     ('qubit q=superposition(); void flip(){q=true;} if(q){flip();}', 'Q2004'),
     ('qubit q=superposition(); int n=0; void set(){n=1;} if(q){set();}', 'Q2004'),
     ('qubit q=superposition(); void f(){qubit r=superposition();} if(q){f();}', 'Q2004'),

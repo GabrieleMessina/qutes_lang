@@ -73,7 +73,7 @@ class Builder(QutesVisitor):
         return ast.Function(self.span(ctx), self.visit(ctx.type_()), ctx.IDENT().getText(), parameters, self.visit(ctx.block()))
 
     def visitParameter(self, ctx):
-        return ast.Parameter(self.span(ctx), self.visit(ctx.type_()), ctx.IDENT().getText())
+        return ast.Parameter(self.span(ctx), self.visit(ctx.type_()), ctx.IDENT().getText(), ctx.modifier is not None)
 
     def visitType(self, ctx):
         return ast.TypeRef(self.span(ctx), ctx.typeName().getText(), ctx.getChildCount() > 1)
@@ -82,7 +82,7 @@ class Builder(QutesVisitor):
         return ast.Block(self.span(ctx), tuple(self.visit(s) for s in ctx.statement()))
 
     def visitDeclaration(self, ctx):
-        return ast.Declaration(self.span(ctx), self.visit(ctx.type_()), ctx.IDENT().getText(), self.visit(ctx.expression()))
+        return ast.Declaration(self.span(ctx), self.visit(ctx.type_()), ctx.IDENT().getText(), self.visit(ctx.expression()), ctx.modifier is not None)
 
     def visitSimple(self, ctx):
         expressions = ctx.expression()
@@ -105,8 +105,11 @@ class Builder(QutesVisitor):
                            self.visit(ctx.condition) if ctx.condition else None,
                            self.visit(ctx.update) if ctx.update else None, self.visit(ctx.block()))
         if start == 'foreach':
-            return ast.Foreach(span, self.visit(ctx.type_()), ctx.IDENT().getText(),
-                               self.visit(ctx.expression()), self.visit(ctx.block()))
+            if ctx.indexType and self.visit(ctx.indexType) != ast.TypeRef(self.span(ctx.indexType), 'int'):
+                raise DiagnosticError('Q2001', 'foreach index binding must have type int', self.span(ctx.indexType))
+            return ast.Foreach(span, self.visit(ctx.elementType), ctx.elementName.text,
+                               self.visit(ctx.expression()), self.visit(ctx.block()),
+                               ctx.indexName.text if ctx.indexName else None)
         return replace(self.visit(ctx.getChild(0)), span=span)
 
     def visitIfStatement(self, ctx):
@@ -126,7 +129,7 @@ class Builder(QutesVisitor):
             result = ast.Binary(result.span.through(right.span), ctx.getChild(i).getText(), result, right)
         return result
 
-    visitLogicalOr = visitLogicalAnd = visitEquality = visitComparison = visitAddition = visitMultiplication = binary
+    visitLogicalOr = visitLogicalAnd = visitEquality = visitComparison = visitRangeExpr = visitAddition = visitMultiplication = binary
 
     def visitUnary(self, ctx):
         result = self.visit(ctx.postfix())
@@ -142,7 +145,9 @@ class Builder(QutesVisitor):
         for suffix in ctx.suffix():
             span = result.span.through(self.span(suffix))
             if suffix.start.text == '(':
-                result = ast.Call(span, result, self.arguments(suffix.arguments()))
+                arguments = suffix.callArguments().argument() if suffix.callArguments() else ()
+                result = ast.Call(span, result, tuple(self.visit(a.expression()) for a in arguments),
+                                  tuple(a.IDENT().getText() if a.IDENT() else None for a in arguments))
             elif suffix.start.text == '[':
                 result = ast.Index(span, result, self.visit(suffix.expression()))
             else:
@@ -151,13 +156,15 @@ class Builder(QutesVisitor):
 
     def visitPrimary(self, ctx):
         span = self.span(ctx)
-        for name, kind in [('INT', 'int'), ('STRING', 'string'), ('CHAR', 'char')]:
+        for name, kind in [('INT', 'int'), ('FLOAT', 'float'), ('STRING', 'string'), ('CHAR', 'char')]:
             token = getattr(ctx, name)()
             if token:
                 return ast.Literal(span, kind, token_value(token.symbol, self.locations))
         if ctx.IDENT():
             return ast.Name(span, ctx.IDENT().getText())
         first = ctx.start.text
+        if first == 'complex':
+            return ast.Name(span, first)
         if first in {'true', 'false'}:
             return ast.Literal(span, 'bool', first == 'true')
         if first == '(':

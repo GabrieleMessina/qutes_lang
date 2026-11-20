@@ -706,3 +706,39 @@ dea2099d260ae46c3a23cf5526d459cf4de9c0c960c75a5c46ac53bf39844af4 installed and
 smoked in Windows/Linux/core environments; both installed verifiers pass. Source
 archive and wheel bytes checked again after final documentation. All required
 work complete; the third coherent local commit closes T024, with no push.
+
+## KB-026 - 2026-11-20, 0.4 implementation in progress
+
+Resumed KB025, inspected specs/source/git. Two untracked root example12 PNGs are
+user files and untouched. Added approved0.4 contract. Initial multi-file doc
+patches failed on invalid context and made no changes; retried individual files.
+Regenerated ANTLR4.13.2 after grammar/AST additions. Implemented finite float and
+complex values/conversion/input/JSON layout decoding, readonly bindings, indexed
+foreach. Initial focused run-cdm52k2i:228 passed/3 failed because builtin copy
+reserved an existing variable name. D085 permits that value-position name. Added
+independent numeric/reference tests; run-x5g90cwn:242 passed. No array-reference,
+mut, gate, preparation or quantum-index completion claim. Next: locations and
+array identities; keep semantics in checker/construction, not grammar actions.
+
+KB026 checkpoint completion: implemented Cell/ArrayObject/ArrayView constructor
+locations, mut caller-visible updates, readonly capabilities, explicit copy,
+reference rebinding/returns, ranges/slices and concrete borrow/predicate checks.
+Lowering receives immutable operation snapshots, root reachability and backing
+retention; dropped views do not clean shared storage. Added retained_array_qubits
+and explain text. Search rejects mutable oracles and float/complex elements.
+
+Focused25 new tests pass (run-o06wkjmm). First broad run-ljprnuy5:915 passed/17
+failed, chiefly old copy/conditional-rebind expectations plus provenance and
+predicate-reference handling. Migrated intent-preserving tests/examples03/17 to
+copy and element writes; views no longer materialize incidental membership copies.
+Fixed string-array snapshot shapes and source alias intervals. Focused412 pass
+(run-ttr0vcz5), full932 pass (run-tdlfjb20). New nested-rebind/retention tests and
+numeric overflow/resource guards then pass97 (run-6bpoiomx),126(run-bbmsj_9g).
+Linux initial restricted WSL launch denied; authorized elevated WSL retry passes
+25 (run-wuz3y0nx). Parser check passes. No full Linux/release claim yet.
+
+Next: T026 live operations. Existing scheduler.update rejects H/RY; do not simply
+remove that guard: dependency replay through basis changes can falsely certify
+zero. Add explicit unitary effect barriers/atomic multi-owner records and tests.
+Remaining: sparse prep/subtraction, quantum support/access, artifact5 and migration,
+release docs/examples/package/full Windows+Linux. No user images/snapshot edited.

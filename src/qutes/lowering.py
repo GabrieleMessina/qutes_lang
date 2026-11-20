@@ -82,6 +82,7 @@ class Allocation:
 @dataclass(frozen=True)
 class Collection:
     elements: tuple[Storage, ...]
+    retained: tuple[Storage, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -96,7 +97,7 @@ class View:
 
 def storage_ids(value):
     if isinstance(value, Collection):
-        return {item.id for item in value.elements}
+        return {item.id for item in (*value.elements, *value.retained)}
     if isinstance(value, View):
         return {value.storage.id}
     return {value.id} if isinstance(value, Storage) else set()
@@ -118,6 +119,7 @@ class Program:
     registers: tuple[Register, ...] = ()
     embedded_cleanup_annotations: tuple[dict, ...] = ()
     zero_certificates: tuple[ZeroCertificate, ...] = ()
+    retained_array_bits: tuple[int, ...] = ()
     # Physical programs retain their complete logical source representation.
     # Allocations/certificates on either view describe logical storage identities.
     logical_program: Program | None = None
@@ -136,6 +138,7 @@ class Lowerer:
         self.bindings: dict[int, Storage | Collection | Result] = {}
         self.frames: list[set[int]] = [set()]
         self.script_values: set[int] = set()
+        self.retained_array_bits = ()
         self.controls: tuple[tuple[int, bool], ...] = ()
         self.conditions = ()
         self.lengths: dict[int, int] = {}
@@ -157,6 +160,14 @@ class Lowerer:
                 "qustring": self.config.quchar_bits * self.config.qustring_capacity}[type_.name]
 
     def reference(self, expression):
+        if expression.op == "array_view":
+            backing = self.reference(expression.arguments[0])
+            if isinstance(backing, (Storage, View)):
+                owner = backing.storage if isinstance(backing, View) else backing
+                width = self.config.quchar_bits
+                return Collection(tuple(View(owner, backing.bits[i*width:(i+1)*width]) for i in expression.value), (owner,))
+            return Collection(tuple(backing.elements[i] for i in expression.value),
+                              (*backing.elements, *backing.retained))
         if expression.op == "index":
             collection = self.reference(expression.arguments[0])
             index = expression.arguments[1].value
@@ -350,7 +361,7 @@ class Lowerer:
         if expression.op == "search":
             return self.create_search(expression, name)
         if expression.type.array:
-            if expression.op in {"load", "move"}:
+            if expression.op in {"load", "move", "array_view"}:
                 return self.copy_value(self.reference(expression), expression.type, name, expression)
             if expression.op == "array":
                 elements = expression.arguments
@@ -617,7 +628,21 @@ class Lowerer:
 
     def statement(self, statement):
         op = statement.op
-        if op == "bind":
+        if op == "roots":
+            values = tuple(self.reference(e) for e in statement.expressions)
+            self.script_values = set().union(*(storage_ids(v) for v in values))
+            visible = {bit for v in values for item in (v.elements if isinstance(v, Collection) else (v,)) for bit in item.bits}
+            backing = {bit for v in values if isinstance(v, Collection) for item in v.retained for bit in item.bits}
+            self.retained_array_bits = tuple(sorted(backing-visible))
+        elif op == "alias":
+            name = statement.symbol.name
+            for frame in self.mapping_frames:
+                for i in frame:
+                    mapping = self.source_mappings[i]
+                    if mapping.operation_end == -1 and (mapping.name == name or mapping.name.startswith(name + "[")):
+                        self.source_mappings[i] = replace(mapping, operation_end=len(self.scheduler.operations))
+            self.map_value(statement.symbol.name, self.reference(statement.expressions[0]), statement.span)
+        elif op == "bind":
             frame = 0 if statement.operator == "global" else -1
             name = statement.symbol.name
             for index in self.mapping_frames[frame]:
@@ -757,7 +782,7 @@ class Lowerer:
                        source_mappings=tuple(self.source_mappings),
                        registers=registers(allocations, self.source_mappings, scheduler.classical_bit_count),
                        embedded_cleanup_annotations=tuple(self.embedded_cleanup_annotations),
-                       zero_certificates=tuple(scheduler.zero_certificates))
+                       zero_certificates=tuple(scheduler.zero_certificates), retained_array_bits=self.retained_array_bits)
 
 
 def lower(program: construction.Program) -> Program:

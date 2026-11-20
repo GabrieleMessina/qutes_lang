@@ -62,6 +62,7 @@ def resources(program: Program, span):
     return {**counts, "allocated_qubits": program.qubit_count,
             "search_oracle_calls": sum(item["oracle_calls"] for item in program.searches),
             "retained_search_index_qubits": sum(len(item.retained_index_bits) for item in program.allocations if not item.released),
+            "retained_array_qubits": len(program.retained_array_bits),
             "search_workspace_qubits": sum(len(item.scratch_bits) for item in program.allocations),
             "classical_bits": program.classical_bit_count,
             "scheduled_operations": len(program.operations),

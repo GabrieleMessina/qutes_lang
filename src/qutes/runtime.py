@@ -7,6 +7,7 @@ from qutes.config import CompilerConfig
 from qutes.diagnostics import DiagnosticError, Position, Span
 from qutes.lowering import Result
 from qutes.serialization import json_text
+from qutes.numeric import from_data
 
 
 @dataclass(frozen=True)
@@ -22,9 +23,13 @@ class ResultLayout:
 
 
 def result_from_data(data):
+    type_ = ir.Type(**data["type"])
+    value = data.get("value")
+    if data["op"] == "literal":
+        value = from_data(value, type_)
     return Result(ir.Type(**data["type"]), data["op"],
                   tuple(result_from_data(argument) for argument in data.get("arguments", ())),
-                  data.get("value"), tuple(data.get("bits", ())), data.get("alphabet"),
+                  value, tuple(data.get("bits", ())), data.get("alphabet"),
                   data.get("length"), data.get("capacity"))
 
 

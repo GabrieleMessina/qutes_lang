@@ -23,6 +23,7 @@ class TypeRef(Node):
 class Parameter(Node):
     type: TypeRef
     name: str
+    mutable: bool = False
 
 
 @dataclass(frozen=True)
@@ -63,6 +64,7 @@ class Group(Expr):
 class Call(Expr):
     callee: Expr
     arguments: tuple[Expr, ...]
+    names: tuple[str | None, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -103,6 +105,7 @@ class Declaration(Stmt):
     type: TypeRef
     name: str
     initializer: Expr
+    readonly: bool = False
 
 
 @dataclass(frozen=True)
@@ -161,6 +164,7 @@ class Foreach(Stmt):
     name: str
     collection: Expr
     body: Block
+    index_name: str | None = None
 
 
 @dataclass(frozen=True)

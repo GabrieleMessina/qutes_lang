@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from qutes.diagnostics import DiagnosticError, Position, Span
 from bisect import bisect_right
 import re
+import math
 from antlr4 import InputStream, CommonTokenStream
 from qutes.generated.QutesLexer import QutesLexer
 from qutes.generated.QutesParser import QutesParser
@@ -118,6 +119,11 @@ def token_value(token, locations):
             return parse_integer(text)
         except ValueError:
             raise DiagnosticError("Q1001", "integer literal exceeds parser limits", span) from None
+    if kind == "FLOAT":
+        value = float(text)
+        if not math.isfinite(value):
+            raise DiagnosticError("Q1001", "floating-point literal must be finite", span)
+        return value
     return text
 
 
@@ -138,7 +144,7 @@ def token_stream(source, path):
                                       help="Close the comment or quoted literal before continuing.")
             if token.type == QutesLexer.INVALID:
                 raise DiagnosticError("Q1001", f"unexpected character {token.text!r}", locations.token_span(token))
-            if token.type in {QutesLexer.STRING, QutesLexer.CHAR, QutesLexer.INT}:
+            if token.type in {QutesLexer.STRING, QutesLexer.CHAR, QutesLexer.INT, QutesLexer.FLOAT}:
                 token_value(token, locations)
         except DiagnosticError as error:
             error.source = source
@@ -160,8 +166,8 @@ def lex(source: str, path: str = "<source>") -> tuple[Token, ...]:
             result.append(Token("EOF", "", None, locations.token_span(token)))
             continue
         kind = QutesParser.symbolicNames[token.type]
-        if kind not in {"IDENT", "INT", "STRING", "CHAR"}:
+        if kind not in {"IDENT", "INT", "FLOAT", "STRING", "CHAR"}:
             kind = token.text
-        value = token_value(token, locations) if kind in {"IDENT", "INT", "STRING", "CHAR"} or token.text[0].isalpha() else None
+        value = token_value(token, locations) if kind in {"IDENT", "INT", "FLOAT", "STRING", "CHAR"} or token.text[0].isalpha() else None
         result.append(Token(kind, token.text, value, locations.token_span(token)))
     return tuple(result)

@@ -11,10 +11,11 @@ express values and computations; the compiler manages circuits and uncomputation
 
 ## Current increment
 
-Implement certified-zero physical wire reuse after complete cleanup scheduling,
-with unchanged operations/order, default physical diagrams and optional logical
-views. See [the implementation plan](docs/wire-reuse-plan.md) and T024 in the
-knowledge base for actual delivery status. Existing circuit readability is complete.
+Implement [Qutes 0.4](docs/spec/language-v0.4.md): array references, mutable
+parameters, readonly access, numeric types, readable live gates, explicit state
+preparation, signed subtraction and coherent collection access. T025-T029 in the
+knowledge base track actual delivery. Certified-zero wire reuse and circuit
+readability are complete; preserve their safety guarantees throughout this work.
 
 ## Future work
 

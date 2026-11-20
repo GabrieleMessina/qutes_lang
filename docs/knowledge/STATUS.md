@@ -1,5 +1,24 @@
 # Current status
 
+## Active 0.4 implementation (2026-11-20)
+
+T025 checkpoint complete; T026 ACTIVE, T027/T029 pending. T028 ranges/slices
+implemented with reference foundations; coherent quantum indexing remains TODO.
+Target contract docs/spec/language-v0.4.md. Current code adds float/complex,
+readonly/mut, array references and copy, returned views/full backing retention,
+indexed foreach, ranges and mutable/read-only slices. New source semantics are
+in development; package/artifact labels remain0.3/4 until T029 version migration.
+Do not distribute a release or claim the full0.4 plan is delivered yet.
+
+Windows full932 passed (run-tdlfjb20); subsequent focused97 and126 passed after
+nested-rebind/normalization/resource guards. Linux focused25 passed. Parser
+reproduction passes. Next: statement-only gates and phase-aware atomic cleanup
+records, Bell/QFT/teleportation correctness. Use tools/check.py/tools/qutes.py;
+installed wheels remain0.3. Preserve both untracked root example12 PNGs and
+snapshots.qut. See latest ledger/validation and git log for checkpoint commit.
+
+## Previous completed release
+
 Updated: 2026-11-06, checkpoint KB-025. T024 wire reuse COMPLETE.
 Language 0.3; package 0.3.0.dev0; generated artifact schema 4 (v3 adapter retained).
 Active contracts: [language](../spec/language-v0.3.md),

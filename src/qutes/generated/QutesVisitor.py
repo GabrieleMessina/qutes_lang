@@ -99,6 +99,11 @@ class QutesVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by QutesParser#rangeExpr.
+    def visitRangeExpr(self, ctx:QutesParser.RangeExprContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by QutesParser#addition.
     def visitAddition(self, ctx:QutesParser.AdditionContext):
         return self.visitChildren(ctx)
@@ -121,6 +126,16 @@ class QutesVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by QutesParser#suffix.
     def visitSuffix(self, ctx:QutesParser.SuffixContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by QutesParser#callArguments.
+    def visitCallArguments(self, ctx:QutesParser.CallArgumentsContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by QutesParser#argument.
+    def visitArgument(self, ctx:QutesParser.ArgumentContext):
         return self.visitChildren(ctx)
 
 
