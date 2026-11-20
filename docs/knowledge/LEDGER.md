@@ -874,3 +874,5 @@ KB036: user approved migrating the website release links and redeploying. Websit
 KB037: renamed the website branch on GitHub using the branch rename API; verified local tracking and the original tip 0af23e4. Prepared new package metadata and public labels. Starter instructions now read the exact version from the input archive manifest.
 
 KB037 completion: immutable release 2.0.0 created from 0367b52 with three validated downloads. The website build pins the archive and all its public package labels and install instructions use 2.0.0. GitHub accepted the atomic push of website branch qutes2.0 and tag qutes-site-2.0.0 at b480812. Hosted website outcome unverified by request.
+
+KB038: implemented and locally committed the redesign in the website checkout. GPT-6.2 Sol at medium effort reviewed desktop/mobile and keyboard flows. Fixed misleading Hadamard feedback, duplicate counts, step focus and small-screen spacing. Browser tests initially raced hash navigation and tried editing collapsed inputs; synchronized transitions and opened the inputs panel. Review is by an agent. No push or deployment.

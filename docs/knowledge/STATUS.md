@@ -20,3 +20,5 @@ The two repositories use separate release branches. Website builds verify the re
 T030–T034 are complete through the requested deployment dispatch. Both repositories use qutes2.0. Website tag qutes-site-2.0.0 targets b480812 and pins the 2.0.0 release bundle. Preview and production workflows were dispatched without waiting for their outcome at user request. For a subsequent deployment audit, check the tag workflow and live manifest.
 
 From the language checkout, use Python 3.12 or 3.13 in a virtual environment. Install dependencies with `python -m pip install -r requirements-dev.lock`, run `python tools/check.py -q` and `python tools/verify_walkthrough.py`. From the website checkout use `npm ci`, `python scripts/build.py`, and the browser checks documented there. Exact verification runs and failed attempts are in VALIDATION and LEDGER.
+
+Local website review checkpoint: website qutes2.0 commit 8660080 is one commit ahead of origin. Tutorial, Playground and Build preview at http://127.0.0.1:4197/tutorial.html. Next action is owner review before any push or deployment.
