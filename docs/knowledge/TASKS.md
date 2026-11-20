@@ -149,3 +149,5 @@ T040 DONE locally: simplify Tutorial and Build, and pin the preview to the r2 re
 T041 DONE: release 2.0.0 has exactly the five r2 platform archives and their checksum file. Source instructions, native packaging, and the local website are updated. Next action is owner review before any website deployment. See KB044 and V043.
 
 T042 DONE: production serves the reviewed website. All five platform links and checksums passed, the retired teaching ZIP returns 404, and merged Codex working branches were cleaned up in both repositories. See KB045 and V044.
+
+T043 ACTIVE: implement the standalone website export, validate actual downloaded files without Qutes, and deliver the local preview for owner review.
