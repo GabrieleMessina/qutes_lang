@@ -137,3 +137,5 @@ T034 DONE: published compiler 2.0.0 and matching downloads, renamed website bran
 T035 DONE through local delivery: interactive tutorial, three output tabs, updated navigation/footer and redirects. Publication awaits separate user approval.
 
 T036 DONE locally: replaced the four-step tutorial with four modules and eight runnable labs, including a teleportation repair and receiver audit. Publication requires a new owner instruction. See KB039 and V038 for review and verification.
+
+T037 DONE: five native portable archives, checksum manifest and platform chooser are public on the existing 2.0.0 release. See KB040 and V039.

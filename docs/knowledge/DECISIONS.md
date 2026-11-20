@@ -291,3 +291,5 @@ D096 (user): publish compiler package 2.0.0 and align website/download labels; r
 D097 (user): keep inspection inside Playground, teach programmers via an editable walkthrough, retain generated Python export and keep this website revision local for review.
 
 D098 (user): expand Tutorial into a course, obtain a Sol agent review of the interface and functionality, and keep the revision local pending an explicit publication instruction. Implementation choices: teach toward a two-part teleportation project, validate lab observations against browser execution, and save drafts, progress and the self-reviewed final report in the learner’s browser.
+
+D099 (user): ship portable one-folder distributions of the full 2.0.0 CLI with CPU Aer and image export. Attach them to the existing language release. Website publication is separate.

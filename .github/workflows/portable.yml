@@ -1,0 +1,58 @@
+name: Portable Qutes 2.0.0
+on:
+  push:
+    branches: [codex/portable-cli-2.0]
+    paths:
+      - '.github/workflows/portable*.yml'
+      - 'tools/portable/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    uses: ./.github/workflows/portable-target.yml
+    with:
+      runner: windows-2022
+      target: windows-x64
+
+  other-platforms:
+    needs: windows
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {runner: macos-15, target: macos-arm64}
+          - {runner: macos-15-intel, target: macos-x64}
+          - {runner: ubuntu-22.04, target: linux-x64}
+          - {runner: ubuntu-22.04-arm, target: linux-arm64}
+    uses: ./.github/workflows/portable-target.yml
+    with:
+      runner: ${{ matrix.runner }}
+      target: ${{ matrix.target }}
+
+  publish:
+    needs: [windows, other-platforms]
+    if: github.repository == 'GabrieleMessina/qutes_lang' && github.ref == 'refs/heads/codex/portable-cli-2.0'
+    permissions:
+      contents: write
+    runs-on: ubuntu-22.04
+    concurrency: qutes-2-0-0-release-assets
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: tools/portable
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: portable-*
+          merge-multiple: true
+          path: verified
+      - name: Publish validated bytes and verify public downloads
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python -I tools/portable/publish.py verified
