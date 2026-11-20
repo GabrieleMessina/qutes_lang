@@ -862,3 +862,5 @@ Source archive refreshed after final handoff edits. No implementation work remai
 KB031: imported e1c78a8 from qutes_lang_chatgpt over origin/development; retained LICENSE and CITATION.cff. Audited legacy notebook, extension, wiki and setup in docs/release-0.4.md. Ran 1032 tests and 26 walkthrough commands. Notebook execution initially hit Windows console encoding on circuit printing; UTF-8 rerun passed.
 
 KB032: hosted build 44785282615 passed three matrix jobs. Windows 3.12 installed into runner Python and pip check detected an unrelated preinstalled pipx/packaging conflict. Run the unchanged pins in a fresh venv on each runner. Browser Chromium proved Bell edit, exported project and wire reuse; installed Aer reproduces the browser export (30 false/true, 34 true/false).
+
+KB033: 0.4.0 assets staged as a GitHub prerelease. Companion starter uses the published canonical Bell source/config and wheels. Website candidate 466bfe4 pins a78cc16. Hosted website run 44786317981 failed because Playwright 1.56 cannot install on Ubuntu 26.04; pinned Ubuntu 24.04. Hosting preview uses the existing website GitHub Actions credential; local Firebase account lookup failed.

@@ -48,6 +48,8 @@ def main():
     }, indent=2).encode()
     args.output.parent.mkdir(parents=True, exist_ok=True)
     pack(args.output, entries)
+    subprocess.run([sys.executable, str(ROOT / "resources/starters/build_starter.py"),
+                    str(args.output), str(args.output.with_name("qutes-starter.zip"))], check=True)
     print(commit, hashlib.sha256(args.output.read_bytes()).hexdigest(), args.output)
 
 

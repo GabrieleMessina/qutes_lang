@@ -8,4 +8,4 @@ recursive-include grammar *.g4 *.sha256
 include .github/workflows/*.yml
 
 include LICENSE CITATION.cff
-recursive-include resources *.md *.ipynb *.html *.vtt *.json
+recursive-include resources *.py *.md *.ipynb *.html *.vtt *.json
