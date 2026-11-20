@@ -257,3 +257,9 @@ conversation examples suggesting measurement consumption are superseded by D007.
   Controlled NOT on an independent quantum root is also a phase-effect barrier,
   including equivalent q=!q syntax, to avoid erasing phase kickback on cleanup.
   This is conservative: some valid ancilla-erasure schemes remain Q3001.
+
+- D089 (implementation): sparse preparation uses conditional prefix rotations and
+  leaf phases, with a replayable inverse and no reset, enumeration of the complete
+  basis domain or extra selection index. Zero weights are allowed; duplicate basis
+  entries are not. Existing independent private preparation under measured control
+  remains valid; quantum-controlled preparation remains forbidden.

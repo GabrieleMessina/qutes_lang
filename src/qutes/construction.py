@@ -15,6 +15,7 @@ from qutes.values import SignedInteger, TextEncoding
 from qutes.membership import matches, pattern_is_element, work_bound
 from qutes.numeric import RANK, convert, divide, finite
 from qutes.references import Cell, ElementCell, ArrayObject, ArrayView
+from qutes.preparation import validate as validate_preparation, work_bound as preparation_work
 
 
 @dataclass(frozen=True)
@@ -291,6 +292,17 @@ class Constructor:
             return self.literal(expression, expression.value)
         if op == "superposition":
             return replace(expression, known=False)
+        if op == "prepare":
+            arguments = tuple(self.freeze(self.expression(a)) for a in expression.arguments)
+            if any(a.stage != ir.Stage.STATIC for a in arguments):
+                self.fail("Q2003", "preparation values and weights must be construction-time data", expression)
+            try:
+                state = validate_preparation(arguments[0].value, arguments[1].value if len(arguments) > 1 else None,
+                                             expression.value, expression.type, self.config.quint_bits)
+            except (ValueError, OverflowError) as error:
+                self.fail("Q2001", str(error), expression)
+            self.step(expression, preparation_work(state, self.config.quint_bits if expression.type.name == "quint" else 1))
+            return replace(expression, arguments=(), value=state)
         if op.startswith("gate:"):
             name = op.split(":", 1)[1]
             values, occupied = [], set()

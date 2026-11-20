@@ -119,8 +119,8 @@ source packaging and requirement audit. All commits local; user experiments pres
 
 - T025 DONE (KB026/V026): references/types, float/complex, readonly/mut, explicit copy, indexed foreach.
 - T026 DONE (KB027/V027): live operations, atomic effects and cleanup safeguards.
-- T027 ACTIVE: sparse explicit preparation and signed subtraction/negation.
-- T028 PARTIAL: ranges/slices done with T025; bounded quantum indexing TODO.
+- T027 DONE (KB028/V028): sparse explicit preparation and signed subtraction/negation.
+- T028 ACTIVE: ranges/slices done with T025; bounded quantum indexing next.
 - T029 TODO: migration, artifact5, documentation and Windows/Linux/package validation.
 
 Contract: docs/spec/language-v0.4.md. Parsing/probes do not constitute delivery.

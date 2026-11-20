@@ -295,8 +295,8 @@ class Checker:
             if operator == "!":
                 if operand.type not in (ir.Type("bool"), ir.Type("qubit")):
                     self.fail("Q2001", "! requires a Boolean or qubit predicate", node)
-            elif operand.type.array or operand.type.name not in RANK:
-                self.fail("Q2001", "unary numeric operators require classical integers", node)
+            elif operand.type.array or operand.type.name not in {*RANK, "quint"}:
+                self.fail("Q2001", "unary numeric operators require a numeric scalar", node)
             if operand.stage == ir.Stage.RUNTIME and operator != "!":
                 self.fail("Q2003", "arithmetic on measurement results is deferred", node)
             value = None
@@ -480,7 +480,7 @@ class Checker:
                 self.fail("Q2001", "this comparison is not supported for these operands", node)
             type_ = ir.Type("qubit" if stage == ir.Stage.QUANTUM else "bool")
         else:
-            if base not in RANK or (stage == ir.Stage.QUANTUM and operator != "+") or (operator == "%" and base == "complex") or operator not in {"+", "-", "*", "/", "%"}:
+            if base not in RANK or (stage == ir.Stage.QUANTUM and operator not in {"+", "-"}) or (operator == "%" and base == "complex") or operator not in {"+", "-", "*", "/", "%"}:
                 self.fail("Q2001", "unsupported arithmetic operator for these operands", node)
             if stage == ir.Stage.RUNTIME:
                 self.fail("Q2003", "arithmetic on measurement results is deferred", node)
@@ -592,11 +592,27 @@ class Checker:
             value = self.make(node, element_type, ir.Stage.QUANTUM, "search", (collection,), value=instance.key)
             return replace(value, effects=value.effects | instance.effects | {"prepare", "search"})
         if name == Builtin.SUPERPOSITION:
-            if node.arguments or not allow_prepare or expected not in (ir.Type("qubit"), ir.Type("quint")):
+            if not allow_prepare or expected not in (ir.Type("qubit"), ir.Type("quint")):
                 self.fail("Q2001", "superposition() requires an initializing qubit or quint declaration", node)
             if self.coherent_depth:
-                self.fail("Q2004", "cannot prepare a superposition inside a quantum condition", node)
+                self.fail("Q2004", "cannot prepare a superposition under quantum control", node)
             self.effects.add("prepare")
+            if node.arguments:
+                names = node.names or (None,) * len(node.arguments)
+                if len(node.arguments) > 2 or names[0] is not None or (len(node.arguments) == 2 and names[1] not in {"probabilities", "amplitudes"}):
+                    self.fail("Q2001", "use superposition(values), or one named probabilities: or amplitudes: argument", node)
+                values = self.expression(node.arguments[0], ir.Type(expected.classical.name, True))
+                arguments = [values]
+                kind = names[1] if len(node.arguments) == 2 else None
+                if kind:
+                    context = ir.Type("float" if kind == "probabilities" else "complex", True) if isinstance(node.arguments[1], ast.ArrayLiteral) else None
+                    weights = self.expression(node.arguments[1], context)
+                    if not weights.type.array or weights.type.name not in ({"int", "float"} if kind == "probabilities" else RANK):
+                        self.fail("Q2001", "preparation weights require a classical numeric array", node.arguments[1])
+                    arguments.append(weights)
+                if any(a.stage != ir.Stage.STATIC for a in arguments):
+                    self.fail("Q2003", "preparation values and weights must be known during construction", node)
+                return ir.Expression(node.span, expected, ir.Stage.QUANTUM, "prepare", tuple(arguments), value=kind, effects=frozenset({"prepare"}))
             return ir.Expression(node.span, expected, ir.Stage.QUANTUM, "superposition",
                                  effects=frozenset({"prepare"}))
         if name == Builtin.MEASURE:

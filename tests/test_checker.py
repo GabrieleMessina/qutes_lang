@@ -73,7 +73,7 @@ def test_invalid_types_and_numeric_truthiness(source):
 
 
 def test_quantum_operator_restrictions_and_range():
-    for expression in ["q - 1", "q * 2", "q / 2", "-q", "!q", "q < 128"]:
+    for expression in ["q * 2", "q / 2", "!q", "q < 128"]:
         rejects(f" quint q=1; quint other={expression}; return 0; ", "Q2001")
     rejects(' quint q=1; q++; return 0; ', "Q2001")
     check(' quint q=-128; q=q+(-1); return measure(q); ', quint_bits=8)

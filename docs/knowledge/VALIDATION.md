@@ -644,3 +644,15 @@ operator to an independent Fourier matrix; inverse compares full operators;
 teleportation checks external correlations in complementary bases. Joint cleanup
 checks the complete final state and zero certificates. Final Windows/Linux/package
 validation remains T029. No independent human review claimed.
+
+## V028 - 2026-11-20 preparation and subtraction
+
+Windows Python3.13.5, existing pinned dependencies.
+- .venv/Scripts/python.exe tools/check.py -q tests/test_v04_preparation.py:
+  20 passed,4.58s,run-76wcfsmn (before two further correlation/control tests).
+- .venv/Scripts/python.exe tools/check.py -q:
+  974 passed/2 failed,57.48s,run-4jqgbudz; both corrected as KB028.
+- .venv/Scripts/python.exe tools/check.py -q tests/test_v04_preparation.py tests/test_checker.py tests/test_feedforward.py:
+  220 passed,12.43s,run-7pkw7b34. Includes22 new preparation/arithmetic cases.
+- git diff --check passes; only line-ending normalization warnings.
+Full final Windows/Linux/package checks remain T029. No release claim yet.

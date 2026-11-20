@@ -765,3 +765,20 @@ run-y3w8_ajz:177 pass including18 new operation tests plus cleanup/control/searc
 wire execution. No reset/implicit measurement inserted. No full release claim.
 Next T027: sparse preparation/normalization and signed subtraction; then bounded
 quantum indexing, artifact migration, docs/examples and final distribution checks.
+
+## KB-028 - 2026-11-20 explicit preparation and signed arithmetic
+
+T026 committed82a6d50. Added sparse qubit/quint preparation with uniform, probability
+and complex-amplitude forms, finite strict normalization and reversible prefix
+rotations/leaf phases. Signed subtraction and negation use inverse modular adders
+and two's complement; self-overlap rejects information loss. Full-state tests cover
+complex/global phases, external correlations, inverse preparation, local cleanup,
+generated changed inputs and exhaustive small signed widths.
+
+Initial focused20 passed run-76wcfsmn. Full run-4jqgbudz:974 passed/2 failed: old
+subtraction-rejection expectation and an overbroad new restriction on preparation
+under measured control. Removed obsolete rejection, restored existing legal private
+runtime-branch preparation, and tested helper/coherent restrictions. Final focused
+220 passed run-7pkw7b34. No full Linux/release claim yet. Next T028: conservative
+support analysis and coherent indexed copies, followed by T029 artifact migration,
+examples/docs and full distribution validation. User PNGs/snapshots untouched.

@@ -22,6 +22,7 @@ from qutes.search import schedule, uniform_index
 from qutes.provenance import Region, SourceMapping, Register, expression_kind, registers
 from qutes.values import EncodedString, SignedInteger, TextEncoding
 from qutes.wires import ZeroCertificate, WireAllocation
+from qutes.preparation import gates as preparation_gates
 
 
 @dataclass(frozen=True)
@@ -237,6 +238,9 @@ class Lowerer:
             raise DiagnosticError("Q3001", "addition operands overlap the updated variable; doubling cannot use an in-place adder", span)
         return (Gate("add", target.bits, source.bits, span=span),)
 
+    def negate_gates(self, target, span):
+        return (Gate("x", target.bits, span=span), Gate("add_constant", target.bits, amount=1, span=span))
+
     def preparation(self, expression, target):
         op = expression.op
         constant = self.encoded_constant(expression)
@@ -244,13 +248,19 @@ class Lowerer:
             return self.copy_gates(target, int(constant), expression.span), ()
         if op == "superposition":
             return (Gate("h", target.bits, span=expression.span),), ()
+        if op == "prepare":
+            return preparation_gates(expression.value, target.bits, expression.span), ()
         if op in {"load", "move", "index"}:
             return self.copy_gates(target, self.reference(expression), expression.span), ()
-        if op == "binary:+":
+        if op in {"binary:+", "binary:-"}:
             a, a_temps = self.operand(expression.arguments[0])
             b, b_temps = self.operand(expression.arguments[1])
-            return (self.copy_gates(target, a, expression.span) + self.add_gates(target, b, expression.span),
+            addition = self.add_gates(target, b, expression.span)
+            return (self.copy_gates(target, a, expression.span) + (inverse(addition) if op == "binary:-" else addition),
                     a_temps + b_temps)
+        if op in {"unary:-", "unary:+"}:
+            value, temporaries = self.operand(expression.arguments[0])
+            return self.copy_gates(target, value, expression.span) + (self.negate_gates(target, expression.span) if op == "unary:-" else ()), temporaries
         if op in {"binary:==", "binary:!=", "binary:<", "binary:<=", "binary:>", "binary:>=",
                   "binary:&&", "binary:||"}:
             return self.predicate(expression, target)
@@ -380,7 +390,10 @@ class Lowerer:
             return Collection(tuple(self.create(item, f"{name}[{i}]") for i, item in enumerate(elements)))
         target = self.allocate(expression.type, name, expression)
         gates, temporaries = self.preparation(expression, target)
-        self.scheduler.initialize(target, self.gated(gates))
+        if expression.op == "prepare":
+            self.scheduler.initialize_replayable(target, self.gated(gates))
+        else:
+            self.scheduler.initialize(target, self.gated(gates))
         if expression.type.name == "qustring":
             self.lengths[target.id] = self.text_length(expression)
         self.release_temporaries(temporaries)
@@ -522,6 +535,18 @@ class Lowerer:
         op = expression.op
         if op in {"load", "move", "index"} and self.reference(expression) is target:
             return (), ()
+        if op in {"unary:-", "unary:+"}:
+            gates, temporaries = self.self_update(expression.arguments[0], target)
+            return gates + (self.negate_gates(target, expression.span) if op == "unary:-" else ()), temporaries
+        if op == "binary:-":
+            left, right = expression.arguments
+            left_contains, right_contains = self.contains(left, target), self.contains(right, target)
+            if left_contains != right_contains:
+                inner, other = (left, right) if left_contains else (right, left)
+                gates, temporaries = self.self_update(inner, target)
+                source, more = self.operand(other)
+                addition = self.add_gates(target, source, expression.span)
+                return gates + (inverse(addition) if left_contains else self.negate_gates(target, expression.span) + addition), temporaries + more
         if op == "binary:+":
             left, right = expression.arguments
             left_contains, right_contains = self.contains(left, target), self.contains(right, target)
