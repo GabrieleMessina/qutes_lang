@@ -876,3 +876,5 @@ KB037: renamed the website branch on GitHub using the branch rename API; verifie
 KB037 completion: immutable release 2.0.0 created from 0367b52 with three validated downloads. The website build pins the archive and all its public package labels and install instructions use 2.0.0. GitHub accepted the atomic push of website branch qutes2.0 and tag qutes-site-2.0.0 at b480812. Hosted website outcome unverified by request.
 
 KB040: added a checksum-pinned wheel build, native archive packaging, separate clean-runner acceptance and release backfill workflow on a dedicated branch. Existing remote release assets and tag were verified. Hosted acceptance and distribution pending.
+
+KB040 Windows candidate: the fresh runner reached image export after Bell, phase, wire reuse and code generation passed. Its pathname comparison used textual equality across Windows TEMP aliases. Check directory identity and image bytes separately.

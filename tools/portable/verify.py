@@ -71,7 +71,9 @@ def verify(archive, work):
     for fmt in ("png", "svg"):
         result = json.loads(cli("check", bell, "--save-circuit", "images", "--circuit-format", fmt, "--json"))
         image = Path(result["circuit_diagram"]["image"])
-        assert image.parent == project / "images" and image.stat().st_size > 1000
+        # Windows runner TEMP can use a short (8.3) alias for the same directory.
+        assert image.parent.samefile(project / "images"), (image, project)
+        assert image.stat().st_size > 1000, (image, image.stat().st_size)
         if fmt == "png":
             assert image.read_bytes()[:8] == b"\x89PNG\r\n\x1a\n"
         else:
