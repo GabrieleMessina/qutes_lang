@@ -32,7 +32,7 @@ def _literal(value, helpers):
     return ascii(value)
 
 
-def _result_expression(result, helpers):
+def _result_expression(result, args, helpers):
     if result.op == "literal":
         return _literal(result.value, helpers)
     if result.op == "snapshot":
@@ -53,7 +53,6 @@ def _result_expression(result, helpers):
         if result.type.name == "string":
             helpers.add(_text)
             return f"_text({packed}, {alphabet}, {result.length}, {result.capacity})"
-    args = [_result_expression(arg, helpers) for arg in result.arguments]
     if result.op == "array":
         return "[" + ", ".join(args) + "]"
     if result.op == "index":
@@ -68,13 +67,41 @@ def _result_expression(result, helpers):
     raise ValueError(f"Unsupported standalone return expression {result.op!r}")
 
 
+def _decoder_lines(result, helpers):
+    lines = ["def decode_result(memory):",
+             '    """Decode classical bits in the order of the Qutes return expression."""']
+    pending = [(result, False)]
+    values = []
+    while pending:
+        node, ready = pending.pop()
+        if node.arguments and not ready:
+            pending.append((node, True))
+            pending.extend((child, False) for child in reversed(node.arguments))
+            continue
+        count = len(node.arguments)
+        args = values[-count:] if count else []
+        if count:
+            del values[-count:]
+        expression = _result_expression(node, args, helpers)
+        if node is result:
+            lines.append(f"    return {expression}")
+        elif count:
+            # Unrolled Qutes loops can exceed Python's nested-expression limit.
+            name = f"value_{len(lines) - 1}"
+            lines.append(f"    {name} = {expression}")
+            values.append(name)
+        else:
+            values.append(expression)
+    return lines
+
+
 def standalone_source(compilation, *, default_shots=64):
     """Generate a directly runnable file for the already-compiled input binding."""
     program = compilation.program
     if type(default_shots) is not int or not 1 <= default_shots <= program.config.max_simulation_shots:
         raise ValueError("Invalid default shot count")
     helpers = set()
-    expression = _result_expression(program.result, helpers)
+    decoder = _decoder_lines(program.result, helpers)
     lines = [
         '"""Qiskit circuit exported from the Qutes playground.',
         "",
@@ -89,9 +116,8 @@ def standalone_source(compilation, *, default_shots=64):
     for helper in (_signed, _text, integer_text, json_text):
         if helper in helpers:
             lines.extend([getsource(helper).rstrip(), "", ""])
-    lines.extend(["def decode_result(memory):",
-                  '    """Decode classical bits in the order of the Qutes return expression."""',
-                  f"    return {expression}", "", ""])
+    lines.extend(decoder)
+    lines.extend(["", ""])
     serialize = "json_text" if json_text in helpers else "json.dumps"
     lines.append(f'''def run(shots={default_shots}, seed=None):
     """Simulate the circuit and group shots by their decoded return values."""

@@ -896,3 +896,5 @@ KB045: pushed website qutes2.0 from b480812 to 0d0d46d. Dispatched hosting workf
 KB045 completion: GitHub verified the reviewed site and deployed the same artifact through Firebase preview to live. Compared the production Build HTML with the website checkout. All five public r2 archive URLs returned 200 and the five checksum entries matched the release API. The old teaching ZIP and former compiler wheel path on the website both returned 404.
 
 KB046: extracted the existing circuit emitter for reuse and added a separate generator for a standalone circuit, specialized return decoder and Aer runner. CLI output retains its original format and behavior. Set up an isolated Python environment by installing only qiskit==2.3.0 and qiskit-aer==0.17.2 as direct dependencies.
+
+KB046 regression: a valid return expression unrolled over 205 or more negations exceeded Python’s parsing limit when emitted as nested parentheses. Emit intermediate values in evaluation order for compound return expressions.

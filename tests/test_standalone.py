@@ -43,6 +43,14 @@ def test_standalone_circuit_and_decoding_match_compiler(case):
             assert json_text(module["decode_result"](memory)) == json_text(expected)
 
 
+def test_standalone_unrolled_snapshot_expression():
+    compilation = compile_source("qubit q=false; bool b=measure(q);"
+                                 "for(int i=0;i<225;i++){b=!b;} return b;")
+    module = {"__name__": "standalone"}
+    exec(standalone_source(compilation), module)
+    assert [module["decode_result"](memory) for memory in (0, 1)] == [True, False]
+
+
 def test_standalone_large_literal_and_runtime_arguments():
     result = 10**5000
     compilation = compile_source("input int n; return n;", inputs={"n": result})

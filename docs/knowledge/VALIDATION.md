@@ -754,3 +754,5 @@ V044: git ls-remote --heads origin, git branch --merged origin/qutes2.0, git wor
 V044 live browser: with QUTES_PREVIEW_URL=https://qutes-lang.web.app, node --test --test-name-pattern 'Build offers|chromium runs' tests/build.test.cjs tests/playground.test.cjs passed 2/2. This exercised the five visible downloads without JavaScript, first-run commands, responsive layouts, and playground execution and generated Qiskit export in Chromium.
 
 V045 compiler: python -m pytest -q tests/test_standalone.py tests/test_delivery.py passed 102 tests. The new exporter produced matching circuits and decoded sampled classical bit patterns for all 50 tour examples. Compared the original Git revision of python_source with the refactored CLI generator on all 50 examples and got byte-identical modules. The isolated Windows Python 3.13.5 environment passed pip check and has neither the qutes nor antlr4 module.
+
+V045 decoder: reproduced Python SyntaxError on an unrolled 225-iteration return expression. After emitting intermediate assignments, python -m pytest -q tests/test_standalone.py passed all 52 cases including this regression.
