@@ -898,3 +898,5 @@ KB045 completion: GitHub verified the reviewed site and deployed the same artifa
 KB046: extracted the existing circuit emitter for reuse and added a separate generator for a standalone circuit, specialized return decoder and Aer runner. CLI output retains its original format and behavior. Set up an isolated Python environment by installing only qiskit==2.3.0 and qiskit-aer==0.17.2 as direct dependencies.
 
 KB046 regression: a valid return expression unrolled over 205 or more negations exceeded Python’s parsing limit when emitted as nested parentheses. Emit intermediate values in evaluation order for compound return expressions.
+
+KB046 local delivery: the website pins compiler 5ee169d and displays and downloads the identical standalone script. Verified the source pin against the complete Git archive contents, independent of ZIP compression. The published and local Git archives of previously public commit 7070205 matched under that digest. An initial tamper-test fixture reused mutable ZipInfo entries; copying those entries verified a one-file change changes the digest. Website c55aa4c and compiler changes are local. No push, release or hosting action.

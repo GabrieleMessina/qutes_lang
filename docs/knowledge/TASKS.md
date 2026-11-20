@@ -142,4 +142,4 @@ T041 DONE: release 2.0.0 has exactly the five r2 platform archives and their che
 
 T042 DONE: production serves the reviewed website. All five platform links and checksums passed, the retired teaching ZIP returns 404, and merged Codex working branches were cleaned up in both repositories. See KB045 and V044.
 
-T043 ACTIVE: implement the standalone website export, validate actual downloaded files without Qutes, and deliver the local preview for owner review.
+T043 DONE locally: the standalone playground download passed the isolated Qiskit/Aer acceptance test. CLI exports match the previous generator. Review the local playground before authorizing publication.
