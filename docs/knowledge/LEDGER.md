@@ -890,3 +890,7 @@ KB044: migrated native packaging to the exact compiler Git commit. Removed the o
 KB044 publication: replaced the r2 checksum manifest at its original URL and edited the GitHub release notes. Removed eleven explicitly identified obsolete assets. Rechecked the final six-asset inventory, public checksum bytes and the GitHub IDs and digests of the five retained archives. Website remained local.
 
 KB044 completion: compiler and portable checks passed on the language branch, including all five fresh archive verifications. Production still uses the earlier site, pending the owner's review.
+
+KB045: pushed website qutes2.0 from b480812 to 0d0d46d. Dispatched hosting workflow 44818550125 on that exact revision using the live channel. Verified branch ancestry, open pull requests and active checkouts, then removed the merged portable-cli-2.0 and portable-cli-2.0-r2 Codex branches on GitHub. Removed the four merged local language working branches and both repositories’ stale Codex remote-tracking refs. The website’s working branch was already absent from GitHub.
+
+KB045 completion: GitHub verified the reviewed site and deployed the same artifact through Firebase preview to live. Compared the production Build HTML with the website checkout. All five public r2 archive URLs returned 200 and the five checksum entries matched the release API. The old teaching ZIP and former compiler wheel path on the website both returned 404.

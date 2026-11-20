@@ -139,3 +139,5 @@ T037 DONE: five native portable archives, checksum manifest and platform chooser
 T039 DONE: published the five portable archives, starter, teaching bundle, checksum manifest and revised description on release 2.0.0. See KB042 and V041.
 
 T041 DONE: release 2.0.0 has exactly the five r2 platform archives and their checksum file. Source instructions, native packaging, and the local website are updated. Next action is owner review before any website deployment. See KB044 and V043.
+
+T042 DONE: production serves the reviewed website. All five platform links and checksums passed, the retired teaching ZIP returns 404, and merged Codex working branches were cleaned up in both repositories. See KB045 and V044.
