@@ -118,8 +118,8 @@ source packaging and requirement audit. All commits local; user experiments pres
 ## Approved 0.4 increment
 
 - T025 DONE (KB026/V026): references/types, float/complex, readonly/mut, explicit copy, indexed foreach.
-- T026 ACTIVE: live operations, atomic effects and cleanup safeguards.
-- T027 TODO: sparse explicit preparation and signed subtraction/negation.
+- T026 DONE (KB027/V027): live operations, atomic effects and cleanup safeguards.
+- T027 ACTIVE: sparse explicit preparation and signed subtraction/negation.
 - T028 PARTIAL: ranges/slices done with T025; bounded quantum indexing TODO.
 - T029 TODO: migration, artifact5, documentation and Windows/Linux/package validation.
 

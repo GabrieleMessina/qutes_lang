@@ -291,6 +291,25 @@ class Constructor:
             return self.literal(expression, expression.value)
         if op == "superposition":
             return replace(expression, known=False)
+        if op.startswith("gate:"):
+            name = op.split(":", 1)[1]
+            values, occupied = [], set()
+            for i, argument in enumerate(expression.arguments):
+                if name == "phase" and i == 1:
+                    value = self.expression(argument)
+                    if value.stage != ir.Stage.STATIC:
+                        self.fail("Q2003", "phase angle must be known during construction", argument)
+                else:
+                    cell = self.location(argument)
+                    self.check_write(cell, argument)
+                    regions = self.regions(cell.value, cell)
+                    if occupied & regions:
+                        self.fail("Q2004", "swap operands must be distinct qubits", expression)
+                    occupied.update(regions)
+                    value = cell.value
+                values.append(value)
+            self.output.append(ir.Statement(expression.span, "gate", tuple(values), operator=name))
+            return self.literal(expression, None)
         if op == "call":
             function = self.functions[expression.value]
             arguments, locations = [], []

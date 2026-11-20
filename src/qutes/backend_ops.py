@@ -44,6 +44,8 @@ def applications(operation: Gate):
     if operation.kind in {"x", "h", "ry", "phase"}:
         for target in operation.targets:
             yield from application(operation.kind, (target,))
+    elif operation.kind == "swap":
+        yield from application("swap", operation.targets)
     elif operation.kind == "copy":
         for source, target in zip(operation.inputs, operation.targets, strict=True):
             yield from application("x", (target,), (source,))

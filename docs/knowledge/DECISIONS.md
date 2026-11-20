@@ -249,3 +249,11 @@ conversation examples suggesting measurement consumption are superseded by D007.
 - D087 (implementation): array literal rebinding creates fresh storage, including
   permutations; retained aliases keep old backing. Old conditional whole-array
   replacement becomes element writes. Source mappings follow new allocation IDs.
+
+- D088 (implementation,0.4): explicit Hadamard/phase/swap updates carry atomic
+  unitary history records. Independent dependency replay cannot cross them.
+  A completely private connected component may be inverted jointly; any outside
+  quantum dependency, measurement or released member prevents that fallback.
+  Controlled NOT on an independent quantum root is also a phase-effect barrier,
+  including equivalent q=!q syntax, to avoid erasing phase kickback on cleanup.
+  This is conservative: some valid ancilla-erasure schemes remain Q3001.

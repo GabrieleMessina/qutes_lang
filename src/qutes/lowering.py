@@ -10,6 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from typing import Any
 from contextlib import nullcontext
+import math
 
 from qutes import construction, ir
 from qutes.cleanup import CleanupEvent, Scheduler, Storage
@@ -618,6 +619,8 @@ class Lowerer:
                 elif statement.op == "assign":
                     kind = expression_kind(statement.expressions[1])
                     label = statement.expressions[1].op
+                elif statement.op == "gate":
+                    kind, label = statement.operator, statement.operator
                 region = self.scheduler.region(kind, label, statement.span) if kind else nullcontext()
                 with region:
                     self.statement(statement)
@@ -642,6 +645,22 @@ class Lowerer:
                     if mapping.operation_end == -1 and (mapping.name == name or mapping.name.startswith(name + "[")):
                         self.source_mappings[i] = replace(mapping, operation_end=len(self.scheduler.operations))
             self.map_value(statement.symbol.name, self.reference(statement.expressions[0]), statement.span)
+        elif op == "gate":
+            name = statement.operator
+            operands = statement.expressions[:-1] if name == "phase" else statement.expressions
+            values = [self.reference(e) for e in operands]
+            bits = tuple(bit for v in values for bit in v.bits)
+            kind = {"hadamard": "h", "not": "x", "phaseFlip": "phase", "phase": "phase", "swap": "swap"}[name]
+            angle = math.pi if name == "phaseFlip" else statement.expressions[-1].value if name == "phase" else 0.0
+            gates = self.gated((Gate(kind, bits, angle=angle, span=statement.span),))
+            if name == "not":
+                target = values[0].storage if isinstance(values[0], View) else values[0]
+                if target.root and any(g.reads for g in gates):
+                    self.scheduler.live_unitary(gates)
+                else:
+                    self.scheduler.update(target, gates)
+            else:
+                self.scheduler.live_unitary(gates)
         elif op == "bind":
             frame = 0 if statement.operator == "global" else -1
             name = statement.symbol.name
@@ -703,7 +722,12 @@ class Lowerer:
             if self.contains(expression, target):
                 gates, temporaries = self.self_update(expression, target)
                 if gates:
-                    self.scheduler.update(target.storage if isinstance(target, View) else target, self.gated(gates))
+                    owner = target.storage if isinstance(target, View) else target
+                    guarded = self.gated(gates)
+                    if owner.root and target_expression.type.name == "qubit" and any(g.reads for g in guarded):
+                        self.scheduler.live_unitary(guarded)
+                    else:
+                        self.scheduler.update(owner, guarded)
             else:
                 gates, temporaries = self.preparation(expression, target)
                 self.scheduler.overwrite(target.storage if isinstance(target, View) else target, gates, controls=self.controls, conditions=self.conditions)

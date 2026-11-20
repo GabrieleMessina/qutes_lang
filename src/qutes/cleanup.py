@@ -28,6 +28,7 @@ class Version:
 class Step:
     gates: tuple[Gate, ...]
     dependencies: tuple[Version, ...]
+    unitary: bool = False
 
 
 @dataclass(frozen=True)
@@ -173,6 +174,29 @@ class Scheduler:
         target.version += 1
         self.emit(gates, target)
 
+    def live_unitary(self, gates: tuple[Gate, ...]):
+        """Record one explicit operation atomically across every written owner.
+
+        These effects are barriers for independent dependency replay. Closed
+        components can be inverted jointly; measured values use real snapshots.
+        """
+        owners = sorted({self.bit_owner[bit] for gate in gates for bit in gate.targets})
+        if not owners:
+            return
+        records = []
+        for identifier in owners:
+            target = self.storages[identifier]
+            if target.released or target.version < 0:
+                self.fail("operation requires live quantum storage", target)
+            dependencies = self.dependencies(gates, target, auxiliary=True)
+            records.append((target, Step(gates, dependencies, unitary=True)))
+        self.emit(gates, records[0][0])
+        for target, record in records:
+            target.history.append(record)
+            target.version += 1
+            if any(g.kind in {"h", "ry"} for g in gates):
+                target.root = True
+
     def initialize_replayable(self, target: Storage, gates: tuple[Gate, ...], *, zero_workspace=()):
         """Compiler-owned unitary preparation, with explicit versioned inputs.
 
@@ -198,6 +222,13 @@ class Scheduler:
 
     def _apply(self, target: Storage, index: int, backwards: bool, forbidden: frozenset[int]):
         step = target.history[index]
+        if step.unitary:
+            if forbidden:
+                self.fail(f"cannot restore {target.name} through a live basis/phase operation for another value's cleanup", target)
+            if any(not set(g.targets) <= set(target.bits) for g in step.gates):
+                self.fail(f"{target.name} requires joint cleanup with the other operation operands", target)
+            if any(s.dependencies for s in target.history):
+                self.fail(f"cannot independently clean {target.name}: a live operation may carry phase or entanglement to its inputs", target)
         conflicts = {version.storage for version in step.dependencies} & forbidden
         if conflicts:
             conflict = self.storages[min(conflicts)]
@@ -404,4 +435,54 @@ class Scheduler:
                     break
             else:
                 assert failure is not None
+                if self.release_closed_unitary_component(set(pending)):
+                    pending = [i for i in pending if not self.storages[i].released]
+                    continue
                 raise failure
+
+    def release_closed_unitary_component(self, pending):
+        """Invert a complete private component without changing any live input.
+
+        This deliberately does not commute gates through outside storage, cross
+        measurement, or reconstruct a previously released component.
+        """
+        neighbors = {s.id: set() for s in self.storages}
+        for storage in self.storages:
+            for step in storage.history:
+                for dependency in step.dependencies:
+                    neighbors[storage.id].add(dependency.storage)
+                    neighbors[dependency.storage].add(storage.id)
+        for candidate in sorted(pending):
+            component, queue = set(), [candidate]
+            while queue:
+                identifier = queue.pop()
+                if identifier not in component:
+                    component.add(identifier)
+                    queue.extend(neighbors[identifier] - component)
+            if not component <= pending or not any(step.unitary for i in component for step in self.storages[i].history):
+                continue
+            members = [self.storages[i] for i in sorted(component)]
+            if any(s.external or s.coherence_lost or s.released for s in members):
+                continue
+            bits = {b for s in members for b in s.bits}
+            gates = []
+            self.tick(members[0], len(self.operations))
+            for operation in self.operations:
+                touched = set(operation.qubits) if isinstance(operation, Measurement) else operation.bits
+                if not touched & bits:
+                    continue
+                if isinstance(operation, Measurement) or not touched <= bits:
+                    break
+                gates.append(operation)
+            else:
+                with self.region("cleanup", "joint quantum state", members[0].span):
+                    start = len(self.operations)
+                    self.emit(inverse(gates), members[0])
+                    for storage in members:
+                        version = storage.version
+                        storage.version, storage.released = -1, True
+                        self.events.append(CleanupEvent(storage.id, storage.name, version,
+                            start, len(self.operations), (), storage.span, region=self.region_stack[-1]))
+                    self.certify_zero(bits, start, "joint-unitary-cleanup")
+                return True
+        return False

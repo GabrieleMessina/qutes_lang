@@ -273,7 +273,7 @@ class Checker:
         finally:
             self.scopes.pop()
 
-    def expression(self, node: ast.Expr, expected: ir.Type | None = None, allow_prepare=False) -> ir.Expression:
+    def expression(self, node: ast.Expr, expected: ir.Type | None = None, allow_prepare=False, allow_gate=False) -> ir.Expression:
         self.step(node)
         if isinstance(node, ast.Group):
             return replace(self.expression(node.expression, expected, allow_prepare), span=node.span)
@@ -332,7 +332,7 @@ class Checker:
                 result = replace(result, stage=ir.Stage.STATIC, known=True, value=left.value,
                                  dependencies=left.dependencies, effects=left.effects)
         elif isinstance(node, ast.Call):
-            result = self.call(node, expected, allow_prepare)
+            result = self.call(node, expected, allow_prepare, allow_gate)
         elif isinstance(node, ast.ArrayLiteral):
             if expected is not None and not expected.array:
                 self.fail("Q2001", "array literal requires an array type", node)
@@ -515,12 +515,34 @@ class Checker:
                 known, value = False, None
         return self.make(node, type_, stage, "binary", (left, right), value=value, known=known, operator=operator)
 
-    def call(self, node, expected, allow_prepare):
+    def call(self, node, expected, allow_prepare, allow_gate=False):
         if not isinstance(node.callee, ast.Name):
             self.fail("Q2002", "only named functions and builtins can be called", node.callee)
         name = node.callee.identifier
         if any(node.names) and name != Builtin.SUPERPOSITION:
             self.fail("Q2001", "named arguments are supported only for superposition preparation", node)
+        if name in {Builtin.HADAMARD, Builtin.NOT, Builtin.PHASE_FLIP, Builtin.PHASE, Builtin.SWAP}:
+            if not allow_gate:
+                self.fail("Q2001", "quantum operations are statements and do not return values", node)
+            expected_count = 2 if name in {Builtin.PHASE, Builtin.SWAP} else 1
+            if len(node.arguments) != expected_count:
+                self.fail("Q2001", f"{name} requires {expected_count} arguments", node)
+            values = []
+            for index, argument in enumerate(node.arguments):
+                if name == Builtin.PHASE and index == 1:
+                    value = self.expression(argument, ir.Type("float"))
+                    if value.stage != ir.Stage.STATIC:
+                        self.fail("Q2003", "phase angle must be known during construction", argument)
+                else:
+                    value = self.expression(argument)
+                    if value.type != ir.Type("qubit"):
+                        self.fail("Q2001", f"{name} requires individual mutable qubits", argument)
+                    self.mutable_target(argument)
+                values.append(value)
+            effects = {"basis-change"} if name == Builtin.HADAMARD else {"phase"} if name in {Builtin.PHASE, Builtin.PHASE_FLIP} else set()
+            self.effects.update(effects)
+            value = self.make(node, ir.Type("void"), ir.Stage.STATIC, "gate:" + name, tuple(values))
+            return replace(value, effects=value.effects | effects)
         if name == Builtin.COMPLEX:
             if len(node.arguments) != 2:
                 self.fail("Q2001", "complex requires real and imaginary components", node)
@@ -559,7 +581,7 @@ class Checker:
                 self.fail("Q2001", f"search oracle must take one {element_type} parameter and return qubit", node)
             instance = self.function_instance(oracle_name, ((ir.Stage.QUANTUM, None),))
             for effect in instance.effects:
-                if effect in {"measure", "prepare", "search"} or effect.startswith("write:"):
+                if effect in {"measure", "prepare", "search", "phase", "basis-change"} or effect.startswith("write:"):
                     self.fail("Q2004", "search oracle must be a pure basis predicate without measurement, preparation, search, or global writes", node)
                 if effect.startswith("read:"):
                     identifier = int(effect.split(":")[1])
@@ -689,7 +711,7 @@ class Checker:
                 binding.known, binding.value = False, None
             return ir.Statement(node.span, "assign", (target, value), operator=node.operator), False
         if isinstance(node, ast.ExpressionStatement):
-            value = self.expression(node.expression)
+            value = self.expression(node.expression, allow_gate=True)
             if not isinstance(node.expression, ast.Call):
                 self.fail("Q2001", "standalone expressions must be function calls", node)
             return ir.Statement(node.span, "expr", (value,)), False

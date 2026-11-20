@@ -631,3 +631,16 @@ V026 checkpoint evidence (supersedes foundation-only status):
   passes (Git warns about CRLF normalization only). Initial failures recorded KB026.
 No installation or complete0.4 validation yet. Package/artifact version migration
 and old artifact respecialization guard remain T029 before any release.
+
+## V027 - 2026-11-20 live operations
+
+.venv/Scripts/python.exe tools/check.py -q tests/test_gates.py tests/test_cleanup.py tests/test_coherent_control.py tests/test_measurement_cleanup.py tests/test_v04_references.py
+138 passed,5.42s,run-7r8jaife.
+.venv/Scripts/python.exe tools/check.py -q tests/test_v04_operations.py
+16 passed,1.80s,run-d6d7hq_6 (initial cases).
+.venv/Scripts/python.exe tools/check.py -q tests/test_v04_operations.py tests/test_coherent_control.py tests/test_measurement_cleanup.py tests/test_cleanup.py tests/test_wire_execution.py tests/test_search.py
+177 passed,8.72s,run-y3w8_ajz (18 final operation cases). QFT compares the full8x8
+operator to an independent Fourier matrix; inverse compares full operators;
+teleportation checks external correlations in complementary bases. Joint cleanup
+checks the complete final state and zero certificates. Final Windows/Linux/package
+validation remains T029. No independent human review claimed.

@@ -27,10 +27,12 @@ class Gate:
     angle: float = 0.0
 
     def __post_init__(self):
-        if self.kind not in {"x", "h", "copy", "add", "add_constant", "rotate", "ry", "phase"}:
+        if self.kind not in {"x", "h", "copy", "add", "add_constant", "rotate", "ry", "phase", "swap"}:
             raise ValueError(f"unknown reversible operation {self.kind}")
         if not self.targets or len(set(self.targets)) != len(self.targets):
             raise ValueError("operation needs distinct target bits")
+        if self.kind == "swap" and len(self.targets) != 2:
+            raise ValueError("swap requires exactly two targets")
         if len(set(self.inputs)) != len(self.inputs):
             raise ValueError("operation needs distinct input bits")
         if self.kind in {"copy", "add"}:

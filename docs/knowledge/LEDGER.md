@@ -742,3 +742,26 @@ remove that guard: dependency replay through basis changes can falsely certify
 zero. Add explicit unitary effect barriers/atomic multi-owner records and tests.
 Remaining: sparse prep/subtraction, quantum support/access, artifact5 and migration,
 release docs/examples/package/full Windows+Linux. No user images/snapshot edited.
+
+## KB-027 - 2026-11-20 live operations checkpoint
+
+T025 committed locally as8e0a71f. Added statement-only hadamard/not/phaseFlip/phase/
+swap, finite static angles, mutable locations, if-based coherent/feedforward
+control and transitive search-oracle rejection of basis/phase effects. Native
+swap expands through the existing backend/codegen SwapGate path. Source regions
+carry readable operation labels. No public cx/cphase aliases.
+
+Scheduler records multi-owner mutations atomically. Old version replay cannot
+cross explicit unitary effects; closed private components can be reversed jointly
+and receive zero certificates only after the full inverse. External dependencies
+and measurements reject that fallback. Controlled NOT on a quantum root carries
+the same barrier as its equivalent assignment to protect observable phase effects.
+
+Independent full-state/operator tests cover Bell, signed phase inverses, QFT versus
+DFT, teleportation for four phases and preservation of external entanglement in
+Z/X bases, returned Bell arrays/slices, snapshot evolution, closed joint cleanup
+and unsafe replay/phase kickback rejection. run-d6d7hq_6:16 pass; final focused
+run-y3w8_ajz:177 pass including18 new operation tests plus cleanup/control/search/
+wire execution. No reset/implicit measurement inserted. No full release claim.
+Next T027: sparse preparation/normalization and signed subtraction; then bounded
+quantum indexing, artifact migration, docs/examples and final distribution checks.

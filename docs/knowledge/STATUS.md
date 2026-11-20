@@ -2,7 +2,7 @@
 
 ## Active 0.4 implementation (2026-11-20)
 
-T025 checkpoint complete; T026 ACTIVE, T027/T029 pending. T028 ranges/slices
+T025/T026 checkpoints complete; T027 ACTIVE, T029 pending. T028 ranges/slices
 implemented with reference foundations; coherent quantum indexing remains TODO.
 Target contract docs/spec/language-v0.4.md. Current code adds float/complex,
 readonly/mut, array references and copy, returned views/full backing retention,
@@ -12,8 +12,9 @@ Do not distribute a release or claim the full0.4 plan is delivered yet.
 
 Windows full932 passed (run-tdlfjb20); subsequent focused97 and126 passed after
 nested-rebind/normalization/resource guards. Linux focused25 passed. Parser
-reproduction passes. Next: statement-only gates and phase-aware atomic cleanup
-records, Bell/QFT/teleportation correctness. Use tools/check.py/tools/qutes.py;
+reproduction passes. Live gates/atomic cleanup now pass177 focused tests (KB027/V027), including
+Bell, QFT and teleportation with external entanglement. Next: sparse explicit
+preparation and signed subtraction/negation; then bounded quantum indexing. Use tools/check.py/tools/qutes.py;
 installed wheels remain0.3. Preserve both untracked root example12 PNGs and
 snapshots.qut. See latest ledger/validation and git log for checkpoint commit.
 
