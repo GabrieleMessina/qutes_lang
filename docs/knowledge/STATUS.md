@@ -7,7 +7,7 @@ The public Git tag `2.0` identifies merge 6bc0ecf on `qutes2.0`. Its second pare
 - [Resources](../../resources/README.md) in the language repository root tree.
 - [Language 0.4 specification](../spec/language-v0.4.md), [compiler audit](../v04-audit.md), and [release integration](../release-0.4.md).
 - [Hosted compiler matrix](https://github.com/GabrieleMessina/qutes_lang/actions/runs/44785749075) passed 1,032 tests on each of Ubuntu and Windows with Python 3.12 and 3.13.
-- [Hosted preview](https://github.com/GabrieleMessina/qutes_website/actions/runs/44786813596) and [production deployment](https://github.com/GabrieleMessina/qutes_website/actions/runs/44787628431) passed. Website tag qutes-site-0.4.0 resolves to 466bfe430e358dab5483c4fa88712544a3fb7e1d.
+- [Hosted preview](https://github.com/GabrieleMessina/qutes_website/actions/runs/44791119262) and [production deployment](https://github.com/GabrieleMessina/qutes_website/actions/runs/44791968090) passed. Website tag qutes-site-2.0 resolves to 0af23e4eebf910fa613fac093a1ce9517d3235e7.
 
 ## Working defaults and limits
 
@@ -17,6 +17,6 @@ The two repositories use separate release branches. Website builds verify the re
 
 ## Resume
 
-T030–T032 are complete. The legacy starter URL returned HTTP 404 after retagging. The website's starter link and release lock require the new tag URL before its next build. The existing hosted browser runtime uses a local copy of the pinned bundle.
+T030–T033 are complete. The live Build page and website release lock use the 2.0 download URLs. The published starter and resource bundle passed checksum verification on Firebase. Next action is to triage onboarding feedback.
 
 From the language checkout, use Python 3.12 or 3.13 in a virtual environment. Install dependencies with `python -m pip install -r requirements-dev.lock`, run `python tools/check.py -q` and `python tools/verify_walkthrough.py`. From the website checkout use `npm ci`, `python scripts/build.py`, and the browser checks documented there. Exact verification runs and failed attempts are in VALIDATION and LEDGER.
