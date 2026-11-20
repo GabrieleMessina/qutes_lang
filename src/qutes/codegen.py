@@ -41,25 +41,18 @@ def condition_function(predicate, name):
     return lines
 
 
-def python_source(compilation: Compilation) -> str:
-    program = compilation.program
-    lines = [MARKER, '"""Qiskit circuit and decoded execution. Requires qutes-lang[backend].',
-             "New classical input bindings recompile the embedded Qutes source.", '"""', "",
-             "from qutes.compiler import compile_source", "from qutes.config import CompilerConfig",
-             "from qutes.artifact_v5 import checked_build, execute, layout_from_metadata, validate_metadata",
-             "from qutes.serialization import json_text, load_json", "",
-             f"SOURCE = {ascii(compilation.source)}", f"SOURCE_PATH = {ascii(compilation.source_path)}",
-             f"_METADATA_JSON = {ascii(json_text(compilation.metadata))}", "", ""]
+def circuit_lines(program, name):
+    lines = []
     condition_names = {}
     for operation in program.operations:
         if isinstance(operation, Measurement):
             continue
         for condition, _ in operation.conditions:
             if id(condition) not in condition_names:
-                name = f"_condition_{len(condition_names)}"
-                condition_names[id(condition)] = name
-                lines.extend(condition_function(condition, name))
-    lines.extend(["def _specialized_circuit():", "    from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister",
+                condition_name = f"_condition_{len(condition_names)}"
+                condition_names[id(condition)] = condition_name
+                lines.extend(condition_function(condition, condition_name))
+    lines.extend([f"def {name}():", "    from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister",
                   "    from qiskit.circuit.library import HGate, ModularAdderGate, SwapGate, XGate, RYGate, PhaseGate",
                   "    from qiskit.circuit.classical import expr",
                   "    qc = QuantumCircuit()"])
@@ -104,6 +97,18 @@ def python_source(compilation: Compilation) -> str:
             indent += "    "
         lines.extend(indent + statement for statement in statements)
     lines.extend(["    return qc", "", ""])
+    return lines
+
+
+def python_source(compilation: Compilation) -> str:
+    lines = [MARKER, '"""Qiskit circuit and decoded execution. Requires qutes-lang[backend].',
+             "New classical input bindings recompile the embedded Qutes source.", '"""', "",
+             "from qutes.compiler import compile_source", "from qutes.config import CompilerConfig",
+             "from qutes.artifact_v5 import checked_build, execute, layout_from_metadata, validate_metadata",
+             "from qutes.serialization import json_text, load_json", "",
+             f"SOURCE = {ascii(compilation.source)}", f"SOURCE_PATH = {ascii(compilation.source_path)}",
+             f"_METADATA_JSON = {ascii(json_text(compilation.metadata))}", "", ""]
+    lines.extend(circuit_lines(compilation.program, "_specialized_circuit"))
     lines.extend('''def _binding(inputs):
     # Compiler-authored data already passed the configured integer memory bound.
     metadata = load_json(_METADATA_JSON, max_integer_digits=None)

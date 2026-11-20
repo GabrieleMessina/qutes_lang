@@ -295,3 +295,5 @@ D101 (user): publish the corrected first-run defaults under new asset names on r
 D102 (user, active): the only uploaded 2.0.0 release assets should be the five revision r2 native platforms and one checksum file. This supersedes the asset retention part of D101. Keep all website changes local until the owner approves publication.
 
 D103 (user, active): publish the reviewed website from qutes2.0 to production. Offer the five r2 native archives and retire the old site-hosted teaching ZIP. Delete obsolete implementation branches in both repositories after checking ancestry and open pull requests.
+
+D104 (user, active): the website exports the circuit for the current input binding as one editable Qiskit Python file. It must run with Qiskit and Aer alone. Preserve the CLI export and its input respecialization. Keep both repositories and the preview local until publication is authorized.
