@@ -374,6 +374,15 @@ class Checker:
                 result = replace(result, readonly=collection.readonly or not collection.type.array)
                 return self.coerce(result, expected, node) if expected else result
             index = self.expression(node.index)
+            if index.type == ir.Type("quint"):
+                counterparts = {"bool": "qubit", "int": "quint", "char": "quchar", "string": "qustring"}
+                element = collection.type.element.classical.name
+                if element not in counterparts:
+                    self.fail("Q2001", "quantum indexing supports Boolean, integer, character and string elements", node)
+                if collection.stage == ir.Stage.RUNTIME:
+                    self.fail("Q2003", "quantum indexing cannot read runtime-classical collections", node)
+                result = self.make(node, ir.Type(counterparts[element]), ir.Stage.QUANTUM, "quantum_index", (collection, index))
+                return self.coerce(result, expected, node) if expected else result
             self.require_static_integer(index, node.index, "index")
             if index.known and (index.value < 0 or (collection.shape is not None and index.value >= collection.shape)):
                 self.fail("Q4001", "index is outside the collection", node.index)
@@ -699,6 +708,8 @@ class Checker:
             return ir.Statement(node.span, "let", (value,), symbol=symbol), False
         if isinstance(node, (ast.Assignment, ast.Update)):
             target = self.expression(node.target)
+            if target.op == "quantum_index":
+                self.fail("Q2001", "a quantum-indexed read is not an assignable location; use a construction-time index for writes", node.target)
             binding = self.mutable_target(node.target)
             if isinstance(node, ast.Update):
                 if target.type != ir.Type("int") or target.stage != ir.Stage.STATIC:

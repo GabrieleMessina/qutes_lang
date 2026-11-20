@@ -346,6 +346,7 @@
     },
     {
       "id": "R011",
+      "construction_required": true,
       "file": "R011_quantum_index.qut",
       "expect": "reject",
       "stage": "stage",

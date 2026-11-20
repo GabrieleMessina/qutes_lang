@@ -250,6 +250,8 @@ class Lowerer:
             return (Gate("h", target.bits, span=expression.span),), ()
         if op == "prepare":
             return preparation_gates(expression.value, target.bits, expression.span), ()
+        if op == "quantum_index":
+            return self.indexed_copy(expression, target), ()
         if op in {"load", "move", "index"}:
             return self.copy_gates(target, self.reference(expression), expression.span), ()
         if op in {"binary:+", "binary:-"}:
@@ -398,6 +400,33 @@ class Lowerer:
             self.lengths[target.id] = self.text_length(expression)
         self.release_temporaries(temporaries)
         return target
+
+    def indexed_copy(self, expression, target):
+        collection, index = expression.arguments
+        selector = self.reference(index)
+        count = collection.shape
+        cost = count * (len(selector.bits) + len(target.bits) + 1)
+        self.scheduler.tick(target, cost)
+        if collection.stage == ir.Stage.STATIC:
+            sources = []
+            for value in collection.value:
+                literal = ir.Expression(expression.span, expression.type.classical, ir.Stage.STATIC, "literal", value=value)
+                sources.append(self.encoded_constant(ir.Expression(expression.span, expression.type, ir.Stage.QUANTUM, "lift", (literal,))))
+        else:
+            data = self.reference(collection)
+            if isinstance(data, Collection):
+                sources = data.elements
+            else:
+                width = self.config.quchar_bits
+                owner = data.storage if isinstance(data, View) else data
+                sources = tuple(View(owner, data.bits[i*width:(i+1)*width]) for i in range(count))
+        gates = []
+        for position, source in enumerate(sources):
+            if position >= 1 << (self.config.quint_bits-1):
+                break  # Signed indices cannot address these positions.
+            controls = tuple((bit, bool(position >> i & 1)) for i, bit in enumerate(selector.bits))
+            gates.extend(controlled(g, controls) for g in self.copy_gates(target, source, expression.span))
+        return tuple(gates)
 
     def create_search(self, expression, name):
         if self.controls or self.conditions:

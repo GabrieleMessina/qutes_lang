@@ -263,3 +263,10 @@ conversation examples suggesting measurement consumption are superseded by D007.
   basis domain or extra selection index. Zero weights are allowed; duplicate basis
   entries are not. Existing independent private preparation under measured control
   remains valid; quantum-controlled preparation remains forbidden.
+
+- D090 (implementation): bounds propagation uses signed finite sets capped at256,
+  then conservative enclosing intervals. Arithmetic wraps; joins union supports.
+  Only exactly zero supplied amplitudes can be excluded. No measurement result,
+  simulation sample or probability cutoff proves bounds. Bounds checking occurs
+  in construction after calls/inputs/reference updates, not the type-only pass.
+  Indexed reads use controlled XOR copies with no index preparation or amplification.

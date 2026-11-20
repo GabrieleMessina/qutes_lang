@@ -782,3 +782,23 @@ runtime-branch preparation, and tested helper/coherent restrictions. Final focus
 220 passed run-7pkw7b34. No full Linux/release claim yet. Next T028: conservative
 support analysis and coherent indexed copies, followed by T029 artifact migration,
 examples/docs and full distribution validation. User PNGs/snapshots untouched.
+
+## KB-029 - 2026-11-20 coherent collection access
+
+T027 committedbfec197. Added independent finite/interval signed-support analysis,
+propagated through sparse preparation, copies, arithmetic, rotations, aliases,
+mutable calls, returned values and branch joins. Every possible index must fit;
+nonzero tiny amplitudes remain included. Reads evaluate operands once left-to-right,
+copy the selected basis value with controlled access and preserve source/index.
+Text lengths/encodings and non-assignable result rules checked explicitly. Existing
+array lifetimes/cleanup and wire reuse apply; no Grover or extra selection storage.
+
+Focused run-9up2pjqz:138 passed/1 failed from an overly conservative support-work
+charge. Charge actual bounded set work instead. New31 index tests: first run
+86 passed/1 diagnostic expectation mismatch, corrected with an explicit lvalue
+diagnostic. Full run-57jpnj3y:1006 passed/1 old R011 type-pass expectation; the
+unsafe index still rejects in construction. Acceptance now records that pass.
+Final focused220 pass run-kea5b2gr. Tests include full complex correlations, shared
+storage, zero scratch/reuse, all supported collections, tiny weights, joins/calls,
+generated parity and independent interval-overflow containment. Next T029 only:
+artifact5/legacy guard, migration/examples, safety audit and final validation.

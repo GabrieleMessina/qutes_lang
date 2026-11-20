@@ -656,3 +656,14 @@ Windows Python3.13.5, existing pinned dependencies.
   220 passed,12.43s,run-7pkw7b34. Includes22 new preparation/arithmetic cases.
 - git diff --check passes; only line-ending normalization warnings.
 Full final Windows/Linux/package checks remain T029. No release claim yet.
+
+## V029 - 2026-11-20 coherent indexing
+
+Windows Python3.13.5, pinned backend. Commands:
+- .venv/Scripts/python.exe tools/check.py -q:
+  1006 passed/1 failed,61.12s,run-57jpnj3y. R011 now explicitly validates its
+  construction-time bounds rejection; type analysis alone cannot prove bounds.
+- .venv/Scripts/python.exe tools/check.py -q tests/test_v04_indexing.py tests/test_checker.py tests/test_construction.py tests/test_search.py tests/test_v04_references.py:
+  220 passed,5.36s,run-kea5b2gr. Includes31 indexing/support cases.
+Earlier focused failures and fixes are recorded KB029. Full final platform and
+distribution validation remains T029. No simulator or samples used for proof.

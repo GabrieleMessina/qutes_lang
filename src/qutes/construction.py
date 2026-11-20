@@ -16,6 +16,7 @@ from qutes.membership import matches, pattern_is_element, work_bound
 from qutes.numeric import RANK, convert, divide, finite
 from qutes.references import Cell, ElementCell, ArrayObject, ArrayView
 from qutes.preparation import validate as validate_preparation, work_bound as preparation_work
+from qutes import support
 
 
 @dataclass(frozen=True)
@@ -58,6 +59,7 @@ class Constructor:
         self.call_depth = 0
         self.expression_overrides: dict[int, ir.Expression] = {}
         self.array_shapes: dict[int, tuple[int | None, ...]] = {}
+        self.array_supports: dict[int, tuple[support.Support, ...]] = {}
         self.global_ids = {symbol.id for symbol in program.globals}
         self.input_values = {}
 
@@ -192,7 +194,61 @@ class Constructor:
         shapes = self.element_shapes(expression)
         if shapes is not None:
             self.array_shapes[symbol.id] = shapes
-        return self.load(symbol, expression.stage, expression.shape)
+        supports = self.element_supports(expression)
+        if supports is not None:
+            self.array_supports[symbol.id] = supports
+        return replace(self.load(symbol, expression.stage, expression.shape), support=self.scalar_support(expression))
+
+    def scalar_support(self, expression):
+        if expression.type not in {ir.Type("int"), ir.Type("quint")}:
+            return None
+        if expression.op == "index":
+            values = self.element_supports(expression.arguments[0])
+            if values is not None:
+                return values[expression.arguments[1].value]
+        if expression.support is not None:
+            return expression.support
+        if expression.op == "literal" and expression.stage == ir.Stage.STATIC:
+            return support.finite((expression.value,))
+        if expression.op == "lift":
+            return self.scalar_support(expression.arguments[0])
+        return support.full(self.config.quint_bits)
+
+    def element_supports(self, expression):
+        if not expression.type.array or expression.type.name not in {"int", "quint"}:
+            return None
+        if expression.op in {"load", "move"}:
+            return self.array_supports.get(expression.symbol.id)
+        if expression.op == "array_ref":
+            return tuple(self.scalar_support(item) for item in expression.value.elements)
+        if expression.op == "array_view":
+            values = self.element_supports(expression.arguments[0])
+            return tuple(values[i] for i in expression.value) if values is not None else None
+        if expression.op == "array":
+            return tuple(self.scalar_support(item) for item in expression.arguments)
+        if expression.op == "new_array":
+            return (support.finite((0,)),) * expression.shape
+        if expression.op == "lift":
+            return self.element_supports(expression.arguments[0])
+        if expression.op == "literal":
+            return tuple(support.finite((v,)) for v in expression.value)
+        return None
+
+    def collection_support(self, expression):
+        values = self.element_supports(expression)
+        if not values:
+            return support.full(self.config.quint_bits)
+        result = values[0]
+        for value in values[1:]:
+            self.step(expression, support.work(result) + support.work(value))
+            result = support.join(result, value)
+        return result
+
+    def join_support(self, a, b):
+        if a.type != ir.Type("quint"):
+            return a.support
+        self.step(a, support.work(self.scalar_support(a)) + support.work(self.scalar_support(b)))
+        return support.join(self.scalar_support(a), self.scalar_support(b))
 
     def element_shapes(self, expression):
         if not expression.type.array or expression.type.name not in {"string", "qustring"}:
@@ -287,7 +343,7 @@ class Constructor:
             if value.op == "array_ref":
                 stage = ir.Stage.QUANTUM if value.type.quantum else ir.Stage.RUNTIME if any(e.stage == ir.Stage.RUNTIME for e in value.value.elements) else ir.Stage.STATIC
                 value = replace(value, stage=stage)
-            return replace(value, span=expression.span, shape=self.value_shape(value))
+            return replace(value, span=expression.span, shape=self.value_shape(value), support=self.scalar_support(value))
         if op == "literal":
             return self.literal(expression, expression.value)
         if op == "superposition":
@@ -302,7 +358,8 @@ class Constructor:
             except (ValueError, OverflowError) as error:
                 self.fail("Q2001", str(error), expression)
             self.step(expression, preparation_work(state, self.config.quint_bits if expression.type.name == "quint" else 1))
-            return replace(expression, arguments=(), value=state)
+            return replace(expression, arguments=(), value=state,
+                           support=support.finite(v for v, a in zip(state.values, state.amplitudes, strict=True) if a != 0) if expression.type.name == "quint" else None)
         if op.startswith("gate:"):
             name = op.split(":", 1)[1]
             values, occupied = [], set()
@@ -385,13 +442,38 @@ class Constructor:
             parent_output, parent_owned = self.output, self.owned
             self.output, self.owned = [], set()
             try:
-                result = self.call(self.functions[expression.value],
-                                   (self.load(parameter, ir.Stage.QUANTUM, shape),), expression)
+                argument = replace(self.load(parameter, ir.Stage.QUANTUM, shape),
+                                   support=self.collection_support(collection) if expression.type.name == "quint" else None)
+                result = self.call(self.functions[expression.value], (argument,), expression)
                 oracle = SearchOracle(parameter, ir.Block(expression.span, tuple(self.output)), result)
             finally:
                 self.output, self.owned = parent_output, parent_owned
             return replace(expression, arguments=(collection,), value=oracle, shape=shape,
-                           dependencies=collection.dependencies)
+                           dependencies=collection.dependencies, support=argument.support)
+        if op == "quantum_index":
+            collection = self.freeze(self.expression(expression.arguments[0]))
+            if collection.stage == ir.Stage.RUNTIME:
+                self.fail("Q2003", "quantum indexing cannot read runtime-classical collections", expression)
+            if collection.type.quantum and (collection.op not in {"load", "index", "array_view"} or expression.arguments[1].effects):
+                collection = self.materialize(collection, "$index_collection")
+            index = self.expression(expression.arguments[1])
+            bounds = self.scalar_support(index)
+            if collection.shape is None or bounds.lower < 0 or bounds.upper >= collection.shape:
+                self.fail("Q2003", f"cannot prove quantum index bounds: possible signed indices [{bounds.lower}, {bounds.upper}], collection length {collection.shape}; use a bounded preparation and range-preserving arithmetic", expression)
+            if index.op not in {"load", "index", "move"}:
+                index = self.materialize(index, "$index")
+            shape = None
+            if expression.type.name == "qustring":
+                shapes = self.element_shapes(collection)
+                if not shapes or None in shapes or len(set(shapes)) != 1:
+                    self.fail("Q2001", "quantum indexing requires string entries with the same known length", expression)
+                shape = shapes[0]
+            if collection.stage == ir.Stage.STATIC:
+                for value in collection.value:
+                    self.validate_quantum_constant(value, expression.type, expression)
+            self.step(expression, collection.shape * (self.config.quint_bits + 1))
+            return replace(self.rebuild(expression, (collection, index), shape=shape),
+                           support=self.collection_support(collection) if expression.type.name == "quint" else None)
         if op.startswith("binary:"):
             operator = op.split(":", 1)[1]
             left = self.expression(expression.arguments[0])
@@ -403,11 +485,20 @@ class Constructor:
                 return self.classical_binary(expression, operator, left.value, right.value)
             if ir.Stage.RUNTIME in {left.stage, right.stage} and operator in {"+", "-", "*", "/", "%"}:
                 self.fail("Q2003", "arithmetic on measurement results is deferred", expression)
-            return self.rebuild(expression, (left, right))
+            result = self.rebuild(expression, (left, right))
+            if expression.type == ir.Type("quint"):
+                self.step(expression, support.work(self.scalar_support(left), self.scalar_support(right)))
+                result = replace(result, support=support.arithmetic(self.scalar_support(left), self.scalar_support(right), operator, self.config.quint_bits))
+            return result
         if op.startswith("unary:"):
             operand = self.expression(expression.arguments[0])
             if operand.stage != ir.Stage.STATIC:
-                return self.rebuild(expression, (operand,))
+                result = self.rebuild(expression, (operand,))
+                if expression.type == ir.Type("quint"):
+                    self.step(expression, support.work(self.scalar_support(operand)))
+                    bound = self.scalar_support(operand)
+                    result = replace(result, support=support.negate(bound, self.config.quint_bits) if op == "unary:-" else bound)
+                return result
             operator = op.split(":", 1)[1]
             value = not operand.value if operator == "!" else (-operand.value if operator == "-" else operand.value)
             return self.literal(expression, value)
@@ -452,7 +543,8 @@ class Constructor:
             count = self.static_integer(arguments[1], expression, "rotation count")
             if count < 0:
                 self.fail("Q2001", "rotation count cannot be negative", expression)
-            return self.rebuild(expression, arguments)
+            self.step(expression, support.work(self.scalar_support(arguments[0])))
+            return replace(self.rebuild(expression, arguments), support=support.rotate(self.scalar_support(arguments[0]), count * (-1 if op == "rotateRight" else 1), self.config.quint_bits))
         if op == "measure":
             argument = self.freeze(arguments[0])
             if argument.op not in {"load", "index", "array_view"}:
@@ -660,7 +752,12 @@ class Constructor:
                 updated = self.array_value(value, "$rebound_array")
             elif target.type.quantum:
                 self.output.append(ir.Statement(statement.span, "assign", (target, value), operator="="))
-                updated = replace(target, shape=value.shape)
+                updated = replace(target, shape=value.shape, support=self.scalar_support(value))
+                if isinstance(cell, ElementCell) and target.type.name == "quint":
+                    backing = cell.owner.backing
+                    values = list(self.array_supports[backing.symbol.id])
+                    values[cell.index] = updated.support
+                    self.array_supports[backing.symbol.id] = tuple(values)
                 if isinstance(cell, ElementCell) and target.type.name == "qustring":
                     backing = cell.owner.backing
                     shapes = list(self.array_shapes[backing.symbol.id])
@@ -724,8 +821,9 @@ class Constructor:
         before_values = {identifier: cell.value for identifier, cell in before.items()}
         before_arrays = [(owner, list(owner.elements)) for owner in self.arrays]
         before_shapes = self.array_shapes.copy()
+        before_supports = self.array_supports.copy()
         parent_output, parent_owned = self.output, self.owned
-        branches, states, shape_states, array_states = [], [], [], []
+        branches, states, shape_states, array_states, support_states = [], [], [], [], []
         prior_protected = self.protected_regions
         if condition.stage == ir.Stage.QUANTUM:
             self.protected_regions = prior_protected + [self.condition_regions(condition)]
@@ -738,11 +836,13 @@ class Constructor:
                 for owner, elements in before_arrays:
                     owner.elements[:] = elements
                 self.array_shapes = before_shapes.copy()
+                self.array_supports = before_supports.copy()
                 self.statements(block)
                 branches.append(ir.Block(block.span, tuple(self.output)))
                 states.append({identifier: cell.value for identifier, cell in self.environment.items()})
                 array_states.append([list(owner.elements) for owner, _ in before_arrays])
                 shape_states.append(self.array_shapes.copy())
+                support_states.append(self.array_supports.copy())
         finally:
             self.output, self.owned = parent_output, parent_owned
             self.environment = before.copy()
@@ -751,26 +851,31 @@ class Constructor:
             for owner, elements in before_arrays:
                 owner.elements[:] = elements
             self.array_shapes = before_shapes.copy()
+            self.array_supports = before_supports.copy()
             self.protected_regions = prior_protected
         for identifier in before_shapes:
             a, b = (state[identifier] for state in shape_states)
             if a != b:
                 self.fail("Q2004", "dynamic branches disagree on string-array element lengths", statement)
             self.array_shapes[identifier] = a
+        for identifier in before_supports:
+            a, b = (state[identifier] for state in support_states)
+            self.step(statement, sum(support.work(x) + support.work(y) for x, y in zip(a, b, strict=True)))
+            self.array_supports[identifier] = tuple(support.join(x, y) for x, y in zip(a, b, strict=True))
         for identifier, cell in before.items():
             value = before_values[identifier]
             a, b = (state[identifier] for state in states)
             if a.shape != b.shape:
                 self.fail("Q2004", "dynamic branches disagree on collection/string length", statement)
             if value.type.quantum:
-                cell.value = replace(value, shape=a.shape)
+                cell.value = replace(value, shape=a.shape, support=self.join_support(a, b))
             elif a != value or b != value:
                 self.fail("Q2004", "dynamic branches cannot change classical state", statement)
         for i, (owner, _) in enumerate(before_arrays):
             a, b = array_states[0][i], array_states[1][i]
             if any(x.shape != y.shape for x, y in zip(a, b, strict=True)):
                 self.fail("Q2004", "dynamic branches disagree on array element lengths", statement)
-            owner.elements[:] = a
+            owner.elements[:] = [replace(x, support=self.join_support(x, y)) for x, y in zip(a, b, strict=True)]
         self.output.append(ir.Statement(statement.span, "if", (condition,), tuple(branches)))
 
     def call(self, function, arguments, source, locations=()):

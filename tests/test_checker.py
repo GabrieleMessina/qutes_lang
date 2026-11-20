@@ -29,7 +29,12 @@ def rejects(source, code, **settings):
 @pytest.mark.parametrize("case", CASES, ids=lambda case: case["id"])
 def test_acceptance_frontend_semantics(case):
     source = (ROOT / case["file"]).read_text(encoding="utf-8")
-    if case["expect"] == "reject" and case["stage"] != "cleanup":
+    if case.get("construction_required"):
+        from qutes.construction import construct
+        with pytest.raises(DiagnosticError) as error:
+            construct(check(source, **case.get("config", {})))
+        assert error.value.code == case["code"]
+    elif case["expect"] == "reject" and case["stage"] != "cleanup":
         rejects(source, case["code"], **case.get("config", {}))
     else:
         result = check(source, **case.get("config", {}))

@@ -8,6 +8,7 @@ from typing import Any
 
 from qutes.config import CompilerConfig
 from qutes.diagnostics import Span
+from qutes.support import Support
 
 
 class Stage(StrEnum):
@@ -68,6 +69,7 @@ class Expression:
     effects: frozenset[str] = frozenset()
     presentation: str | None = None
     readonly: bool = False
+    support: Support | None = None
 
 
 @dataclass(frozen=True)

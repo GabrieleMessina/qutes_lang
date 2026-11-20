@@ -45,7 +45,7 @@ def expression_kind(expression):
     if op in {"binary:&&", "binary:||", "unary:!"}:
         return "boolean"
     return {"binary:+": "add", "binary:-": "subtract", "unary:-": "negate", "prepare": "prepare",
-            "rotateLeft": "rotate", "rotateRight": "rotate", "search": "search"}.get(op)
+            "rotateLeft": "rotate", "rotateRight": "rotate", "search": "search", "quantum_index": "index"}.get(op)
 
 
 def registers(allocations, mappings, classical_count):
