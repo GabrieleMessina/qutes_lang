@@ -59,7 +59,7 @@ def main():
         search_spec.loader.exec_module(search_module)
         search_result = search_module.run({"values": [True, True, False]}, shots=32, seed=17)
         assert sum(item['count'] for item in search_result['outcomes'] if item['value']) >= 28
-        assert search_result['build']['artifact_schema'] == 4
+        assert search_result['build']['artifact_schema'] == 5
         assert search_result['build']['searches'][0]['entries'] == 3
         reuse = compile_source('quint n=1; for(int i=0;i<12;i++){quint t=n+1; n+=1;} return measure(n);',
                                config=CompilerConfig(quint_bits=3))
@@ -68,10 +68,18 @@ def main():
         assert reuse.run(shots=8)['outcomes'][0]['value'] == -3
         logical_view = render(reuse, print_circuit=True, stream=io.StringIO(), wire_view='logical')
         assert logical_view['view']['wire_view'] == 'logical'
+        live = compile_source('quint i=superposition([0,1]);bool[] values=[false,true];qubit[] bits=[false,false];qubit[] alias=bits;hadamard(alias[0]);if(bits[0]){not(bits[1]);}qubit selected=values[i];return measure(bits);',
+                              config=CompilerConfig(quint_bits=2))
+        assert live.metadata['artifact_schema'] == 5
+        assert live.metadata['language_version'] == '0.4'
+        assert all(item['value'] in ([False,False],[True,True]) for item in live.run(shots=16,seed=17)['outcomes'])
+        complex_output = compile_source('input complex value;return value/2.0;',inputs={'value':2+4j})
+        assert complex_output.run(shots=2)['outcomes'][0]['value'] == 1+2j
     report = {"python": platform.python_version(), "platform": platform.platform(), "qutes": qutes.__version__,
               "installed_path": str(installed), "dependencies": dependency_versions(),
               "isolated_cli": "passed", "named_registers_and_selective_diagram": "passed", "generated_module_respecialization": "passed",
-              "search_generated_module_respecialization": "passed", "physical_wire_reuse_and_logical_view": "passed"}
+              "search_generated_module_respecialization": "passed", "physical_wire_reuse_and_logical_view": "passed",
+              "v04_references_live_gates_coherent_index_complex_codec": "passed"}
     target = output / ("windows.json" if sys.platform == "win32" else "linux.json")
     target.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report, indent=2))

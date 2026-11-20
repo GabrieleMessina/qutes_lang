@@ -90,7 +90,7 @@ def test_config_cli_identity_limits_and_respecialization(tmp_path, capsys):
     exec(python_source(reused), namespace)
     outcome = namespace["run"]({"count": 5}, shots=4)
     assert outcome["build"]["resources"]["allocated_qubits"] == 4
-    assert outcome["build"]["artifact_schema"] == 4
+    assert outcome["build"]["artifact_schema"] == 5
     assert outcome["outcomes"][0]["value"] == 1
     path = tmp_path / "example.qut"
     path.write_text('quint n=1; { quint t=n+1; } { quint t=n+1; }')

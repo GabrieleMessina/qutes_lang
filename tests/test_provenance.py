@@ -93,8 +93,9 @@ def test_legacy_v3_module_without_presentation_fields_still_runs():
     legacy_metadata = {k: v for k, v in c.metadata.items() if k not in
                        {"registers", "source_mappings", "regions", "cleanup_annotations", "warnings"}}
     legacy_metadata["artifact_schema"] = 3
+    legacy_metadata["language_version"] = "0.3"
     legacy_metadata["config"].pop("wire_reuse", None)
-    source = python_source(replace(c, metadata=legacy_metadata)).replace("qutes.artifact_v4", "qutes.artifact_v3")
+    source = python_source(replace(c, metadata=legacy_metadata)).replace("qutes.artifact_v5", "qutes.artifact_v3")
     lines = source.splitlines()
     lines = [line for line in lines if "qc.add_register(" not in line]
     source = "\n".join(lines).replace("qc = QuantumCircuit()", "qc = QuantumCircuit(3, 3)")
@@ -102,4 +103,5 @@ def test_legacy_v3_module_without_presentation_fields_still_runs():
     exec(source, namespace)
     assert namespace["build"]()[0].qregs[0].name == "q"
     assert namespace["run"](shots=4)["outcomes"][0]["value"] == 1
-    assert namespace["run"]({"start": 2}, shots=4)["outcomes"][0]["value"] == 2
+    with pytest.raises(ValueError, match="rebuild"):
+        namespace["run"]({"start": 2}, shots=4)

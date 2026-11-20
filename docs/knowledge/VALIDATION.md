@@ -667,3 +667,48 @@ Windows Python3.13.5, pinned backend. Commands:
   220 passed,5.36s,run-kea5b2gr. Includes31 indexing/support cases.
 Earlier focused failures and fixes are recorded KB029. Full final platform and
 distribution validation remains T029. No simulator or samples used for proof.
+
+## V030 - 2026-11-20 Qutes0.4 integration and delivery
+
+Final source: package0.4.0.dev0/language0.4/artifact5. Windows11 and Debian/WSL2,
+Python3.13.5; ANTLR4.13.2/Qiskit2.3.0/Aer0.17.2/NumPy2.1.3. No independent review,
+hardware/hosted CI or Python3.12 execution. Exact evidence stays in ignored artifacts.
+
+- `.venv/Scripts/python.exe tools/check.py -q`: **1032 passed**,83.44s,
+  artifacts/checks/run-f40mx194. Prior1031 passed85.98s run-j6foy26j precedes the
+  final unsupported whole-slice assignment guard. Earlier1030 passed90.86s run-fg7587z9 precedes the
+  final mutable-binding/readonly-view regression. Focused final100 passed17.75s,
+  run-rwggcob1. Initial rendering keyword failures are recorded KB030.
+- `wsl.exe -d Debian -- /mnt/c/Users/gabry/Work/Quantum/qutes_lang_chatgpt/artifacts/linux-venv/bin/python /mnt/c/Users/gabry/Work/Quantum/qutes_lang_chatgpt/tools/check.py -q`:
+  **1032 passed**,123.51s,run-s0dkm8xk. Prior1031 passed109.30s run-zjpl31z4;
+  earlier1030 passed119.04s run-70bx56ej. Both superseded by the final run.
+- `.venv/Scripts/python.exe tools/generate_parser.py --jar artifacts/antlr/antlr-4.13.2-complete.jar --java "C:/Program Files/Android/openjdk/jdk-21.0.8/bin/java.exe" --check`:
+  pass, byte-reproducible generated parser. TEMP/TMP=workspace artifacts/install-temp.
+- `.venv/Scripts/python.exe tools/verify_walkthrough.py`:26 commands pass;
+  artifacts/walkthrough-v04.json. Covers all seven modes, JSON/inputs/generated
+  execution, console, PNG/SVG and unfolded views. QFT PNG inspected visually.
+- All50 tour files execute at64 shots/seed17 within24 wires (full-suite test).
+  Installed compiler resource audit: max15; examples40-50 respectively
+  0,2,3,3,4,12,6,3,1,3,0. artifacts/tour-v04-resources.json. Unicode probe retry KB030.
+- `.venv/Scripts/python.exe -m pip wheel --no-build-isolation --no-deps . -w dist`
+  with workspace TEMP/TMP: qutes_lang-0.4.0.dev0-py3-none-any.whl, SHA256
+  39317efad83e27d30387e6ea8b1423dfef7225054bcaf92352823b78f9e64168.
+  Zip entries match all45 src/qutes Python files byte-for-byte, including parser
+  sources, numeric/reference/support/preparation and artifact adapters.
+- `python -m pip install --no-deps --force-reinstall WHEEL` in project .venv,
+  artifacts/linux-venv and artifacts/core-venv. Windows TEMP retry detailed KB030.
+  `.venv/Scripts/python.exe -I tools/verify_install.py` and Linux equivalent pass:
+  artifacts/installation/windows.json and linux.json. Both `python -m pip check`
+  pass with no broken requirements. Installed wheel retains all CLI modes.
+- Core-only `artifacts/core-venv/Scripts/python.exe -I` with PATH empty and no
+  Qiskit: compile sparse preparation/coherent read/phase and generate schema5
+  successfully. Installation/compilation requires no Java.
+- Source archive: `setuptools.build_meta.build_sdist('dist')`; checked inclusion
+  of grammar, active docs, new source/tests, all50 tour files and walkthrough tool.
+  `git diff --check` passes; normalization warnings only. Snapshots/config/ignore
+  file diff is empty; both untracked user images preserved. No remote/push.
+
+Full phase/correlation/operator checks include Bell, teleportation with reference
+entanglement, QFT versus DFT, inverse preparation/gates, index/data correlations,
+zero scratch and deliberately impossible cleanup. Schemas3/4 cached array-copy
+semantics and changed-input rejection are tested before compiler invocation.

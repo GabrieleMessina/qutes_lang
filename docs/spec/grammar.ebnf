@@ -1,37 +1,43 @@
-(* Qutes 0.2 grammar summary; grammar/Qutes.g4 is authoritative. Semantics may reject syntactically valid constructs. *)
+(* Qutes 0.4 grammar summary; grammar/Qutes.g4 is authoritative. Semantics may reject syntactically valid constructs. *)
 program = { function | statement | input_declaration } ;
 input_declaration = "input", type, identifier, ";" ;
 function = type, identifier, "(", [ parameters ], ")", block ;
 parameters = parameter, { ",", parameter } ;
-parameter = type, identifier ;
+parameter = [ "mut" ], type, identifier ;
 type = type_name, [ "[", "]" ] ;
-type_name = "bool" | "int" | "char" | "string" | "void"
+type_name = "bool" | "int" | "float" | "complex" | "char" | "string" | "void"
           | "qubit" | "quint" | "quchar" | "qustring" ;
 block = "{", { statement }, "}" ;
 statement = block | declaration, ";" | simple, ";" | if_statement
           | while_statement | for_statement | foreach_statement
           | "return", [ expression ], ";" ;
-declaration = type, identifier, "=", expression ;
+declaration = [ "readonly" ], type, identifier, "=", expression ;
 simple = expression, [ ( "=" | "+=" | "-=" ), expression | "++" | "--" ] ;
 if_statement = "if", "(", expression, ")", block, [ "else", ( block | if_statement ) ] ;
 while_statement = "while", "(", expression, ")", block ;
 for_statement = "for", "(", [ declaration | simple ], ";",
                 [ expression ], ";", [ simple ], ")", block ;
-foreach_statement = "foreach", "(", type, identifier, "in", expression, ")", block ;
+foreach_statement = "foreach", "(", type, identifier, [ ",", type, identifier ], "in", expression, ")", block ;
 expression = logical_or ;
 logical_or = logical_and, { "||", logical_and } ;
 logical_and = equality, { "&&", equality } ;
 equality = comparison, { ( "==" | "!=" ), comparison } ;
-comparison = addition, { ( "<" | "<=" | ">" | ">=" | "in" ), addition } ;
+comparison = range, { ( "<" | "<=" | ">" | ">=" | "in" ), range } ;
+range = addition, [ "..", addition ] ;
 addition = multiplication, { ( "+" | "-" ), multiplication } ;
 multiplication = unary, { ( "*" | "/" | "%" ), unary } ;
 unary = ( "!" | "-" | "+" ), unary | postfix ;
-postfix = primary, { "(", [ arguments ], ")" | "[", expression, "]" | ".", identifier } ;
+postfix = primary, { "(", [ call_arguments ], ")" | "[", expression, "]" | ".", identifier } ;
+call_arguments = argument, { ",", argument } ;
+argument = [ identifier, ":" ], expression ;
 arguments = expression, { ",", expression } ;
-primary = integer | string | character | "true" | "false" | identifier
+primary = integer | floating | string | character | "true" | "false" | identifier | "complex"
         | "(", expression, ")" | "[", [ arguments ], "]"
         | "new", type_name, "[", expression, "]" ;
-(* ASCII identifiers: [A-Za-z_][A-Za-z0-9_]*. Decimal integers only.
+(* ASCII identifiers: [A-Za-z_][A-Za-z0-9_]*. Decimal integers and floats.
+   Float forms: digits.digits with optional exponent, or digits with exponent.
+   Write 0.5 rather than .5. Named arguments are limited to preparation weights.
+   Indexed foreach requires int for its second type; slices use range syntax.
    // line comments; non-nesting /* block comments */.
    UTF-8 source, optional initial BOM. Strings/characters cannot contain raw newlines.
    Escapes: \\, \", \', \n, \r, \t, \0, \uXXXX (scalar values only).

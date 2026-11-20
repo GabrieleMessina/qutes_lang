@@ -46,6 +46,12 @@ def test_known_preparation_scope_is_fully_cleaned():
     assert all(a.released for a in c.program.allocations)
 
 
+def test_forced_preparation_bits_use_exact_permutations():
+    c=compile('quint n=superposition([-3]);')
+    assert all(g.kind == 'x' for g in c.program.operations)
+    assert list(Statevector.from_instruction(c.build()[0]).data) == [0,0,0,0,0,1,0,0]
+
+
 @pytest.mark.parametrize('initializer', [
     'superposition([])', 'superposition([1,1])', 'superposition([4])',
     'superposition([1,2],probabilities:[0.4,0.4])',

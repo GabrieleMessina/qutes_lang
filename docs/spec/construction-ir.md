@@ -4,6 +4,16 @@ Status: implemented construction pass; quantum scalar/collection lowering is int
 compiler interface, not new source syntax. `construct(typed_program, inputs)`
 expands classical work while leaving quantum/runtime values symbolic.
 
+Version0.4 updates the earlier normal form below: construction environments hold
+mutable cells and array identities/views. Array aliases/rebinding do not allocate;
+copy creates storage explicitly. Operations freeze use-time views so later aliases
+cannot change already scheduled operands or measurement snapshots. Scope/root
+records enumerate surviving quantum references, retaining complete slice backings.
+Scalar owned results still move; returned arrays share references. Indexed foreach
+and ranges expand statically. quantum_index expressions keep a stable index value
+with proven signed support; only write indices must be classical constants.
+See [0.4](language-v0.4.md) for the authoritative reference/borrow contracts.
+
 ## Normal form
 
 - `Program.body` has no loops or function calls. `scope` and dynamic `if` preserve

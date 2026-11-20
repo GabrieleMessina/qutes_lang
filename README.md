@@ -13,7 +13,8 @@ return [before, measure(number)];
 ```
 
 This returns `[5,7]`. Measurement leaves `number` available; `before` remains a
-snapshot. `measure` and `superposition` are the current builtin spellings.
+snapshot. Qutes 0.4 also supports readable live gates, mutable parameters, array
+references and slices, weighted preparation, subtraction and coherent indexing.
 
 ## Getting started
 
@@ -41,8 +42,8 @@ and NumPy 2.1.3.
 - [User guide and generated-module API](docs/guide.md)
 - [All seven CLI modes](docs/cli-walkthrough.md)
 - [Runnable examples](examples/)
-- [Complete language tour: 39 runnable examples, all within 24 qubits](examples/language/README.md)
-- [Language contract](docs/spec/language-v0.3.md) and [grammar](docs/spec/grammar.ebnf)
+- [Complete language tour: 50 runnable examples, all within 24 qubits](examples/language/README.md)
+- [Language contract](docs/spec/language-v0.4.md) and [grammar](docs/spec/grammar.ebnf)
 - [Knowledge base and handoff](docs/knowledge/README.md)
 - [Current status and validation limits](docs/knowledge/STATUS.md)
 - [V1 release audit](docs/release-audit.md)
@@ -92,8 +93,29 @@ The alphabet override keeps the string example small enough to simulate. Search
 requires equal-length string entries. A search result retains an internal index;
 measurement can make local cleanup impossible, which is reported explicitly.
 See the [0.3 contract](docs/spec/language-v0.3.md) for oracle effects and ownership.
-New generated modules use artifact schema 4. Schema-3 modules remain executable;
-rebuild with `qutes build` to enable physical wire reuse.
+New generated modules use artifact schema 5. Schema-3/4 modules still execute their
+cached circuits with the original inputs. Review array assignments and rebuild
+with `qutes build` before changing their inputs: arrays now share storage by default.
+
+## Live gates and shared arrays
+
+```csharp
+void entangle(mut qubit alice, mut qubit bob) {
+    hadamard(alice);
+    if (alice) { not(bob); }
+}
+qubit[] bits = [false, false];
+qubit[] alias = bits;
+entangle(alias[0], alias[1]);
+return measure(bits);
+```
+
+This returns `[false,false]` or `[true,true]`. `phaseFlip`, `phase` (radians), and
+`swap` complete the live operations. Coherent `if` supplies quantum controls.
+Arrays/slices share backing storage; use `copy(bits)` for a correlated basis-value
+copy. Parameters default to read-only; `mut` grants caller-visible updates.
+`readonly` prevents writes through a binding and allows explicit measurement.
+See tour examples 40–50 for preparation, QFT, teleportation, slices and indexing.
 
 ## Development and verification
 
@@ -118,7 +140,7 @@ To verify an installed wheel independently of checkout import paths:
 
 ```text
 python -m pip wheel --no-build-isolation --no-deps . -w dist
-python -m pip install --no-deps --force-reinstall dist/qutes_lang-0.3.0.dev0-py3-none-any.whl
+python -m pip install --no-deps --force-reinstall dist/qutes_lang-0.4.0.dev0-py3-none-any.whl
 python -I tools/verify_install.py
 ```
 
@@ -138,5 +160,5 @@ python tools/generate_parser.py --jar artifacts/antlr/antlr-4.13.2-complete.jar 
 ```
 
 Use `--java PATH` if Java is not on PATH. The runtime is pinned to the same version.
-The [0.3 language contract](docs/spec/language-v0.3.md) documents scripts, globals,
-input declarations, diagnostics, inferred effects, and migration from 0.1.
+The [0.4 language contract](docs/spec/language-v0.4.md) documents the current
+reference, preparation and gate rules and links the unchanged script/search rules.

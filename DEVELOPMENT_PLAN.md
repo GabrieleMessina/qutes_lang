@@ -5,17 +5,17 @@ express values and computations; the compiler manages circuits and uncomputation
 
 ## Current authority
 
-- [Language 0.3](docs/spec/language-v0.3.md) and [core value semantics](docs/spec/value-semantics.md): language contracts.
+- [Language 0.4](docs/spec/language-v0.4.md) and [core value semantics](docs/spec/value-semantics.md): language contracts.
 - [Status](docs/knowledge/STATUS.md), [tasks](docs/knowledge/TASKS.md), and [decisions](docs/knowledge/DECISIONS.md): delivered work and active choices.
 - [Historical development plan](docs/history/development-plan-v0.3.md): original milestones and rationale, retained rather than treated as current implementation status.
 
 ## Current increment
 
-Implement [Qutes 0.4](docs/spec/language-v0.4.md): array references, mutable
+Delivered [Qutes 0.4](docs/spec/language-v0.4.md): array references, mutable
 parameters, readonly access, numeric types, readable live gates, explicit state
 preparation, signed subtraction and coherent collection access. T025-T029 in the
-knowledge base track actual delivery. Certified-zero wire reuse and circuit
-readability are complete; preserve their safety guarantees throughout this work.
+knowledge base record completion evidence. Certified-zero wire reuse and circuit
+readability remain supported; preserve their safety guarantees in later work.
 
 ## Future work
 

@@ -23,7 +23,7 @@ def test_generated_search_respecializes_and_emits_identical_phases():
     result = namespace['run']({'values':[True,False,True]}, shots=64, seed=17)
     assert result['build']['searches'][0]['entries'] == 3
     assert sum(item['count'] for item in result['outcomes'] if item['value']) >= 59
-    assert layout.metadata['artifact_schema'] == 4
+    assert layout.metadata['artifact_schema'] == 5
 
 
 def test_cli_configuration_reports_and_circuit_images(tmp_path, capsys):

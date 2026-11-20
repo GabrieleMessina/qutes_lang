@@ -121,6 +121,7 @@ source packaging and requirement audit. All commits local; user experiments pres
 - T026 DONE (KB027/V027): live operations, atomic effects and cleanup safeguards.
 - T027 DONE (KB028/V028): sparse explicit preparation and signed subtraction/negation.
 - T028 DONE (KB029/V029): ranges/slices, conservative support and coherent quantum indexing.
-- T029 ACTIVE: migration, artifact5, documentation and Windows/Linux/package validation.
+- T029 DONE (KB030/V030): artifact5/legacy guard, migration, 50 examples, documentation,
+  safety audit, full Windows/Linux 1032 each, parser, installed/core package and CLI validation.
 
 Contract: docs/spec/language-v0.4.md. Parsing/probes do not constitute delivery.

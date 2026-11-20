@@ -77,6 +77,8 @@ artifacts deliberately report an incompatibility error. The preserved legacy
 | `int` | `quint` | Signed fixed-width quantum integer; classical integers have a configurable resource bound |
 | `char` | `quchar` | One character in the configured quantum alphabet |
 | `string` | `qustring` | Quantum text with fixed capacity and a separate known logical length |
+| `float` | — | Finite construction-time binary64 number |
+| `complex` | — | Finite binary64 real/imaginary components |
 
 Declare and initialize together: `quint count = 3;`, `quchar letter = 'A';`,
 `qustring word = "HI";`. Arrays have fixed lengths: `quint[] values = [1,2,3];`
@@ -86,14 +88,58 @@ the configured alphabet's first character or the empty string.
 `number = number + 2` and `number += 2` are supported. At four bits, `7 + 1`
 wraps to `-8`. Initialization outside `-8..7` is an error. `rotateLeft(number,1)`
 and `rotateRight(number,1)` rotate bits; they do not discard shifted-out bits.
-Quantum multiplication, division, general subtraction, and resizing are deferred.
-Adding a negative classical constant is supported.
+Quantum `a-b`, `-a`, and `a-=b` also wrap; negating the minimum integer returns
+that integer. `a-=a` loses information and is rejected; `quint zero=a-a` creates a
+separate result. Quantum multiplication/division remain deferred.
+
+`float angle=pi/2.0;` and `complex value=complex(0.6,0.8);` are construction-time
+values. Integers widen to floats, and both widen to complex values; narrowing and
+float-to-quint conversion are rejected. JSON encodes complex values as
+`{"real":0.6,"imag":0.8}`; the Python API also accepts native complex values.
+Nonfinite components and division by zero are errors.
 
 `quint number = superposition();` prepares all representable values with equal
 amplitudes. Computation preserves the joint quantum state until observation.
 `quint copy = number;` creates a correlated basis-value copy; it does not create
 an independent arbitrary quantum state. Preparing superpositions is currently
 available for qubit/quint initialization, not arbitrary text distributions.
+
+```csharp
+quint selected = superposition([1, 3]);
+quint weighted = superposition([1, 3], probabilities: [0.25, 0.75]);
+qubit phased = superposition([false, true], amplitudes: [complex(0.6, 0), complex(0, 0.8)]);
+```
+
+Lists must be nonempty, unique and representable. Use one weighting form with
+matching lengths, nonnegative probabilities totaling one, or amplitudes with
+squared magnitudes totaling one. Only rounding error up to `1e-12` is normalized.
+Preparation initializes new state; it never resets an existing value.
+
+## Arrays, slices and references
+
+`T[]` assignment shares storage. `int[] b=a; b[0]=3;` also changes `a[0]`.
+Use `copy(a)` for separate storage; quantum copies correlate basis values.
+Array literals and `new T[length]` allocate. `a=[9];` changes that binding's
+reference; existing aliases retain the original array. Allocations never resize.
+Returning an array or slice shares its reference without an implicit copy.
+
+`qubit[] part=bits[1..3];` is a mutable view of elements 1 and 2, emitting no
+copy gates. The bounds must satisfy `0 <= start <= end <= Length`. A slice keeps
+its whole backing allocation alive; `explain` reports retained backing qubits.
+Dropping a view does not clear shared elements. `string`/`qustring` retain value
+semantics; their slices are read-only character views.
+
+`readonly qubit[] view=bits;` forbids rebinding and writes through `view`, including
+gate calls or passing it to `mut` parameters. Other mutable aliases can still
+change the elements. Explicit measurement remains allowed.
+
+`quint value=values[index];` accepts a quantum integer index for Boolean, integer,
+character and equal-length string collections. This is a correlated coherent read,
+with no amplification or measurement, and cannot be assigned to. The compiler
+must prove every possible signed index in range using finite supports/intervals.
+For example, `superposition([0,2])` can index three entries; `superposition()`
+usually cannot because it includes negative values. Conservative proofs can reject
+safe programs; narrow the preparation/support or use a construction-time index.
 
 ## Functions, branches, and loops
 
@@ -105,8 +151,12 @@ quint next(quint value) {
 }
 ```
 
-Parameters are read-only: return a result and assign it at the call site.
-The compiler diagnoses parameter writes. Quantum parameters borrow their input
+Parameters are read-only by default. `void advance(mut quint n){n+=1;}` updates
+the caller's location. Mutable array parameters can update elements or replace
+the caller's binding. A temporary slice can be passed only to a function that
+does not rebind that parameter, including through nested helpers. Overlapping
+mutable/readonly arguments and global aliases conflicting with active borrows are
+rejected; disjoint regions are allowed. Quantum parameters borrow their input
 without an implicit copy. Functions may measure; the compiler infers this effect
 through calls and rejects it in conditional bodies. Measurement changes the
 post-measurement state even though the parameter binding is read-only.
@@ -126,11 +176,28 @@ if (selected) {
 ```
 
 `for` and `while` run during circuit construction and have bounded expansion.
-Their conditions, array indices, array sizes, and rotation counts must be
-construction-time classical values. `foreach` reads array elements; its iteration
-variable is read-only. Measurement-driven or quantum-controlled loops are deferred.
+Their conditions, array sizes, mutable element indices, and rotation counts must
+be construction-time classical values. `foreach(qubit item,int i in bits)` exposes
+read-only element and zero-based index bindings. Use `bits[i]` for intended writes,
+subject to borrow/control protection. `foreach(int i in 0..bits.Length)` traverses
+an ascending half-open static range. Equal endpoints are empty; descending ranges
+are rejected. Measurement-driven or quantum-controlled loops are deferred.
 General arithmetic on measured results and measurement inside branches are also
 deferred. Observe first, then use snapshots in comparisons/Boolean conditions.
+
+## Live operations
+
+`hadamard(q)`, `not(q)`, `phaseFlip(q)`, `phase(q,angle)` and `swap(a,b)` are
+statement-only operations on mutable individual qubits. Array elements require
+construction-time indices. `not` flips the basis bit in place; `phaseFlip` negates
+the true component's amplitude. `phase` multiplies it by `exp(i*angle)` using finite
+static radians, including negative inverse angles. `swap` needs distinct qubits.
+Use loops for arrays; there is no implicit broadcasting.
+
+`if(alice){not(bob);}` is coherent controlled NOT; `if(alice){phase(bob,pi/2.0);}`
+is controlled phase. No measurement occurs. The condition's wires stay protected
+through aliases. A measured Boolean condition provides classical feedforward.
+See examples 41–43 for Bell preparation, teleportation and QFT plus its inverse.
 
 ## Automatic cleanup and diagnostics
 
@@ -138,6 +205,13 @@ Local temporaries are cleaned at scope exit; callers receive owned function
 results. You do not write inverse operations or manual cleanup calls. The compiler
 tracks which version of each value produced a temporary and may temporarily
 reconstruct an older input to clean it.
+
+Basis changes, phases and joint operations can invalidate such reconstruction.
+Qutes records these effects atomically and can reverse completely private groups
+together. It conservatively rejects independent cleanup through incompatible
+effects, external quantum dependencies or destroyed coherence. Some mathematically
+valid ancilla schemes therefore remain unsupported; no phase effects are silently
+erased. Keep affected values live or restructure the computation when Q3001 occurs.
 
 Some familiar assignments cannot be supported safely. For example, replacing an
 unknown superposition with `number = 0` would erase information, and `number +=
@@ -242,9 +316,10 @@ python artifacts/loops.py --shots 32 --seed 7
 Create the output directory first. Generation does not need Qiskit installed.
 Generated Python contains readable circuit construction, embedded source, settings,
 bound inputs, result layout, source/build hashes, versions, and resource metadata.
-New modules use schema 4; schema-3 cached modules remain executable. Rebuilding
-adds reuse; changed-input specialization follows the recorded config (missing
-wire_reuse in legacy config uses the current default).
+New modules use schema 5. Schema-3/4 modules remain executable with their cached
+inputs and circuits. They reject changed inputs with a rebuild instruction before
+recompilation. Review old array assignments: replace intended copies with
+`copy(array)`, then rebuild under 0.4. Schemas 1/2 remain unsupported.
 Existing Qutes-generated outputs are replaced atomically; unrelated files require
 an explicit `--force`. The source file is never overwritten.
 

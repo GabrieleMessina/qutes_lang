@@ -110,3 +110,28 @@ and call `build()` for `(circuit, result_layout)` or `run(shots=64, seed=17)` fo
 decoded outcomes. Both accept `inputs={...}` to specialize an input-using program.
 Generated artifacts keep their bound inputs, compiler settings and result layout.
 See [the guide](guide.md#generated-python-and-future-pipelines) for API examples.
+
+## Qutes 0.4 walkthrough
+
+These commands also work with `qutes.exe` on Windows. Preparation weights use
+explicit JSON real/imaginary components; the Python API additionally accepts
+native complex numbers. The inputs remain construction-time values.
+
+```text
+qutes parse examples/language/48_numeric_inputs.qut --json
+qutes analyze examples/language/43_qft_inverse.qut --json
+qutes construct examples/language/40_array_references.qut --json
+qutes check examples/language/41_bell_gates.qut --print-circuit --unfold 1
+qutes explain examples/language/49_returned_slice.qut --json
+qutes build examples/language/48_numeric_inputs.qut --inputs examples/language/48_numeric_inputs.json -o artifacts/weighted.qiskit.py
+qutes run examples/language/48_numeric_inputs.qut --inputs examples/language/48_numeric_inputs.json --shots 64 --seed 17 --json
+python artifacts/weighted.qiskit.py --shots 64 --seed 17
+qutes check examples/language/43_qft_inverse.qut --save-circuit artifacts/tour-circuits --circuit-format png
+```
+
+`analyze` cannot prove quantum index bounds without construction inputs; `check`
+does. `construct` includes the conservative support information used for those
+proofs. `explain` identifies retained backing qubits for slices. The QFT image
+folds functions; use `--unfold 1 --unfold-only qft` to expose that function.
+Schema-5 modules can respecialize inputs. Schema-3/4 modules execute cached inputs
+only: review array copies and rebuild before changing those inputs under 0.4.

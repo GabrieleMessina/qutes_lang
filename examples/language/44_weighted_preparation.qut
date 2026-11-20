@@ -1,0 +1,7 @@
+quint number = superposition([-1, 2], probabilities: [0.25, 0.75]);
+qubit bit = superposition(
+    [false, true], amplitudes: [complex(0.6, 0.0), complex(0.0, 0.8)]
+);
+// Observation is explicit and does not consume either value.
+bool bitResult = measure(bit);
+return measure(number);

@@ -1,5 +1,9 @@
 # Language contract, version 0.3
 
+Historical version. [0.4](language-v0.4.md) supersedes reference-array, parameter,
+numeric/gate/indexing and generated-artifact rules. Unchanged membership/search
+contracts below still apply. Schema-3/4 modules now support cached execution only.
+
 Extends [language-v0.2](language-v0.2.md), retaining scripts, inputs, functions,
 assignment and non-consuming measurement. See the knowledge base for validation
 evidence and environment limits. Package 0.3.0.dev0; generated artifact schema 4.

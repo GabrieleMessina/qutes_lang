@@ -7,6 +7,7 @@ import pytest
 
 from qutes.compiler import compile_source
 from qutes.config import CompilerConfig
+from qutes.serialization import json_text
 
 
 ROOT = Path(__file__).resolve().parents[1] / "examples" / "language"
@@ -41,8 +42,8 @@ def test_published_example_runs_with_expected_results_under_24_qubits(case):
     # run also enforces the limit after backend decomposition.
     result = compilation.run(shots=CATALOG["shots"], seed=CATALOG["seed"])
     assert sum(item["count"] for item in result["outcomes"]) == CATALOG["shots"]
-    allowed = {json.dumps(value) for value in case["outputs"]}
-    assert all(json.dumps(item["value"]) in allowed for item in result["outcomes"])
+    allowed = {json_text(value) for value in case["outputs"]}
+    assert all(json_text(item["value"]) in allowed for item in result["outcomes"])
     if "preferred" in case:
         preferred = {json.dumps(value) for value in case["preferred"]}
         successes = sum(item["count"] for item in result["outcomes"] if json.dumps(item["value"]) in preferred)

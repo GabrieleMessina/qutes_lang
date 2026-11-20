@@ -1,7 +1,8 @@
 # Core value semantics
 
-Extracted from the historical development plan. Read with the active 0.3 contract
-and its 0.2 script amendments; membership and search extend these core rules.
+Extracted from the historical development plan. The active [0.4 contract](language-v0.4.md)
+supersedes earlier array copying, readonly-only parameters, arithmetic and indexing
+restrictions below. Read 0.3 for membership/search and 0.2 for script amendments.
 
 ### Syntax and types
 

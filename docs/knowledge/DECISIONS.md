@@ -270,3 +270,12 @@ conversation examples suggesting measurement consumption are superseded by D007.
   simulation sample or probability cutoff proves bounds. Bounds checking occurs
   in construction after calls/inputs/reference updates, not the type-only pass.
   Indexed reads use controlled XOR copies with no index preparation or amplification.
+
+- D091 (compatibility implementation): schema3/4 adapters inspect only the immediate
+  published _binding(inputs) frame because old templates pass metadata without input
+  arguments, then call an unversioned compiler. Reject differing inputs before that
+  call; preserve cached execution. No globals patching or compiler interception.
+- D092 (safety audit): transitive element updates are not array-reference rebinding.
+  Global aliases cannot bypass an active mutable borrow; disjoint regions remain
+  accessible. A mutable binding may replace a readonly view with new storage;
+  writes through the view and rebinding a readonly declaration remain forbidden.

@@ -12,7 +12,7 @@ from qutes.compiler import compile_source
 from qutes.config import CompilerConfig
 from qutes.diagnostics import DiagnosticError
 from qutes.runtime import ResultLayout, execute
-from qutes.artifact_v4 import layout_from_metadata
+from qutes.artifact_v5 import layout_from_metadata
 from qutes.serialization import integer_text, json_text, load_json, parse_integer
 
 ROOT = Path(__file__).parent / "acceptance"

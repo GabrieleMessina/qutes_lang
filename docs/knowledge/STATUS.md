@@ -1,82 +1,61 @@
 # Current status
 
-## Active 0.4 implementation (2026-11-20)
-
-T025-T028 checkpoints complete; T029 ACTIVE: version/artifact migration, examples,
-documentation, safety audit and complete Windows/Linux/package validation.
-Target contract docs/spec/language-v0.4.md. Current code adds float/complex,
-readonly/mut, array references and copy, returned views/full backing retention,
-indexed foreach, ranges and mutable/read-only slices. New source semantics are
-in development; package/artifact labels remain0.3/4 until T029 version migration.
-Do not distribute a release or claim the full0.4 plan is delivered yet.
-
-Windows full932 passed (run-tdlfjb20); subsequent focused97 and126 passed after
-nested-rebind/normalization/resource guards. Linux focused25 passed. Parser
-reproduction passes. Live gates/atomic cleanup now pass177 focused tests (KB027/V027), including
-Bell, QFT and teleportation with external entanglement. Next: sparse explicit
-preparation and signed subtraction/negation are now complete (KB028/V028).
-Bounded quantum indexing now complete (KB029/V029). Use tools/check.py/tools/qutes.py;
-installed wheels remain0.3. Preserve both untracked root example12 PNGs and
-snapshots.qut. See latest ledger/validation and git log for checkpoint commit.
-
-## Previous completed release
-
-Updated: 2026-11-06, checkpoint KB-025. T024 wire reuse COMPLETE.
-Language 0.3; package 0.3.0.dev0; generated artifact schema 4 (v3 adapter retained).
-Active contracts: [language](../spec/language-v0.3.md),
-[wire allocation](../spec/wire-allocation.md), [audit](../wire-reuse-audit.md).
+Updated 2026-11-20, KB030/V030. **Qutes 0.4 complete**, T025-T029 DONE.
+Language 0.4; package 0.4.0.dev0; generated artifact schema 5. Active contract:
+[language 0.4](../spec/language-v0.4.md), [delivery audit](../v04-audit.md).
 
 ## Delivered
 
-- Certified-zero wire reuse after complete cleanup scheduling, enabled by default.
-  Per-bit lifetimes handle reconstruction; no new gates, reset or measurement.
-- `--wire-reuse`/`--no-wire-reuse`, TOML and Python Boolean setting; physical-width
-  resource/simulation guards, explicit logical/physical mapping and proof metadata.
-- Default physical diagrams with stable work_N names and handoff annotations;
-  `--wire-view logical` retains source storage. Folding/unfolding, cleanup and
-  PNG/SVG continue in both views. View settings do not change build identity.
-- Direct/generated execution, changed inputs, schema-3 cached artifacts supported.
-  Rebuild old modules for reuse; old modules respecialize using current compiler.
-- Previous scripts/ANTLR/globals, in/search, automatic cleanup, non-consuming
-  measurement, circuit readability and wildcard guidance remain available.
-- 39 runnable tour examples, largest physical width 15, all under 24. Example12:
-  19->10 wires, unchanged 29 operations, 8MiB->16KiB. Example39: 39->6 wires.
+- Mutable reference arrays and slices, explicit copy, readonly capabilities,
+  mut scalar/array parameters, caller-visible rebinding and concrete borrow checks.
+- Float/complex arithmetic, inputs/arrays/outputs and JSON/Python complex codec.
+- hadamard/not/phaseFlip/phase/swap; coherent if and measured feedforward controls.
+- Sparse reversible qubit/quint preparation with probabilities/complex amplitudes;
+  signed subtraction/negation, indexed foreach, ranges and proven-bounds coherent reads.
+- Phase-aware atomic cleanup safeguards, private-component inverse cleanup,
+  retained slice backing and certified-zero wire reuse. No hidden reset/measurement.
+- Schema 5 generation; cached 3/4 modules execute original inputs but require source
+  review/rebuild before changed inputs. Array assignment now shares storage.
+- 50 runnable tour examples, maximum 15 physical qubits; new examples 40-50 use 0-12.
+  Guide, specification, grammar summary, CLI walkthrough and roadmap updated.
 
-## Evidence
+## Final evidence
 
-Full Windows **907 passed**, 78.79s, run-917rvzk8; Debian/WSL **907 passed**,
-96.02s, run-hh5g0qad. Installed wheel/CLI/generated modules/reuse/logical-view
-smokes pass both. Core-only Java-free compile/codegen passes. Parser check and
-all 17 CLI walkthrough commands pass. See V025 for exact commands and limitations.
-Installed wheels are current in Windows .venv and artifacts/linux-venv.
+- Windows full **1032 passed**, 83.44s, run-f40mx194.
+- Debian/WSL full **1032 passed**, 123.51s, run-s0dkm8xk.
+- 26 documented CLI commands, parser reproduction, PNG/SVG/console diagrams,
+  generated/direct execution, changed inputs, reuse and independent phase/correlation
+  tests pass. QFT PNG visually inspected.
+- Installed 0.4 wheels verified independently of checkout imports on Windows/Linux;
+  pip check passes. Core-only compilation/codegen passes with empty PATH and no Qiskit.
+- Wheel matches all 45 Python source files; source-distribution coverage checked.
+  Exact commands, hashes, failed attempts and limitations are in V030/LEDGER.
 
-## Resume commands
+## Resume and handoff
+
+No required work or blockers remain for this increment. Next action: read this KB,
+inspect git status/log, then take a new user request. Do not start deferred hybrid,
+hardware or cleanup-rescheduling work without scope. Commits are local; no push.
+Use the checkout runner after editing; installed wheels currently match 0.4 source.
 
 ```powershell
-.venv/Scripts/qutes.exe explain examples/language/12_quantum_ordering.qut
-.venv/Scripts/qutes.exe check examples/language/12_quantum_ordering.qut --print-circuit --wire-view logical --unfold 1
-.venv/Scripts/qutes.exe run examples/language/39_wire_reuse.qut --shots 64 --seed 17
+.venv/Scripts/python.exe tools/qutes.py run examples/language/41_bell_gates.qut --shots 64 --seed 17
+.venv/Scripts/python.exe tools/qutes.py run examples/language/48_numeric_inputs.qut --inputs examples/language/48_numeric_inputs.json --shots 64 --seed 17
 .venv/Scripts/python.exe tools/check.py -q
 .venv/Scripts/python.exe -I tools/verify_install.py
+.venv/Scripts/python.exe tools/verify_walkthrough.py
 ```
 
-Use tools/qutes.py for checkout execution after future edits. Windows pip/build/
-parser commands need TEMP/TMP set to workspace artifacts/install-temp. Linux uses
-Debian WSL and artifacts/linux-venv/bin/python under the /mnt/c workspace path;
-Git/WSL writes use normal approval review. Backend pins are unchanged: Qiskit 2.3.0,
-Aer 0.17.2, NumPy 2.1.3, ANTLR 4.13.2, Python 3.13.5.
+Windows build/install/parser commands need TEMP/TMP set to workspace
+artifacts/install-temp. Linux uses Debian WSL and artifacts/linux-venv/bin/python
+under /mnt/c/Users/gabry/Work/Quantum/qutes_lang_chatgpt. Git/WSL commands use normal
+approval review. Python 3.13.5; ANTLR 4.13.2, Qiskit 2.3.0, Aer 0.17.2, NumPy 2.1.3.
 
-## Handoff and limits
+Bounds and cleanup proofs are intentionally conservative. Unknown index bounds
+or incompatible unitary cleanup fail deliberately. No hardware/hosted CI run,
+Python 3.12 execution or independent human review claimed. Whole-array gate
+broadcasting, quantum writes, runtime loops and text-state preparation remain deferred.
 
-No blockers or required work remains for T024. Next action: take a new user request,
-inspect git/knowledge base and active contract. Do not start deferred scheduling,
-dirty-ancilla, routing or hardware work without scope. Reduced width may constrain
-parallelism and does not promise faster hardware execution. No hardware/hosted CI,
-Python 3.12 or independent human review claimed. Search guarantees still require
-matches per data branch; impossible cleanup remains Q3001.
-
-Preserve user defaults (4-bit quint, alphabet ABC), snapshots.qut (ordinary main
-function without automatic execution), .gitignore changes and the untracked root
-12_quantum_ordering-1c59c0354694-64eeb63a.png. No remote/push was added. All changes
-are local coherent checkpoints. Historical experiments/validation remain in LEDGER
-and VALIDATION; they are not the current implementation status.
+Preserve examples/snapshots.qut, user config/.gitignore and both untracked root
+12_quantum_ordering PNGs. They were not modified in 0.4. Build products/environments
+stay ignored. Historical 0.3 status and evidence remain in the ledger/validation.

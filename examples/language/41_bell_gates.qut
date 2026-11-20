@@ -1,0 +1,8 @@
+void entangle(mut qubit alice, mut qubit bob) {
+    hadamard(alice);
+    if (alice) { not(bob); }
+}
+qubit alice = false;
+qubit bob = false;
+entangle(alice, bob);
+return [measure(alice), measure(bob)];

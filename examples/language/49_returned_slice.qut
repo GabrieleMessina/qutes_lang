@@ -1,0 +1,9 @@
+qubit[] bellTail() {
+    qubit[] backing = [true, false, false];
+    hadamard(backing[1]);
+    if (backing[1]) { not(backing[2]); }
+    return backing[1..3];
+}
+// The slice keeps the full three-element allocation alive, including backing[0].
+qubit[] pair = bellTail();
+return measure(pair);

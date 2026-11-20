@@ -802,3 +802,59 @@ Final focused220 pass run-kea5b2gr. Tests include full complex correlations, sha
 storage, zero scratch/reuse, all supported collections, tiny weights, joins/calls,
 generated parity and independent interval-overflow containment. Next T029 only:
 artifact5/legacy guard, migration/examples, safety audit and final validation.
+
+## KB-030 - 2026-11-20 integration in progress
+
+T028 committedf29be9e. Added package/language0.4 and artifact5, preserved cached
+schema3/4 execution with pre-recompilation changed-input rejection. Updated guide,
+grammar summary, roadmap and contracts, added examples40-50 and a runnable26-command
+walkthrough verifier. Installed-wheel verifier now checks new references/gates,
+coherent reads and complex codec. Source snapshots/two user PNGs remain untouched.
+
+Safety audit fixed transitive scalar-element updates falsely labeled array rebind,
+global alias access during mutable borrows, and safe replacement of a readonly view
+by a mutable binding. Forced preparation bits use exact X, avoiding unnecessary
+pi rotations. Regressions cover each. One documentation patch had invalid context
+and failed atomically; corrected without partial edits. Initial rendering tests
+used wrong keyword names:69 passed/3 failed run-2fp3zkk2; corrected to existing API.
+Tour/delivery focused58 passed run-zlikcp4t. Broad Windows1030 passed run-fg7587z9;
+26 CLI commands passed and QFT PNG visually checked. Final readonly-view fix focused
+100 passed run-rwggcob1. Linux full suite and final installation/package checks are
+still pending at this entry. Next: collect results, finish packaging evidence,
+update status/tasks and commit the coherent integration checkpoint; do not push.
+
+KB030 completion: Windows final1031 passed run-j6foy26j; Debian final1031 passed
+run-zjpl31z4 (supersedes1030 before final readonly-view regression, run-70bx56ej).
+Installed wheel/CLI/generated/reuse/numeric checks pass both platforms. Initial
+Windows pip reinstall used sandbox-default TEMP and partially removed the old
+package; its verifier failed import. Retried with workspace TEMP/TMP, restored0.4,
+verified installation, and removed only verified in-workspace stale ~utes backup
+directories. pip check now clean. No external temp directories were deleted.
+
+Final wheel SHA25652781a627f655ad6094f668bd102dee4c3a97d01ff55b203fe01cdeff4297d1c
+matches all45 source Python files. Installed in Windows/Linux/core environments.
+Core-only empty-PATH compile/codegen passes without Java/Qiskit. A tour-count probe
+initially used platform-default decoding and failed on Unicode; rerun with explicit
+UTF-8 succeeds:50 programs, max15 physical qubits; new examples0-12. The actual tour
+tests always used UTF-8. Fixed the CI wheel filename, which still named0.2; hosted
+CI was not run. Parser --check and all26 walkthrough commands pass. Source archive
+and final documentation included in packaging audit. Git diff check passes.
+A combined delete/add STATUS patch was rejected atomically as a duplicate target;
+replaced it with one update. No source edits resulted from that failed attempt.
+
+All requested0.4 checkpoints complete. Remaining proof conservatism/deferred features
+are documented limits, not pending0.4 tasks. Final coherent integration commit includes
+source/tests/examples/docs and this handoff. No push, no user PNG/snapshot changes.
+
+Final diff audit found one unsupported form accepted silently: whole temporary-slice
+assignment rebound a temporary Cell and discarded it. Added an explicit type-pass
+rejection and regression; element writes and named-view rebinding remain valid.
+Repeating full platform checks and refreshing wheels after this final guard. The
+1031-test results above precede this additional test; final results follow below.
+
+Final guard validated: Windows1032 passed83.44s run-f40mx194; Debian1032 passed
+123.51s run-s0dkm8xk. Refreshed final wheel SHA256
+39317efad83e27d30387e6ea8b1423dfef7225054bcaf92352823b78f9e64168;
+all45 Python source bytes match. Reinstalled/reverified Windows/Linux/core packages;
+core empty-PATH smoke passes. This supersedes the earlier wheel hash and1031 counts.
+Source archive refreshed after final handoff edits. No implementation work remains.

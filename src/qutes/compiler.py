@@ -18,8 +18,8 @@ from qutes.reporting import configuration_warnings
 from qutes.provenance import cleanup_annotations
 from qutes.physical import physical_program, handoffs
 
-LANGUAGE_VERSION = "0.3"
-ARTIFACT_VERSION = 4
+LANGUAGE_VERSION = "0.4"
+ARTIFACT_VERSION = 5
 
 
 def dependency_versions():

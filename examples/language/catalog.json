@@ -683,6 +683,51 @@
       "outputs": [
         -3
       ]
+    },
+    {
+      "file": "40_array_references.qut",
+      "outputs": [[9, 3, 2, 2]]
+    },
+    {
+      "file": "41_bell_gates.qut",
+      "outputs": [[false, false], [true, true]]
+    },
+    {
+      "file": "42_teleportation.qut",
+      "outputs": [false]
+    },
+    {
+      "file": "43_qft_inverse.qut",
+      "outputs": [[true, false, false]]
+    },
+    {
+      "file": "44_weighted_preparation.qut",
+      "outputs": [-1, 2]
+    },
+    {
+      "file": "45_signed_subtraction.qut",
+      "outputs": [[3, -4, 3]]
+    },
+    {
+      "file": "46_quantum_index.qut",
+      "outputs": [[0, 1], [2, 3]]
+    },
+    {
+      "file": "47_mutable_slices.qut",
+      "outputs": [[true, false, true], [true, true, true]]
+    },
+    {
+      "file": "48_numeric_inputs.qut",
+      "inputs": "48_numeric_inputs.json",
+      "outputs": [false, true]
+    },
+    {
+      "file": "49_returned_slice.qut",
+      "outputs": [[false, false], [true, true]]
+    },
+    {
+      "file": "50_complex_arithmetic.qut",
+      "outputs": [[{"real": 1.0, "imag": 2.0}, {"real": 0.5, "imag": 1.0}]]
     }
   ]
 }

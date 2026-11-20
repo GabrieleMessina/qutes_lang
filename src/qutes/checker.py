@@ -661,7 +661,7 @@ class Checker:
         for parameter, instance_parameter, argument, output in zip(function.parameters, instance.parameters, node.arguments, self.parameter_outputs[instance.key], strict=True):
             if parameter.mutable:
                 binding = self.mutable_target(argument)
-                if f"rebind:{instance_parameter.id}" in instance.effects:
+                if isinstance(argument, ast.Name) and f"rebind:{instance_parameter.id}" in instance.effects:
                     self.effects.add(f"rebind:{binding.symbol.id}")
                 binding.known, binding.value = False, None
                 if isinstance(argument, ast.Name):
@@ -710,6 +710,8 @@ class Checker:
             target = self.expression(node.target)
             if target.op == "quantum_index":
                 self.fail("Q2001", "a quantum-indexed read is not an assignable location; use a construction-time index for writes", node.target)
+            if target.op == "slice":
+                self.fail("Q2001", "a temporary slice is not a rebindable location; update its elements or bind the view to a variable", node.target)
             binding = self.mutable_target(node.target)
             if isinstance(node, ast.Update):
                 if target.type != ir.Type("int") or target.stage != ir.Stage.STATIC:

@@ -1,0 +1,5 @@
+int[] values = [1, 2, 3];
+quint index = superposition([0, 2]);
+quint selected = values[index];
+// A coherent read: no search, measurement or change to the index until here.
+return [measure(index), measure(selected)];

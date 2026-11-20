@@ -1,0 +1,32 @@
+// Little-endian array: bits[0] is the least significant bit.
+void qft(mut qubit[] bits) {
+    for (int k = bits.Length - 1; k >= 0; k--) {
+        hadamard(bits[k]);
+        float angle = pi / 2.0;
+        for (int j = k - 1; j >= 0; j--) {
+            if (bits[j]) { phase(bits[k], angle); }
+            angle = angle / 2.0;
+        }
+    }
+    for (int k = 0; k < bits.Length / 2; k++) {
+        swap(bits[k], bits[bits.Length - k - 1]);
+    }
+}
+void inverseQft(mut qubit[] bits) {
+    for (int k = 0; k < bits.Length / 2; k++) {
+        swap(bits[k], bits[bits.Length - k - 1]);
+    }
+    foreach (int k in 0..bits.Length) {
+        float angle = -pi / 2.0;
+        // The phase operations commute, so descending j is also valid here.
+        for (int j = k - 1; j >= 0; j--) {
+            if (bits[j]) { phase(bits[k], angle); }
+            angle = angle / 2.0;
+        }
+        hadamard(bits[k]);
+    }
+}
+qubit[] bits = [true, false, false];
+qft(bits);
+inverseQft(bits);
+return measure(bits);

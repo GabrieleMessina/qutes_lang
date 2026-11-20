@@ -69,7 +69,9 @@ def gates(state, bits, span):
         n0 = math.hypot(*(abs(a) for _, a in zero))
         n1 = math.hypot(*(abs(a) for _, a in one))
         angle = 2*math.atan2(n1, n0)
-        if angle:
+        if not n0:
+            result.append(Gate("x", (bits[bit],), controls=controls, span=span))
+        elif angle:
             result.append(Gate("ry", (bits[bit],), controls=controls, angle=angle, span=span))
         if one:
             pending.append((bit-1, (*controls, (bits[bit], True)), one))

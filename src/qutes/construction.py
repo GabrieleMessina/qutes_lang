@@ -51,6 +51,8 @@ class Constructor:
         self.arrays: list[ArrayObject] = []
         self.protected_regions = []
         self.read_borrows = []
+        self.mutable_borrows = []
+        self.mutable_cells = set()
         self.output: list[ir.Statement] = []
         self.owned: set[int] = set()
         self.symbol_sequence = 0
@@ -110,18 +112,21 @@ class Constructor:
             return Cell(self.expression(expression))
         if expression.op == "load":
             cell = self.environment[expression.symbol.id]
+            self.check_global_access(expression, cell.value, cell)
             if expression.symbol.readonly:
                 self.fail("Q2004", "cannot write through a readonly binding", expression)
             return cell
         if expression.op == "index":
-            base = self.expression(expression.arguments[0])
+            base = self.expression(expression.arguments[0], borrow_access=False)
             index = self.static_integer(self.expression(expression.arguments[1]), expression, "index")
             if base.op != "array_ref":
                 self.fail("Q2001", "mutable indexed arguments require an array location", expression)
             self.index_value(base, index, expression)
             if base.value.readonly:
                 self.fail("Q2004", "cannot write through a readonly array reference", expression)
-            return ElementCell(base.value.owner, base.value.positions[index])
+            cell = ElementCell(base.value.owner, base.value.positions[index])
+            self.check_global_access(expression.arguments[0], cell.value, cell)
+            return cell
         self.fail("Q2001", "mutable argument requires a variable or array element", expression)
 
     def regions(self, value, cell=None):
@@ -138,13 +143,22 @@ class Constructor:
             return {(('q', value.symbol.id), 0)}
         return {(id(cell), 0)} if cell else set()
 
-    def check_write(self, cell, expression):
+    def check_write(self, cell, expression, *, rebind=False):
         value = cell.value
-        if value.op == "array_ref" and value.value.readonly:
+        if value.op == "array_ref" and value.value.readonly and not rebind:
             self.fail("Q2004", "cannot mutate a readonly array reference", expression)
         regions = self.regions(value, cell)
         if any(regions & forbidden for forbidden in (*self.protected_regions, *self.read_borrows)):
             self.fail("Q2004", "write is protected by an active quantum condition or readonly borrow", expression)
+
+    def check_global_access(self, expression, value, cell=None):
+        root = expression
+        while root.op in {"index", "slice"}:
+            root = root.arguments[0]
+        if root.op == "load" and root.symbol.id in self.global_ids:
+            binding = self.environment[root.symbol.id]
+            if id(binding) in self.mutable_cells or any(self.regions(value, cell) & region for region in self.mutable_borrows):
+                self.fail("Q2004", "global alias conflicts with an active mutable parameter borrow; access the parameter instead", expression)
 
     def live_values(self):
         return tuple(self.freeze(cell.value) for cell in self.environment.values() if cell.value.type.quantum)
@@ -333,13 +347,15 @@ class Constructor:
         return replace(source, arguments=tuple(arguments), known=False, value=None,
                        shape=shape, dependencies=dependencies, effects=effects)
 
-    def expression(self, expression):
+    def expression(self, expression, *, borrow_access=True):
         self.step(expression)
         if id(expression) in self.expression_overrides:
             return self.expression_overrides[id(expression)]
         op = expression.op
         if op == "load":
             value = self.environment[expression.symbol.id].value
+            if borrow_access:
+                self.check_global_access(expression, value, self.environment[expression.symbol.id])
             if value.op == "array_ref":
                 stage = ir.Stage.QUANTUM if value.type.quantum else ir.Stage.RUNTIME if any(e.stage == ir.Stage.RUNTIME for e in value.value.elements) else ir.Stage.STATIC
                 value = replace(value, stage=stage)
@@ -392,7 +408,7 @@ class Constructor:
         if op == "copy":
             return self.array_value(self.expression(expression.arguments[0]), "$copy", copy=True)
         if op == "slice":
-            base = self.expression(expression.arguments[0])
+            base = self.expression(expression.arguments[0], borrow_access=False)
             start, end = (self.static_integer(self.expression(a), expression, "slice bound") for a in expression.arguments[1:])
             if base.shape is None or not 0 <= start <= end <= base.shape:
                 self.fail("Q4001", "slice bounds must satisfy 0 <= start <= end <= Length", expression)
@@ -405,8 +421,19 @@ class Constructor:
                 owner = ArrayObject([self.index_value(base, i, expression) for i in range(base.shape)], base if base.type.quantum else None)
                 self.arrays.append(owner)
                 view = ArrayView(owner, tuple(range(start, end)), True)
-            return replace(expression, op="array_ref", arguments=(), value=view, shape=end-start,
-                           dependencies=base.dependencies, readonly=view.readonly)
+            result = replace(expression, op="array_ref", arguments=(), value=view, shape=end-start,
+                             dependencies=base.dependencies, readonly=view.readonly)
+            if borrow_access:
+                self.check_global_access(expression.arguments[0], result)
+            return result
+        if op == "index":
+            collection = self.expression(expression.arguments[0], borrow_access=False)
+            position = self.static_integer(self.expression(expression.arguments[1]), expression, "index")
+            result = self.index_value(collection, position, expression)
+            if borrow_access:
+                cell = ElementCell(collection.value.owner, collection.value.positions[position]) if collection.op == "array_ref" else None
+                self.check_global_access(expression.arguments[0], result, cell)
+            return result
         if op == "range":
             start, end = (self.static_integer(self.expression(a), expression, "range bound") for a in expression.arguments)
             if start > end:
@@ -535,10 +562,6 @@ class Constructor:
             if collection.shape is None:
                 self.fail("Q2003", "collection length is not known during construction", expression)
             return self.literal(expression, collection.shape)
-        if op == "index":
-            collection, index = arguments
-            position = self.static_integer(index, expression, "index")
-            return self.index_value(collection, position, expression)
         if op in {"rotateLeft", "rotateRight"}:
             count = self.static_integer(arguments[1], expression, "rotation count")
             if count < 0:
@@ -739,7 +762,7 @@ class Constructor:
         elif op == "assign":
             target_source, value_source = statement.expressions
             cell = self.location(target_source)
-            self.check_write(cell, statement)
+            self.check_write(cell, statement, rebind=target_source.type.array)
             target = cell.value
             # Compound assignments share their target expression with the RHS IR.
             # Evaluate it once, including any helper used to compute an index.
@@ -905,6 +928,9 @@ class Constructor:
         for parameter, argument, cell in zip(function.parameters, normalized, locations, strict=True):
             self.environment[parameter.id] = cell if cell is not None else Cell(self.readonly_value(argument))
         previous_borrows = self.read_borrows
+        previous_mutable, previous_cells = self.mutable_borrows, self.mutable_cells
+        self.mutable_borrows = previous_mutable + [region for region, mutable in borrowed if mutable]
+        self.mutable_cells = previous_cells | {id(cell) for cell in locations if cell is not None and not isinstance(cell, ElementCell)}
         self.read_borrows = previous_borrows + [region for (region, mutable), argument in zip(borrowed, normalized, strict=True) if not mutable and (argument.type.quantum or argument.type.array)]
         self.output, self.owned = [], set()
         result = None
@@ -925,6 +951,7 @@ class Constructor:
             self.environment, self.output, self.owned = parent_environment, parent_output, parent_owned
             self.call_depth -= 1
             self.read_borrows = previous_borrows
+            self.mutable_borrows, self.mutable_cells = previous_mutable, previous_cells
         escapes = self.live_values()
         if result is not None and result.type.quantum:
             escapes = (self.freeze(result), *escapes)

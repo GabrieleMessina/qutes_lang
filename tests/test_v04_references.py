@@ -78,3 +78,28 @@ def test_slice_retention_is_reported_and_readonly_return_cannot_escalate():
     assert c.metadata['resources']['retained_array_qubits'] == 3
     with pytest.raises(DiagnosticError, match='readonly'):
         classical('int[] f(int[] a){return a;}int[] a=[1];int[] b=f(a);b[0]=2;')
+
+
+def test_nested_element_mutation_does_not_count_as_slice_rebinding():
+    assert classical('void set(mut int x){x=9;}void fill(mut int[] a){set(a[0]);}int[] a=[1,2];fill(a[1..2]);return a;') == [1,9]
+
+
+@pytest.mark.parametrize('body', ['a[0]=3;', 'int n=a[0];', 'p=[4];int n=a[0];'])
+def test_global_alias_conflicts_with_active_mutable_parameter(body):
+    with pytest.raises(DiagnosticError, match='mutable parameter borrow'):
+        classical('int[] a=[1];void f(mut int[] p){'+body+'}f(a);')
+
+
+def test_global_disjoint_region_and_nested_mutable_delegation_remain_legal():
+    assert classical('int[] a=[1,2];void g(mut int p){p+=1;}void f(mut int p){int n=a[1];a[1]=n+1;g(p);}f(a[0]);return a;') == [2,3]
+
+
+def test_mutable_binding_can_replace_a_readonly_view_without_writing_through_it():
+    assert classical('readonly int[] a=[1];int[] view=a;view=[2];view[0]=3;return [a[0],view[0]];') == [1,3]
+    with pytest.raises(DiagnosticError):
+        classical('readonly int[] a=[1];a=[2];')
+
+
+def test_temporary_slice_assignment_is_rejected_instead_of_discarded():
+    with pytest.raises(DiagnosticError,match='temporary slice is not a rebindable location'):
+        classical('int[] a=[1,2];a[0..1]=[3];return a;')

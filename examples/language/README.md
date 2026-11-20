@@ -1,6 +1,6 @@
 # Qutes language tour
 
-These 39 small programs cover the operations implemented in Qutes 0.3. Each file
+These 50 small programs cover the operations implemented in Qutes 0.4. Each file
 is independent. All have been executed with the supplied configuration and the
 24-qubit simulator limit; the largest currently uses **15 qubits**. Counts describe physical wires after certified-zero reuse. Classical-only programs use zero qubits.
 
@@ -24,7 +24,7 @@ visualization extra. `build FILE -o artifacts/example.qiskit.py` generates Pytho
 The CLI automatically reads the adjacent [qutes.toml](qutes.toml). No overrides or
 raised qubit limit are necessary. It fixes:
 
-- Three-bit signed `quint`, ranging from **-4 to 3**, with wraparound addition.
+- Three-bit signed `quint`, ranging from **-4 to 3**, with wraparound arithmetic.
 - Quantum alphabet **AB?**, two qubits per character, and text capacity **2**.
 - Simulator limit **24** and search failure bound **0.01**.
 
@@ -116,9 +116,8 @@ ordinary candidate that can be checked with the oracle.
 - `superposition()` initializes a `qubit` or `quint`; there is no text/array
   superposition initializer in this release. Arrays can contain quantum values.
 - Quantum integers support addition, signed comparisons and bit rotations.
-  Quantum subtraction via `-`, multiplication/division/remainder, `++`/`--`, and
-  zero-filling `<<`/`>>` shifts are not implemented. Add a negative constant when
-  you need constant subtraction.
+  Quantum multiplication/division/remainder, `++`/`--`, and zero-filling `<<`/`>>`
+  shifts are not implemented. Subtraction and negation wrap at the configured width.
 - `in` computes a match flag without amplification. `search(collection, oracle)`
   amplifies matching collection entries and returns a quantum selected value.
   The oracle takes one element and returns `qubit`. Search does not enumerate
@@ -126,9 +125,10 @@ ordinary candidate that can be checked with the oracle.
 - Strings support indexing, `.Length`, `foreach` and sequence matching. Use
   `quchar[]` for indexed character updates; whole strings can be replaced.
   String and character-array types are not interchangeable in assignments.
-- Loop bounds and indices must be known during circuit construction. A quantum
+- Loop bounds and mutable indices must be known during circuit construction. Coherent
+  read indices need a proven in-range signed support. A quantum
   condition controls an `if`; it does not make a quantum-dependent loop valid.
-- Functions have readonly parameters, can access script globals, and may measure
+- Functions have readonly parameters by default (`mut` opts into updates), can access script globals, and may measure
   outside conditional bodies. Search oracles must remain pure. `main` executes
   only when called; script output requires an explicit `return`.
 - Measurement leaves a value available in its post-measurement state. Classical
@@ -148,7 +148,7 @@ including the backend's post-transpilation check. To rerun it:
 .\.venv\Scripts\python.exe tools/check.py -q tests/test_language_examples.py
 ```
 
-The examples complement the [language contract](../../docs/spec/language-v0.3.md).
+The examples complement the [language contract](../../docs/spec/language-v0.4.md).
 They deliberately demonstrate supported operations rather than programs that fail.
 
 The intentional `?` alphabet entry triggers QW0001: these examples store quantum
@@ -166,3 +166,25 @@ Use `--print-circuit --wire-view logical` for separate source storage lines, or
 the default physical view for shared `work_N` wires and reuse annotations.
 `--unfold 1` reveals source detail in either view. Example 12 now uses 10 physical
 wires (19 logical), reducing statevector storage from 8 MiB to 16 KiB.
+
+## Qutes 0.4 operations
+
+| Example | Operations | Expected output |
+| --- | --- | --- |
+| [40_array_references.qut](40_array_references.qut) | Shared arrays, explicit copy, mut scalar/rebinding, readonly view | `[9,3,2,2]` |
+| [41_bell_gates.qut](41_bell_gates.qut) | hadamard, not, coherent control, mutable qubits | `[false,false]` or `[true,true]` |
+| [42_teleportation.qut](42_teleportation.qut) | phase, phaseFlip, measurements and corrections | `false` |
+| [43_qft_inverse.qut](43_qft_inverse.qut) | QFT, inverse angles, swap, mutable arrays, ranges | `[true,false,false]` |
+| [44_weighted_preparation.qut](44_weighted_preparation.qut) | Probabilities and complex amplitudes | `-1` (25%) or `2` (75%) |
+| [45_signed_subtraction.qut](45_signed_subtraction.qut) | Subtraction, negation, -=, signed overflow | `[3,-4,3]` |
+| [46_quantum_index.qut](46_quantum_index.qut) | Finite uniform preparation, coherent array read | `[0,1]` or `[2,3]` |
+| [47_mutable_slices.qut](47_mutable_slices.qut) | Slice mutation, indexed foreach, ranges, readonly measurement | `[true,false,true]` or `[true,true,true]` |
+| [48_numeric_inputs.qut](48_numeric_inputs.qut) | Float/complex inputs, phases and amplitudes | `false` (2%) or `true` (98%) |
+| [49_returned_slice.qut](49_returned_slice.qut) | Returned references and retained backing storage | `[false,false]` or `[true,true]` |
+| [50_complex_arithmetic.qut](50_complex_arithmetic.qut) | float widening, complex arithmetic/arrays/output | `[{real:1,imag:2},{real:0.5,imag:1}]` |
+
+Example 48 needs `--inputs examples/language/48_numeric_inputs.json`. The examples
+use only 0–12 qubits individually. Their tests validate the 24-qubit cap. Arrays
+share storage in 0.4; examples03/17 explicitly call `copy` where independence was
+intended. Scalar quantum copying still correlates basis values, and text keeps
+its existing value semantics. Wildcards do not prepare superpositions.
