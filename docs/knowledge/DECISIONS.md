@@ -289,3 +289,5 @@ D095 (user): preserve the original rewrite commits via a merge on qutes2.0 and r
 D096 (user): publish compiler package 2.0.0 and align website/download labels; rename the website branch to qutes2.0. Dispatch website workflows without waiting. Use a distinct immutable 2.0.0 release tag for the new package. Keep language-contract version 0.4 and artifact schema 5 compatible.
 
 D097 (user): keep inspection inside Playground, teach programmers via an editable walkthrough, retain generated Python export and keep this website revision local for review.
+
+D098 (user): expand Tutorial into a course, obtain a Sol agent review of the interface and functionality, and keep the revision local pending an explicit publication instruction. Implementation choices: teach toward a two-part teleportation project, validate lab observations against browser execution, and save drafts, progress and the self-reviewed final report in the learner’s browser.

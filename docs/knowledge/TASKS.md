@@ -135,3 +135,5 @@ T033 DONE: migrate both website release URLs, verify the pinned bytes, deploy to
 T034 DONE: published compiler 2.0.0 and matching downloads, renamed website branch to qutes2.0, verified locally and dispatched website deployment without waiting for hosted completion.
 
 T035 DONE through local delivery: interactive tutorial, three output tabs, updated navigation/footer and redirects. Publication awaits separate user approval.
+
+T036 DONE locally: replaced the four-step tutorial with four modules and eight runnable labs, including a teleportation repair and receiver audit. Publication requires a new owner instruction. See KB039 and V038 for review and verification.

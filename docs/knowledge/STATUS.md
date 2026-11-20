@@ -21,4 +21,4 @@ T030–T034 are complete through the requested deployment dispatch. Both reposit
 
 From the language checkout, use Python 3.12 or 3.13 in a virtual environment. Install dependencies with `python -m pip install -r requirements-dev.lock`, run `python tools/check.py -q` and `python tools/verify_walkthrough.py`. From the website checkout use `npm ci`, `python scripts/build.py`, and the browser checks documented there. Exact verification runs and failed attempts are in VALIDATION and LEDGER.
 
-Local website review checkpoint: website qutes2.0 commit 8660080 is one commit ahead of origin. Tutorial, Playground and Build preview at http://127.0.0.1:4197/tutorial.html. Next action is owner review before any push or deployment.
+Local website review checkpoint: website qutes2.0 commit 81bd84c adds an eight-lab course and is two commits ahead of origin. The course runs at http://127.0.0.1:4197/tutorial.html. Sol reviewed the local interface and both teleportation checkpoints. Runtime and browser checks are recorded in V038. Next action is owner review before any push or deployment.
