@@ -17,6 +17,8 @@ Both repositories use their own `qutes2.0` branch. Native packaging installs the
 
 ## Resume
 
+The local website at http://127.0.0.1:4197/play.html#bell serves standalone Qiskit downloads at website commit c55aa4c, using compiler revision 5ee169d. The public website still serves its prior export. Next action is owner review. A later deployment must make the pinned compiler revision available before pushing the website.
+
 For the CLI, start at the release page linked above. The repository keeps the example tour, notebook, presentations and lessons as editable sources. Windows binaries are unsigned. macOS binaries have no Developer ID signature or notarization.
 
 The live Build page offers the five r2 platform archives and their SHA-256 file. The former site-hosted teaching ZIP returns HTTP 404. For future website deployments, push the reviewed website branch and dispatch its hosting workflow with channel live. Verify the public Build page and retired URL after promotion.

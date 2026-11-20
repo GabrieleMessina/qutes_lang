@@ -308,6 +308,13 @@ Use console output to inspect a circuit that exceeds this image-size bound.
 
 ## Generated Python and future pipelines
 
+The playground's **Download Qiskit Python** exports the circuit for the inputs in the last run.
+Install `qiskit==2.3.0` and `qiskit-aer==0.17.2`, then run `python experiment.qiskit.py`.
+The file exposes `build_circuit()` for notebooks and accepts `--shots` and `--seed` for local simulation.
+To change a construction-time input, run the playground again and download the new circuit.
+
+The CLI export can recompile the embedded source with new input values.
+
 ```text
 qutes build examples/loops.qut --inputs examples/inputs.json -o artifacts/loops.py
 python artifacts/loops.py --shots 32 --seed 7
