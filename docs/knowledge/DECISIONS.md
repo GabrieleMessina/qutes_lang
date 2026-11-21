@@ -313,3 +313,5 @@ D107 (user): prepare an English course companion and an English full workbook as
 D108 (user): keep the full workbook, retire the companion, and review locally before publication.
 
 D109 (user): use the workbook as the tutorial for everyone, with chapter contents and no university-specific framing or topic picker.
+
+Use tutorial for the shared resource folder and workbook for the website renderer and tests, avoiding the existing tutorial.test.cjs name.

@@ -926,3 +926,5 @@ KB049 local delivery: both study formats render from the verified language archi
 KB050: removed the companion from the local build, updated Tutorial navigation and verified the workbook at website c98452f.
 
 KB051: renamed the local workbook to tutorial.html, removed university attribution, syllabus links and topic picker, and preserved the earlier exercises at practice-labs.html.
+
+Renamed the shared teaching directory and updated the resource index and CLI example.

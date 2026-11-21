@@ -161,3 +161,5 @@ T046 DONE locally: both English Catania study pages are available for owner revi
 T047 DONE locally: workbook selected and linked from Tutorial. Preview awaits publication approval.
 
 T048 DONE locally: review the general tutorial at /tutorial.html.
+
+T052: verify local tutorial filenames, source pin and build before publication.

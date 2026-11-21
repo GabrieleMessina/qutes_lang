@@ -9,6 +9,6 @@ Use the [portable CLI](https://github.com/GabrieleMessina/qutes_lang/releases/ta
 | [Inspect in Qiskit](notebooks/correlations.ipynb) | Build a circuit, change a static input, and compare the decoded outcomes. |
 | [Present Qutes](presentations/intro.html) | Open the slide deck in a browser. Use the [demo script](presentations/demo.md) and [captions](presentations/demo.vtt). |
 
-The [Catania study collection](lessons/catania/README.md) pairs 17 syllabus chapters with runnable experiments and three optional extensions.
+The [Qutes tutorial](lessons/tutorial/README.md) pairs 17 syllabus chapters with runnable experiments and three optional extensions.
 
 The [language tour](../examples/language/README.md) covers the complete example collection in this repository.
