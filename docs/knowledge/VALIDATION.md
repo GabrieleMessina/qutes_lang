@@ -784,3 +784,5 @@ V048 final local verification: build in qutes_website with Python 3.13.5 and scr
 V049: python -B scripts/build.py succeeded. With QUTES_PREVIEW_URL=http://127.0.0.1:4197, node --test --test-name-pattern="Catania workbook links" tests/catania.test.cjs passed. Confirmed navigation from home, HTTP 404 for the companion, all twenty topics, workbook editing and draft restoration.
 
 V050: python -B scripts/build.py and node --test --test-name-pattern="workbook links" tests/catania.test.cjs against localhost:4197 passed after waiting for the chapter editor before checking keyboard focus. Verified twenty topics, progress restoration and playground handoff.
+
+Local build passed. python -B tests/verify_workbook.py passed 16 programs and 72 variants. Against port 4197, node --test --test-name-pattern="workbook links" tests/workbook.test.cjs passed.
