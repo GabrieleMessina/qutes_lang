@@ -315,3 +315,5 @@ D108 (user): keep the full workbook, retire the companion, and review locally be
 D109 (user): use the workbook as the tutorial for everyone, with chapter contents and no university-specific framing or topic picker.
 
 Use tutorial for the shared resource folder and workbook for the website renderer and tests, avoiding the existing tutorial.test.cjs name.
+
+D110 (user). Publish five patched 2.0.1 archives on a new release and retain the earlier release URLs. Use protected pull requests for both release branches.

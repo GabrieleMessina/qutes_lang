@@ -1,5 +1,6 @@
 """Attach the verified archives to the existing release and verify the public bytes."""
 import argparse
+import os
 import hashlib
 import json
 from pathlib import Path
@@ -7,7 +8,7 @@ import subprocess
 import tempfile
 
 REPO = "GabrieleMessina/qutes_lang"
-TAG = "2.0.0"
+TAG = "2.0.1"
 TARGETS = [
     ("Windows x64", "windows-x64.zip", "Windows Server 2022 x64"),
     ("macOS Apple Silicon", "macos-arm64.zip", "macOS 15 ARM64"),
@@ -23,7 +24,7 @@ def gh(*args):
 
 
 def release():
-    result = json.loads(gh("api", f"repos/{REPO}/releases/tags/{TAG}"))
+    result = json.loads(gh("release", "view", TAG, "--repo", REPO, "--json", "assets,body,isDraft"))
     assets = {a["name"]: a for a in result["assets"]}
     return result, assets
 
@@ -34,15 +35,25 @@ def digest(path):
 
 
 def publish(folder):
-    if gh("api", f"repos/{REPO}/commits/{TAG}", "--jq", ".sha") != "0367b5211448681485d5943586846997bcff2087":
-        raise ValueError("The compiler tag no longer identifies the validated release")
-    expected = [f"qutes-{TAG}-r2-{suffix}" for _, suffix, _ in TARGETS]
+    revision = os.environ["GITHUB_SHA"]
+    expected = [f"qutes-{TAG}-{suffix}" for _, suffix, _ in TARGETS]
     files = [folder / name for name in expected]
     hashes = {p.name: digest(p) for p in files}
-    checksum = folder / "qutes-2.0.0-r2-SHA256SUMS.txt"
+    checksum = folder / f"qutes-{TAG}-SHA256SUMS.txt"
     checksum.write_bytes("".join(f"{sha}  {name}\n" for name, sha in hashes.items()).encode("ascii"))
     files.append(checksum)
     hashes[checksum.name] = digest(checksum)
+    # Create the tag only after all five native build and verification jobs passed.
+    ref = f"refs/tags/{TAG}"
+    matches = json.loads(gh("api", f"repos/{REPO}/git/matching-refs/tags/{TAG}"))
+    if not any(item["ref"] == ref for item in matches):
+        gh("api", "-X", "POST", f"repos/{REPO}/git/refs", "-f", f"ref={ref}", "-f", f"sha={revision}")
+    if gh("api", f"repos/{REPO}/commits/{TAG}", "--jq", ".sha") != revision:
+        raise ValueError("Existing release tag differs from the verified build")
+    releases = gh("api", "--paginate", f"repos/{REPO}/releases", "--jq", ".[].tag_name").splitlines()
+    if TAG not in releases:
+        gh("release", "create", TAG, "--repo", REPO, "--verify-tag", "--draft",
+           "--title", f"Qutes {TAG}", "--notes-file", str(NOTES))
     _, assets = release()
     if assets.keys() - hashes.keys():
         raise ValueError("Unexpected assets on the release; review the inventory before publishing")
@@ -59,12 +70,14 @@ def publish(folder):
             gh("release", "download", TAG, "--repo", REPO, "--pattern", path.name, "--dir", temp)
             if digest(directory / path.name) != hashes[path.name]:
                 raise ValueError(f"Public download verification failed: {path.name}")
-        current, _ = release()
+        current, uploaded = release()
+        if set(uploaded) != set(hashes) or any(uploaded[n]["digest"] != "sha256:" + h for n, h in hashes.items()):
+            raise ValueError("Uploaded asset inventory differs from the tested archives")
         notes = NOTES.read_text(encoding="utf-8").strip()
-        if current["body"].strip() != notes:
-            gh("release", "edit", TAG, "--repo", REPO, "--notes-file", str(NOTES))
+        if current["isDraft"] or current["body"].strip() != notes:
+            gh("release", "edit", TAG, "--repo", REPO, "--notes-file", str(NOTES), "--draft=false", "--latest")
         final, final_assets = release()
-        if (final["body"].strip() != notes or final_assets.keys() != hashes.keys()
+        if (final["isDraft"] or final["body"].strip() != notes or final_assets.keys() != hashes.keys()
                 or any(final_assets[n]["digest"] != "sha256:" + h for n, h in hashes.items())):
             raise ValueError("Final release verification failed")
     print("Verified five portable archives, their checksum file and the release notes.")

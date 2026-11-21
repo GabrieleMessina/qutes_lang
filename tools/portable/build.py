@@ -14,8 +14,8 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
-VERSION = "2.0.0"
-COMMIT = "0367b5211448681485d5943586846997bcff2087"
+VERSION = "2.0.1"
+COMMIT = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
 
 
 def sha256(path):
@@ -24,15 +24,16 @@ def sha256(path):
 
 
 def install():
-    if sys.prefix == sys.base_prefix or sys.version_info[:2] != (3, 12):
-        raise ValueError("Build in an isolated Python 3.12 virtual environment")
+    if sys.prefix == sys.base_prefix or sys.version_info[:3] != (3, 12, 16):
+        raise ValueError("Build in an isolated Python 3.12.16 virtual environment")
+    subprocess.run([sys.executable, "-m", "pip", "install", "pip==26.2"], check=True)
     with tempfile.TemporaryDirectory() as temp:
         source = Path(temp) / f"qutes-{VERSION}.zip"
         subprocess.run(["git", "archive", "--format=zip", f"--prefix=qutes-{VERSION}/",
                         "-o", str(source), COMMIT], cwd=ROOT, check=True)
         subprocess.run([sys.executable, "-m", "pip", "install", "--only-binary=:all:", "--no-binary=pylatexenc",
-                        "-c", str(ROOT / "requirements-dev.lock"), "setuptools==72.1.0",
-                        "pyinstaller==6.16.0", "pyinstaller-hooks-contrib==2025.9",
+                        "-c", str(ROOT / "requirements-dev.lock"), "setuptools==84.1.0",
+                        "-r", str(HERE / "requirements.lock"),
                         f"qutes-lang[backend,visualization] @ {source.as_uri()}"], check=True)
     subprocess.run([sys.executable, "-m", "pip", "check"], check=True)
 
@@ -53,7 +54,7 @@ def copy_notices(folder):
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(original, target)
     base = Path(sys.base_prefix)
-    for license_file in (base / "LICENSE.txt", base / "LICENSE", Path(os.__file__).parent / "LICENSE.txt"):
+    for license_file in (base / "LICENSE.txt", base / "LICENSE", base / "licenses/LICENSE.cpython.txt", Path(os.__file__).parent / "LICENSE.txt"):
         if license_file.is_file():
             shutil.copyfile(license_file, licenses / "Python-LICENSE.txt")
             break
@@ -65,7 +66,7 @@ def build(output):
     install()
     operating_system = {"Windows": "windows", "Darwin": "macos", "Linux": "linux"}[platform.system()]
     arch = {"amd64": "x64", "x86_64": "x64", "arm64": "arm64", "aarch64": "arm64"}[platform.machine().lower()]
-    name = f"qutes-{VERSION}-r2-{operating_system}-{arch}"
+    name = f"qutes-{VERSION}-{operating_system}-{arch}"
     output.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="qutes-build-") as temp:
         work = Path(temp)

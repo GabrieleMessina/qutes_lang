@@ -786,3 +786,7 @@ V049: python -B scripts/build.py succeeded. With QUTES_PREVIEW_URL=http://127.0.
 V050: python -B scripts/build.py and node --test --test-name-pattern="workbook links" tests/catania.test.cjs against localhost:4197 passed after waiting for the chapter editor before checking keyboard focus. Verified twenty topics, progress restoration and playground handoff.
 
 Local build passed. python -B tests/verify_workbook.py passed 16 programs and 72 variants. Against port 4197, node --test --test-name-pattern="workbook links" tests/workbook.test.cjs passed.
+
+V054 candidate. Verified the selected upstream package fixes against PyPI release metadata. macOS Intel and ARM Linux wheels are available for the patched image and font packages. Native execution and public asset checks are release gates.
+
+Windows: the development interpreter with PYTHONPATH=src passed all 67 tests in test_artifact_v2.py, test_diagnostics.py and test_standalone.py. The four hosted compiler jobs exercise the updated dependency pins.
