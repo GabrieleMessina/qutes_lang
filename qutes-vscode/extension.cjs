@@ -1,5 +1,6 @@
 const vscode = require("vscode");
 const native = require("./runtime.cjs");
+const debug = require("./debug.cjs");
 
 async function activate(context) {
   const service = await import("./language/language.mjs");
@@ -104,26 +105,36 @@ async function activate(context) {
     if (value) shots = Number(value);
   });
   register("stop",() => running?.abort());
-  register("runQutesFile",async () => {
-    const doc = vscode.window.activeTextEditor?.document;
-    if (!doc || doc.languageId !== "qutes" || running) return;
-    const controller = new AbortController(), revision = doc.version, text = doc.getText();
+  async function run(doc, controller, consoleLine) {
+    if (running) throw Error("A Qutes program is already running.");
+    const revision = doc.version, text = doc.getText();
     running = controller;
-    output.clear(); output.show(true); output.appendLine("Running " + doc.fileName);
+    const write = line => {
+      output.appendLine(line);
+      consoleLine?.(line);
+    };
     try {
+      output.clear();
+      if (!consoleLine) output.show(true);
+      write("Running " + doc.fileName);
       await vscode.commands.executeCommand("setContext","qutes.running",true);
       const result = await native.invoke(await exe(),"run",text,{config:await config(doc),inputs:inputs.get(key(doc)),shots,signal:controller.signal});
       if (result.diagnostics) {
         const errors = service.diagnostics(text,result);
         if (!doc.isClosed && doc.version === revision) display(doc,errors);
-        errors.forEach(d => output.appendLine(d.code+" "+d.message+(d.hint ? "\n"+d.hint : "")));
+        errors.forEach(d => write(d.code+" "+d.message+(d.hint ? "\n"+d.hint : "")));
       } else {
-        output.appendLine(result.execution.shots+" shots · "+result.execution.backend);
-        for (const row of result.outcomes) output.appendLine(JSON.stringify(row.value)+"   "+row.count);
+        write(result.execution.shots+" shots · "+result.execution.backend);
+        for (const row of result.outcomes) write(JSON.stringify(row.value)+"   "+row.count);
       }
       return result;
-    } catch (error) { output.appendLine(controller.signal.aborted ? "Stopped." : error.message); }
+    } catch (error) { write(controller.signal.aborted ? "Stopped." : error.message); }
     finally { running = undefined; await vscode.commands.executeCommand("setContext","qutes.running",false); }
+  }
+  debug.register(context, run);
+  register("runQutesFile",() => {
+    const doc = vscode.window.activeTextEditor?.document;
+    if (doc?.languageId === "qutes" && !running) return run(doc, new AbortController());
   });
   refresh();
 }

@@ -30,6 +30,11 @@ async function main() {
   await runTests({vscodeExecutablePath:exe,extensionDevelopmentPath:path.join(__dirname,"harness"),
     extensionTestsPath:path.join(__dirname,"installed.cjs"),launchArgs:[workspace,...flags],
     reuseMachineInstall:true});
+  const bell = path.join(root,"Bell pair.qut");
+  await fs.copyFile(path.resolve(__dirname,"../../examples/language/41_bell_gates.qut"),bell);
+  await runTests({vscodeExecutablePath:exe,extensionDevelopmentPath:path.join(__dirname,"harness"),
+    extensionTestsPath:path.join(__dirname,"run-panel.cjs"),launchArgs:[bell,...flags,"--new-window"],
+    extensionTestsEnv:{QUTES_TEST_BELL:bell},reuseMachineInstall:true});
   if (path.dirname(path.resolve(root)) !== path.resolve(os.tmpdir())) throw Error("Unexpected test directory");
   await fs.rm(root,{recursive:true,force:true,maxRetries:5,retryDelay:200});
 }

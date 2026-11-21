@@ -319,3 +319,5 @@ Use tutorial for the shared resource folder and workbook for the website rendere
 D110 (user). Publish five patched 2.0.1 archives on a new release and retain the earlier release URLs. Use protected pull requests for both release branches.
 
 D111 (user). Share compiler-backed diagnostics and completion rules between the browser and desktop editors. Keep one Marketplace identity with five offline packages. Review locally before any publication. D112 (implementation). Embed the checksum-pinned native release archive in each VSIX and unpack it on demand. Limit graphical edits to uniquely mapped top-level qubit calls; show source and provenance for other operations. Preview adjacent Hadamard cancellations without modifying the running program.
+
+D113 (implementation). VS Code Run and Debug launches the same complete circuit simulation as the toolbar. It supports cancellation and Debug Console output. Source-level stepping and breakpoints require separate simulator support. Version the extension update as 2.0.2 so existing installations can upgrade while reusing the verified 2.0.1 compiler.

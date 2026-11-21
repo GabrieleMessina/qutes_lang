@@ -168,4 +168,4 @@ T054 DONE. Published 2.0.1, verified all five public archive digests and build r
 
 T-editor (DONE). Build and compare the CodeMirror editors and offline VS Code packages, verify all five on native extension hosts, and review the local circuit inspector and conservative two-Hadamard report before publication.
 
-T-editor checkpoint: local website and five review packages delivered. All five native installed-extension checks passed in Actions run 44951396964. Next action is owner review using the installed Windows extension with Bell and the local playground with the corrected diagnostic popup.
+T-editor checkpoint: owner review is open for the local website and the Windows 2.0.2 extension with Bell. The Windows Run and Debug regression passes. Before publication, repeat the native installed-extension matrix for this revision; Actions run 44951396964 covered 2.0.1.

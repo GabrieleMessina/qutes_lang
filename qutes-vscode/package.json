@@ -4,7 +4,7 @@
   "description": "Write, check and run Qutes programs offline with the bundled simulator.",
   "publisher": "GabrieleMessina",
   "license": "MIT",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "engines": {
     "vscode": "^1.90.0"
   },
@@ -17,6 +17,7 @@
     "Programming Languages"
   ],
   "main": "./extension.cjs",
+  "activationEvents": ["onDebugResolve:qutes"],
   "extensionKind": [
     "workspace"
   ],
@@ -29,6 +30,27 @@
     }
   },
   "contributes": {
+    "debuggers": [
+      {
+        "type": "qutes",
+        "label": "Qutes",
+        "languages": ["qutes"],
+        "configurationAttributes": {
+          "launch": {
+            "properties": {
+              "program": {
+                "type": "string",
+                "description": "Qutes file to run. Defaults to the active Qutes editor.",
+                "default": "${file}"
+              }
+            }
+          }
+        },
+        "initialConfigurations": [
+          {"type": "qutes", "request": "launch", "name": "Run Qutes File"}
+        ]
+      }
+    ],
     "languages": [
       {
         "id": "qutes",

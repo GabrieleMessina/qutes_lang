@@ -31,7 +31,7 @@ def package(archives, output, only=None):
                 raise ValueError(f"Incorrect released runtime: {filename}")
         with tempfile.TemporaryDirectory(dir=output, prefix="stage-") as temp:
             stage = Path(temp)
-            for name in ["extension.cjs", "runtime.cjs", "README.md", "language-configuration.json"]:
+            for name in ["extension.cjs", "debug.cjs", "runtime.cjs", "README.md", "language-configuration.json"]:
                 shutil.copyfile(HERE / name, stage / name)
             shipped = {key: value for key, value in manifest.items() if key not in {"devDependencies", "overrides"}}
             (stage / "package.json").write_text(json.dumps(shipped, indent=2), encoding="utf-8")
