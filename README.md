@@ -89,4 +89,4 @@ The ANTLR grammar lives in `grammar/Qutes.g4`. Generated parser sources are incl
 
 ## Research and license
 
-Qutes was introduced by Simone Faro, Francesco Pio Marino, and Gabriele Messina. The project is distributed under the MIT License. [Original paper](https://doi.org/10.1145/3731545.3744153) · [Extending Qutes](https://doi.org/10.1093/comjnl/bxaf133) · [Citation metadata](CITATION.cff) · [License](LICENSE)
+Qutes was introduced by Simone Faro, Francesco Pio Marino, and Gabriele Messina. Browse the [full list of Qutes publications](https://qutes-lang.web.app/publications) for papers, preprints, and author contacts. The project is distributed under the MIT License. [Original paper](https://doi.org/10.1145/3731545.3744153) · [Extending Qutes](https://doi.org/10.1093/comjnl/bxaf133) · [Citation metadata](CITATION.cff) · [License](LICENSE)
