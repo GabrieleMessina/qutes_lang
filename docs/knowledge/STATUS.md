@@ -23,3 +23,5 @@ For the next patch, merge through the protected branches, verify the portable bu
 ## Local developer-tool candidate
 
 The shared editor vocabulary, completion service, packaged desktop extension and circuit inspection are in local review. Native editor verification uses an installed VSIX and an isolated profile. Run the instructions in qutes-vscode/README.md and the manual editor-candidates workflow before Marketplace publication.
+
+Windows x64 and Debian x64 passed installed-extension tests. The other three VSIX files passed package identity and runtime digest checks. Their native VS Code runs are pending. The website preview uses website commit f9bd96c and pins language efd784f, which contains the shared browser modules and circuit report. Local preview at http://127.0.0.1:4288/play.html. See the VS Code README to rebuild packages and run the remaining native acceptance gates.

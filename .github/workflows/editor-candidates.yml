@@ -1,5 +1,8 @@
 name: Verify offline VS Code candidates
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+  push:
+    branches: ['codex/verify-editor-*']
 permissions:
   contents: read
 jobs:
@@ -27,7 +30,7 @@ jobs:
           node-version: '22'
       - run: npm ci --prefix qutes-vscode
       - run: python editors/generate.py --check
-      - run: node --test editors/language.test.mjs
+      - run: node --test editors/language.test.mjs qutes-vscode/tests/highlighting.cjs
       - name: Package and install the released runtime in a clean VS Code profile
         shell: bash
         env:

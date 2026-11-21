@@ -85,10 +85,14 @@
     }
   },
   "overrides": {
-    "@vscode/vsce": {"minimatch": "11.0.1"}
+    "@vscode/vsce": {
+      "minimatch": "11.0.1"
+    }
   },
   "devDependencies": {
     "@vscode/test-electron": "3.1.0",
-    "@vscode/vsce": "4.1.1"
+    "@vscode/vsce": "4.1.1",
+    "vscode-oniguruma": "2.0.1",
+    "vscode-textmate": "9.3.2"
   }
 }

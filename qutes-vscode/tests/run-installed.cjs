@@ -8,6 +8,7 @@ async function main() {
   const archive = path.resolve(process.argv[2]);
   const exe = process.env.QUTES_VSCODE || await downloadAndUnzipVSCode("stable");
   const root = await fs.mkdtemp(path.join(os.tmpdir(),"Qutes offline review "));
+  console.log("Testing in",root);
   const data = path.join(root,"profile"), extensions = path.join(root,"extensions"), workspace = path.join(root,"course");
   await fs.mkdir(workspace);
   const flags = ["--user-data-dir="+data,"--extensions-dir="+extensions,"--disable-updates",
@@ -29,5 +30,7 @@ async function main() {
   await runTests({vscodeExecutablePath:exe,extensionDevelopmentPath:path.join(__dirname,"harness"),
     extensionTestsPath:path.join(__dirname,"installed.cjs"),launchArgs:[workspace,...flags],
     reuseMachineInstall:true});
+  if (path.dirname(path.resolve(root)) !== path.resolve(os.tmpdir())) throw Error("Unexpected test directory");
+  await fs.rm(root,{recursive:true,force:true,maxRetries:5,retryDelay:200});
 }
 main().catch(error=>{ console.error(error); process.exitCode=1; });

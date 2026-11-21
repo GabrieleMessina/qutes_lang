@@ -43,7 +43,9 @@ async function runtime(extension, storage) {
     const mac = process.platform === "darwin";
     const unpack = mac ? "/usr/bin/ditto" : process.platform === "win32"
       ? path.join(process.env.SystemRoot,"System32","tar.exe") : "/usr/bin/tar";
-    const result = await command(unpack, mac ? ["-x","-k",archive,staging] : ["-xf",archive,"-C",staging]);
+    // GNU tar invokes gzip by name; an editor may have no shell PATH.
+    const options = process.platform === "linux" ? {env:{...process.env,PATH:"/usr/bin:/bin"}} : {};
+    const result = await command(unpack, mac ? ["-x","-k",archive,staging] : ["-xf",archive,"-C",staging],options);
     if (result.code !== 0) throw Error("Could not unpack Qutes: " + result.stderr);
     const expanded = path.join(staging,info.root);
     await fs.access(path.join(expanded,rel));
