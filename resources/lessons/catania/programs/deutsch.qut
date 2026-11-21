@@ -1,0 +1,11 @@
+// f(x) = slope*x XOR offset, with arithmetic modulo two.
+bool slope = true;
+bool offset = false;
+qubit x = false;
+qubit target = true;
+hadamard(x);
+hadamard(target);
+if (offset) { not(target); }
+if (slope) { if (x) { not(target); } }
+hadamard(x);
+return measure(x);

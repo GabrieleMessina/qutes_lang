@@ -1,0 +1,18 @@
+// Return Alice's phase and flip records, then Bob's verification bit.
+bool phaseMessage = true;
+bool correctPhase = true;
+qubit message = false;
+if (phaseMessage) { hadamard(message); phaseFlip(message); }
+qubit alice = false;
+qubit bob = false;
+hadamard(alice);
+if (alice) { not(bob); }
+if (message) { not(alice); }
+hadamard(message);
+bool zRecord = measure(message);
+bool xRecord = measure(alice);
+if (xRecord) { not(bob); }
+if (correctPhase) { if (zRecord) { phaseFlip(bob); } }
+// Undo the known preparation to check the received state.
+if (phaseMessage) { phaseFlip(bob); hadamard(bob); }
+return [zRecord, xRecord, measure(bob)];

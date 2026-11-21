@@ -1,0 +1,8 @@
+// Predict both measurements before changing the readout basis.
+bool addPhase = true;
+bool readInX = false;
+qubit photon = false;
+hadamard(photon);
+if (addPhase) { phaseFlip(photon); }
+if (readInX) { hadamard(photon); }
+return measure(photon);

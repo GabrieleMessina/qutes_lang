@@ -1,0 +1,6 @@
+int turns = 2;
+qubit ray = false;
+hadamard(ray);
+for (int j = 0; j < turns; j++) { phase(ray, pi / 2.0); }
+hadamard(ray);
+return measure(ray);

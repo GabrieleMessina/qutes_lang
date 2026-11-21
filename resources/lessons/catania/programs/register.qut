@@ -1,0 +1,6 @@
+// Written pairs use the order [high, low].
+qubit high = false;
+qubit low = true;
+bool exchange = false;
+if (exchange) { swap(high, low); }
+return [measure(high), measure(low)];

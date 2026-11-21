@@ -1,0 +1,14 @@
+bool balanced = true;
+bool complement = false;
+qubit high = false;
+qubit low = false;
+qubit target = true;
+hadamard(high); hadamard(low); hadamard(target);
+// One invocation of the oracle for f(h,l) = h XOR l, or a constant.
+if (balanced) {
+    if (high) { not(target); }
+    if (low) { not(target); }
+}
+if (complement) { not(target); }
+hadamard(high); hadamard(low);
+return [measure(high), measure(low)];

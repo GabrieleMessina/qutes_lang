@@ -1,0 +1,18 @@
+// Default mask 101. Change alternate to study mask 011.
+bool alternate = false;
+qubit high = false;
+qubit mid = false;
+qubit low = false;
+qubit parity = false;
+qubit spare = false;
+hadamard(high); hadamard(mid); hadamard(low);
+if (low) { not(parity); }
+if (alternate) {
+    if (mid) { not(parity); }
+    if (high) { not(spare); }
+} else {
+    if (high) { not(parity); }
+    if (mid) { not(spare); }
+}
+hadamard(high); hadamard(mid); hadamard(low);
+return [measure(high), measure(mid), measure(low)];

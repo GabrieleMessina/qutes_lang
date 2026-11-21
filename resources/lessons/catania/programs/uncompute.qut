@@ -1,0 +1,11 @@
+bool eraseFlag = true;
+qubit path = false;
+qubit flag = false;
+hadamard(path);
+if (path) { not(flag); }
+phaseFlip(flag);
+if (eraseFlag) {
+    if (path) { not(flag); }
+}
+hadamard(path);
+return [measure(path), measure(flag)];

@@ -24,3 +24,5 @@ For the CLI, start at the release page linked above. The repository keeps the ex
 The live Build page offers the five r2 platform archives and their SHA-256 file. The former site-hosted teaching ZIP returns HTTP 404. For future website deployments, push the reviewed website branch and dispatch its hosting workflow with channel live. Verify the public Build page and retired URL after promotion.
 
 For language development, use Python 3.12 or 3.13 in a virtual environment and run `python tools/check.py -q`. For a website preview, use `npm ci` and `python scripts/build.py` in the website checkout. Verification history is in VALIDATION and LEDGER.
+
+Local review in progress for the two Catania study formats. Resources are under resources/lessons/catania. The public course and compiler release remain at the production revisions recorded above.

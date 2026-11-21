@@ -1,0 +1,12 @@
+bool bit = true;
+bool aliceX = true;
+bool bobX = true;
+bool interceptZ = false;
+qubit signal = bit;
+if (aliceX) { hadamard(signal); }
+// Eve can copy the Z-basis value to a probe before reading it.
+qubit probe = false;
+if (interceptZ) { if (signal) { not(probe); } }
+bool record = measure(probe);
+if (bobX) { hadamard(signal); }
+return measure(signal);

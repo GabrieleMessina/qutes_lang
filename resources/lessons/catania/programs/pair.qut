@@ -1,0 +1,9 @@
+bool flipRight = false;
+bool readInX = false;
+qubit left = false;
+qubit right = false;
+hadamard(left);
+if (left) { not(right); }
+if (flipRight) { not(right); }
+if (readInX) { hadamard(left); hadamard(right); }
+return [measure(left), measure(right)];

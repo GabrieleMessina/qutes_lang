@@ -1,0 +1,15 @@
+// Mode 0 tests a truth-table row. Modes 1 and 2 test kickback.
+int mode = 2;
+bool inputBit = true;
+qubit x = inputBit;
+qubit flag = false;
+if (mode != 0) {
+    if (inputBit) { not(x); }
+    hadamard(x);
+    if (mode == 2) { not(flag); }
+    hadamard(flag);
+}
+// Uf for f(x) = x.
+if (x) { not(flag); }
+if (mode != 0) { hadamard(x); hadamard(flag); }
+return [measure(x), measure(flag)];

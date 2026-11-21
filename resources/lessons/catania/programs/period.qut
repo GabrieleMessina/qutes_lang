@@ -1,0 +1,16 @@
+// Start with indices 1 and 5. Optionally include 3 and 7.
+bool shorterPeriod = false;
+qubit high = false;
+qubit mid = false;
+qubit low = true;
+hadamard(high);
+if (shorterPeriod) { hadamard(mid); }
+// Inverse Fourier transform of this prepared eight-entry register.
+swap(low, high);
+hadamard(low);
+if (low) { phase(mid, -pi / 2.0); }
+hadamard(mid);
+if (mid) { phase(high, -pi / 2.0); }
+if (low) { phase(high, -pi / 4.0); }
+hadamard(high);
+return [measure(high), measure(mid), measure(low)];

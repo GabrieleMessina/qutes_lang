@@ -1,0 +1,13 @@
+bool maskHigh = true;
+bool maskMid = false;
+bool maskLow = true;
+qubit high = false;
+qubit mid = false;
+qubit low = false;
+hadamard(high); hadamard(mid); hadamard(low);
+// Phase oracle for the binary inner product with the mask.
+if (maskHigh) { phaseFlip(high); }
+if (maskMid) { phaseFlip(mid); }
+if (maskLow) { phaseFlip(low); }
+hadamard(high); hadamard(mid); hadamard(low);
+return [measure(high), measure(mid), measure(low)];

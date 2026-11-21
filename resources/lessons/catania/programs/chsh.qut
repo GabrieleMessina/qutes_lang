@@ -1,0 +1,16 @@
+// Choose the referee's settings. Bob measures at +pi/4 or -pi/4.
+bool xSetting = false;
+bool ySetting = false;
+qubit alice = false;
+qubit bob = false;
+hadamard(alice);
+if (alice) { not(bob); }
+if (xSetting) { hadamard(alice); }
+float turn = -pi / 4.0;
+if (ySetting) { turn = pi / 4.0; }
+phase(bob, -pi / 2.0); hadamard(bob);
+phase(bob, turn);
+hadamard(bob); phase(bob, pi / 2.0);
+bool a = measure(alice);
+bool b = measure(bob);
+return (a != b) == (xSetting && ySetting);

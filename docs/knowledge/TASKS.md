@@ -155,3 +155,5 @@ T043 DONE locally: the standalone playground download passed the isolated Qiskit
 T044 DONE: both qutes2.0 branches published in order, production promotion verified, and eight actual live browser exports executed in the isolated Qiskit/Aer environment. See KB047 and V046.
 
 T045 DONE: verified the new cache policy on preview and production, reused the unchanged runtime, and downloaded the standalone Bell program in a returning browser. The hosting workflow now runs these HTTP checks on subsequent releases.
+
+T046 ACTIVE: complete and review two local Catania study pages. Curriculum and simulator acceptance are ready. Next verify navigation, drafts, local hosting and actual Qiskit downloads.

@@ -1,0 +1,12 @@
+bool phaseBit = true;
+bool flipBit = false;
+qubit sent = false;
+qubit kept = false;
+hadamard(sent);
+if (sent) { not(kept); }
+if (phaseBit) { phaseFlip(sent); }
+if (flipBit) { not(sent); }
+// Bob now has both qubits and inverts Bell preparation.
+if (sent) { not(kept); }
+hadamard(sent);
+return [measure(sent), measure(kept)];

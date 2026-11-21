@@ -1,0 +1,20 @@
+bool markHigh = true;
+bool markLow = false;
+bool diffuse = true;
+qubit high = false;
+qubit low = false;
+hadamard(high); hadamard(low);
+// Move the marked input to 11, change its sign, then undo the move.
+if (!markHigh) { not(high); }
+if (!markLow) { not(low); }
+if (high) { phaseFlip(low); }
+if (!markLow) { not(low); }
+if (!markHigh) { not(high); }
+if (diffuse) {
+    hadamard(high); hadamard(low);
+    not(high); not(low);
+    if (high) { phaseFlip(low); }
+    not(high); not(low);
+    hadamard(high); hadamard(low);
+}
+return [measure(high), measure(low)];

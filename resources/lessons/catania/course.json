@@ -1,0 +1,418 @@
+{
+  "units": [
+    "Foundations",
+    "From code to circuits",
+    "Algorithms and communication",
+    "Hidden structure and search"
+  ],
+  "chapters": [
+    {
+      "id": "model",
+      "title": "The quantum computation model",
+      "experiment": "interference",
+      "question": "Which part of a run can you repeat to estimate a probability?",
+      "activity": "Draw one preparation, one gate and one readout. Predict a single shot, then compare 64 shots with your prediction.",
+      "objective": "Distinguish a preparation, a reversible evolution and a measurement record.",
+      "trace": [
+        "Start with |0⟩. A Hadamard gate produces (|0⟩ + |1⟩)/√2. Its two amplitudes each have squared magnitude ½. A Z-basis measurement writes one classical bit. Across preparations the state predicts the proportion of each bit; it never specifies the next random bit.",
+        "Follow two candidate preparations through the editor. With addPhase enabled, the second amplitude changes sign. Direct measurement still samples the same probabilities. Applying H before measurement recombines the amplitudes, so the measurement basis becomes part of the experimental question."
+      ],
+      "exercise": "Predict the possible outputs at one shot and at 64 shots for both signs. Set readInX to true. Find a setting in which a single shot distinguishes the two preparations.",
+      "hint": "For the final H, add the input amplitudes for output 0 and subtract them for output 1, then divide each by √2.",
+      "solution": "With direct readout both signs give 0 or 1. After H the plus state yields 0 with certainty and the minus state yields 1. Sixty-four shots estimate the direct distribution; the ideal X-basis test already distinguishes the signs in one shot.",
+      "oral": "What does increasing the shot count tell you about a single qubit?",
+      "reason": "It estimates a distribution from separate preparations. Each shot supplies one outcome. Repeating a measurement on the same collapsed qubit would answer a different question.",
+      "unit": 0
+    },
+    {
+      "id": "registers",
+      "title": "Numbers and strings",
+      "experiment": "register",
+      "question": "Which wire carries the value two in a two-bit register?",
+      "activity": "Write down 01 and 10 as integers. Swap the wires and locate the same change in the Qiskit export.",
+      "objective": "Track a binary string across a circuit, a decoded result and a Python export.",
+      "trace": [
+        "Set high = false and low = true. We write the pair as [high, low], giving the integer 2 × high + low = 1. Swapping the two physical states changes the returned pair to [true, false], giving 2. The return expression still lists the variables in the original order.",
+        "Open the Qiskit tab. Follow the measurements into their classical destinations and find the code that decodes the result. Raw Qiskit count strings and Qutes return expressions use different conventions. An asymmetric input such as 01 makes an ordering mistake visible; 00 and 11 conceal it."
+      ],
+      "exercise": "Predict both encodings of the initial state. Set exchange to true, run again, and explain what would happen if you also reversed the two fields in the return expression.",
+      "hint": "Separate the order of the gates from the order in which you print the measurements.",
+      "solution": "The prepared state gives 01. The swap gives 10. Reversing the displayed fields after the swap prints 01 again, although the wires physically exchanged their states.",
+      "oral": "How would you test the bit order of an unfamiliar circuit export?",
+      "reason": "Prepare one known 1 among zeros. Trace its wire to the classical destination and compare its position in the raw readout with the decoded tuple.",
+      "unit": 0
+    },
+    {
+      "id": "linear-algebra",
+      "title": "Linear algebra and interference",
+      "experiment": "interference",
+      "question": "Can two states share a histogram and still be distinguishable?",
+      "activity": "Compute H times each of the vectors (1, 1)/√2 and (1, −1)/√2. Choose a measurement that checks the calculation.",
+      "objective": "Use a change of basis to expose relative phase.",
+      "trace": [
+        "Represent a pure qubit by a normalized column (a,b). Direct readout gives probabilities |a|² and |b|². With a final Hadamard, the new column is ((a+b)/√2, (a−b)/√2). The cross terms in |a+b|² depend on relative phase.",
+        "For (1,−1)/√2 the contribution to output zero cancels. For (1,1)/√2 the contribution to output one cancels. If both components acquire the same factor eⁱᶿ, both output amplitudes acquire it too and every probability stays fixed."
+      ],
+      "exercise": "Write both output vectors before running. Compare all four combinations of addPhase and readInX. Which pair of experiments provides evidence for the sign?",
+      "hint": "Use the experiment with direct readout as a control. Compare preparations within the same readout basis.",
+      "solution": "For direct readout both histograms approach ½, ½. With X readout, plus always gives false and minus always gives true. Only the second comparison identifies the relative sign.",
+      "oral": "Why can a circuit distinguish a relative phase while a global phase stays hidden?",
+      "reason": "The relative phase changes the sum and difference of two paths. A common phase multiplies every path by the same unit-magnitude number, so it cancels when computing probabilities.",
+      "unit": 0,
+      "guide": {
+        "title": "Interference",
+        "steps": [
+          "Write the Z-basis predictions for |+⟩ and |−⟩ before touching the code.",
+          "Toggle addPhase and run each preparation with direct readout. Record a pair of histograms.",
+          "Enable readInX and repeat. Use the sum and difference of amplitudes to account for the newly deterministic outcomes."
+        ]
+      }
+    },
+    {
+      "id": "boolean",
+      "title": "Boolean functions and feasibility",
+      "experiment": "oracle",
+      "question": "How can a circuit evaluate a many-to-one function reversibly?",
+      "activity": "Make a four-row truth table for (x,y) ↦ (x,y ⊕ x). Check the rows where y starts at zero in mode 0.",
+      "objective": "Extend a Boolean operation to a permutation and account for the extra wire.",
+      "trace": [
+        "Suppose a gate overwrote the pair (x,y) with (x,x). Inputs (1,0) and (1,1) would collide. A unitary must preserve orthogonality. Keeping x and XORing f(x) into y gives a permutation even when f itself has collisions.",
+        "For f(x)=x, the four inputs 00, 01, 10, 11 become 00, 01, 11, 10. A second application restores every row because f(x) ⊕ f(x) = 0. This establishes reversibility. The cost of constructing a large oracle still depends on the function used."
+      ],
+      "exercise": "Set mode to 0. Run both values of inputBit. Predict what happens if the controlled flip under the Uf comment is applied twice. Verify your prediction.",
+      "hint": "In mode 0 the target starts at zero. Track its two successive XOR updates.",
+      "solution": "The single call returns [x,x]. Two calls return [x,false] for either x. A reversible oracle may preserve or restore scratch while using many elementary gates.",
+      "oral": "Does counting one oracle query give the total running time?",
+      "reason": "A query treats one specified oracle invocation as a unit. To estimate gate cost include the implementation, data access, extra workspace and any uncomputation.",
+      "unit": 0
+    },
+    {
+      "id": "qiskit",
+      "title": "Programming in Qiskit",
+      "experiment": "pair",
+      "question": "Can you trace a Qutes result back to its Qiskit circuit?",
+      "activity": "Export a Bell pair, find build_circuit(), and follow each measured wire to the decoded result.",
+      "objective": "Read an exported circuit and reproduce an edited experiment with Aer.",
+      "trace": [
+        "One H gate creates two amplitudes on the left wire. The conditional update flips the right wire on the left = 1 branch. The pair is (|00⟩ + |11⟩)/√2. Measurements vary individually and agree within each shot.",
+        "Run the program, inspect Circuit, then open Qiskit Python and download the file. In a Python environment with qiskit and qiskit-aer installed, run python experiment.qiskit.py --shots 128 --seed 17. Read the decoded outcome values. The export also provides build_circuit() for inspecting the underlying QuantumCircuit."
+      ],
+      "exercise": "Predict both possible pairs after setting flipRight to true. Run, export that edit, and check that the independently executed Python reports the same allowed pairs.",
+      "hint": "Trace the extra X on the right wire separately on |00⟩ and |11⟩.",
+      "solution": "The edited circuit maps the two branches to 01 and 10. Both backends should produce only opposite pairs. Their sample counts can differ even when they implement the same circuit.",
+      "oral": "How would you compare two simulators without requiring identical histograms?",
+      "reason": "First check forbidden outcomes and deterministic cases. For a distribution compare proportions with finite-sample variation in mind, using the same input and bit order.",
+      "unit": 1
+    },
+    {
+      "id": "circuits",
+      "title": "Quantum circuits",
+      "experiment": "pair",
+      "question": "Can matching Z-basis results certify a Bell state?",
+      "activity": "Predict what two local Hadamards do to a Bell pair. Use a second basis to distinguish coherence from a classical mixture.",
+      "objective": "Connect a gate sequence with amplitudes and joint measurements.",
+      "trace": [
+        "After H(left), the amplitudes lie on 00 and 10. The controlled flip sends 10 to 11. In the Z basis a classical source that picks 00 or 11 by coin toss would give the same histogram.",
+        "Apply H to both wires before readout. Expanding H⊗H on each Bell component shows the amplitudes of 01 and 10 cancel. A classical mixture has no cross terms between its alternatives. It would yield all four pairs in this basis."
+      ],
+      "exercise": "With flipRight false, set readInX true. Compare the result to the Z measurement, then calculate the X-basis probabilities for a classical mixture of 00 and 11.",
+      "hint": "Expand H|0⟩ and H|1⟩ separately. For the mixture average probabilities after the expansion.",
+      "solution": "The Bell preparation gives 00 or 11 in either basis. Each component of the mixture gives four equally likely outcomes in X, so its mixture also gives all four with probability ¼ each.",
+      "oral": "Why is a matching Z histogram insufficient evidence for entanglement?",
+      "reason": "It is compatible with classical shared randomness. A complementary basis probes correlations that the candidate classical mixture fails to reproduce.",
+      "unit": 1
+    },
+    {
+      "id": "matrices",
+      "title": "Special matrices",
+      "experiment": "phase-matrix",
+      "question": "What observable effect do two quarter-turn phase gates produce?",
+      "activity": "Compose S with itself on paper. Put the result between two Hadamards and predict the bit.",
+      "objective": "Relate unitary matrix powers, eigenphases and readout probabilities.",
+      "trace": [
+        "The phase gate S = diag(1,i) has eigenvalues 1 and i. Its second power is diag(1,−1), and its fourth power is the identity. Acting on |+⟩ changes the relative phase while preserving the component magnitudes.",
+        "After k applications the amplitude of zero after the final H is (1+iᵏ)/2. Squaring its magnitude for k=0,1,2,3 gives 1, ½, 0, ½. The same circuit turns a matrix identity into a measurable prediction."
+      ],
+      "exercise": "Predict the zero probability for turns = 1, 2 and 4. Run each. Explain why the result at four turns repeats the result at zero.",
+      "hint": "List the successive powers of i on the unit circle.",
+      "solution": "One turn gives both outcomes, two turns give only true, and four turns give only false. S⁴ returns both basis vectors to themselves.",
+      "oral": "Does a phase gate acting on |1⟩ alone change its measurement statistics in any basis?",
+      "reason": "The eigenstate acquires a global factor. A second populated component is needed to provide a relative phase reference.",
+      "unit": 1
+    },
+    {
+      "id": "oracles",
+      "title": "Quantum oracles",
+      "experiment": "oracle",
+      "question": "Where does a Boolean output go when the target is |−⟩?",
+      "activity": "Trace the same controlled flip with target |0⟩, |+⟩ and |−⟩. Find the gate that makes the change visible on the control.",
+      "objective": "Derive phase kickback from the action of X on its two eigenstates.",
+      "trace": [
+        "The oracle applies X to the target if x=1. On |+⟩, X acts with eigenvalue +1. On |−⟩, X acts with eigenvalue −1. If the control is |+⟩, that minus sign appears only on its x=1 branch, turning the control into |−⟩.",
+        "In modes 1 and 2 the program ends by measuring both wires in the X basis through final Hadamards. The second field reports the target eigenstate. The first reveals whether the control received a relative sign. Mode 0 instead exposes a basis row of the same oracle."
+      ],
+      "exercise": "Record the two-field prediction for modes 0, 1 and 2 with inputBit true. Identify which experiment returns the function value in the computational target and which exposes its phase.",
+      "hint": "Track the target through X|+⟩ and X|−⟩ before applying the readout gates.",
+      "solution": "Mode 0 returns [true,true] in Z. Mode 1 gives [false,false] in X. Mode 2 gives [true,true] in X. Identical printed bits in modes 0 and 2 encode different measurements.",
+      "oral": "Can you read the phase oracle by measuring x immediately in Z?",
+      "reason": "Direct Z probabilities are insensitive to its branch signs. A later interference step combines amplitudes so the phase changes an observable probability.",
+      "unit": 1,
+      "guide": {
+        "title": "Reversible oracles",
+        "steps": [
+          "In mode 0, trace both inputBit settings through the controlled flip.",
+          "Compare modes 1 and 2. Both start with a superposed control; write down the eigenvalue of X on each target.",
+          "Inspect the circuit to identify the query and final H gates. Use the two result fields to explain which wire carries evidence of kickback."
+        ]
+      }
+    },
+    {
+      "id": "auxiliary",
+      "title": "Auxiliary procedures",
+      "experiment": "uncompute",
+      "question": "When does a temporary qubit prevent interference?",
+      "activity": "Predict the final joint readout with the helper erased and with its path record still present.",
+      "objective": "Use compute, phase and uncompute to remove a path record while retaining a relative sign.",
+      "trace": [
+        "The first controlled flip writes the path into a helper, producing (|00⟩+|11⟩)/√2. Flipping the helper’s phase changes the plus to minus. A second controlled flip sends the helper back to zero on both branches. The path is now |−⟩ and the final H returns one.",
+        "If the helper stays correlated, its two states label distinguishable branches. H on the path wire alone cannot make them cancel. Tracing out the helper leaves equal probabilities on the path."
+      ],
+      "exercise": "Predict the allowed [path,flag] pairs for eraseFlag true and false. In Circuit, locate the second controlled operation and explain which record it erases.",
+      "hint": "Factor the state after the second controlled flip. Then do the expansion with that gate omitted.",
+      "solution": "With erasure the answer is always [true,false]. With the path record retained, all four pairs have probability ¼. Erasing the computed record preserves the phase applied in between.",
+      "oral": "Could measuring and forgetting the helper replace the inverse operation?",
+      "reason": "A measurement records path information and destroys the interference between alternatives. A coherent inverse restores a common helper state while preserving the relative phase.",
+      "unit": 1
+    },
+    {
+      "id": "elementary",
+      "title": "Elementary quantum algorithms",
+      "experiment": "deutsch",
+      "question": "What property of a truth table fits in one measured bit?",
+      "activity": "List the four one-bit Boolean functions. Group them by whether their two outputs agree, then predict the readout for each group.",
+      "objective": "Trace a complete prepare–query–interfere algorithm on a two-entry truth table.",
+      "trace": [
+        "A one-bit Boolean function has two table entries. Write f(x) = ax ⊕ b. The slope a describes whether the entries differ, and the offset b chooses the first entry. The phase oracle changes the input amplitudes to ((−1)ᵇ,(−1)ᵃ⁺ᵇ)/√2.",
+        "The offset multiplies the whole vector by one sign. The final H sends the sum of the two components to zero’s amplitude and their difference to one’s. The output therefore reports the slope. Only the query sits inside the black box; the preparations and readout are part of the algorithm too."
+      ],
+      "exercise": "Make a two-by-two prediction table for slope and offset before running. Which pairs of functions cannot be told apart by the experiment?",
+      "hint": "Hold the slope fixed while complementing both table entries.",
+      "solution": "Both constant functions give false. Identity and negation both give true. Complementing both entries changes only a global sign in this setup.",
+      "oral": "Why does learning a global property of the table take fewer output bits than reading the table?",
+      "reason": "There are four tables but only two promised classes. The circuit selects interference that distinguishes the classes, sacrificing information about the offset.",
+      "unit": 2
+    },
+    {
+      "id": "teleportation",
+      "title": "Quantum teleportation",
+      "experiment": "teleport",
+      "question": "Which test input exposes a missing phase correction?",
+      "activity": "Compare |0⟩ and |−⟩ as messages. Condition your explanation on Alice’s first recorded bit.",
+      "objective": "Design a receiver test that catches a lost phase correction.",
+      "trace": [
+        "Alice shares a Bell pair with Bob. She entangles the message with her half, changes basis, and records two bits. Before correction Bob holds XˣZᶻ|ψ⟩ up to a global phase. The program returns Alice’s z and x records in that order, followed by a verification bit from Bob.",
+        "Bob applies X when x is set and Z when z is set. To test the receiver, he undoes the known message preparation. A successful test then reads zero. For |0⟩, an extra Z is invisible. For |−⟩, an extra Z turns it into the orthogonal state |+⟩."
+      ],
+      "exercise": "Set correctPhase false and run with both values of phaseMessage. For each message predict which z records give Bob a true verification bit.",
+      "hint": "First consider the z=0 branch, where the phase correction would have done nothing.",
+      "solution": "For |−⟩ the verification bit equals z when the correction is omitted. For |0⟩ it stays false for every record. Restoring both corrections gives false on every branch for both preparations.",
+      "oral": "How can two classical bits help transmit amplitudes that neither party measures directly?",
+      "reason": "Prior entanglement supplies the shared resource. The records identify a correction, and give Alice no description of the amplitudes. Her original message has been measured in the protocol.",
+      "unit": 2,
+      "guide": {
+        "title": "Teleportation and superdense coding",
+        "steps": [
+          "Run teleportation for the phase message. Group the rows by Alice’s z record and check Bob’s verification bit.",
+          "Disable correctPhase. Compare the result for |−⟩ with the result for |0⟩. Identify the branches in which your test detects a fault.",
+          "Open the dense-coding experiment. Send 01 and 10, then compare the two protocols in terms of pre-shared entanglement, transmitted bits and transmitted qubits."
+        ]
+      }
+    },
+    {
+      "id": "dense-coding",
+      "title": "Superdense coding",
+      "experiment": "dense",
+      "question": "How does Bob distinguish four messages after receiving one wire?",
+      "activity": "Label each Bell state by a phase bit and a flip bit. Check all four messages with the decoding circuit.",
+      "objective": "Trace two classical bits through local encoding and joint Bell decoding.",
+      "trace": [
+        "Start from (|00⟩+|11⟩)/√2. Z on the wire to send changes the relative sign. X changes whether the two basis values agree. These choices produce four orthogonal Bell states. Alice transmits her one qubit to Bob, who already holds the other.",
+        "Bob applies a controlled flip from the sent wire to the kept wire, followed by H on the sent wire. The controlled flip translates parity into the kept wire. H translates relative sign into the sent wire. The return order is [phaseBit,flipBit]."
+      ],
+      "exercise": "Prepare messages 01, 10 and 11 after predicting each output. Explain why Bob cannot read either message bit from his original wire before the transmission.",
+      "hint": "Find the marginal distribution of the kept wire for each of the four Bell states.",
+      "solution": "The decoded pairs equal the chosen messages. Before receipt, Bob’s local state is equally mixed for every message. Joint access lets him distinguish the four orthogonal states.",
+      "oral": "What resources would you count when comparing dense coding to teleportation?",
+      "reason": "Dense coding uses a shared Bell pair and one transmitted qubit to deliver two classical bits. Teleportation uses a shared Bell pair and two transmitted classical bits to deliver one unknown qubit state.",
+      "unit": 2
+    },
+    {
+      "id": "deutsch",
+      "title": "Deutsch’s algorithm",
+      "experiment": "deutsch",
+      "question": "How does a single query reveal f(0) ⊕ f(1)?",
+      "activity": "Expand both output amplitudes in terms of the truth table signs. Trace the target through the query.",
+      "objective": "Prove the one-query decision rule and identify the oracle assumption.",
+      "trace": [
+        "Use the one-bit oracle with a target in |−⟩. Write u=(−1)ᶠ⁽⁰⁾ and v=(−1)ᶠ⁽¹⁾. After the output H, the input amplitudes are (u+v)/2 for zero and (u−v)/2 for one. Equal signs eliminate one; opposite signs eliminate zero.",
+        "Classically, a deterministic algorithm that saw just f(0) could still face two tables agreeing there and differing at f(1). One coherent query exposes the parity, provided the circuit can call the reversible oracle on a superposition."
+      ],
+      "exercise": "Test all four tables using slope and offset. Locate the oracle boundaries in the source and explain which gates belong to preparation and readout.",
+      "hint": "The two Hadamards before the conditional updates prepare the query wires. The final Hadamard reads out their relative phase.",
+      "solution": "When slope is false both offsets give 0. When slope is true both give 1. The offset flip and the conditional controlled flip together implement the single reversible oracle for the chosen table.",
+      "oral": "Would this algorithm work with a service that measures each query input and returns a classical bit?",
+      "reason": "Such a service records the branch and breaks coherence. The promised interface here is a reversible unitary query, which is a stronger access model.",
+      "unit": 2
+    },
+    {
+      "id": "deutsch-jozsa",
+      "title": "Deutsch–Jozsa",
+      "experiment": "dj",
+      "question": "How can the absence of 00 certify a balanced function under the promise?",
+      "activity": "Write the four signs after the phase oracle. Sum them to predict the amplitude of 00.",
+      "objective": "Use cancellation to distinguish a constant function from a balanced one.",
+      "trace": [
+        "For two query wires the amplitude of 00 after the last Hadamards is one quarter of the sum of (−1)ᶠ⁽ˣ⁾ over 00,01,10,11. A constant function gives magnitude one. Two plus signs and two minus signs sum to zero.",
+        "The balanced example computes high XOR low, whose sign pattern is +,−,−,+. This is the parity pattern for 11, so the final output is exactly 11. Other balanced functions may distribute their weight over other nonzero strings on wider registers."
+      ],
+      "exercise": "Compare constant zero, constant one, parity and complemented parity using balanced and complement. Predict whether 00 is possible before each run.",
+      "hint": "Complementing f reverses every sign together. Distinguish what the promise guarantees from what follows from this particular parity oracle.",
+      "solution": "Both constants produce 00. Both chosen balanced oracles produce 11. The promise guarantees that zero amplitude at 00 separates the balanced case from the constant case.",
+      "oral": "If an arbitrary function gives a nonzero string once, what conclusion survives without the promise?",
+      "reason": "It cannot be constant in the ideal circuit. A nonconstant function can be unbalanced, so the promise is needed for the stronger classification.",
+      "unit": 2,
+      "guide": {
+        "title": "Deutsch–Jozsa",
+        "steps": [
+          "Build the four-entry sign table for the constant-zero function and for parity.",
+          "Predict the amplitude of 00 from the sum of the signs. Run both values of balanced.",
+          "Flip complement and run again. Explain how the query count can stay one even when the oracle contains multiple gates."
+        ]
+      }
+    },
+    {
+      "id": "simon",
+      "title": "Simon’s algorithm",
+      "experiment": "simon",
+      "question": "Which hidden XOR mask is consistent with your samples?",
+      "activity": "Collect independent strings, translate them into parity equations, and solve the system over binary arithmetic.",
+      "objective": "Recover a hidden period from interference samples and a classical linear system.",
+      "trace": [
+        "The default oracle computes f(h,m,l)=(h⊕l,m). Inputs x and x⊕101 have the same output. Each paired input contributes two amplitudes to an output y after the Hadamards. Their signs differ by (−1)ʸ·ˢ, with the dot product taken modulo two. They cancel whenever y·s=1.",
+        "Suppose the nonzero samples include 010 and 101. They give sₘ=0 and sₕ⊕sₗ=0. The zero mask also solves the equations, but the two-to-one promise requires a nonzero mask. The remaining answer is 101. Repeated rows add no independent information."
+      ],
+      "exercise": "Reconstruct the mask from the default samples. Set alternate true and repeat using two independent nonzero rows. Check the answer against an actual pair of colliding inputs.",
+      "hint": "Write each y as a row with columns high, middle, low. The goal is the nonzero element of the null space.",
+      "solution": "The default outcomes are 000,010,101,111. With alternate enabled they are 000,011,100,111, so sₕ=0 and sₘ=sₗ. The mask is 011. Inputs 000 and 011 then have the same function value.",
+      "oral": "How many rows do you need, and why is that different from the number of shots?",
+      "reason": "For this three-bit nonzero mask, two independent orthogonal rows leave a one-dimensional null space. Zero and repeated or dependent samples increase shot count without increasing rank.",
+      "unit": 3,
+      "guide": {
+        "title": "Simon",
+        "steps": [
+          "Collect output strings, retaining their high–middle–low order. Discard 000 and duplicate equations.",
+          "Pick two independent rows. Solve y·s=0 modulo two, and apply the nonzero-mask promise.",
+          "Enable alternate, derive the new mask, then find two different inputs on paper that the new oracle maps to the same output."
+        ]
+      }
+    },
+    {
+      "id": "shor",
+      "title": "Shor’s algorithm",
+      "experiment": "period",
+      "question": "Which Fourier samples can actually reveal a useful order?",
+      "activity": "Factor 15 on paper using base 2. Connect the period to the peaks of a three-wire inverse Fourier experiment.",
+      "objective": "Connect modular order, Fourier sampling, rational recovery and factor extraction.",
+      "trace": [
+        "Compute 2ˣ mod 15 for x=0,1,2,3,4: the sequence is 1,2,4,8,1. The order is r=4. Since r is even, use 2ʳ⁄²=4. The product (4−1)(4+1)=15 is divisible by 15 and the two greatest common divisors gcd(3,15)=3 and gcd(5,15)=5 are nontrivial factors.",
+        "The editor executes only the Fourier sampling step. It prepares the two equally weighted indices 1 and 5 of an eight-entry register, a coset spaced by four. The inverse Fourier amplitude at y is proportional to exp(−2πiy/8) × [1 + exp(−2πi4y/8)]. Odd y cancel. The result is uniformly one of 0,2,4,6.",
+        "Divide the sample by eight. For y=2 or 6 the reduced denominator is 4. Check candidate denominators classically using 2ʳ mod 15. A full Shor circuit would create the period through controlled modular exponentiation; here the known periodic input lets you study this step on three qubits."
+      ],
+      "exercise": "For each possible y write y/8 in lowest terms. Which shots recover r directly? Set shorterPeriod true and predict the new peak positions before running.",
+      "hint": "The new prepared indices are 1,3,5,7. Peak spacing in the Fourier register is eight divided by the input period.",
+      "solution": "With period four, samples 2 and 6 yield denominator 4. Samples 0 and 4 give denominators 1 and 2, which fail the order check. With period two, peaks are at 0 and 4. The latter experiment models a different input period.",
+      "oral": "Could this run establish that a device has factored an unknown integer?",
+      "reason": "The prepared input already encodes the period. The run demonstrates Fourier sampling. End-to-end factoring additionally needs a coprime base, modular exponentiation, order recovery and checks for useful factors.",
+      "unit": 3
+    },
+    {
+      "id": "grover",
+      "title": "Grover’s search",
+      "experiment": "grover",
+      "question": "Why does a phase mark become visible only after diffusion?",
+      "activity": "Mark 10 in a four-entry register. Predict the four amplitudes after the oracle and after the reflection about their mean.",
+      "objective": "Derive one amplitude-amplification step and design a meaningful hardware comparison.",
+      "trace": [
+        "Write amplitudes in order 00, 01, 10, 11. After preparation all four equal ½. Marking 10 gives (½,½,−½,½), with mean ¼. Reflection about the mean sends each amplitude a to 2 × ¼ − a. The three unmarked amplitudes become zero and the marked amplitude becomes one.",
+        "In the source, X gates move the chosen bit pattern to 11 around the controlled phase flip. The final gate block implements diffusion up to a common sign. Compare the allowed outcomes with diffusion enabled and disabled. Then use Circuit and Qiskit Python to locate the two distinct operations."
+      ],
+      "exercise": "Switch the mark to 01. Predict the histogram with and without diffusion. Export the amplified circuit. If hardware produced some 00 and 11 results, what comparison would you run before attributing them to the algorithm?",
+      "hint": "Phase marking alone preserves all four magnitudes. On hardware, inspect the measurement mapping and compare a known prepared basis state on the same qubits.",
+      "solution": "The ideal amplified circuit yields only 01. Without diffusion all four outcomes have probability ¼. For hardware, verify bit order, collect repeated shots, measure a known-state control, and inspect the transpiled circuit depth and two-qubit gates. Record the marked-state fraction and uncertainty.",
+      "oral": "What is the distinction between a query advantage and a faster run on a particular device?",
+      "reason": "For one marked item among N, Grover uses on the order of √N oracle calls. Elapsed time and success on a device also depend on the cost of each oracle, routing, gate errors, readout and shot count.",
+      "unit": 3,
+      "guide": {
+        "title": "Grover",
+        "steps": [
+          "Mark 10. Write the four amplitudes immediately after the oracle, then calculate their mean.",
+          "Turn off diffuse. Check whether the phase mark alone changes the histogram. Restore diffusion and mark 01.",
+          "Inspect and export the edited circuit. Identify the marking and reflection stages, then propose a control for a noisy hardware run."
+        ]
+      }
+    }
+  ],
+  "extensions": [
+    {
+      "id": "chsh",
+      "title": "The CHSH game",
+      "experiment": "chsh",
+      "question": "Can a shared Bell pair beat the classical CHSH bound?",
+      "activity": "Test each pair of settings and average their win probabilities with equal weight.",
+      "objective": "Relate local measurement angles to the CHSH winning condition.",
+      "trace": [
+        "A referee gives Alice bit x and Bob bit y independently and uniformly. They win when a⊕b = xy. A deterministic local strategy assigns four fixed answers. XORing the four required equations makes every answer occur twice on the left, but gives one on the right. At most three of the four can hold.",
+        "A Bell pair measured along Alice’s 0° and 90° directions and Bob’s +45° and −45° directions has correlation cos(θA−θB). With the winning parity for each setting, the success probability is (1+1/√2)/2 ≈ 0.854. The program returns one win flag per shot for the selected settings."
+      ],
+      "exercise": "Set xSetting and ySetting to each of the four possibilities. Record wins per setting at the same shot count and average the four fractions.",
+      "hint": "For (1,1) an opposite pair wins. For the other settings a matching pair wins.",
+      "solution": "The ideal mean is about 85.4%. Finite samples fluctuate. The browser uses a fixed simulator seed, so re-running an identical setting reproduces the same sample.",
+      "oral": "Does an ideal simulator run certify a loophole-free Bell experiment?",
+      "reason": "It illustrates the probability law. A physical test also needs independently chosen settings, separated measurements and control of sampling and detection effects."
+    },
+    {
+      "id": "bb84",
+      "title": "BB84 basis sifting",
+      "experiment": "bb84",
+      "question": "Which bits should Alice and Bob retain after comparing bases?",
+      "activity": "Compare matched and mismatched settings with and without a Z-basis interception.",
+      "objective": "Predict sifted-key agreement for one signal under explicit basis choices.",
+      "trace": [
+        "Alice encodes a classical bit along Z or X. Bob rotates his chosen basis back to Z before measuring. Matching bases undo the preparation rotation. With mismatched bases the overlap squared with either readout state is ½.",
+        "Eve’s optional Z probe records which Z component passed. An X-basis signal thereby loses the coherence that Bob needs for certain X readout. In this example Eve always uses Z. Averaging equally over the two matched basis choices gives an ideal sifted error rate of ¼ under interception."
+      ],
+      "exercise": "Keep bit true. Compare matched X, matched Z and mismatched bases. Enable interceptZ with both parties using X. Which of the retained bits can now disagree?",
+      "hint": "Count only matched-basis rounds when reasoning about the sifted key.",
+      "solution": "Without interception both matched cases return the original bit; mismatched results are random and discarded. With Eve in Z, matched Z is undisturbed and matched X has error probability ½.",
+      "oral": "Can a single wrong bit identify an eavesdropper on a real channel?",
+      "reason": "A rate estimate across a disclosed sample detects excess disturbance. Ordinary channel errors also contribute. This single-signal experiment covers basis sifting and disturbance."
+    },
+    {
+      "id": "bernstein-vazirani",
+      "title": "Bernstein–Vazirani",
+      "experiment": "bv",
+      "question": "How can one phase query encode an entire hidden mask?",
+      "activity": "Predict the measured string from the oracle’s signs, then change the mask and repeat.",
+      "objective": "Recover a binary linear function’s coefficient vector by interference.",
+      "trace": [
+        "For f(x)=s·x modulo two, the phase factor (−1)ˢ·ˣ factorizes into a sign for each active mask position. Starting from |+⟩ on every wire, the oracle turns precisely those wires into |−⟩. A final layer of H gates maps these states to the bit string s.",
+        "For s=101, both outside wires change sign and the middle wire keeps |+⟩. Reading [high,mid,low] gives 101. The flags in the teaching source construct the oracle. The algorithm’s query wires access the circuit through one application."
+      ],
+      "exercise": "Set maskLow false and predict the output. Compare what the circuit learns here with what one Simon sample tells you about its hidden mask.",
+      "hint": "A linear Boolean phase and a two-to-one periodic function encode their secrets differently.",
+      "solution": "The edited mask yields 100 with certainty. Bernstein–Vazirani returns the full mask for this promise. Simon supplies a random linear constraint and requires multiple independent rows.",
+      "oral": "Why can the output contain three bits after only one query?",
+      "reason": "The query acts coherently across the input register. For this restricted family its phase pattern is exactly a Fourier basis vector, which the final Hadamards map to an orthogonal three-bit result."
+    }
+  ]
+}
