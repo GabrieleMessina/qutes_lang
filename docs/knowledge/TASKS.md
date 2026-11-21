@@ -164,4 +164,4 @@ T048 DONE locally: review the general tutorial at /tutorial.html.
 
 T052 DONE locally: tutorial resources and workbook files renamed, source pin rebuilt, experiment and navigation checks passed.
 
-T054. Validate the 2.0.1 package and five archives, then publish and verify website links.
+T054 DONE. Published 2.0.1, verified all five public archive digests and build receipts, and ran the public tutorial and download checks on preview and production. Both release branches enforce pull requests and required checks. The earlier website publisher and shared credential are retired.

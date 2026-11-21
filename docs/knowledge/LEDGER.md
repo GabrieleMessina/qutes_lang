@@ -930,3 +930,5 @@ KB051: renamed the local workbook to tutorial.html, removed university attributi
 Renamed the shared teaching directory and updated the resource index and CLI example.
 
 KB054. Protected both qutes2.0 branches with required checks and administrator enforcement. Prepared component pins and a release verification gate bound to the compiler revision and all five build inventories.
+
+KB055 (2026-11-21). Released compiler 1c560fd as 2.0.1 after language PR 100 and the native verification matrix. Website PR 4 retired the default-branch publisher. Website PR 5 fixed both stale navigation expectations, pinned the exact compiler and asset names, and promoted the same tested artifact through an isolated preview project and production. Google required a fresh Firebase sign-in. The initial IAM write encountered account propagation and succeeded on retry. Disabled the old Google key and removed its repository secret after independent production verification. Re-read IAM to confirm the disable had propagated. All user-facing release steps completed.
