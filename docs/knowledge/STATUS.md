@@ -19,3 +19,7 @@ The live workbook uses 17 chapters and three optional extensions. It runs bounde
 For compiler development, use Python 3.12 or 3.13 in a virtual environment and run `python tools/check.py -q`. For website development, run `npm ci`, build with `python scripts/build.py`, serve `dist/` and run `npm test`. The 50-example tour and editable study experiments live in this repository.
 
 For the next patch, merge through the protected branches, verify the portable build from the final compiler revision, then pin the website to that revision. Only the website's `hosting.yml` workflow promotes a release to production. It uses separate Google identities and projects for preview and production, verifies the same site artifact on each and runs the public tutorial and download checks. Use an explicit live dispatch on `qutes2.0`.
+
+## Local developer-tool candidate
+
+The shared editor vocabulary, completion service, packaged desktop extension and circuit inspection are in local review. Native editor verification uses an installed VSIX and an isolated profile. Run the instructions in qutes-vscode/README.md and the manual editor-candidates workflow before Marketplace publication.

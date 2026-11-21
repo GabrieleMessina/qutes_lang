@@ -165,3 +165,5 @@ T048 DONE locally: review the general tutorial at /tutorial.html.
 T052 DONE locally: tutorial resources and workbook files renamed, source pin rebuilt, experiment and navigation checks passed.
 
 T054 DONE. Published 2.0.1, verified all five public archive digests and build receipts, and ran the public tutorial and download checks on preview and production. Both release branches enforce pull requests and required checks. The earlier website publisher and shared credential are retired.
+
+T-editor (ACTIVE). Build and compare the CodeMirror editors and offline VS Code packages, verify all five on native extension hosts, and review the local circuit inspector and conservative two-Hadamard report before publication.

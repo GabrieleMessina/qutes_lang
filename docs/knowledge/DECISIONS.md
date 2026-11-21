@@ -317,3 +317,5 @@ D109 (user): use the workbook as the tutorial for everyone, with chapter content
 Use tutorial for the shared resource folder and workbook for the website renderer and tests, avoiding the existing tutorial.test.cjs name.
 
 D110 (user). Publish five patched 2.0.1 archives on a new release and retain the earlier release URLs. Use protected pull requests for both release branches.
+
+D111 (user). Share compiler-backed diagnostics and completion rules between the browser and desktop editors. Keep one Marketplace identity with five offline packages. Review locally before any publication. D112 (implementation). Embed the checksum-pinned native release archive in each VSIX and unpack it on demand. Limit graphical edits to uniquely mapped top-level qubit calls; show source and provenance for other operations. Preview adjacent Hadamard cancellations without modifying the running program.

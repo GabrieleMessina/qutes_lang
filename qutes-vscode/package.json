@@ -1,0 +1,94 @@
+{
+  "name": "qutes",
+  "displayName": "Qutes",
+  "description": "Write, check and run Qutes programs offline with the bundled simulator.",
+  "publisher": "GabrieleMessina",
+  "license": "MIT",
+  "version": "2.0.1",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GabrieleMessina/qutes_lang"
+  },
+  "homepage": "https://qutes-lang.web.app/",
+  "categories": [
+    "Programming Languages"
+  ],
+  "main": "./extension.cjs",
+  "extensionKind": [
+    "workspace"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false
+    },
+    "virtualWorkspaces": {
+      "supported": false
+    }
+  },
+  "contributes": {
+    "languages": [
+      {
+        "id": "qutes",
+        "aliases": [
+          "Qutes",
+          "qutes"
+        ],
+        "extensions": [
+          ".qut"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "qutes",
+        "scopeName": "source.qutes",
+        "path": "./syntaxes/qutes.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "qutes.runQutesFile",
+        "title": "Qutes: Run Qutes File",
+        "icon": "$(play)"
+      },
+      {
+        "command": "qutes.stop",
+        "title": "Qutes: Stop",
+        "icon": "$(debug-stop)"
+      },
+      {
+        "command": "qutes.selectInputs",
+        "title": "Qutes: Choose Input JSON"
+      },
+      {
+        "command": "qutes.setShots",
+        "title": "Qutes: Set Shot Count"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "qutes.runQutesFile",
+          "when": "resourceLangId == qutes && !qutes.running",
+          "group": "navigation"
+        },
+        {
+          "command": "qutes.stop",
+          "when": "resourceLangId == qutes && qutes.running",
+          "group": "navigation"
+        }
+      ]
+    }
+  },
+  "overrides": {
+    "@vscode/vsce": {"minimatch": "11.0.1"}
+  },
+  "devDependencies": {
+    "@vscode/test-electron": "3.1.0",
+    "@vscode/vsce": "4.1.1"
+  }
+}

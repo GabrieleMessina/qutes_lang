@@ -1,0 +1,8 @@
+{
+  "name": "qutes-test-host",
+  "publisher": "qutes-local-tests",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.90.0"
+  }
+}
