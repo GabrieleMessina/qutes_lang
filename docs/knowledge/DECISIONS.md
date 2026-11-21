@@ -309,3 +309,5 @@ D105 (user, active): publish the compiler to qutes2.0 before the website, deploy
 D106 (user): deploy the returning-browser cache fix after verification. Stable website URLs require HTTP revalidation. The browser can reuse unchanged bytes with entity tags, and the fix preserves tutorial progress.
 
 D107 (user): prepare an English course companion and an English full workbook as different local website pages for university review. Use original materials with selected extensions. Share experiments in the language resources and compare formats before publication.
+
+D108 (user): keep the full workbook, retire the companion, and review locally before publication.

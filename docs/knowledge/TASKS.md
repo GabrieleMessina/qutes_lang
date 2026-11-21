@@ -157,3 +157,5 @@ T044 DONE: both qutes2.0 branches published in order, production promotion verif
 T045 DONE: verified the new cache policy on preview and production, reused the unchanged runtime, and downloaded the standalone Bell program in a returning browser. The hosting workflow now runs these HTTP checks on subsequent releases.
 
 T046 DONE locally: both English Catania study pages are available for owner review. The 17 chapters, three extensions, six guided paths, 72 worker variants, 16 independently executed downloads and existing website tests passed. Await the user's choice before any publication.
+
+T047 DONE locally: workbook selected and linked from Tutorial. Preview awaits publication approval.

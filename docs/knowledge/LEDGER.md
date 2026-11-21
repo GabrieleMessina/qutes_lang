@@ -922,3 +922,5 @@ KB048 production: website qutes2.0 at f027525 passed preview run 44828151606 and
 KB049: inspected the 2026–27 UniCT syllabus and last year’s archive. Authored 17 chapters, six guided paths and three optional extensions around 16 original programs. The first BB84 draft attempted conditional measurement (Q2004); the tested version conditionally couples a Z probe and measures it unconditionally. Local browser-engine acceptance passed all 72 teaching variants.
 
 KB049 local delivery: both study formats render from the verified language archive. Walked all 20 topic routes, checked all disclosures, returned from course experiments, restored drafts and progress, and inspected desktop and phone layouts. The full playground now preserves workbook edits in both directions. Chromium exercised 72 variants, and the isolated Aer interpreter ran actual downloads for all 16 experiments including an edited Grover program. Firefox and WebKit each verified both Grover routes. Clarified readout and Fourier notation after proofing. Local previews only.
+
+KB050: removed the companion from the local build, updated Tutorial navigation and verified the workbook at website c98452f.
