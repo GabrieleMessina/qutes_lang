@@ -1,0 +1,36 @@
+name: CodeQL
+
+on:
+  push:
+    branches: [qutes2.0, development, main]
+  pull_request:
+    branches: [qutes2.0, development, main]
+  schedule:
+    - cron: '27 4 * * 2'
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        # Pull requests use the destination branch, pushes and scheduled runs use the checked-out branch.
+        language: ${{ fromJSON((github.base_ref || github.ref_name) == 'qutes2.0' && '["python","actions"]' || '["python","actions","javascript-typescript"]') }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: github/codeql-action/init@1bd86f2fdb4b86187fa4059f16f31a3202acc9ea # v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+      - uses: github/codeql-action/analyze@1bd86f2fdb4b86187fa4059f16f31a3202acc9ea # v4
+        with:
+          category: /language:${{ matrix.language }}
