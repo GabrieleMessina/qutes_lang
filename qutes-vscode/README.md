@@ -23,13 +23,15 @@ Only matching pairs should appear. [Learn Qutes](https://qutes-lang.web.app/tuto
 Open `examples/language/41_bell_gates.qut`. Click the gutter on line 7, next to `entangle(alice, bob);`, then press **F5**. The highlight marks the statement about to execute.
 
 1. Press **F11** to enter `entangle`. The call stack shows the function and its caller.
-2. Press **F10** to execute the Hadamard. Under **Variables**, expand **Quantum state**. The two basis states each have probability 50%. For Bell the digits are ordered Bob, Alice.
+2. Press **F10** to execute the Hadamard. Under **Variables**, **Qutes variables** shows `alice = q[0]` and `bob = q[1]`. Expand **Quantum state · |bob alice⟩**. The rightmost digit is Alice's, so `00` and `01` each have probability 50%.
 3. Press **Shift+F11** to finish the function. At the return line, the joint state has equal probabilities for `00` and `11`. Inspecting it preserves the state.
 4. Press **F5** to continue through measurement. The Debug Console shows this shot's returned pair.
 
 **Step Over** runs a function call at the current depth. **Step Out** returns to its caller. Both honor breakpoints encountered on the way. Ordinary line breakpoints work on statements reached for the current inputs. Synthesized search oracles step as part of the search expression. Editing the source ends the session so the next run uses your changes.
 
 The offline step simulator shows amplitudes and probabilities for up to 16 basis states and any measured classical bits. It supports up to 12 physical qubits, the project's simulation limit, and a bounded amount of work per shot. Use **Run Without Debugging** for larger circuits and multi-shot results.
+
+Select a call stack frame to see its in-scope Qutes names. Quantum variables show their physical wires. Classical variables show their current values, including measurements the program has already made. Arrays show their first 16 elements.
 
 ## Build and verify a local package
 

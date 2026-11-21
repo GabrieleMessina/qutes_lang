@@ -69,13 +69,25 @@ exports.run = async () => {
     lines.push(top.line);
     assert.equal(top.source.path.toLowerCase(), file.toLowerCase());
     const {scopes} = await session.customRequest("scopes", {frameId:top.id});
-    const {variables} = await session.customRequest("variables", {variablesReference:scopes[0].variablesReference});
+    const names = scopes.find(scope => scope.name === "Qutes variables");
+    const joint = scopes.find(scope => scope.name === "Quantum state · |bob alice⟩");
+    assert.ok(names && joint);
+    const readScope = async scope => (await session.customRequest("variables", {
+      variablesReference:scope.variablesReference
+    })).variables;
+    const namedWires = Object.fromEntries((await readScope(names)).map(v => [v.name,v.value]));
+    assert.deepEqual(namedWires, {alice:"q[0]",bob:"q[1]"});
+    const variables = await readScope(joint);
     if (lines.length === 1) {
       assert.equal(event.reason, "breakpoint");
       assert.equal(top.line, 7);
       await session.customRequest("stepIn",thread);
     } else if (lines.length === 2) {
       assert.deepEqual(stackFrames.map(f => f.name), ["entangle","Script"]);
+      const parent = await session.customRequest("scopes", {frameId:stackFrames[1].id});
+      const parentNames = parent.scopes.find(s => s.name === "Qutes variables");
+      assert.notEqual(parentNames.variablesReference, names.variablesReference);
+      assert.deepEqual(await readScope(parentNames), await readScope(names));
       assert.equal(top.line, 2);
       await session.customRequest("next", thread);
     } else if (lines.length === 3) {

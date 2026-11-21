@@ -122,11 +122,21 @@ class SimulatorSession {
         return reply({stackFrames:(this.stopped?.frames || []).map((frame, i) => ({
           ...frame, id:i + 1, source:{name:path.basename(this.uri.fsPath), path:this.uri.fsPath}
         }))});
-      case "scopes":
-        return reply({scopes:this.stopped ? [{name:"Quantum state · physical wires, highest index first",
-          variablesReference:1, expensive:false}] : []});
-      case "variables":
-        return reply({variables:(this.stopped?.variables || []).map(v => ({...v, variablesReference:0}))});
+      case "scopes": {
+        const frameId = request.arguments.frameId;
+        const frame = this.stopped?.sourceScopes[frameId - 1];
+        if (!frame) return reply({scopes:[]});
+        const order = frame.wireOrder.join(" ");
+        return reply({scopes:[
+          {name:"Qutes variables", variablesReference:frameId + 1, presentationHint:"locals", expensive:false},
+          {name:order ? "Quantum state · |" + order + "⟩" : "Quantum state", variablesReference:1, expensive:false}
+        ]});
+      }
+      case "variables": {
+        const ref = request.arguments.variablesReference;
+        const values = ref === 1 ? this.stopped?.variables : this.stopped?.sourceScopes[ref - 2]?.variables;
+        return reply({variables:(values || []).map(v => ({...v, variablesReference:0}))});
+      }
       case "next":
       case "stepIn":
       case "stepOut":

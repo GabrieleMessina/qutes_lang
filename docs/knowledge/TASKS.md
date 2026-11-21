@@ -168,4 +168,4 @@ T054 DONE. Published 2.0.1, verified all five public archive digests and build r
 
 T-editor (DONE). Build and compare the CodeMirror editors and offline VS Code packages, verify all five on native extension hosts, and review the local circuit inspector and conservative two-Hadamard report before publication.
 
-T-editor checkpoint: owner review is open for the local website and the Windows 2.0.3 debugger. Try F11 from the breakpoint on Bell line 7, F10 across the Hadamard, and Shift+F11 to inspect the Bell state before measurement. Before publication, repeat the native installed-extension matrix for this revision. Actions run 44951396964 covered 2.0.1.
+T-editor checkpoint. Owner review is open for the local website and the Windows 2.0.4 debugger. Bell is paused at line 3 after the Hadamard with source names and joint probabilities visible. Step out to compare the state at line 8 before measurement. Before publication, repeat the native installed-extension matrix for this revision. Actions run 44951396964 covered 2.0.1.

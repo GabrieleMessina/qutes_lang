@@ -323,3 +323,5 @@ D111 (user). Share compiler-backed diagnostics and completion rules between the 
 D113 (implementation). VS Code Run and Debug launches the same complete circuit simulation as the toolbar. It supports cancellation and Debug Console output. Source-level stepping and breakpoints require separate simulator support. Version the extension update as 2.0.2 so existing installations can upgrade while reusing the verified 2.0.1 compiler.
 
 D114 (implementation, extending D113). A stepping session follows one actual simulated shot through the physical circuit. The debugger records statement boundaries during construction and lowering and keeps the live state in an offline worker. Inspection reads amplitudes without measuring. Use an initial line breakpoint or stopOnEntry to select this mode. The ordinary multi-shot path uses the bundled Aer executable.
+
+D115 (implementation). At a source stop, show each selected frame's visible names and map quantum bindings through the compiler's wire allocation at that point. Label joint-state digits in their existing physical order so inspecting aliases or switching frames preserves probabilities and amplitudes.
