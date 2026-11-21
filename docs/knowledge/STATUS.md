@@ -25,4 +25,4 @@ The live Build page offers the five r2 platform archives and their SHA-256 file.
 
 For language development, use Python 3.12 or 3.13 in a virtual environment and run `python tools/check.py -q`. For a website preview, use `npm ci` and `python scripts/build.py` in the website checkout. Verification history is in VALIDATION and LEDGER.
 
-The selected Catania workbook is the local Tutorial destination at http://127.0.0.1:4197/catania-workbook.html. Website commit c98452f awaits review before publication.
+The local general tutorial is at http://127.0.0.1:4197/tutorial.html on website commit 3638bd4. Next action is owner review before publication.

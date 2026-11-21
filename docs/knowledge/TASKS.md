@@ -159,3 +159,5 @@ T045 DONE: verified the new cache policy on preview and production, reused the u
 T046 DONE locally: both English Catania study pages are available for owner review. The 17 chapters, three extensions, six guided paths, 72 worker variants, 16 independently executed downloads and existing website tests passed. Await the user's choice before any publication.
 
 T047 DONE locally: workbook selected and linked from Tutorial. Preview awaits publication approval.
+
+T048 DONE locally: review the general tutorial at /tutorial.html.

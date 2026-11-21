@@ -311,3 +311,5 @@ D106 (user): deploy the returning-browser cache fix after verification. Stable w
 D107 (user): prepare an English course companion and an English full workbook as different local website pages for university review. Use original materials with selected extensions. Share experiments in the language resources and compare formats before publication.
 
 D108 (user): keep the full workbook, retire the companion, and review locally before publication.
+
+D109 (user): use the workbook as the tutorial for everyone, with chapter contents and no university-specific framing or topic picker.
