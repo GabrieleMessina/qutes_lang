@@ -942,3 +942,5 @@ KB058. Exercised both desktop editors using the actual installed extension and a
 KB059. Website 2569cad adds an explicit source mark while keyboard focus stays on a circuit gate. The browser assertion checks the visible marked text as well as the document selection. Fast-forwarded the local review branch in the regular website repository to the tested preview checkout.
 
 KB060. The owner authorized native GitHub verification on a temporary language-only branch. Pushed a2af516 to codex/verify-editor-native. All five desktop extension installations passed run 44951396964 and the parallel compiler matrix passed run 44951396920. Website branch 2569cad and Marketplace publication remain for local review.
+
+KB061. Installed the verified Windows x64 VSIX in the owner's regular VS Code and opened the canonical Bell example. Reproduced the browser's pale diagnostic on a pale background in dark mode. Website review commit e148d06 gives popups the active theme's text and surface colors and makes the diagnostic code easier to read. Both local website review branches include the fix.

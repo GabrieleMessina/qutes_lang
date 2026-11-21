@@ -810,3 +810,5 @@ Recovered the exact five VSIXs from run 44951396964. Verified each Actions artif
 - darwin-x64: 285fe9367a0dc952ff2f0fe1d4fc411052739fb4cd83523cd70807b3a7d9be39
 - linux-arm64: 1e01e3c1f3c4cf559c34641a9e376f6cb7afc9034f9b6cfb8dbf2f6b0d2a2561
 - linux-x64: 35e1990aba020f721a0a49a21b8c1f3a18505dcf3c6e0076a97696a8f8a746d2
+
+V060. Windows x64 installed candidate verified against the V059 digest. Ran `code.cmd --install-extension artifacts/exact-native-packages/qutes-2.0.1-win32-x64.vsix --force` and `code.cmd --reuse-window examples/language/41_bell_gates.qut` using resolved paths. The extension list reported gabrielemessina.qutes@2.0.1 and the regular window title confirmed Bell. On the local website preview, deleting the semicolon after hadamard(alice) reproduced Q1002. The new browser test failed on the old popup surface. Rebuilt with `artifacts/rc-env/Scripts/python.exe artifacts/website-devtools/scripts/build.py`; with QUTES_PREVIEW_URL=http://127.0.0.1:4288, `node --test tests/editor-tools.test.cjs` passed 3/3. Verified the diagnostic text, hint, and code on dark and light surfaces, with contrast ratios of 11.1:1 and 12.1:1.
