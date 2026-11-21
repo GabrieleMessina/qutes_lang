@@ -43,7 +43,7 @@ def test_generated_script_inputs_and_version_metadata():
     assert result['outcomes'][0]['value'] == 3
     assert result['build']['artifact_schema'] == 5
     assert result['build']['language_version'] == '0.4'
-    assert result['build']['compiler_version'] == '2.0.0'
+    assert result['build']['compiler_version'] == '2.0.1'
 
 
 def test_v02_generated_import_is_rejected_before_compilation(monkeypatch):

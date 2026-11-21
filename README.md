@@ -1,4 +1,4 @@
-# Qutes 2.0.0
+# Qutes 2.0.1
 
 A strongly typed quantum language with compact C#-inspired syntax, automatic
 uncomputation, and a Qiskit backend. The first research implementation supports
@@ -13,7 +13,7 @@ return [before, measure(number)];
 ```
 
 This returns `[5,7]`. Measurement leaves `number` available; `before` remains a
-snapshot. Qutes 2.0.0 also supports readable live gates, mutable parameters, array
+snapshot. Qutes 2.0.1 also supports readable live gates, mutable parameters, array
 references and slices, weighted preparation, subtraction and coherent indexing.
 
 ## Getting started
@@ -21,7 +21,7 @@ references and slices, weighted preparation, subtraction and coherent indexing.
 ### Portable CLI
 
 Download the archive for your operating system and processor from the
-[Qutes 2.0.0 release](https://github.com/GabrieleMessina/qutes_lang/releases/tag/2.0.0).
+[Qutes 2.0.1 release](https://github.com/GabrieleMessina/qutes_lang/releases/tag/2.0.1).
 Extract the whole folder and open a terminal there. On Windows run
 `.\qutes.exe run examples\bell.qut`. On macOS and Linux run
 `./qutes run examples/bell.qut`. The portable CLI includes Python, the Aer
@@ -152,7 +152,7 @@ To verify an installed wheel independently of checkout import paths:
 
 ```text
 python -m pip wheel --no-build-isolation --no-deps . -w dist
-python -m pip install --no-deps --force-reinstall dist/qutes_lang-2.0.0-py3-none-any.whl
+python -m pip install --no-deps --force-reinstall dist/qutes_lang-2.0.1-py3-none-any.whl
 python -I tools/verify_install.py
 ```
 

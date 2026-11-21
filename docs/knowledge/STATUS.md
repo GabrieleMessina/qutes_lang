@@ -28,3 +28,5 @@ For language development, use Python 3.12 or 3.13 in a virtual environment and r
 The local general tutorial is at http://127.0.0.1:4197/tutorial.html on website commit 3638bd4. Next action is owner review before publication.
 
 The local website uses resources/lessons/tutorial from d1f1d30 and the workbook renderer. Next action is owner review.
+
+The 2.0.1 security release candidate uses managed CPython 3.12.16 across five targets. Build and public release validation are pending.

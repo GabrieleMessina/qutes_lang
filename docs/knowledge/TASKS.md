@@ -163,3 +163,5 @@ T047 DONE locally: workbook selected and linked from Tutorial. Preview awaits pu
 T048 DONE locally: review the general tutorial at /tutorial.html.
 
 T052 DONE locally: tutorial resources and workbook files renamed, source pin rebuilt, experiment and navigation checks passed.
+
+T054. Validate the 2.0.1 package and five archives, then publish and verify website links.

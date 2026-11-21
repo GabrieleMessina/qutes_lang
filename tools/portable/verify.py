@@ -13,7 +13,7 @@ import xml.etree.ElementTree as ET
 import zipfile
 
 
-def verify(archive, work):
+def verify(archive, work, commit):
     if archive.name.endswith(".tar.gz"):
         with tarfile.open(archive) as reader:
             reader.extractall(work, filter="data")
@@ -22,7 +22,7 @@ def verify(archive, work):
     else:
         with zipfile.ZipFile(archive) as reader:
             reader.extractall(work)
-    folder, = work.glob("qutes-2.0.0-*")
+    folder, = work.glob("qutes-2.0.1-*")
     installed = work / "Relocated Qutes CLI"
     folder.rename(installed)
     exe = installed / ("qutes.exe" if os.name == "nt" else "qutes")
@@ -46,11 +46,16 @@ def verify(archive, work):
             raise AssertionError(f"Unexpected wildcard warning from {args}: {result.stderr}")
         return result.stdout
 
-    assert cli("--version").strip() == "2.0.0"
+    assert cli("--version").strip() == "2.0.1"
     assert (installed / "licenses/Python-LICENSE.txt").stat().st_size > 100
     receipt = json.loads((installed / "build-info.json").read_text(encoding="utf-8"))
-    assert receipt["compiler_commit"] == "0367b5211448681485d5943586846997bcff2087"
-    assert receipt["version"] == receipt["dependencies"]["qutes-lang"] == "2.0.0"
+    assert receipt["compiler_commit"] == receipt["packaging_commit"] == commit
+    assert receipt["python"] == "3.12.16"
+    inventory = {name.lower(): version for name, version in receipt["dependencies"].items()}
+    for name, version in {"pillow": "13.0.0", "fonttools": "4.68.0", "pip": "26.2",
+                          "setuptools": "84.1.0"}.items():
+        assert inventory[name] == version, (name, inventory.get(name))
+    assert receipt["version"] == receipt["dependencies"]["qutes-lang"] == "2.0.1"
     bell = installed / "examples/bell.qut"
     assert "QW0001" not in cli("check", bell, "--json")
     assert "QW0001" in cli("check", bell, "--alphabet", "AB?", "--json")
@@ -93,6 +98,7 @@ def verify(archive, work):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("archive", type=Path)
+    parser.add_argument("--commit", required=True)
     args = parser.parse_args()
     with tempfile.TemporaryDirectory(prefix="Qutes clean machine ") as temp:
-        verify(args.archive.resolve(), Path(temp))
+        verify(args.archive.resolve(), Path(temp), args.commit)
