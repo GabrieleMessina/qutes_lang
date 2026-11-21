@@ -14,12 +14,12 @@
       "activity": "Draw one preparation, one gate and one readout. Predict a single shot, then compare 64 shots with your prediction.",
       "objective": "Distinguish a preparation, a reversible evolution and a measurement record.",
       "trace": [
-        "Start with |0⟩. A Hadamard gate produces (|0⟩ + |1⟩)/√2. Its two amplitudes each have squared magnitude ½. A Z-basis measurement writes one classical bit. Across preparations the state predicts the proportion of each bit; it never specifies the next random bit.",
+        "Start with |0⟩. A Hadamard gate produces (|0⟩ + |1⟩)/√2. Its two amplitudes each have squared magnitude ½. A Z-basis measurement writes one classical bit. Across preparations the state predicts how often each value will occur. The next individual bit is random.",
         "Follow two candidate preparations through the editor. With addPhase enabled, the second amplitude changes sign. Direct measurement still samples the same probabilities. Applying H before measurement recombines the amplitudes, so the measurement basis becomes part of the experimental question."
       ],
       "exercise": "Predict the possible outputs at one shot and at 64 shots for both signs. Set readInX to true. Find a setting in which a single shot distinguishes the two preparations.",
       "hint": "For the final H, add the input amplitudes for output 0 and subtract them for output 1, then divide each by √2.",
-      "solution": "With direct readout both signs give 0 or 1. After H the plus state yields 0 with certainty and the minus state yields 1. Sixty-four shots estimate the direct distribution; the ideal X-basis test already distinguishes the signs in one shot.",
+      "solution": "With direct readout both signs give 0 or 1. After H the plus state yields 0 with certainty and the minus state yields 1. Sixty-four shots estimate the direct distribution. The ideal X-basis test distinguishes the signs in one shot.",
       "oral": "What does increasing the shot count tell you about a single qubit?",
       "reason": "It estimates a distribution from separate preparations. Each shot supplies one outcome. Repeating a measurement on the same collapsed qubit would answer a different question.",
       "unit": 0
@@ -33,7 +33,7 @@
       "objective": "Track a binary string across a circuit, a decoded result and a Python export.",
       "trace": [
         "Set high = false and low = true. We write the pair as [high, low], giving the integer 2 × high + low = 1. Swapping the two physical states changes the returned pair to [true, false], giving 2. The return expression still lists the variables in the original order.",
-        "Open the Qiskit tab. Follow the measurements into their classical destinations and find the code that decodes the result. Raw Qiskit count strings and Qutes return expressions use different conventions. An asymmetric input such as 01 makes an ordering mistake visible; 00 and 11 conceal it."
+        "Open the Qiskit tab. Follow the measurements into their classical destinations and find the code that decodes the result. Raw Qiskit count strings and Qutes return expressions use different conventions. An asymmetric input such as 01 makes an ordering mistake visible. Exchanging the two positions in 00 or 11 leaves the printed string unchanged."
       ],
       "exercise": "Predict both encodings of the initial state. Set exchange to true, run again, and explain what would happen if you also reversed the two fields in the return expression.",
       "hint": "Separate the order of the gates from the order in which you print the measurements.",
@@ -51,7 +51,7 @@
       "objective": "Use a change of basis to expose relative phase.",
       "trace": [
         "Represent a pure qubit by a normalized column (a,b). Direct readout gives probabilities |a|² and |b|². With a final Hadamard, the new column is ((a+b)/√2, (a−b)/√2). The cross terms in |a+b|² depend on relative phase.",
-        "For (1,−1)/√2 the contribution to output zero cancels. For (1,1)/√2 the contribution to output one cancels. If both components acquire the same factor eⁱᶿ, both output amplitudes acquire it too and every probability stays fixed."
+        "For (1,−1)/√2 the contribution to output zero cancels. For (1,1)/√2 the contribution to output one cancels. If both components acquire the same factor exp(iθ), both output amplitudes acquire it too and every probability stays fixed."
       ],
       "exercise": "Write both output vectors before running. Compare all four combinations of addPhase and readInX. Which pair of experiments provides evidence for the sign?",
       "hint": "Use the experiment with direct readout as a control. Compare preparations within the same readout basis.",
@@ -161,7 +161,7 @@
         "title": "Reversible oracles",
         "steps": [
           "In mode 0, trace both inputBit settings through the controlled flip.",
-          "Compare modes 1 and 2. Both start with a superposed control; write down the eigenvalue of X on each target.",
+          "Compare modes 1 and 2. Both start with a superposed control. Write down the eigenvalue of X on each target.",
           "Inspect the circuit to identify the query and final H gates. Use the two result fields to explain which wire carries evidence of kickback."
         ]
       }
@@ -193,7 +193,7 @@
       "objective": "Trace a complete prepare–query–interfere algorithm on a two-entry truth table.",
       "trace": [
         "A one-bit Boolean function has two table entries. Write f(x) = ax ⊕ b. The slope a describes whether the entries differ, and the offset b chooses the first entry. The phase oracle changes the input amplitudes to ((−1)ᵇ,(−1)ᵃ⁺ᵇ)/√2.",
-        "The offset multiplies the whole vector by one sign. The final H sends the sum of the two components to zero’s amplitude and their difference to one’s. The output therefore reports the slope. Only the query sits inside the black box; the preparations and readout are part of the algorithm too."
+        "The offset multiplies the whole vector by one sign. The final H sends the sum of the two components to zero’s amplitude and their difference to one’s. The output therefore reports the slope. The query count includes one oracle call. The complete circuit also includes preparation and readout."
       ],
       "exercise": "Make a two-by-two prediction table for slope and offset before running. Which pairs of functions cannot be told apart by the experiment?",
       "hint": "Hold the slope fixed while complementing both table entries.",
@@ -254,7 +254,7 @@
       "activity": "Expand both output amplitudes in terms of the truth table signs. Trace the target through the query.",
       "objective": "Prove the one-query decision rule and identify the oracle assumption.",
       "trace": [
-        "Use the one-bit oracle with a target in |−⟩. Write u=(−1)ᶠ⁽⁰⁾ and v=(−1)ᶠ⁽¹⁾. After the output H, the input amplitudes are (u+v)/2 for zero and (u−v)/2 for one. Equal signs eliminate one; opposite signs eliminate zero.",
+        "Use the one-bit oracle with a target in |−⟩. Write u=(−1)ᶠ⁽⁰⁾ and v=(−1)ᶠ⁽¹⁾. After the output H, the input amplitudes are (u+v)/2 for zero and (u−v)/2 for one. Equal signs cancel the amplitude of |1⟩. Opposite signs cancel the amplitude of |0⟩.",
         "Classically, a deterministic algorithm that saw just f(0) could still face two tables agreeing there and differing at f(1). One coherent query exposes the parity, provided the circuit can call the reversible oracle on a superposition."
       ],
       "exercise": "Test all four tables using slope and offset. Locate the oracle boundaries in the source and explain which gates belong to preparation and readout.",
@@ -324,9 +324,9 @@
       "activity": "Factor 15 on paper using base 2. Connect the period to the peaks of a three-wire inverse Fourier experiment.",
       "objective": "Connect modular order, Fourier sampling, rational recovery and factor extraction.",
       "trace": [
-        "Compute 2ˣ mod 15 for x=0,1,2,3,4: the sequence is 1,2,4,8,1. The order is r=4. Since r is even, use 2ʳ⁄²=4. The product (4−1)(4+1)=15 is divisible by 15 and the two greatest common divisors gcd(3,15)=3 and gcd(5,15)=5 are nontrivial factors.",
+        "For x from 0 through 4, the successive values of 2ˣ mod 15 are 1, 2, 4, 8 and 1. The order is r=4. Since r is even, use 2ʳ⁄²=4. The product (4−1)(4+1)=15 is divisible by 15 and the two greatest common divisors gcd(3,15)=3 and gcd(5,15)=5 are nontrivial factors.",
         "The editor executes only the Fourier sampling step. It prepares the two equally weighted indices 1 and 5 of an eight-entry register, a coset spaced by four. The inverse Fourier amplitude at y is proportional to exp(−2πiy/8) × [1 + exp(−2πi4y/8)]. Odd y cancel. The result is uniformly one of 0,2,4,6.",
-        "Divide the sample by eight. For y=2 or 6 the reduced denominator is 4. Check candidate denominators classically using 2ʳ mod 15. A full Shor circuit would create the period through controlled modular exponentiation; here the known periodic input lets you study this step on three qubits."
+        "Divide the sample by eight. For y=2 or 6 the reduced denominator is 4. Check candidate denominators classically using 2ʳ mod 15. A full Shor circuit would create the period through controlled modular exponentiation. Preparing the periodic input explicitly lets you isolate the Fourier step on three qubits."
       ],
       "exercise": "For each possible y write y/8 in lowest terms. Which shots recover r directly? Set shorterPeriod true and predict the new peak positions before running.",
       "hint": "The new prepared indices are 1,3,5,7. Peak spacing in the Fourier register is eight divided by the input period.",
@@ -393,7 +393,7 @@
       ],
       "exercise": "Keep bit true. Compare matched X, matched Z and mismatched bases. Enable interceptZ with both parties using X. Which of the retained bits can now disagree?",
       "hint": "Count only matched-basis rounds when reasoning about the sifted key.",
-      "solution": "Without interception both matched cases return the original bit; mismatched results are random and discarded. With Eve in Z, matched Z is undisturbed and matched X has error probability ½.",
+      "solution": "Without interception both matched cases return the original bit. Alice and Bob discard the mismatched rounds, in which Bob’s readout is random. With Eve in Z, matched Z is undisturbed and matched X has error probability ½.",
       "oral": "Can a single wrong bit identify an eavesdropper on a real channel?",
       "reason": "A rate estimate across a disclosed sample detects excess disturbance. Ordinary channel errors also contribute. This single-signal experiment covers basis sifting and disturbance."
     },

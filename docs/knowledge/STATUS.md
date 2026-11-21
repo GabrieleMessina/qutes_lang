@@ -25,4 +25,4 @@ The live Build page offers the five r2 platform archives and their SHA-256 file.
 
 For language development, use Python 3.12 or 3.13 in a virtual environment and run `python tools/check.py -q`. For a website preview, use `npm ci` and `python scripts/build.py` in the website checkout. Verification history is in VALIDATION and LEDGER.
 
-Local review in progress for the two Catania study formats. Resources are under resources/lessons/catania. The public course and compiler release remain at the production revisions recorded above.
+Two Catania course formats are ready for local comparison at http://127.0.0.1:4197/catania-companion.html and http://127.0.0.1:4197/catania-workbook.html. Append #grover to either URL for the same topic. The next decision is which format to keep before publishing. Rebuild from the verified local archive named in the website lock file.
