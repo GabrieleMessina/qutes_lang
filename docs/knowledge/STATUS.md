@@ -1,32 +1,21 @@
 # Current status
 
-GitHub release `2.0.0` distributes the full CLI for Windows x64, macOS ARM64 and x64, and Linux ARM64 and x64. The five r2 archives use compiler commit 0367b52 and ship ABC as the default example alphabet. The earlier Git tag `2.0` identifies merge 6bc0ecf on `qutes2.0`. Its second parent e1c78a8 brings in all 30 original rewrite commits; its tree matches first parent d4410ae. The 2.0.0 release uses package version 2.0.0, language contract 0.4 and artifact schema 5. The original MIT license, citation and publication credits are retained.
+[Qutes 2.0.1](https://github.com/GabrieleMessina/qutes_lang/releases/tag/2.0.1) distributes the CLI for Windows x64, macOS ARM64 and x64, and Linux ARM64 and x64. All five archives use compiler commit `1c560fd`, Python 3.12.16, Pillow 13.0.0, fontTools 4.68.0, and the ABC example alphabet. The [2.0.0 release](https://github.com/GabrieleMessina/qutes_lang/releases/tag/2.0.0) retains its original six assets and points users to 2.0.1.
 
-- [Release and downloads](https://github.com/GabrieleMessina/qutes_lang/releases/tag/2.0.0)
-- [Live playground](https://qutes-lang.web.app/play.html), [eight-lab tutorial](https://qutes-lang.web.app/tutorial.html) and [Build downloads](https://qutes-lang.web.app/build.html).
-- [Resources](../../resources/README.md) in the language repository root tree.
-- [Language 0.4 specification](../spec/language-v0.4.md), [compiler audit](../v04-audit.md), and [release integration](../release-0.4.md).
-- [Hosted compiler matrix](https://github.com/GabrieleMessina/qutes_lang/actions/runs/44785749075) passed 1,032 tests on each of Ubuntu and Windows with Python 3.12 and 3.13.
-- [Website production deployment](https://github.com/GabrieleMessina/qutes_website/actions/runs/44828171128) passed at website commit f027525 on qutes2.0.
+- [Tutorial](https://qutes-lang.web.app/tutorial), [playground](https://qutes-lang.web.app/play) and [platform downloads](https://qutes-lang.web.app/downloads).
+- [Editable resources](../../resources/README.md), [language specification](../spec/language-v0.4.md) and [native release instructions](../release-0.4.md).
+- [Compiler matrix](https://github.com/GabrieleMessina/qutes_lang/actions/runs/44896494115) on Ubuntu and Windows with Python 3.12 and 3.13.
+- [Clean-runner verification and publication of all five archives](https://github.com/GabrieleMessina/qutes_lang/actions/runs/44896877774).
+- [Website verification and production deployment](https://github.com/GabrieleMessina/qutes_website/actions/runs/44898076520).
 
-## Working defaults and limits
+## Release and language contracts
 
-The 50-example tour runs locally. Four browser examples are verified. Edited sources execute on-device within the published limits of 10 physical qubits, 128 shots and a bounded work budget. Phase/correlation, cleanup, mid-circuit measurement, diagnostics, cancellation, Qiskit Python export and a clean Qiskit notebook are verified. Browser validation used Chromium, Firefox and Playwright WebKit. Native Safari was not exercised. Local execution uses the ideal Aer simulator.
+Both repositories require pull requests and successful GitHub Actions checks on `qutes2.0`, including for administrators. Only one maintainer was available when protection was configured. The new release uses language contract 0.4 and artifact schema 5. The original MIT license, citation and publication credits apply. The earlier tag `2.0` identifies merge `6bc0ecf`. Its second parent `e1c78a8` preserves the rewrite history.
 
-Both repositories use their own `qutes2.0` branch. Native packaging installs the compiler from its exact Git release commit. The published website builds its browser compiler from checksum-pinned language source and parser code.
+The live workbook uses 17 chapters and three optional extensions. It runs bounded experiments in the browser and exports standalone Qiskit programs. CLI-generated Python uses the Qutes backend. Native Safari was outside browser validation. Windows binaries are unsigned, and macOS binaries have no Developer ID signature or notarization.
 
 ## Resume
 
-The live playground serves standalone Qiskit downloads from website commit f027525 and compiler revision 5ee169d. On each new visit the browser checks stable URLs for updates. Unchanged runtime bytes can be reused. A file saved under the previous one-hour policy can remain fresh until its original expiry. The production download test ran eight exported files with Qiskit 2.3.0 and Aer 0.17.2 in an isolated environment without Qutes. For the next paired rollout, publish the compiler first and verify the source pin before pushing the website.
+For compiler development, use Python 3.12 or 3.13 in a virtual environment and run `python tools/check.py -q`. For website development, run `npm ci`, build with `python scripts/build.py`, serve `dist/` and run `npm test`. The 50-example tour and editable study experiments live in this repository.
 
-For the CLI, start at the release page linked above. The repository keeps the example tour, notebook, presentations and lessons as editable sources. Windows binaries are unsigned. macOS binaries have no Developer ID signature or notarization.
-
-The live Build page offers the five r2 platform archives and their SHA-256 file. The former site-hosted teaching ZIP returns HTTP 404. For future website deployments, push the reviewed website branch and dispatch its hosting workflow with channel live. Verify the public Build page and retired URL after promotion.
-
-For language development, use Python 3.12 or 3.13 in a virtual environment and run `python tools/check.py -q`. For a website preview, use `npm ci` and `python scripts/build.py` in the website checkout. Verification history is in VALIDATION and LEDGER.
-
-The local general tutorial is at http://127.0.0.1:4197/tutorial.html on website commit 3638bd4. Next action is owner review before publication.
-
-The local website uses resources/lessons/tutorial from d1f1d30 and the workbook renderer. Next action is owner review.
-
-The 2.0.1 security release candidate uses managed CPython 3.12.16 across five targets. Build and public release validation are pending.
+For the next patch, merge through the protected branches, verify the portable build from the final compiler revision, then pin the website to that revision. Only the website's `hosting.yml` workflow promotes a release to production. It uses separate Google identities and projects for preview and production, verifies the same site artifact on each and runs the public tutorial and download checks. Use an explicit live dispatch on `qutes2.0`.
