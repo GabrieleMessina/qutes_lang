@@ -105,7 +105,7 @@ async function activate(context) {
     if (value) shots = Number(value);
   });
   register("stop",() => running?.abort());
-  async function run(doc, controller, consoleLine) {
+  async function run(doc, controller, consoleLine, stepShot) {
     if (running) throw Error("A Qutes program is already running.");
     const revision = doc.version, text = doc.getText();
     running = controller;
@@ -118,7 +118,9 @@ async function activate(context) {
       if (!consoleLine) output.show(true);
       write("Running " + doc.fileName);
       await vscode.commands.executeCommand("setContext","qutes.running",true);
-      const result = await native.invoke(await exe(),"run",text,{config:await config(doc),inputs:inputs.get(key(doc)),shots,signal:controller.signal});
+      const options = {config:await config(doc),inputs:inputs.get(key(doc)),shots,signal:controller.signal};
+      const result = stepShot ? await stepShot({text,filename:doc.fileName,config:options.config,inputs:options.inputs})
+        : await native.invoke(await exe(),"run",text,options);
       if (result.diagnostics) {
         const errors = service.diagnostics(text,result);
         if (!doc.isClosed && doc.version === revision) display(doc,errors);

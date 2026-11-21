@@ -4,7 +4,7 @@
   "description": "Write, check and run Qutes programs offline with the bundled simulator.",
   "publisher": "GabrieleMessina",
   "license": "MIT",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "engines": {
     "vscode": "^1.90.0"
   },
@@ -17,7 +17,9 @@
     "Programming Languages"
   ],
   "main": "./extension.cjs",
-  "activationEvents": ["onDebugResolve:qutes"],
+  "activationEvents": [
+    "onDebugResolve:qutes"
+  ],
   "extensionKind": [
     "workspace"
   ],
@@ -30,14 +32,22 @@
     }
   },
   "contributes": {
+    "breakpoints": [{"language": "qutes"}],
     "debuggers": [
       {
         "type": "qutes",
         "label": "Qutes",
-        "languages": ["qutes"],
+        "languages": [
+          "qutes"
+        ],
         "configurationAttributes": {
           "launch": {
             "properties": {
+              "stopOnEntry": {
+                "type": "boolean",
+                "default": false,
+                "description": "Pause before the first executable Qutes statement."
+              },
               "program": {
                 "type": "string",
                 "description": "Qutes file to run. Defaults to the active Qutes editor.",
@@ -47,7 +57,11 @@
           }
         },
         "initialConfigurations": [
-          {"type": "qutes", "request": "launch", "name": "Run Qutes File"}
+          {
+            "type": "qutes",
+            "request": "launch",
+            "name": "Run Qutes File"
+          }
         ]
       }
     ],
@@ -114,6 +128,7 @@
   "devDependencies": {
     "@vscode/test-electron": "3.1.0",
     "@vscode/vsce": "4.1.1",
+    "pyodide": "0.27.7",
     "vscode-oniguruma": "2.0.1",
     "vscode-textmate": "9.3.2"
   }

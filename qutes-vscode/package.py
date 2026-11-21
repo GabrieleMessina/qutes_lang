@@ -1,18 +1,34 @@
 """Package the unchanged native releases with the same Marketplace identity on all targets."""
 import argparse
 import hashlib
+import importlib.metadata
+import importlib.util
 import json
 from pathlib import Path
 import shutil
 import subprocess
 import tempfile
-from zipfile import ZipFile
+from zipfile import ZIP_DEFLATED, ZipFile
 from xml.etree import ElementTree
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 TARGETS = {"windows-x64": "win32-x64", "macos-x64": "darwin-x64", "macos-arm64": "darwin-arm64",
            "linux-x64": "linux-x64", "linux-arm64": "linux-arm64"}
+
+def package_debugger(stage):
+    if importlib.metadata.version("antlr4-python3-runtime") != "4.13.2":
+        raise ValueError("Install antlr4-python3-runtime==4.13.2 before packaging.")
+    target = stage / "step-runtime"
+    target.mkdir()
+    for name in ("pyodide.js", "pyodide.asm.js", "pyodide.asm.wasm", "pyodide-lock.json", "python_stdlib.zip"):
+        shutil.copyfile(HERE / "node_modules/pyodide" / name, target / name)
+    shutil.copytree(HERE / "notices", target / "notices")
+    parser = Path(importlib.util.find_spec("antlr4").origin).parent
+    with ZipFile(target / "compiler.zip", "w", compression=ZIP_DEFLATED) as archive:
+        for package in (ROOT / "src/qutes", parser):
+            for source in sorted(package.rglob("*.py")):
+                archive.write(source, source.relative_to(package.parent))
 
 
 def package(archives, output, only=None):
@@ -31,12 +47,13 @@ def package(archives, output, only=None):
                 raise ValueError(f"Incorrect released runtime: {filename}")
         with tempfile.TemporaryDirectory(dir=output, prefix="stage-") as temp:
             stage = Path(temp)
-            for name in ["extension.cjs", "debug.cjs", "runtime.cjs", "README.md", "language-configuration.json"]:
+            for name in ["extension.cjs", "debug.cjs", "step-worker.cjs", "runtime.cjs", "README.md", "language-configuration.json"]:
                 shutil.copyfile(HERE / name, stage / name)
             shipped = {key: value for key, value in manifest.items() if key not in {"devDependencies", "overrides"}}
             (stage / "package.json").write_text(json.dumps(shipped, indent=2), encoding="utf-8")
             shutil.copytree(HERE / "syntaxes", stage / "syntaxes")
             shutil.copyfile(ROOT / "LICENSE", stage / "LICENSE")
+            package_debugger(stage)
             (stage / "runtime").mkdir()
             shutil.copyfile(archive, stage / "runtime" / filename)
             (stage / "language").mkdir()
