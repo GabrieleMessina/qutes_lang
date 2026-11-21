@@ -42,7 +42,7 @@ function delimiters(items) {
 
 export function indexDocument(text) {
   const colored = tokens(text), items = colored.filter(t => t.kind !== "comment");
-  const ends = delimiters(items), symbols = [], blocks = [], headers = [];
+  const ends = delimiters(items), symbols = [], blocks = [], headers = [], functions = [];
   const word = i => items[i]?.word;
   const endOf = i => items[ends.get(i)]?.from ?? text.length + 1;
   for (let i = 0; i < items.length; i++) {
@@ -67,24 +67,31 @@ export function indexDocument(text) {
       const params = items.slice(open+1, end).map(x => x.word).join(" ").replaceAll(" [ ]", "[]");
       symbols.push({label, kind:"function", detail, signatures:[params ? params.split(/ *, */) : []],
         from:0, to:text.length+1, declaration:identifier.from});
+      if (word(end+1) === "{") functions.push([items[end+1].from,endOf(end+1)]);
       headers.push({end, until:endOf(end+1), kind:"parameter"});
       identifier.kind = "function";
     } else {
       identifier.kind = "declaration";
       symbols.push({label, kind:header?.kind ?? "variable", detail,
-        from:identifier.to, to:header?.until ?? blocks.at(-1) ?? text.length+1, declaration:identifier.from});
+        global:!header && !blocks.length, from:identifier.to,
+        to:header?.until ?? blocks.at(-1) ?? text.length+1, declaration:identifier.from});
     }
   }
-  return {text, tokens:colored, symbols, items};
+  return {text, tokens:colored, symbols, items, functions};
 }
 
 export function atCursor(doc, offset) {
   const {text, items} = doc;
   const prefix = text.slice(0, offset).match(/[A-Za-z_]\w*$/)?.[0] ?? "";
-  const suppressed = doc.tokens.some(t => (t.kind === "comment" || t.kind === "string" || t.kind === "character")
-      && t.from < offset && (offset < t.to || (offset === t.to &&
-      (t.word.startsWith("//") || (t.word.startsWith("/*") && !t.word.endsWith("*/"))))));
+  const suppressed = doc.tokens.some(t => {
+    if (offset <= t.from || offset > t.to || !["string","character","comment"].includes(t.kind)) return false;
+    if (offset < t.to || t.word.startsWith("//")) return true;
+    if (t.kind === "comment") return !t.word.endsWith("*/");
+    return t.word.length === 1 || !t.word.endsWith(t.word[0]);
+  });
   const visible = new Map(staticSymbols.map(s => [s.label, s]));
+  if (doc.functions.some(([from,to]) => from <= offset && offset < to))
+    for (const s of doc.symbols) if (s.global) visible.set(s.label,s);
   for (const s of doc.symbols) if (s.from <= offset && offset < s.to) visible.set(s.label, s);
   const completions = suppressed ? [] : Array.from(visible.values()).filter(s => s.label.startsWith(prefix));
   const nesting = [];

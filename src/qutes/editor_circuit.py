@@ -28,15 +28,21 @@ def circuit_report(compilation, limit=24):
             statement.type.array or statement.readonly
         ):
             qubits.append(statement.name)
-        if not isinstance(statement, ast.ExpressionStatement):
+        body, control = statement, None
+        if (isinstance(statement, ast.If) and statement.otherwise is None
+                and isinstance(statement.condition, ast.Name) and statement.condition.identifier in qubits
+                and len(statement.then_block.statements) == 1):
+            body, control = statement.then_block.statements[0], statement.condition.identifier
+        if not isinstance(body, ast.ExpressionStatement):
             continue
-        call = statement.expression
+        call = body.expression
         if (isinstance(call, ast.Call) and isinstance(call.callee, ast.Name)
                 and call.callee.identifier in EDITABLE_GATES and len(call.arguments) == 1
-                and isinstance(call.arguments[0], ast.Name) and call.arguments[0].identifier in qubits):
+                and isinstance(call.arguments[0], ast.Name) and call.arguments[0].identifier in qubits
+                and (control is None or call.callee.identifier == "not")):
             direct[(call.span.start.offset, call.span.end.offset)] = {
-                "range": bounds(statement.span), "gate": call.callee.identifier,
-                "target": call.arguments[0].identifier, "available": list(qubits)}
+                "range": bounds(statement.span), "gate": "controlled-not" if control else call.callee.identifier,
+                "target": call.arguments[0].identifier, "control": control, "available": list(qubits)}
 
     def key(span):
         return (span.start.offset, span.end.offset) if span else None
@@ -54,9 +60,9 @@ def circuit_report(compilation, limit=24):
         bits = set(op.qubits if measured else op.bits)
         reuse = sorted({h["physical"] for h in handoffs if h["physical"] in bits and h["operation"] <= index})
         repeated = occurrences[key(span)]
-        edit = direct.get(key(span)) if not (cleanup or measured or repeated != 1 or op.controls
+        edit = direct.get(key(span)) if not (cleanup or measured or repeated != 1
                                                or op.conditions or op.classical_controls) else None
-        gates.append(dict(range=bounds(span), edit=edit, occurrences=repeated, cleanup=cleanup, reused= reuse))
+        gates.append(dict(range=bounds(span), edit=edit, occurrences=repeated, cleanup=cleanup, reused=reuse))
         if index and edit and edit["gate"] == "hadamard":
             previous = gates[index - 1]["edit"]
             if (previous and previous["gate"] == "hadamard" and previous["target"] == edit["target"]

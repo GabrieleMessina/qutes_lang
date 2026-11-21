@@ -61,7 +61,7 @@ async function projectConfig(file, workspaceRoot) {
   while (true) {
     const config = path.join(dir,"qutes.toml");
     try { await fs.access(config); return config; } catch (error) { if (error.code !== "ENOENT") throw error; }
-    if (!workspaceRoot || dir === workspaceRoot || dir === path.dirname(dir)) return undefined;
+    if (!workspaceRoot || path.relative(workspaceRoot,dir) === "" || dir === path.dirname(dir)) return undefined;
     dir = path.dirname(dir);
   }
 }

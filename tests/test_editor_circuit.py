@@ -37,3 +37,12 @@ def test_measurement_boundary_and_shadowing():
     assert report["qubits"] == ["a"]
     assert code[report["insertAt"]:].startswith("return ")
     assert report["gates"][0]["edit"]["available"] == ["a"]
+
+
+def test_controlled_not_edit_covers_the_guard_and_preserves_the_bell_program():
+    source = "qubit a=false;qubit b=false;hadamard(a);if(a){not(b);}return [measure(a),measure(b)];"
+    report = circuit_report(compile_source(source))
+    edit = report["gates"][1]["edit"]
+    assert (edit["gate"], edit["control"], edit["target"]) == ("controlled-not", "a", "b")
+    left, right = edit["range"]
+    assert source[left:right] == "if(a){not(b);}"

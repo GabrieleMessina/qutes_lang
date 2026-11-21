@@ -15,3 +15,9 @@ return [measure(alice), measure(bob)];
 ```
 
 Only matching pairs should appear. [Learn Qutes](https://qutes-lang.web.app/tutorial)
+
+## Build and verify a local package
+
+From the language repository root, install the packaging tools with `npm ci --prefix qutes-vscode`. Download the five native archives from the [2.0.1 release](https://github.com/GabrieleMessina/qutes_lang/releases/tag/2.0.1) into `artifacts/editor-runtimes`. Run `python qutes-vscode/package.py artifacts/editor-runtimes artifacts/editor-packages` with Python 3.12 or 3.13. The builder verifies the release hashes before bundling and reads each completed VSIX back to check its target, identity and runtime.
+
+Run `node qutes-vscode/tests/run-installed.cjs PATH_TO_VSIX` on the matching operating system and architecture. Set `QUTES_VSCODE` to an installed VS Code executable to reuse it. Otherwise the test runner first downloads VS Code. The test uses its own profile and workspace. The manual **Verify offline VS Code candidates** workflow runs these checks on five native hosts and attaches the candidates as workflow artifacts.

@@ -37,6 +37,9 @@ test("incomplete calls, functions, loop scopes and shadowing",() => {
   const after = indexDocument(complete.text+" ");
   for (const name of ["p","i","angle","hidden"]) assert.ok(!atCursor(after,after.text.length).completions.some(c=>c.label===name));
   assert.deepEqual(atCursor(indexDocument("// hada"),7).completions,[]);
+  const forward = indexDocument("int f(){return glo;} int globalValue=1;");
+  assert.deepEqual(atCursor(forward,forward.text.indexOf(";")).completions.map(x=>x.label),["globalValue"]);
+  assert.deepEqual(atCursor(indexDocument('return "hada'),12).completions,[]);
 });
 test("compiler coordinates are Unicode code points, editor offsets count surrogate pairs",() => {
   const [d] = diagnostics("// 🐈\r\nreturn oops;",{diagnostics:[{span:{start:{offset:13},end:{offset:17}},code:"Q2002",message:"unknown"}]});
