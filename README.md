@@ -1,180 +1,92 @@
-# Qutes 2.0.1
+# Qutes
 
-A strongly typed quantum language with compact C#-inspired syntax, automatic
-uncomputation, and a Qiskit backend. The first research implementation supports
-quantum integers, bits, characters, strings, arrays, functions, ordinary assignment,
-coherent branches, construction-time loops, and non-consuming measurement.
+[![Qiskit Ecosystem](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fqiskit.github.io%2Fecosystem%2Fb%2F79b52453)](https://qisk.it/e)
+[![Qutes Build and Tests](https://github.com/GabrieleMessina/qutes_lang/actions/workflows/ci.yml/badge.svg?branch=qutes2.0)](https://github.com/GabrieleMessina/qutes_lang/actions/workflows/ci.yml?query=branch%3Aqutes2.0)
 
-```csharp
-quint number = 5;
-int before = measure(number);
-number = number + 2;
-return [before, measure(number)];
-```
+Qutes is a strongly typed quantum programming language that compiles to Qiskit circuits. You can write a conditional using a qubit, add two quantum integers, or search a collection. The compiler tracks temporary qubits, uncomputes them when it can prove cleanup is safe, and reuses the freed circuit wires.
 
-This returns `[5,7]`. Measurement leaves `number` available; `before` remains a
-snapshot. Qutes 2.0.1 also supports readable live gates, mutable parameters, array
-references and slices, weighted preparation, subtraction and coherent indexing.
+[Open the playground](https://qutes-lang.web.app/play#bell) · [Follow the tutorial](https://qutes-lang.web.app/tutorial) · [Download Qutes 2.0.1](https://qutes-lang.web.app/downloads)
 
-## Getting started
+## Try a Bell pair
 
-### Portable CLI
-
-Download the archive for your operating system and processor from the
-[Qutes 2.0.1 release](https://github.com/GabrieleMessina/qutes_lang/releases/tag/2.0.1).
-Extract the whole folder and open a terminal there. On Windows run
-`.\qutes.exe run examples\bell.qut`. On macOS and Linux run
-`./qutes run examples/bell.qut`. The portable CLI includes Python, the Aer
-simulator and circuit-image export. The included README explains how to use it
-from your own project directory.
-
-### Python environment
-
-For a source installation, use Python 3.12 or 3.13 and an isolated environment. Windows PowerShell:
-
-```powershell
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install ".[backend]"
-.\.venv\Scripts\qutes.exe check examples/measurement_snapshots.qut
-.\.venv\Scripts\qutes.exe run examples/measurement_snapshots.qut --shots 32 --seed 7
-.\.venv\Scripts\qutes.exe explain examples/measurement_snapshots.qut
-.\.venv\Scripts\qutes.exe build examples/measurement_snapshots.qut -o snapshots.qiskit.py
-```
-
-Add `--print-circuit` to print the final compiler circuit, or
-`--save-circuit artifacts/circuits` to save its image. PNG is the default;
-`--circuit-format svg` selects SVG. Both options work on check/build/run/explain.
-For images, install `".[backend,visualization]"` in the virtual environment.
-
-On Linux use `.venv/bin/python` and `.venv/bin/qutes`. `python -m qutes` also works.
-Core installation without `[backend]` supports checking and Python generation;
-execution requires Qiskit/Aer. The tested backend pins are Qiskit 2.3.0, Aer 0.17.2,
-and NumPy 2.1.3.
-
-- [User guide and generated-module API](docs/guide.md)
-- [All seven CLI modes](docs/cli-walkthrough.md)
-- [Runnable examples](examples/)
-- [Complete language tour: 50 runnable examples, all within 24 qubits](examples/language/README.md)
-- [Language contract](docs/spec/language-v0.4.md) and [grammar](docs/spec/grammar.ebnf)
-- [Knowledge base and handoff](docs/knowledge/README.md)
-- [Current status and validation limits](docs/knowledge/STATUS.md)
-- [V1 release audit](docs/release-audit.md)
-- [Development plan](DEVELOPMENT_PLAN.md)
-
-## Boundaries
-
-V1 runs on a local ideal simulator. Hybrid multi-job pipelines, measurement-driven
-loops, general runtime arithmetic, hardware jobs, and a large algorithm library
-belong to later milestones. Some cleanup dependency patterns are conservatively
-rejected with a source diagnostic. No hidden measurement/reset substitutes for
-uncomputation. Certified-zero wires are reused after cleanup; reports distinguish logical storage
-from physical circuit width. Use `--no-wire-reuse` for the original allocation.
-
-Quantum values are not unrestricted classical mutable values: copying correlates
-basis values, quantum branches preserve coherence, and unsafe erasure is rejected.
-See the guide for the rules and examples. These primitives alone do not imply a
-quantum speedup.
-
-## Membership and automatic search
-
-`in` checks scalar membership or contiguous sequences. Strings act as character
-sequences, with `?` matching one character on the pattern side. Quantum operands
-produce a coherent qubit predicate without measurement or amplification.
-
-```csharp
-qubit accepts(qustring text) { return "?B" in text; }
-string[] texts = ["AA", "AB", "BB"];
-qustring candidate = search(texts, accepts);
-return measure(candidate);
-```
-
-`search` amplifies matching entries automatically and returns a quantum value.
-Its named oracle receives one element and returns qubit. Measurement is explicit.
-The default ideal success bound is 99% when a match exists; with no matches the
-result is a nonmatching candidate. Set `search_failure_probability` in qutes.toml
-or pass `--search-failure-probability 0.01`. `explain` reports oracle calls and the
-retained selection/workspace qubits. Controlled collection access has linear cost.
-
-```text
-python tools/qutes.py run examples/search.qut --alphabet AB --shots 128 --seed 17
-python tools/qutes.py explain examples/search_numbers.qut
-python tools/qutes.py check examples/search.qut --alphabet AB --print-circuit
-```
-
-The alphabet override keeps the string example small enough to simulate. Search
-requires equal-length string entries. A search result retains an internal index;
-measurement can make local cleanup impossible, which is reported explicitly.
-See the [0.3 contract](docs/spec/language-v0.3.md) for oracle effects and ownership.
-New generated modules use artifact schema 5. Schema-3/4 modules still execute their
-cached circuits with the original inputs. Review array assignments and rebuild
-with `qutes build` before changing their inputs: arrays now share storage by default.
-
-## Live gates and shared arrays
+Open the Bell example in the playground and click **Run**. Both qubits start at `false`. The Hadamard gate puts Alice's qubit into superposition, and the `if` uses it as a quantum control to flip Bob's qubit. The two qubits are measured only in the return statement.
 
 ```csharp
 void entangle(mut qubit alice, mut qubit bob) {
     hadamard(alice);
     if (alice) { not(bob); }
 }
-qubit[] bits = [false, false];
-qubit[] alias = bits;
-entangle(alias[0], alias[1]);
-return measure(bits);
+qubit alice = false;
+qubit bob = false;
+entangle(alice, bob);
+return [measure(alice), measure(bob)];
 ```
 
-This returns `[false,false]` or `[true,true]`. `phaseFlip`, `phase` (radians), and
-`swap` complete the live operations. Coherent `if` supplies quantum controls.
-Arrays/slices share backing storage; use `copy(bits)` for a correlated basis-value
-copy. Parameters default to read-only; `mut` grants caller-visible updates.
-`readonly` prevents writes through a binding and allows explicit measurement.
-See tour examples 40–50 for preparation, QFT, teleportation, slices and indexing.
+Every shot returns a matching pair, either `[false, false]` or `[true, true]`. Try inserting `not(bob);` immediately before `return` and run again. Now the two measurements disagree on every shot. Open **Circuit** to see the extra gate, or **Qiskit Python** to download your edited circuit as a Python program you can run with Qiskit and Aer. [Bell source](examples/language/41_bell_gates.qut)
 
-## Development and verification
+## Run it on your computer
 
-Inside an activated virtual environment:
+Choose the download for **Windows x64**, **macOS Apple Silicon or Intel**, or **Linux x64 or ARM64**. Extract the entire archive and open a terminal in the folder containing the executable. Python, Qiskit Aer, and circuit-image support are bundled, so you can run the example offline. [Downloads and first-run instructions](https://qutes-lang.web.app/downloads) · [Release files and checksums](https://github.com/GabrieleMessina/qutes_lang/releases/tag/2.0.1)
 
-```text
+**Windows PowerShell**
+
+```powershell
+.\qutes.exe run examples\bell.qut --shots 64
+```
+
+**macOS and Linux**
+
+```sh
+./qutes run examples/bell.qut --shots 64
+```
+
+## See where the qubits go
+
+A loop that creates a temporary quantum integer on every iteration does not necessarily need new hardware wires each time. In the wire-reuse example, Qutes maps **39 logical qubit allocations onto 6 physical wires**. To inspect it, run the following from a source checkout after installing the CLI, or open the experiment in the playground. [Wire-reuse experiment](https://qutes-lang.web.app/play#reuse) · [Example source](examples/language/39_wire_reuse.qut)
+
+```sh
+qutes explain examples/language/39_wire_reuse.qut
+qutes run examples/language/39_wire_reuse.qut --shots 64
+```
+
+The program returns `-3`. Add `--no-wire-reuse` to the **explain** command to compare the circuit widths. Cleanup that the compiler cannot prove safe produces a source diagnostic. [Wire allocation rules](docs/spec/wire-allocation.md)
+
+## Learn the language
+
+| If you want to… | Start here |
+| --- | --- |
+| Study interference, teleportation, or Grover's algorithm | [Interactive tutorial with 17 chapters and three optional extensions](https://qutes-lang.web.app/tutorial) |
+| Try quantum integers, shared arrays, mutable parameters, or coherent search | [Language tour with 50 runnable examples](examples/language/README.md) |
+| Check a program, generate Python, or save a circuit as PNG or SVG | [CLI walkthrough](docs/cli-walkthrough.md) |
+| Understand assignment, measurement, and the generated Python API | [User guide](docs/guide.md) · [Language specification](docs/spec/language-v0.4.md) |
+| Teach a lab or run a notebook | [Teaching and study resources](resources/README.md) |
+
+The playground runs bounded experiments in your browser. The portable CLI runs larger circuits locally with Aer, subject to available memory. Hardware execution is outside the current CLI.
+
+## Install from source
+
+From the repository root, create and activate a virtual environment with Python 3.12 or 3.13. Install the simulator and drawing dependencies, then check and run the same Bell source used above.
+
+```sh
+python -m pip install ".[backend,visualization]"
+qutes check examples/language/41_bell_gates.qut
+qutes run examples/language/41_bell_gates.qut --shots 64
+```
+
+A core install (`python -m pip install .`) supports checking and Python generation. The CLI's `qutes build` export uses the Qutes backend when run separately. The playground's Python download runs with just Qiskit and Aer. [Generated-module API](docs/guide.md)
+
+## Contribute
+
+In an activated development environment, install the pinned dependencies and run the compiler checks:
+
+```sh
 python -m pip install -r requirements-dev.lock
 python -m pip install --no-build-isolation --no-deps -e .
 python tools/check.py -q
 ```
 
-`tools/qutes.py` runs the checkout CLI without installation. `parse`, `analyze`,
-and `construct` expose intermediate representations and explicitly do not claim
-complete validation. Use `check` for the full compilation path.
+The ANTLR grammar lives in `grammar/Qutes.g4`. Generated parser sources are included. Regeneration uses Java 21 and the ANTLR 4.13.2 complete jar. [Grammar](grammar/Qutes.g4) · [Parser generation tool](tools/generate_parser.py) · [Contributor instructions](AGENTS.md) · [Project status](docs/knowledge/STATUS.md)
 
-The test runner disables unrelated pytest plugins and stores JUnit/environment
-evidence in ignored `artifacts/checks/`. Tests include an independent small-state
-oracle, full complex-state comparisons, measurement branches, signed arithmetic,
-cleanup histories, generated Python execution, and every acceptance example.
+## Research and license
 
-To verify an installed wheel independently of checkout import paths:
-
-```text
-python -m pip wheel --no-build-isolation --no-deps . -w dist
-python -m pip install --no-deps --force-reinstall dist/qutes_lang-2.0.1-py3-none-any.whl
-python -I tools/verify_install.py
-```
-
-The knowledge base records exact environments, failed attempts, evidence, and
-remaining work. Follow [AGENTS.md](AGENTS.md) before changing code. Local commits
-capture coherent implementation checkpoints; no remote publication is implied.
-
-## Parser development
-
-The authoritative grammar is [Qutes.g4](grammar/Qutes.g4). Generated Python sources
-are committed, so installations do not require Java. To regenerate, use Java 21
-and the official ANTLR 4.13.2 complete jar (the script verifies its SHA256):
-
-```text
-python tools/generate_parser.py --jar artifacts/antlr/antlr-4.13.2-complete.jar
-python tools/generate_parser.py --jar artifacts/antlr/antlr-4.13.2-complete.jar --check
-```
-
-Use `--java PATH` if Java is not on PATH. The runtime is pinned to the same version.
-The [0.4 language contract](docs/spec/language-v0.4.md) documents the current
-reference, preparation and gate rules and links the unchanged script/search rules.
-
-## Teaching and research
-
-[Teach, build locally, or inspect a Qiskit circuit](resources/README.md). Qutes was introduced by Simone Faro, Francesco Pio Marino, and Gabriele Messina. See [citation metadata](CITATION.cff), [the original paper](https://doi.org/10.1145/3731545.3744153), and [Extending Qutes](https://doi.org/10.1093/comjnl/bxaf133).
+Qutes was introduced by Simone Faro, Francesco Pio Marino, and Gabriele Messina. The project is distributed under the MIT License. [Original paper](https://doi.org/10.1145/3731545.3744153) · [Extending Qutes](https://doi.org/10.1093/comjnl/bxaf133) · [Citation metadata](CITATION.cff) · [License](LICENSE)
