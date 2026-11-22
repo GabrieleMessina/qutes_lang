@@ -1,5 +1,6 @@
 """Source stops on the verified physical circuit, with one persistent simulated shot."""
 from dataclasses import dataclass
+import json
 import random
 
 from qutes import ir
@@ -7,13 +8,19 @@ from qutes.backend_ops import applications
 from qutes.checker import analyze
 from qutes.config import CompilerConfig
 from qutes.construction import Constructor
-from qutes.debug_state import measurement_weights, step
+from qutes.debug_state import step
 from qutes.diagnostics import DiagnosticError, Span
 from qutes.gates import Measurement
 from qutes.lowering import Lowerer, Result
 from qutes.parser import parse
 from qutes.physical import physical_program
 from qutes.serialization import json_text
+
+
+@dataclass(frozen=True)
+class QuantumArrayElements:
+    type: ir.Type
+    elements: tuple
 
 
 class MarkedConstructor(Constructor):
@@ -44,10 +51,12 @@ class MarkedConstructor(Constructor):
             if value.op == "array_ref":
                 view = value.value
                 # Capture element expressions now: a mutable slice may be rebound later.
-                for index, position in enumerate(view.positions[:16]):
-                    rows.append((f"{name}[{index}]", view.owner.elements[position]))
-                if not view.positions or len(view.positions) > 16:
+                elements = tuple(view.owner.elements[p] for p in view.positions[:16])
+                if value.type.quantum and len(view.positions) <= 16:
+                    rows.append((name, QuantumArrayElements(value.type, elements)))
+                elif not view.positions or len(view.positions) > 16:
                     rows.append((name, f"{len(view.positions)} elements"))
+                rows.extend((f"{name}[{index}]", element) for index, element in enumerate(elements))
             else:
                 rows.append((name, value))
         return tuple(rows)
@@ -80,6 +89,12 @@ class MarkedConstructor(Constructor):
 
 
 @dataclass(frozen=True)
+class QuantumBinding:
+    bits: tuple[int, ...]
+    layout: Result
+
+
+@dataclass(frozen=True)
 class Point:
     operation: int
     span: Span
@@ -98,8 +113,18 @@ class MarkedLowerer(Lowerer):
     def binding_value(self, expression):
         if isinstance(expression, str):
             return expression
+        if isinstance(expression, QuantumArrayElements):
+            bits, elements = [], []
+            for element in expression.elements:
+                storage = self.reference(element)
+                start = len(bits)
+                bits.extend(storage.bits)
+                elements.append(self.snapshot_layout(storage, element.type, tuple(range(start, len(bits)))))
+            return QuantumBinding(tuple(bits), Result(expression.type.classical, "array", tuple(elements)))
         if expression.type.quantum:
-            return tuple(self.reference(expression).bits)
+            source = self.reference(expression)
+            layout = self.snapshot_layout(source, expression.type, tuple(range(len(source.bits))))
+            return QuantumBinding(source.bits, layout)
         return self.runtime(expression)
 
     def statement(self, statement):
@@ -118,6 +143,53 @@ class MarkedLowerer(Lowerer):
                 self.callers.pop()
         else:
             super().statement(statement)
+
+
+class ValueDistributions:
+    """Compute each visible register's marginal once for the paused shot."""
+
+    def __init__(self, state):
+        self.weights = [(basis, abs(a) ** 2) for basis, a in enumerate(state) if a]
+        self.total = sum(weight for _, weight in self.weights)
+        self.cache = {}
+        self.children = []
+
+    def percent(self, weight):
+        percent = 100 * weight / self.total
+        if 0 < percent < 0.00005:
+            return "<0.0001%"
+        return f"{percent:.4f}".rstrip("0").rstrip(".") + "%"
+
+    def describe(self, layout, wires):
+        key = (layout, wires)
+        if key in self.cache:
+            return self.cache[key]
+        # A logical bit awaiting its first gate is zero even if its future
+        # physical wire still belongs to another register.
+        positions = [(index, wire) for index, wire in enumerate(wires) if wire is not None]
+        weights = {}
+        for basis, weight in self.weights:
+            encoded = sum(((basis >> wire) & 1) << index for index, wire in positions)
+            weights[encoded] = weights.get(encoded, 0.0) + weight
+        if layout.type == ir.Type("bool"):
+            summary = "  ".join(f"P({bit})={self.percent(weights.get(bit, 0))}" for bit in (0, 1))
+            result = summary, None
+        else:
+            rows = []
+            for encoded in sorted(weights, key=lambda n: (-weights[n], n)):
+                try:
+                    value = layout.decode(encoded)
+                    label = json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+                except ValueError:
+                    label = f"<invalid encoding {encoded:#b}>"
+                rows.append({"name": label, "value": self.percent(weights[encoded])})
+            summary = "  ".join(f"P({r['name']})={r['value']}" for r in rows[:2])
+            if len(rows) > 2:
+                summary += f"  (+{len(rows) - 2} more)"
+            result = summary, len(self.children)
+            self.children.append(rows)
+        self.cache[key] = result
+        return result
 
 
 class DebugShot:
@@ -190,10 +262,11 @@ class DebugShot:
                     frames.append(self.frame(name, span))
                     span = caller_span
                 frames.append(self.frame("Script", span))
-                wire_odds = {}
+                distributions = ValueDistributions(self.state)
+                scopes = [self.source_scope(frame, distributions) for frame in reversed(point.bindings)]
                 return {"reason": "breakpoint" if hit else mode if mode in {"entry", "pause"} else "step",
                         "frames": frames, "variables": self.variables(),
-                        "sourceScopes": [self.source_scope(frame, wire_odds) for frame in reversed(point.bindings)]}
+                        "sourceScopes": scopes, "distributions": distributions.children}
         return {}
 
     def frame(self, name, span):
@@ -215,24 +288,27 @@ class DebugShot:
         except ValueError:
             return None
 
-    def measurement_odds(self, wire):
-        weights = measurement_weights(self.state, wire)
-        total = sum(weights)
-        percentages = [f"{100 * weight / total:.4f}".rstrip("0").rstrip(".") for weight in weights]
-        return f"P(0)={percentages[0]}%  P(1)={percentages[1]}%"
+    def before_first_use(self, logical):
+        intervals = self.wires.by_bit.get(logical)
+        return not intervals or self.operation < intervals[0].start
 
-    def source_scope(self, bindings, wire_odds):
+    def source_scope(self, bindings, distributions):
         rows = []
         order = [f"q[{i}]" for i in range(self.program.qubit_count)]
         for name, binding in bindings:
-            if isinstance(binding, tuple):
-                wires = [self.physical_wire(bit) for bit in binding]
+            row = {"name": name}
+            if isinstance(binding, QuantumBinding):
+                wires = tuple(self.physical_wire(bit) for bit in binding.bits)
                 value = ", ".join(f"q[{wire}]" if wire is not None else "unallocated" for wire in wires)
-                if len(wires) == 1 and wires[0] is not None:
-                    wire = wires[0]
-                    if wire not in wire_odds:
-                        wire_odds[wire] = self.measurement_odds(wire)
-                    value += "  " + wire_odds[wire]
+                if all(wire is not None or self.before_first_use(bit) for bit, wire in zip(binding.bits, wires)):
+                    odds, index = distributions.describe(binding.layout, wires)
+                    if index is None:
+                        value += "  " + odds
+                    else:
+                        value = odds + ("  ·  " + value if value else "")
+                        row["distribution"] = index
+                else:
+                    value += "  ·  probabilities unavailable"
                 for i, wire in enumerate(wires):
                     # More local names (including function parameters) come last.
                     if wire is not None:
@@ -243,7 +319,8 @@ class DebugShot:
                     value = value[:149] + "…"
             else:
                 value = binding
-            rows.append({"name": name, "value": value})
+            row["value"] = value
+            rows.append(row)
         return {"variables": rows, "wireOrder": list(reversed(order))}
 
     def variables(self):

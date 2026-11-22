@@ -122,6 +122,68 @@ def test_reused_wires_follow_each_live_source_binding():
         before = shot.advance("continue", {6}, 0)["sourceScopes"][0]
         assert before["variables"][-1] == {"name":"i", "value":str(iteration)}
         after = shot.advance("continue", {7}, 0)["sourceScopes"][0]
-        assert after["variables"][-1] == {"name":"temporary", "value":"q[3], q[4], q[5]"}
+        temporary = after["variables"][-1]
+        assert temporary["name"] == "temporary"
+        assert temporary["value"].startswith(f"P({(iteration + 6) % 8 - 4})=100%")
+        assert temporary["value"].endswith("q[3], q[4], q[5]")
     final = shot.advance("continue", {9}, 0)["sourceScopes"][0]
     assert [v["name"] for v in final["variables"]] == ["number"]
+
+
+def outcomes(stop, name):
+    row = next(v for v in stop["sourceScopes"][0]["variables"] if v["name"] == name)
+    return {v["name"]: v["value"] for v in stop["distributions"][row["distribution"]]}
+
+
+def test_typed_distributions_use_signed_values_and_full_support():
+    src = """quint number=superposition([-1,2], probabilities:[0.25,0.75]);
+quint all=superposition();
+return measure(number);"""
+    shot = DebugShot(src, "weighted.qut", config=CompilerConfig(quint_bits=5), seed=17)
+    stop = shot.advance("continue", {3}, 0)
+    assert outcomes(stop, "number") == {"-1":"25%", "2":"75%"}
+    assert outcomes(stop, "all") == {str(i):"3.125%" for i in range(-16, 16)}
+    assert finish(shot) == finish(DebugShot(src, "weighted.qut", config=shot.program.config, seed=17))
+
+
+def test_text_views_follow_alphabet_length_and_program_measurement():
+    src = """qubit flag=superposition();
+qustring word="YX";
+if(flag){word="XY";}
+quchar first=word[0];
+string seen=measure(word);
+return seen;"""
+    shot = DebugShot(src, "words.qut", config=CompilerConfig(alphabet="XYZ", qustring_capacity=3), seed=7)
+    stop = shot.advance("continue", {5}, 0)
+    assert outcomes(stop, "word") == {'"YX"':"50%", '"XY"':"50%"}
+    assert outcomes(stop, "first") == {'"Y"':"50%", '"X"':"50%"}
+    after = shot.advance("continue", {6}, 0)
+    value = finish(shot)
+    assert outcomes(after, "word") == {json_text(value):"100%"}
+    assert outcomes(after, "first") == {json_text(value[0]):"100%"}
+
+
+def test_array_marginal_preserves_correlations_and_slice_order():
+    src = """qubit[] pair=[false,false];
+hadamard(pair[0]);
+if(pair[0]){not(pair[1]);}
+qubit[] view=pair[1..2];
+return measure(pair);"""
+    shot = DebugShot(src, "pair.qut")
+    stop = shot.advance("continue", {5}, 0)
+    assert outcomes(stop, "pair") == {"[false,false]":"50%", "[true,true]":"50%"}
+    assert outcomes(stop, "view") == {"[false]":"50%", "[true]":"50%"}
+
+
+def test_one_bit_registers_use_their_declared_type():
+    src = """quint number=-1;
+quchar letter='Y';
+qustring word="X";
+qustring empty="";
+return measure(word);"""
+    shot = DebugShot(src, "narrow.qut", config=CompilerConfig(quint_bits=1, alphabet="XY", qustring_capacity=1))
+    stop = shot.advance("continue", {5}, 0)
+    assert outcomes(stop, "number") == {"-1":"100%"}
+    assert outcomes(stop, "letter") == {'"Y"':"100%"}
+    assert outcomes(stop, "word") == {'"X"':"100%"}
+    assert outcomes(stop, "empty") == {'""':"100%"}

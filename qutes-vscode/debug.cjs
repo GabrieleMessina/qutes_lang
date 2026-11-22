@@ -134,8 +134,22 @@ class SimulatorSession {
       }
       case "variables": {
         const ref = request.arguments.variablesReference;
-        const values = ref === 1 ? this.stopped?.variables : this.stopped?.sourceScopes[ref - 2]?.variables;
-        return reply({variables:(values || []).map(v => ({...v, variablesReference:0}))});
+        if (!this.stopped) return reply({variables:[]});
+        const {sourceScopes, distributions} = this.stopped;
+        const firstDistribution = sourceScopes.length + 2;
+        const {filter, start = 0, count} = request.arguments;
+        const indexed = ref >= firstDistribution;
+        if (filter && filter !== (indexed ? "indexed" : "named")) return reply({variables:[]});
+        let values;
+        if (ref === 1) values = this.stopped.variables;
+        else if (ref < firstDistribution) values = sourceScopes[ref - 2]?.variables;
+        else values = distributions[ref - firstDistribution];
+        const variables = (values || []).slice(start, count > 0 ? start + count : undefined);
+        return reply({variables:variables.map(({name, value, distribution}) => (
+          distribution === undefined ? {name, value, variablesReference:0} :
+            {name, value, variablesReference:firstDistribution + distribution,
+             indexedVariables:distributions[distribution].length}
+        ))});
       }
       case "next":
       case "stepIn":

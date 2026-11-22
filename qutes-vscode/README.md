@@ -33,7 +33,9 @@ While paused, use the three arrow icons after **Continue** on the debug toolbar,
 
 The offline step simulator shows amplitudes and probabilities for up to 16 basis states and any measured classical bits. It supports up to 12 physical qubits, the project's simulation limit, and a bounded amount of work per shot. Use **Run Without Debugging** for larger circuits and multi-shot results.
 
-Select a call stack frame to see its in-scope Qutes names. Quantum variables show their physical wires. Each allocated single qubit also shows its computational-basis measurement probabilities, calculated from the full state of the current shot. Inspection preserves that state. Classical variables show their current values, including measurements the program has already made. Arrays show their first 16 elements.
+Select a call stack frame to see its in-scope Qutes names. Each quantum variable shows its wires and the probabilities of its measurement outcomes in the current shot. Qubits show 0 and 1. A `quint` shows signed integers, and a `quchar` or `qustring` shows text decoded with the project's alphabet and the string's current length. For example, pause before `return measure(number);` in `examples/language/44_weighted_preparation.qut` to see `P(2)=75%` and `P(-1)=25%`.
+
+Expand a typed value to see every outcome with nonzero probability, highest probability first. Its row previews the two most likely values. Arrays of up to 16 elements also show the probabilities of whole-array outcomes, including correlations between elements. Larger arrays show their first 16 elements individually. Inspection preserves the state. Classical variables show their current values, including measurements the program has already made.
 
 ## Build and verify a local package
 

@@ -124,6 +124,43 @@ exports.run = async () => {
     assert.match(bypass.text, /64 shots/);
   } finally { vscode.debug.removeBreakpoints([callLine]); }
 
+  await edit([
+    "quint number=superposition([-1,2], probabilities:[0.25,0.75]);",
+    "qustring word=\"AB\";",
+    "quchar letter=word[1];",
+    "return measure(number);"
+  ].join("\n"));
+  const typedBreak = new vscode.SourceBreakpoint(new vscode.Location(doc.uri, new vscode.Position(3, 0)));
+  vscode.debug.addBreakpoints([typedBreak]);
+  try {
+    let inspected = false;
+    const typed = await panelRun(run, false, async (session, event) => {
+      const {stackFrames} = await session.customRequest("stackTrace", {threadId:event.threadId});
+      const {scopes} = await session.customRequest("scopes", {frameId:stackFrames[0].id});
+      const scope = scopes.find(s => s.name === "Qutes variables");
+      const {variables} = await session.customRequest("variables", {variablesReference:scope.variablesReference});
+      const expected = {
+        number:[["2","75%"],["-1","25%"]], word:[['"AB"',"100%"]], letter:[['"B"',"100%"]]
+      };
+      for (const [name, outcomes] of Object.entries(expected)) {
+        const row = variables.find(v => v.name === name);
+        assert.equal(row.indexedVariables, outcomes.length);
+        assert.ok(row.value.includes("P(" + outcomes[0][0] + ")=" + outcomes[0][1]));
+        const ref = {variablesReference:row.variablesReference};
+        const expanded = await session.customRequest("variables", ref);
+        assert.deepEqual(expanded.variables.map(v => [v.name, v.value]), outcomes);
+        const named = await session.customRequest("variables", {...ref, filter:"named"});
+        assert.deepEqual(named.variables, []);
+        const tail = await session.customRequest("variables", {...ref, filter:"indexed", start:outcomes.length - 1, count:1});
+        assert.deepEqual(tail.variables, expanded.variables.slice(-1));
+      }
+      inspected = true;
+      await session.customRequest("continue", {threadId:event.threadId});
+    });
+    assert.ok(inspected, typed.text);
+    assert.equal(typed.exitCode, 0, typed.text);
+  } finally { vscode.debug.removeBreakpoints([typedBreak]); }
+
   await edit("return missing;");
   const invalid = await panelRun(runWithoutDebugging);
   assert.equal(invalid.exitCode, 1, invalid.text);
