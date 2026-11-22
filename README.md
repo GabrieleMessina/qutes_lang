@@ -5,7 +5,7 @@
 
 Qutes is a strongly typed quantum programming language that compiles to Qiskit circuits. You can write a conditional using a qubit, add two quantum integers, or search a collection. The compiler tracks temporary qubits, uncomputes them when it can prove cleanup is safe, and reuses the freed circuit wires.
 
-[Open the playground](https://qutes-lang.web.app/play#bell) · [Follow the tutorial](https://qutes-lang.web.app/tutorial) · [Install Qutes for VS Code](https://marketplace.visualstudio.com/items?itemName=GabrieleMessina.qutes) · [Download the Qutes 2.0.1 CLI](https://qutes-lang.web.app/downloads)
+[Qutes website](http://qutes-lang.org/) · [Open the playground](http://qutes-lang.org/play#bell) · [Follow the tutorial](http://qutes-lang.org/tutorial) · [Install Qutes for VS Code](https://marketplace.visualstudio.com/items?itemName=GabrieleMessina.qutes) · [Download the Qutes 2.0.1 CLI](http://qutes-lang.org/downloads)
 
 ## Try a Bell pair
 
@@ -34,7 +34,7 @@ Install **Qutes** by **Gabriele Messina** from the Extensions view in desktop VS
 
 ## Run the portable CLI
 
-Choose the download for **Windows x64**, **macOS Apple Silicon or Intel**, or **Linux x64 or ARM64**. Extract the entire archive and open a terminal in the folder containing the executable. Python, Qiskit Aer, and circuit-image support are bundled, so you can run the example offline. [Downloads and first-run instructions](https://qutes-lang.web.app/downloads) · [Release files and checksums](https://github.com/GabrieleMessina/qutes_lang/releases/tag/2.0.1)
+Choose the download for **Windows x64**, **macOS Apple Silicon or Intel**, or **Linux x64 or ARM64**. Extract the entire archive and open a terminal in the folder containing the executable. Python, Qiskit Aer, and circuit-image support are bundled, so you can run the example offline. [Downloads and first-run instructions](http://qutes-lang.org/downloads) · [Release files and checksums](https://github.com/GabrieleMessina/qutes_lang/releases/tag/2.0.1)
 
 **Windows PowerShell**
 
@@ -50,7 +50,7 @@ Choose the download for **Windows x64**, **macOS Apple Silicon or Intel**, or **
 
 ## See where the qubits go
 
-A loop that creates a temporary quantum integer on every iteration does not necessarily need new hardware wires each time. In the wire-reuse example, Qutes maps **39 logical qubit allocations onto 6 physical wires**. To inspect it, run the following from a source checkout after installing the CLI, or open the experiment in the playground. [Wire-reuse experiment](https://qutes-lang.web.app/play#reuse) · [Example source](examples/language/39_wire_reuse.qut)
+A loop that creates a temporary quantum integer on every iteration does not necessarily need new hardware wires each time. In the wire-reuse example, Qutes maps **39 logical qubit allocations onto 6 physical wires**. To inspect it, run the following from a source checkout after installing the CLI, or open the experiment in the playground. [Wire-reuse experiment](http://qutes-lang.org/play#reuse) · [Example source](examples/language/39_wire_reuse.qut)
 
 ```sh
 qutes explain examples/language/39_wire_reuse.qut
@@ -63,7 +63,7 @@ The program returns `-3`. Add `--no-wire-reuse` to the **explain** command to co
 
 | If you want to… | Start here |
 | --- | --- |
-| Study interference, teleportation, or Grover's algorithm | [Interactive tutorial with 17 chapters and three optional extensions](https://qutes-lang.web.app/tutorial) |
+| Study interference, teleportation, or Grover's algorithm | [Interactive tutorial with 17 chapters and three optional extensions](http://qutes-lang.org/tutorial) |
 | Try quantum integers, shared arrays, mutable parameters, or coherent search | [Language tour with 50 runnable examples](examples/language/README.md) |
 | Check a program, generate Python, or save a circuit as PNG or SVG | [Command-line reference](docs/reference/cli.md) |
 | Look up language rules, gates, built-in signatures and examples | [Qutes language reference](docs/README.md) |
@@ -98,4 +98,4 @@ The ANTLR grammar lives in `grammar/Qutes.g4`. Generated parser sources are incl
 
 ## Research and license
 
-Qutes was introduced by Simone Faro, Francesco Pio Marino, and Gabriele Messina. Browse the [full list of Qutes publications](https://qutes-lang.web.app/publications) for papers, preprints, and author contacts. The project is distributed under the MIT License. [Original paper](https://doi.org/10.1145/3731545.3744153) · [Extending Qutes](https://doi.org/10.1093/comjnl/bxaf133) · [Citation metadata](CITATION.cff) · [License](LICENSE)
+Qutes was introduced by Simone Faro, Francesco Pio Marino, and Gabriele Messina. Browse the [full list of Qutes publications](http://qutes-lang.org/publications) for papers, preprints, and author contacts. The project is distributed under the MIT License. [Original paper](https://doi.org/10.1145/3731545.3744153) · [Extending Qutes](https://doi.org/10.1093/comjnl/bxaf133) · [Citation metadata](CITATION.cff) · [License](LICENSE)
