@@ -66,7 +66,8 @@ The program returns `-3`. Add `--no-wire-reuse` to the **explain** command to co
 | Study interference, teleportation, or Grover's algorithm | [Interactive tutorial with 17 chapters and three optional extensions](https://qutes-lang.web.app/tutorial) |
 | Try quantum integers, shared arrays, mutable parameters, or coherent search | [Language tour with 50 runnable examples](examples/language/README.md) |
 | Check a program, generate Python, or save a circuit as PNG or SVG | [CLI walkthrough](docs/cli-walkthrough.md) |
-| Understand assignment, measurement, and the generated Python API | [User guide](docs/guide.md) · [Language specification](docs/spec/language-v0.4.md) |
+| Look up measurement syntax, return types, and examples | [Qutes language reference](docs/README.md) |
+| Understand assignment and the generated Python API | [User guide](docs/guide.md) |
 | Teach a lab or run a notebook | [Teaching and study resources](resources/README.md) |
 
 The playground runs bounded experiments in your browser. The portable CLI runs larger circuits locally with Aer, subject to available memory. Hardware execution is outside the current CLI.

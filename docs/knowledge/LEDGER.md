@@ -978,3 +978,5 @@ KB072. Cleaned up the PR #108 branch at the owner's request. Its GitHub ref was 
 KB073. Removed the candidate workflow's branch push trigger and verified the release and manual entry points. Checked the tips of `codex/publish-readme-201`, `codex/verify-editor-native` and `codex/verify-editor-2.0.6-rc1` against `qutes2.0`, then deleted them with exact-tip leases. The 2024 publisher had 15 deployment records. Marking its last active deployment inactive preserved history but left its name visible on the repository home page.
 
 The owner chose the historical `vscode-extension` name. Restored the one provisional status reassignment and archived the 15 original deployment records and their statuses locally. Changed the environment's single branch rule from `main` to `qutes2.0` and selected it in CI. The single `vscode-marketplace` setup deployment authenticated without uploading a release.
+
+Created the public reference index and first measurement page. Audited measurement semantics against the guide, specification, snapshot example and CLI runs. Linked the new index from the root README.

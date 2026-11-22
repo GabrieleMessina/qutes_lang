@@ -175,3 +175,5 @@ T-editor automation (DONE). Protected-branch run 45022170891 verified the publis
 T-editor cleanup (DONE). Removed the PR #108 branch locally and verified its absence on GitHub. The owner has the inventory for any further cleanup. The legacy Marketplace publisher is the first workflow to consider retiring.
 
 T-editor release housekeeping. Removed the three merged language branches and the candidate branch push trigger. Use the manual workflow for a native candidate check between releases. Verify a protected-branch sign-in under `vscode-extension`, then retire the `vscode-marketplace` setup entry.
+
+Review the reference index and measurement page before expanding the manual to additional types, built-ins and CLI topics.
