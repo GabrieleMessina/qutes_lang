@@ -333,3 +333,5 @@ D117 (implementation, extends D116). Decode register and small-array marginals w
 D118 (user, active). Freeze extension 2.0.6 RC1 at language commit `ea40fdfeceb1d039eaca886eac05324a7dbfb0a8`. Use the language-only verification branch `codex/verify-editor-2.0.6-rc1` for the native five-package check. Verify all five before work on the website. Publication requires a separate instruction.
 
 D119 (user, active). Publish the five native VS Code packages tested from `ea40fdf` as version `2.0.6` of the existing `GabrieleMessina.qutes` Marketplace extension. Use those exact candidate files and document installation and the Bell debugger in the language repository README. The portable CLI keeps its own release version.
+
+D120 (user, active). Publish an extension release automatically when all compiler checks and all five native VSIX installation tests pass. A stable version bump merged into protected `qutes2.0` triggers the release. Use the same run's packages and a Marketplace Trusted Publishing connection with no deployment reviewer. Initial setup and manually dispatched connection checks do not publish.

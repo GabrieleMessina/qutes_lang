@@ -1,5 +1,6 @@
 name: Verify offline VS Code candidates
 on:
+  workflow_call:
   workflow_dispatch:
   push:
     branches: ['codex/verify-editor-*']
@@ -44,8 +45,10 @@ jobs:
           prefix=()
           if [[ "$RUNNER_OS" == Linux ]]; then prefix=(xvfb-run -a); fi
           "${prefix[@]}" node qutes-vscode/tests/run-installed.cjs artifacts/editor-packages/*-"$TARGET".vsix
+          python qutes-vscode/marketplace.py receipt artifacts/editor-packages "$TARGET"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: qutes-${{ matrix.target }}
-          path: artifacts/editor-packages/*.vsix
+          path: artifacts/editor-packages/qutes-*.vsix*
+          if-no-files-found: error
           compression-level: 0

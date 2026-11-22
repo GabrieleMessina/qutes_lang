@@ -6,7 +6,9 @@ The first run or analysis unpacks the bundled Qutes simulator into VS Code's ext
 
 The editor highlights Qutes, suggests names in scope, shows call signatures, and reports compiler errors in Problems. Run uses your current edits. The closest `qutes.toml` beside your file or up to the workspace folder supplies project settings. Choose **Qutes: Choose Input JSON** for programs with inputs and **Qutes: Set Shot Count** to change the default of 64. **Qutes: Stop** cancels a run. Measurements appear in the Qutes output channel.
 
-For local review, use **Extensions: Install from VSIX** and choose the package matching your desktop or remote extension host. For a first program, try:
+Install **Qutes** by **Gabriele Messina** in the Extensions view. VS Code selects the package for your extension host. For a local build, use **Extensions: Install from VSIX**. [Marketplace listing](https://marketplace.visualstudio.com/items?itemName=GabrieleMessina.qutes)
+
+For a first program, try:
 
 ```qutes
 qubit alice = false;
@@ -42,3 +44,11 @@ Expand a typed value to see every outcome with nonzero probability, highest prob
 From the language repository root, install the packaging tools with `npm ci --prefix qutes-vscode` and the compiler's parser with `python -m pip install antlr4-python3-runtime==4.13.2`. Download the five native archives from the [2.0.1 release](https://github.com/GabrieleMessina/qutes_lang/releases/tag/2.0.1) into `artifacts/editor-runtimes`. Run `python qutes-vscode/package.py artifacts/editor-runtimes artifacts/editor-packages` with Python 3.12 or 3.13. The builder verifies the release hashes before bundling and reads each completed VSIX back to check its target, identity and runtime.
 
 Run `node qutes-vscode/tests/run-installed.cjs PATH_TO_VSIX` on the matching operating system and architecture. Set `QUTES_VSCODE` to an installed VS Code executable to reuse it. Otherwise the test runner first downloads VS Code. The test uses its own profile and workspace. The manual **Verify offline VS Code candidates** workflow runs these checks on five native hosts and attaches the candidates as workflow artifacts.
+
+## Release a new extension version
+
+Update the extension version and lockfile together with `npm version patch --no-git-tag-version` in `qutes-vscode/` (use `minor` or `major` when appropriate). Merge the change into `qutes2.0`. The **Compiler and package checks** workflow tests the compiler and installs each of the five desktop packages on its native platform. When every check passes, the publish job reads the VSIX files from that run, verifies their identities and SHA-256 checksums, and uploads them to the existing listing. Publication starts automatically. Microsoft then validates each platform.
+
+If an upload stops partway through, select **Re-run failed jobs** on the original run to reuse its tested files. The job compares previously submitted packages by SHA-256 and uploads the missing targets. A checksum conflict stops the release for investigation.
+
+An unchanged version on the release branch skips the release jobs. Manually running **Compiler and package checks** on `qutes2.0` exercises the tests and publisher connection without uploading. GitHub authenticates through the `vscode-marketplace` environment, restricted to `qutes2.0`. Its one-time Marketplace Trusted Publishing policy names `GabrieleMessina/qutes_lang`, workflow `ci.yml`, and that environment.

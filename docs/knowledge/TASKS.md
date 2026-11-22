@@ -169,3 +169,5 @@ T054 DONE. Published 2.0.1, verified all five public archive digests and build r
 T-editor (DONE). Build and compare the CodeMirror editors and offline VS Code packages, verify all five on native extension hosts, and review the local circuit inspector and conservative two-Hadamard report before publication.
 
 T-editor checkpoint. Website developer tools are live at website merge `8b2f29d`. Submitted all five 2.0.6 packages under `GabrieleMessina.qutes`, verified each public file's SHA-256, and merged README PR #107. Windows Marketplace validation was pending when the owner asked to stop waiting. On a future verification request, check for the `validated` flag on `win32-x64` and try an ordinary install in an isolated VS Code profile. The other four targets passed Marketplace validation.
+
+T-editor automation. Implemented version detection, native artifact receipts, exact-set checks and retry handling. Next verify the protected branch can exchange its identity with Microsoft without uploading version 2.0.6 again.
