@@ -5,7 +5,7 @@
 
 Qutes is a strongly typed quantum programming language that compiles to Qiskit circuits. You can write a conditional using a qubit, add two quantum integers, or search a collection. The compiler tracks temporary qubits, uncomputes them when it can prove cleanup is safe, and reuses the freed circuit wires.
 
-[Open the playground](https://qutes-lang.web.app/play#bell) · [Follow the tutorial](https://qutes-lang.web.app/tutorial) · [Download Qutes 2.0.1](https://qutes-lang.web.app/downloads)
+[Open the playground](https://qutes-lang.web.app/play#bell) · [Follow the tutorial](https://qutes-lang.web.app/tutorial) · [Install Qutes for VS Code](https://marketplace.visualstudio.com/items?itemName=GabrieleMessina.qutes) · [Download the Qutes 2.0.1 CLI](https://qutes-lang.web.app/downloads)
 
 ## Try a Bell pair
 
@@ -24,7 +24,15 @@ return [measure(alice), measure(bob)];
 
 Every shot returns a matching pair, either `[false, false]` or `[true, true]`. Try inserting `not(bob);` immediately before `return` and run again. Now the two measurements disagree on every shot. Open **Circuit** to see the extra gate, or **Qiskit Python** to download your edited circuit as a Python program you can run with Qiskit and Aer. [Bell source](examples/language/41_bell_gates.qut)
 
-## Run it on your computer
+## Run and debug in VS Code
+
+Install **Qutes** by **Gabriele Messina** from the Extensions view in desktop VS Code. Version **2.0.6** includes the compiler and Qiskit Aer, so you can work offline after installation. VS Code selects the package for Windows x64, macOS Intel or Apple Silicon, or Linux x64 or ARM64. [Qutes on the VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=GabrieleMessina.qutes)
+
+1. Save the Bell program above as `bell.qut` and open it in VS Code. As you type, the editor suggests names and gate parameters. Compiler errors appear under the source and in **Problems**.
+2. Click **Run Qutes File** in the editor toolbar. The **Qutes** output channel shows the results of 64 shots by default. Both measurements in each pair should agree.
+3. To follow one shot, set a breakpoint on `entangle(alice, bob);` and press **F5**. Choose **Step Into**, then **Step Over** to apply the Hadamard. In **Variables**, Alice now has a 50% chance of measuring 1 and Bob still has a 0% chance. Choose **Step Out** to finish entangling them, then expand **Quantum state** to see the two matching outcomes.
+
+## Run the portable CLI
 
 Choose the download for **Windows x64**, **macOS Apple Silicon or Intel**, or **Linux x64 or ARM64**. Extract the entire archive and open a terminal in the folder containing the executable. Python, Qiskit Aer, and circuit-image support are bundled, so you can run the example offline. [Downloads and first-run instructions](https://qutes-lang.web.app/downloads) · [Release files and checksums](https://github.com/GabrieleMessina/qutes_lang/releases/tag/2.0.1)
 
