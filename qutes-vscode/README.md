@@ -51,4 +51,4 @@ Update the extension version and lockfile together with `npm version patch --no-
 
 If an upload stops partway through, select **Re-run failed jobs** on the original run to reuse its tested files. The job compares previously submitted packages by SHA-256 and uploads the missing targets. A checksum conflict stops the release for investigation.
 
-An unchanged version on the release branch skips the release jobs. Manually running **Compiler and package checks** on `qutes2.0` exercises the tests and publisher connection without uploading. GitHub authenticates through the `vscode-marketplace` environment, restricted to `qutes2.0`. Its one-time Marketplace Trusted Publishing policy names `GabrieleMessina/qutes_lang`, workflow `ci.yml`, and that environment.
+An unchanged version on the release branch skips the release jobs. Manually running **Compiler and package checks** on `qutes2.0` exercises the tests and publisher connection without uploading. GitHub authenticates through the `vscode-extension` environment, restricted to `qutes2.0`. Its Marketplace Trusted Publishing policy names `GabrieleMessina/qutes_lang`, workflow `ci.yml`, and that environment.

@@ -335,3 +335,5 @@ D118 (user, active). Freeze extension 2.0.6 RC1 at language commit `ea40fdfeceb1
 D119 (user, active). Publish the five native VS Code packages tested from `ea40fdf` as version `2.0.6` of the existing `GabrieleMessina.qutes` Marketplace extension. Use those exact candidate files and document installation and the Bell debugger in the language repository README. The portable CLI keeps its own release version.
 
 D120 (user, active). Publish an extension release automatically when all compiler checks and all five native VSIX installation tests pass. A stable version bump merged into protected `qutes2.0` triggers the release. Use the same run's packages and a Marketplace Trusted Publishing connection with no deployment reviewer. Initial setup and manually dispatched connection checks do not publish.
+
+D121 (user, active). Use the original `vscode-extension` deployment environment for future Marketplace releases and retain its historical deployments. Restrict it to `qutes2.0`. Candidate verification is available on demand and runs automatically through the release workflow.

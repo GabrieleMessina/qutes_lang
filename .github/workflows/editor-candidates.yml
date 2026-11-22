@@ -2,8 +2,6 @@ name: Verify offline VS Code candidates
 on:
   workflow_call:
   workflow_dispatch:
-  push:
-    branches: ['codex/verify-editor-*']
 permissions:
   contents: read
 jobs:

@@ -95,7 +95,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     environment:
-      name: vscode-marketplace
+      name: vscode-extension
       url: https://marketplace.visualstudio.com/items?itemName=GabrieleMessina.qutes
     concurrency:
       group: marketplace-${{ needs.editor-version.outputs.version }}

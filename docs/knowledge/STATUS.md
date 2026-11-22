@@ -28,4 +28,8 @@ All five 2.0.6 RC1 extension packages from `ea40fdf` passed native installation 
 
 Website merge `8b2f29d` deployed the reviewed files from `8265174` with the compiler pinned to `ea40fdf`. The [Bell playground](https://qutes-lang.web.app/play#bell) and [circuit builder](https://qutes-lang.web.app/play#sketch) passed live browser checks. See V067 for local candidate verification and V068 for the [production release](https://github.com/GabrieleMessina/qutes_website/actions/runs/45012044702).
 
-Extension release automation is being integrated. A version bump in `qutes-vscode/package.json` starts the native matrix in the same workflow as compiler CI. The restricted `vscode-marketplace` environment has no reviewer. See D120 and the extension README.
+Automatic extension publishing is live on `qutes2.0`. The [first protected-branch run](https://github.com/GabrieleMessina/qutes_lang/actions/runs/45022170891) passed four compiler checks and five native installation tests, verified the five packages, and authenticated with the Marketplace. This setup run skipped upload. A future stable extension version bump triggers submission of the tested files without a separate approval. See the [release instructions](../../qutes-vscode/README.md#release-a-new-extension-version).
+
+The five-platform extension workflow has two entry points: the release workflow and a manual candidate check. Ordinary pushes to verification branches run the normal compiler CI.
+
+The publisher uses the historical `vscode-extension` environment. Its branch rule now names `qutes2.0`; the 15 original deployment records are retained. Run a check-only dispatch to validate Marketplace trust following an environment change.
