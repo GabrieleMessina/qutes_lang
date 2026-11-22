@@ -1,6 +1,6 @@
 # Current status
 
-[Qutes 2.0.1](https://github.com/GabrieleMessina/qutes_lang/releases/tag/2.0.1) distributes the CLI for Windows x64, macOS ARM64 and x64, and Linux ARM64 and x64. All five archives use compiler commit `1c560fd`, Python 3.12.16, Pillow 13.0.0, fontTools 4.68.0, and the ABC example alphabet. The [2.0.0 release](https://github.com/GabrieleMessina/qutes_lang/releases/tag/2.0.0) retains its original six assets and points users to 2.0.1.
+[Qutes 2.0.1](https://github.com/GabrieleMessina/qutes_lang/releases/tag/2.0.1) distributes the CLI for Windows x64, macOS ARM64 and x64, and Linux ARM64 and x64. All five archives use compiler commit `1c560fd`, Python 3.12.16, Pillow 13.0.0, fontTools 4.68.0, and the ABC example alphabet. The [2.0.0 release](https://github.com/GabrieleMessina/qutes_lang/releases/tag/2.0.0) retains its release notes and points users to 2.0.1. Its superseded assets and the six binaries attached to the historical Latest Build prerelease were removed.
 
 - [Tutorial](https://qutes-lang.web.app/tutorial), [playground](https://qutes-lang.web.app/play) and [platform downloads](https://qutes-lang.web.app/downloads).
 - [Editable resources](../../resources/README.md), [language specification](../spec/language-v0.4.md) and [native release instructions](../release-0.4.md).

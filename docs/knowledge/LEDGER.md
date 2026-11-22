@@ -988,3 +988,5 @@ Simplified the measurement reference to one return-type-first signature. Quantum
 Expanded the single-source documentation across first use, types, control flow, collections, built-ins, measurement, cleanup, inputs, debugger, CLI, exports and diagnostics. The old guide and walkthrough now direct readers to the public reference. Reviewed the compiler vocabulary, grammar, configuration and release CLI.
 
 Implemented a production-branch Wiki publication workflow and generated the initial Wiki revision 44d06e2. It replaces the old features pages and footer with the canonical manual. Repeated generation produced no diff.
+
+Removed the five superseded 2.0.0 archives and their checksum list, and six Latest Build binaries. Compared the 2.0.0 notes before and after removal. Expanded the existing CodeQL language matrix for the shipped editor sources.

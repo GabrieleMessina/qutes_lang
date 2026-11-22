@@ -341,3 +341,5 @@ D121 (user, active). Use the original `vscode-extension` deployment environment 
 Use GitHub-readable Markdown in qutes_lang as the canonical public reference. The local website renderer follows reference links from docs/README.md in its pinned language archive. Historical specifications are not part of the public page list.
 
 Publish the manual in the Wiki tab from the same Markdown as the website. Treat the Wiki checkout as generated output, replacing old pages and removing pages dropped from the manual. No bookmark redirects.
+
+Scan JavaScript alongside Python and Actions on the production branch because the shared editor and VS Code extension now ship JavaScript. Retain the 2.0.0 release notes when retiring its downloads.
