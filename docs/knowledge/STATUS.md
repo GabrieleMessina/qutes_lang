@@ -20,9 +20,9 @@ For compiler development, use Python 3.12 or 3.13 in a virtual environment and r
 
 For a portable compiler update, verify the build from the final compiler revision before updating its website links. The website's `hosting.yml` workflow builds and tests every push to `qutes2.0`, deploys that artifact to production, then checks the hosted compiler, tutorial and downloads. A push to `qutes2.0-dev` follows the same process for the separate preview project.
 
-## Website developer tools and desktop candidate
+## Website and desktop developer tools
 
-The public website uses the shared language service in the playground, workbook and practice labs. The packaged desktop extension remains a release candidate. Native editor verification uses an installed VSIX and an isolated profile. The VS Code README documents how to rebuild and retest the packages.
+The public website uses the shared language service in the playground, workbook and practice labs. All five 2.0.6 VSIX downloads from the [existing Marketplace listing](https://marketplace.visualstudio.com/items?itemName=GabrieleMessina.qutes) matched the tested files in V066. Microsoft marked both macOS and Linux architectures validated. Windows x64 was still in review at the last check, and a clean Windows install selected 1.2.1. Live polling stopped at the owner's request. The [language README](../../README.md#run-and-debug-in-vs-code) covers installation and debugging Bell.
 
 All five 2.0.6 RC1 extension packages from `ea40fdf` passed native installation and debugging in workspace and single-file sessions on Windows x64, macOS Intel and Apple Silicon, and Linux x64 and ARM64. The debugger shows qubit probabilities and expandable distributions for signed integers, characters, strings and small quantum arrays. [Native package verification](https://github.com/GabrieleMessina/qutes_lang/actions/runs/45009272870).
 

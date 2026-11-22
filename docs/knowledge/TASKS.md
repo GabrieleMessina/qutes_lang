@@ -168,4 +168,4 @@ T054 DONE. Published 2.0.1, verified all five public archive digests and build r
 
 T-editor (DONE). Build and compare the CodeMirror editors and offline VS Code packages, verify all five on native extension hosts, and review the local circuit inspector and conservative two-Hadamard report before publication.
 
-T-editor checkpoint. Website developer tools are live on `qutes2.0` at merge `8b2f29d` with language `ea40fdf`. Production verification and live editor checks passed (V068). Keep the five tested 2.0.6 RC1 extension packages available pending the owner's Marketplace release decision.
+T-editor checkpoint. Website developer tools are live at website merge `8b2f29d`. Submitted all five 2.0.6 packages under `GabrieleMessina.qutes`, verified each public file's SHA-256, and merged README PR #107. Windows Marketplace validation was pending when the owner asked to stop waiting. On a future verification request, check for the `validated` flag on `win32-x64` and try an ordinary install in an isolated VS Code profile. The other four targets passed Marketplace validation.

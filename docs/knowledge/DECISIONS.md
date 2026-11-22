@@ -331,3 +331,5 @@ D116 (implementation). For each allocated single-qubit binding, display both com
 D117 (implementation, extends D116). Decode register and small-array marginals with the same snapshot layout as source measurement. Calculate each distribution over the complete state at the stop so entangled elements retain their correlations. Preview the two leading outcomes and expose all nonzero outcomes through the Variables disclosure arrow. Apply the existing 16-element inspection limit to joint array previews.
 
 D118 (user, active). Freeze extension 2.0.6 RC1 at language commit `ea40fdfeceb1d039eaca886eac05324a7dbfb0a8`. Use the language-only verification branch `codex/verify-editor-2.0.6-rc1` for the native five-package check. Verify all five before work on the website. Publication requires a separate instruction.
+
+D119 (user, active). Publish the five native VS Code packages tested from `ea40fdf` as version `2.0.6` of the existing `GabrieleMessina.qutes` Marketplace extension. Use those exact candidate files and document installation and the Bell debugger in the language repository README. The portable CLI keeps its own release version.
