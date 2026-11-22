@@ -980,3 +980,5 @@ KB073. Removed the candidate workflow's branch push trigger and verified the rel
 The owner chose the historical `vscode-extension` name. Restored the one provisional status reassignment and archived the 15 original deployment records and their statuses locally. Changed the environment's single branch rule from `main` to `qutes2.0` and selected it in CI. The single `vscode-marketplace` setup deployment authenticated without uploading a release.
 
 Created the public reference index and first measurement page. Audited measurement semantics against the guide, specification, snapshot example and CLI runs. Linked the new index from the root README.
+
+Added typed measurement signatures to the public reference. Checked the value parameter against the editor vocabulary and return type and shape against the semantic checker.

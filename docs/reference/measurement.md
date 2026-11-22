@@ -2,6 +2,19 @@
 
 `measure(value)` reads a quantum value in the computational basis and returns a classical result for the current shot. You can save that result, return it, or use it in later operations that support a measured condition.
 
+## Signature
+
+The return type depends on the type of `value`. Here are the scalar signatures in Qutes notation:
+
+```text
+bool   measure(qubit value)
+int    measure(quint value)
+char   measure(quchar value)
+string measure(qustring value)
+```
+
+For an array, the result keeps the array shape and uses the corresponding classical element type. For example, `int[] measure(quint[] value)` reads an array of quantum integers.
+
 ## Return types
 
 | Argument | Result | What one shot returns |
