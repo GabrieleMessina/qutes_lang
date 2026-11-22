@@ -181,3 +181,5 @@ Review the reference index and measurement page before expanding the manual to a
 Review the full local reference before publishing the language revision and website pin. Start at /docs/ and check gates, CLI options and navigation on a phone.
 
 For future manual revisions, review the Wiki publication run after merge; use its manual dispatch on qutes2.0 for an explicit resync.
+
+For editor changes, inspect the JavaScript/TypeScript, Python and Actions results in CodeQL. For current native downloads use the six assets on tag 2.0.1.

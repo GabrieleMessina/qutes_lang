@@ -862,3 +862,5 @@ Extracted both qutes fences from docs/reference/measurement.md and ran qutes run
 Ran all 13 fenced Qutes examples from docs/reference with compile_source(...).run(shots=32, seed=7), binding steps=3 for the input example. Checked all seven CLI commands on Bell, printed and saved an SVG circuit, executed the CLI-generated Bell module, and ran both Python API examples. The generated count module returned 2 for all 32 shots. No hardware or external publication involved.
 
 Ran tools/publish_wiki.py GabrieleMessina/qutes_lang artifacts/wiki-publication in a dedicated Wiki clone, verified 15 generated pages and all Wiki link targets, committed the output, ran sync again and confirmed an empty staged diff. Confirmed the remote Wiki HEAD was 44d06e247f23a883fcbd4938a9af46f3d8f4408a.
+
+GitHub REST release reads for tags 2.0.0, latest, and 2.0.1 returned 0, 0, and 6 uploaded assets respectively after removal. The original 2.0.0 notes compared equal. Inspect the three Analyze jobs in the CodeQL run for each qutes2.0 revision.
