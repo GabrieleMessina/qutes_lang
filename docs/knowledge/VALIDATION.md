@@ -860,3 +860,5 @@ V072. On Windows, `artifacts/rc-env/Scripts/python.exe -B tools/check.py -q test
 Extracted both qutes fences from docs/reference/measurement.md and ran qutes run on each with --shots 32 --seed 7. The qubit example gave 11 false/true and 21 true/false pairs; the array gave [1,2] on all 32 shots.
 
 Ran all 13 fenced Qutes examples from docs/reference with compile_source(...).run(shots=32, seed=7), binding steps=3 for the input example. Checked all seven CLI commands on Bell, printed and saved an SVG circuit, executed the CLI-generated Bell module, and ran both Python API examples. The generated count module returned 2 for all 32 shots. No hardware or external publication involved.
+
+Ran tools/publish_wiki.py GabrieleMessina/qutes_lang artifacts/wiki-publication in a dedicated Wiki clone, verified 15 generated pages and all Wiki link targets, committed the output, ran sync again and confirmed an empty staged diff. Confirmed the remote Wiki HEAD was 44d06e247f23a883fcbd4938a9af46f3d8f4408a.

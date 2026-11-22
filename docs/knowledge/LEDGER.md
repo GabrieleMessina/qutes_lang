@@ -986,3 +986,5 @@ Added typed measurement signatures to the public reference. Checked the value pa
 Simplified the measurement reference to one return-type-first signature. QuantumType and ClassicalType denote corresponding types. Removed the repetitive scalar signatures and return table.
 
 Expanded the single-source documentation across first use, types, control flow, collections, built-ins, measurement, cleanup, inputs, debugger, CLI, exports and diagnostics. The old guide and walkthrough now direct readers to the public reference. Reviewed the compiler vocabulary, grammar, configuration and release CLI.
+
+Implemented a production-branch Wiki publication workflow and generated the initial Wiki revision 44d06e2. It replaces the old features pages and footer with the canonical manual. Repeated generation produced no diff.

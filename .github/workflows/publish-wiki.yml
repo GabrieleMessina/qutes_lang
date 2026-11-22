@@ -1,0 +1,38 @@
+name: Publish language manual to Wiki
+on:
+  push:
+    branches: [qutes2.0]
+    paths:
+      - docs/README.md
+      - docs/reference/**
+      - tools/publish_wiki.py
+      - .github/workflows/publish-wiki.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+concurrency:
+  group: publish-language-wiki
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/qutes2.0'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: qutes2.0
+          persist-credentials: false
+      - name: Sync the public manual
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh auth setup-git
+          wiki="$RUNNER_TEMP/qutes-wiki"
+          git clone --depth 1 "https://github.com/$GITHUB_REPOSITORY.wiki.git" "$wiki"
+          python3 tools/publish_wiki.py "$GITHUB_REPOSITORY" "$wiki"
+          if git -C "$wiki" diff --cached --quiet; then exit 0; fi
+          git -C "$wiki" -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "Sync manual from $(git rev-parse --short HEAD)"
+          git -C "$wiki" push origin HEAD

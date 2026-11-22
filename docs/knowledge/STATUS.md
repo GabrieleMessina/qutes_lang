@@ -37,3 +37,5 @@ The publisher uses the historical `vscode-extension` environment. Its branch rul
 Local public documentation preview starts with docs/README.md and docs/reference/measurement.md. Website publication awaits review.
 
 The local public manual now includes 14 reference topics. Source lives under docs/reference with docs/README.md as the navigation index. It is ready for website review.
+
+The GitHub Wiki home and all 14 public reference topics now mirror the Markdown manual. Edit docs/README.md and docs/reference/ on qutes2.0 for ongoing publication.

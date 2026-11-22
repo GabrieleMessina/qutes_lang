@@ -179,3 +179,5 @@ T-editor release housekeeping. Removed the three merged language branches and th
 Review the reference index and measurement page before expanding the manual to additional types, built-ins and CLI topics.
 
 Review the full local reference before publishing the language revision and website pin. Start at /docs/ and check gates, CLI options and navigation on a phone.
+
+For future manual revisions, review the Wiki publication run after merge; use its manual dispatch on qutes2.0 for an explicit resync.
