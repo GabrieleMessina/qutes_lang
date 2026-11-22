@@ -165,3 +165,13 @@ T048 DONE locally: review the general tutorial at /tutorial.html.
 T052 DONE locally: tutorial resources and workbook files renamed, source pin rebuilt, experiment and navigation checks passed.
 
 T054 DONE. Published 2.0.1, verified all five public archive digests and build receipts, and ran the public tutorial and download checks on preview and production. Both release branches enforce pull requests and required checks. The earlier website publisher and shared credential are retired.
+
+T-editor (DONE). Build and compare the CodeMirror editors and offline VS Code packages, verify all five on native extension hosts, and review the local circuit inspector and conservative two-Hadamard report before publication.
+
+T-editor checkpoint. Website developer tools are live at website merge `8b2f29d`. Submitted all five 2.0.6 packages under `GabrieleMessina.qutes`, verified each public file's SHA-256, and merged README PR #107. Windows Marketplace validation was pending when the owner asked to stop waiting. On a future verification request, check for the `validated` flag on `win32-x64` and try an ordinary install in an isolated VS Code profile. The other four targets passed Marketplace validation.
+
+T-editor automation (DONE). Protected-branch run 45022170891 verified the publisher connection after all five native tests and four compiler checks passed. For the next extension release, bump the version and lockfile together and merge into `qutes2.0`. The first live upload through this job will occur on that release.
+
+T-editor cleanup (DONE). Removed the PR #108 branch locally and verified its absence on GitHub. The owner has the inventory for any further cleanup. The legacy Marketplace publisher is the first workflow to consider retiring.
+
+T-editor release housekeeping. Removed the three merged language branches and the candidate branch push trigger. Use the manual workflow for a native candidate check between releases. Verify a protected-branch sign-in under `vscode-extension`, then retire the `vscode-marketplace` setup entry.

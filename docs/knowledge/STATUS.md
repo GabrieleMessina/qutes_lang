@@ -18,4 +18,18 @@ The live workbook uses 17 chapters and three optional extensions. It runs bounde
 
 For compiler development, use Python 3.12 or 3.13 in a virtual environment and run `python tools/check.py -q`. For website development, run `npm ci`, build with `python scripts/build.py`, serve `dist/` and run `npm test`. The 50-example tour and editable study experiments live in this repository.
 
-For the next patch, merge through the protected branches, verify the portable build from the final compiler revision, then pin the website to that revision. Only the website's `hosting.yml` workflow promotes a release to production. It uses separate Google identities and projects for preview and production, verifies the same site artifact on each and runs the public tutorial and download checks. Use an explicit live dispatch on `qutes2.0`.
+For a portable compiler update, verify the build from the final compiler revision before updating its website links. The website's `hosting.yml` workflow builds and tests every push to `qutes2.0`, deploys that artifact to production, then checks the hosted compiler, tutorial and downloads. A push to `qutes2.0-dev` follows the same process for the separate preview project.
+
+## Website and desktop developer tools
+
+The public website uses the shared language service in the playground, workbook and practice labs. All five 2.0.6 VSIX downloads from the [existing Marketplace listing](https://marketplace.visualstudio.com/items?itemName=GabrieleMessina.qutes) matched the tested files in V066. Microsoft marked both macOS and Linux architectures validated. Windows x64 was still in review at the last check, and a clean Windows install selected 1.2.1. Live polling stopped at the owner's request. The [language README](../../README.md#run-and-debug-in-vs-code) covers installation and debugging Bell.
+
+All five 2.0.6 RC1 extension packages from `ea40fdf` passed native installation and debugging in workspace and single-file sessions on Windows x64, macOS Intel and Apple Silicon, and Linux x64 and ARM64. The debugger shows qubit probabilities and expandable distributions for signed integers, characters, strings and small quantum arrays. [Native package verification](https://github.com/GabrieleMessina/qutes_lang/actions/runs/45009272870).
+
+Website merge `8b2f29d` deployed the reviewed files from `8265174` with the compiler pinned to `ea40fdf`. The [Bell playground](https://qutes-lang.web.app/play#bell) and [circuit builder](https://qutes-lang.web.app/play#sketch) passed live browser checks. See V067 for local candidate verification and V068 for the [production release](https://github.com/GabrieleMessina/qutes_website/actions/runs/45012044702).
+
+Automatic extension publishing is live on `qutes2.0`. The [first protected-branch run](https://github.com/GabrieleMessina/qutes_lang/actions/runs/45022170891) passed four compiler checks and five native installation tests, verified the five packages, and authenticated with the Marketplace. This setup run skipped upload. A future stable extension version bump triggers submission of the tested files without a separate approval. See the [release instructions](../../qutes-vscode/README.md#release-a-new-extension-version).
+
+The five-platform extension workflow has two entry points: the release workflow and a manual candidate check. Ordinary pushes to verification branches run the normal compiler CI.
+
+The publisher uses the historical `vscode-extension` environment. Its branch rule now names `qutes2.0`; the 15 original deployment records are retained. Run a check-only dispatch to validate Marketplace trust following an environment change.

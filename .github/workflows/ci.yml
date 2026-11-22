@@ -3,6 +3,7 @@ name: Compiler and package checks
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -61,3 +62,65 @@ jobs:
             artifacts/checks/*/results.xml
             artifacts/checks/*/environment.json
             artifacts/installation/*.json
+
+  editor-version:
+    name: Detect extension release
+    if: github.ref == 'refs/heads/qutes2.0' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    outputs:
+      mode: ${{ steps.release.outputs.mode }}
+      version: ${{ steps.release.outputs.version }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - id: release
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: |
+          python3 qutes-vscode/marketplace.py plan "$BEFORE" >> "$GITHUB_OUTPUT"
+
+  test-editor:
+    name: Test native extension
+    needs: editor-version
+    if: needs.editor-version.outputs.mode != 'unchanged'
+    uses: ./.github/workflows/editor-candidates.yml
+    permissions:
+      contents: read
+
+  publish-editor:
+    name: Publish tested VS Code packages
+    needs: [validate, editor-version, test-editor]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: vscode-extension
+      url: https://marketplace.visualstudio.com/items?itemName=GabrieleMessina.qutes
+    concurrency:
+      group: marketplace-${{ needs.editor-version.outputs.version }}
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - run: npm ci --prefix qutes-vscode --ignore-scripts --no-audit
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: qutes-*
+          path: tested
+      - name: Check the publisher connection without uploading
+        if: needs.editor-version.outputs.mode == 'check'
+        working-directory: qutes-vscode
+        run: |
+          python3 marketplace.py verify ../tested
+          node -e "require('@vscode/vsce/out/oidc').getOIDCCredential('GabrieleMessina').then(() => console.log('Marketplace authenticated this workflow.'))"
+      - name: Upload the exact packages that passed
+        if: needs.editor-version.outputs.mode == 'publish'
+        run: python3 qutes-vscode/marketplace.py publish tested

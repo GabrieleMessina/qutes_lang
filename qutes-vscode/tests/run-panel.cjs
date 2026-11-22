@@ -1,0 +1,173 @@
+const assert = require("node:assert/strict");
+const path = require("node:path");
+const vscode = require("vscode");
+
+async function panelRun(command, stop = false, onStop) {
+  let text = "", exitCode, timer;
+  let finish, fail;
+  const ended = new Promise((resolve, reject) => { finish = resolve; fail = reject; });
+  const tracker = vscode.debug.registerDebugAdapterTrackerFactory("qutes", {
+    createDebugAdapterTracker(session) {
+      return {
+        onDidSendMessage(message) {
+          if (message.event === "stopped" && onStop) {
+            setImmediate(() => onStop(session, message.body).catch(fail));
+          }
+          if (message.event === "output") {
+            text += message.body.output;
+            if (stop && message.body.output.startsWith("Running ")) {
+              vscode.debug.stopDebugging(session).then(undefined, fail);
+            }
+          }
+          if (message.event === "exited") exitCode = message.body.exitCode;
+        }
+      };
+    }
+  });
+  const listener = vscode.debug.onDidTerminateDebugSession(session => {
+    if (session.type === "qutes") finish({text,exitCode});
+  });
+  try {
+    timer = setTimeout(() => fail(Error("Run panel timeout: " + command + "\n" + text)), 60000);
+    vscode.commands.executeCommand(command).then(undefined, fail);
+    return await ended;
+  } finally {
+    clearTimeout(timer);
+    listener.dispose();
+    tracker.dispose();
+  }
+}
+
+exports.run = async () => {
+  assert.equal(vscode.workspace.workspaceFolders?.length || 0, 0);
+  const file = process.env.QUTES_TEST_BELL;
+  process.env.PATH = path.dirname(file);
+  delete process.env.PYTHONPATH;
+  const doc = await vscode.workspace.openTextDocument(file);
+  const editor = await vscode.window.showTextDocument(doc);
+  const bell = doc.getText();
+  const run = "workbench.action.debug.start", runWithoutDebugging = "workbench.action.debug.run";
+  async function edit(text) {
+    await editor.edit(edit => edit.replace(new vscode.Range(doc.positionAt(0), doc.positionAt(doc.getText().length)), text));
+    await doc.save();
+    await vscode.window.showTextDocument(doc);
+  }
+  const result = await panelRun(run);
+  assert.equal(result.exitCode, 0, result.text);
+  assert.match(result.text, /64 shots/);
+  assert.match(result.text, /\[false,false\]/);
+  assert.match(result.text, /\[true,true\]/);
+  assert.doesNotMatch(result.text, /\[(false,true|true,false)\]/);
+
+  const callLine = new vscode.SourceBreakpoint(new vscode.Location(doc.uri, new vscode.Position(6, 0)));
+  vscode.debug.addBreakpoints([callLine]);
+  const lines = [];
+  async function inspect(session, event) {
+    const thread = {threadId:event.threadId};
+    const {stackFrames} = await session.customRequest("stackTrace", thread);
+    const top = stackFrames[0];
+    lines.push(top.line);
+    assert.equal(top.source.path.toLowerCase(), file.toLowerCase());
+    const {scopes} = await session.customRequest("scopes", {frameId:top.id});
+    const names = scopes.find(scope => scope.name === "Qutes variables");
+    const joint = scopes.find(scope => scope.name === "Quantum state · |bob alice⟩");
+    assert.ok(names && joint);
+    const readScope = async scope => (await session.customRequest("variables", {
+      variablesReference:scope.variablesReference
+    })).variables;
+    const namedWires = Object.fromEntries((await readScope(names)).map(v => [v.name,v.value]));
+    const zero = "  P(0)=100%  P(1)=0%", even = "  P(0)=50%  P(1)=50%";
+    assert.deepEqual(namedWires, {
+      alice:"q[0]" + ([3,8].includes(top.line) ? even : zero),
+      bob:"q[1]" + (top.line === 8 ? even : zero)
+    });
+    const variables = await readScope(joint);
+    if (lines.length === 1) {
+      assert.equal(event.reason, "breakpoint");
+      assert.equal(top.line, 7);
+      await session.customRequest("stepIn",thread);
+    } else if (lines.length === 2) {
+      assert.deepEqual(stackFrames.map(f => f.name), ["entangle","Script"]);
+      const parent = await session.customRequest("scopes", {frameId:stackFrames[1].id});
+      const parentNames = parent.scopes.find(s => s.name === "Qutes variables");
+      assert.notEqual(parentNames.variablesReference, names.variablesReference);
+      assert.deepEqual(await readScope(parentNames), await readScope(names));
+      assert.equal(top.line, 2);
+      await session.customRequest("next", thread);
+    } else if (lines.length === 3) {
+      assert.equal(top.line, 3);
+      assert.deepEqual(variables.map(v => v.name).sort(), ["|00⟩","|01⟩"]);
+      assert.ok(variables.every(v => v.value.startsWith("50.0000%")));
+      await session.customRequest("stepOut",thread);
+    } else {
+      assert.equal(top.line, 8);
+      assert.deepEqual(variables.map(v => v.name).sort(), ["|00⟩","|11⟩"]);
+      await session.customRequest("continue",thread);
+    }
+  }
+  try {
+    const interactive = await panelRun(run, false, inspect);
+    assert.equal(interactive.exitCode, 0, interactive.text);
+    assert.deepEqual(lines, [7,2,3,8]);
+    assert.match(interactive.text, /\[(false,false|true,true)\]\s+1/);
+    const over = [];
+    const stopped = await panelRun(run, false, async (session, event) => {
+      const thread = {threadId:event.threadId};
+      const {stackFrames} = await session.customRequest("stackTrace", thread);
+      over.push(stackFrames[0].line);
+      if (over.length === 1) await session.customRequest("next", thread);
+      else await vscode.debug.stopDebugging(session);
+    });
+    assert.deepEqual(over, [7,8]);
+    assert.match(stopped.text, /Stopped\./);
+    const bypass = await panelRun(runWithoutDebugging);
+    assert.match(bypass.text, /64 shots/);
+  } finally { vscode.debug.removeBreakpoints([callLine]); }
+
+  await edit([
+    "quint number=superposition([-1,2], probabilities:[0.25,0.75]);",
+    "qustring word=\"AB\";",
+    "quchar letter=word[1];",
+    "return measure(number);"
+  ].join("\n"));
+  const typedBreak = new vscode.SourceBreakpoint(new vscode.Location(doc.uri, new vscode.Position(3, 0)));
+  vscode.debug.addBreakpoints([typedBreak]);
+  try {
+    let inspected = false;
+    const typed = await panelRun(run, false, async (session, event) => {
+      const {stackFrames} = await session.customRequest("stackTrace", {threadId:event.threadId});
+      const {scopes} = await session.customRequest("scopes", {frameId:stackFrames[0].id});
+      const scope = scopes.find(s => s.name === "Qutes variables");
+      const {variables} = await session.customRequest("variables", {variablesReference:scope.variablesReference});
+      const expected = {
+        number:[["2","75%"],["-1","25%"]], word:[['"AB"',"100%"]], letter:[['"B"',"100%"]]
+      };
+      for (const [name, outcomes] of Object.entries(expected)) {
+        const row = variables.find(v => v.name === name);
+        assert.equal(row.indexedVariables, outcomes.length);
+        assert.ok(row.value.includes("P(" + outcomes[0][0] + ")=" + outcomes[0][1]));
+        const ref = {variablesReference:row.variablesReference};
+        const expanded = await session.customRequest("variables", ref);
+        assert.deepEqual(expanded.variables.map(v => [v.name, v.value]), outcomes);
+        const named = await session.customRequest("variables", {...ref, filter:"named"});
+        assert.deepEqual(named.variables, []);
+        const tail = await session.customRequest("variables", {...ref, filter:"indexed", start:outcomes.length - 1, count:1});
+        assert.deepEqual(tail.variables, expanded.variables.slice(-1));
+      }
+      inspected = true;
+      await session.customRequest("continue", {threadId:event.threadId});
+    });
+    assert.ok(inspected, typed.text);
+    assert.equal(typed.exitCode, 0, typed.text);
+  } finally { vscode.debug.removeBreakpoints([typedBreak]); }
+
+  await edit("return missing;");
+  const invalid = await panelRun(runWithoutDebugging);
+  assert.equal(invalid.exitCode, 1, invalid.text);
+  assert.match(invalid.text, /Q2002/);
+  await edit(bell);
+  const cancelled = await panelRun(run, true);
+  assert.match(cancelled.text, /Stopped\./);
+  const retry = await panelRun(runWithoutDebugging);
+  assert.equal(retry.exitCode, 0, retry.text);
+};

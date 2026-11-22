@@ -592,6 +592,11 @@ class Lowerer:
             return gates + (Gate("rotate", target.bits, amount=amount, span=expression.span),), temporaries
         self.fail(expression, "assignment overlaps its input and has no supported reversible update; use a distinct result variable", "Q3001")
 
+    def snapshot_layout(self, source, type_, bits):
+        return Result(type_.classical, "snapshot", bits=bits,
+                      alphabet=self.config.alphabet if type_.name in {"quchar", "qustring"} else None,
+                      length=self.lengths.get(source.id), capacity=self.config.qustring_capacity)
+
     def measure_value(self, source, type_, expression):
         if isinstance(source, Collection):
             return Result(type_.classical, "array", tuple(self.measure_value(item, type_.element, expression)
@@ -599,16 +604,12 @@ class Lowerer:
         temporary = None
         if isinstance(source, View) and source.storage.replayable:
             measurement = self.scheduler.measure(source.storage, source.bits)
-            return Result(type_.classical, "snapshot", bits=measurement.classical_bits,
-                          alphabet=self.config.alphabet if type_.name in {"quchar", "qustring"} else None,
-                          length=self.lengths.get(source.id), capacity=self.config.qustring_capacity)
+            return self.snapshot_layout(source, type_, measurement.classical_bits)
         if isinstance(source, View):
             temporary = self.copy_value(source, type_, "$observed_element", expression)
             source = temporary
         measurement = self.scheduler.measure(source)
-        result = Result(type_.classical, "snapshot", bits=measurement.classical_bits,
-                        alphabet=self.config.alphabet if type_.name in {"quchar", "qustring"} else None,
-                        length=self.lengths.get(source.id), capacity=self.config.qustring_capacity)
+        result = self.snapshot_layout(source, type_, measurement.classical_bits)
         if temporary is not None:
             self.scheduler.release(temporary)
         return result
