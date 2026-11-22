@@ -339,3 +339,5 @@ D120 (user, active). Publish an extension release automatically when all compile
 D121 (user, active). Use the original `vscode-extension` deployment environment for future Marketplace releases and retain its historical deployments. Restrict it to `qutes2.0`. Candidate verification is available on demand and runs automatically through the release workflow.
 
 Use GitHub-readable Markdown in qutes_lang as the canonical public reference. The local website renderer follows reference links from docs/README.md in its pinned language archive. Historical specifications are not part of the public page list.
+
+Publish the manual in the Wiki tab from the same Markdown as the website. Treat the Wiki checkout as generated output, replacing old pages and removing pages dropped from the manual. No bookmark redirects.
