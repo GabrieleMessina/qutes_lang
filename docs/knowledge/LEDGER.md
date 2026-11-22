@@ -984,3 +984,5 @@ Created the public reference index and first measurement page. Audited measureme
 Added typed measurement signatures to the public reference. Checked the value parameter against the editor vocabulary and return type and shape against the semantic checker.
 
 Simplified the measurement reference to one return-type-first signature. QuantumType and ClassicalType denote corresponding types. Removed the repetitive scalar signatures and return table.
+
+Expanded the single-source documentation across first use, types, control flow, collections, built-ins, measurement, cleanup, inputs, debugger, CLI, exports and diagnostics. The old guide and walkthrough now direct readers to the public reference. Reviewed the compiler vocabulary, grammar, configuration and release CLI.

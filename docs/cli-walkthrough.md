@@ -1,5 +1,7 @@
 # Qutes command walkthrough
 
+For a command lookup, see the [command-line reference](reference/cli.md). This walkthrough uses the examples in a source checkout.
+
 Run these commands from the repository root with the project environment installed.
 On Windows, use `.\.venv\Scripts\qutes.exe` in place of `qutes`. On Linux, use
 `.venv/bin/qutes`. To use the current checkout before reinstalling it, replace
