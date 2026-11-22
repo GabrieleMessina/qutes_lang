@@ -982,3 +982,5 @@ The owner chose the historical `vscode-extension` name. Restored the one provisi
 Created the public reference index and first measurement page. Audited measurement semantics against the guide, specification, snapshot example and CLI runs. Linked the new index from the root README.
 
 Added typed measurement signatures to the public reference. Checked the value parameter against the editor vocabulary and return type and shape against the semantic checker.
+
+Simplified the measurement reference to one return-type-first signature. QuantumType and ClassicalType denote corresponding types. Removed the repetitive scalar signatures and return table.

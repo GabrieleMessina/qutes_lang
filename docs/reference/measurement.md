@@ -4,26 +4,11 @@
 
 ## Signature
 
-The return type depends on the type of `value`. Here are the scalar signatures in Qutes notation:
-
 ```text
-bool   measure(qubit value)
-int    measure(quint value)
-char   measure(quchar value)
-string measure(qustring value)
+ClassicalType measure(QuantumType value)
 ```
 
-For an array, the result keeps the array shape and uses the corresponding classical element type. For example, `int[] measure(quint[] value)` reads an array of quantum integers.
-
-## Return types
-
-| Argument | Result | What one shot returns |
-| --- | --- | --- |
-| `qubit` | `bool` | `false` for 0 or `true` for 1 |
-| `quint` | `int` | A decoded signed integer |
-| `quchar` | `char` | A character in the configured alphabet |
-| `qustring` | `string` | The decoded text |
-| Array of quantum values | Array of classical values | The elements measured together, in array order |
+`QuantumType` stands for the type you pass in. `ClassicalType` is its classical counterpart. For example, measuring a `qubit` returns a `bool`, and measuring a `quint[]` returns an `int[]` of the same length.
 
 ## Use a qubit after measuring it
 
