@@ -317,3 +317,21 @@ D109 (user): use the workbook as the tutorial for everyone, with chapter content
 Use tutorial for the shared resource folder and workbook for the website renderer and tests, avoiding the existing tutorial.test.cjs name.
 
 D110 (user). Publish five patched 2.0.1 archives on a new release and retain the earlier release URLs. Use protected pull requests for both release branches.
+
+D111 (user). Share compiler-backed diagnostics and completion rules between the browser and desktop editors. Keep one Marketplace identity with five offline packages. Review locally before any publication. D112 (implementation). Embed the checksum-pinned native release archive in each VSIX and unpack it on demand. Limit graphical edits to uniquely mapped top-level qubit calls; show source and provenance for other operations. Preview adjacent Hadamard cancellations without modifying the running program.
+
+D113 (implementation). VS Code Run and Debug launches the same complete circuit simulation as the toolbar. It supports cancellation and Debug Console output. Source-level stepping and breakpoints require separate simulator support. Version the extension update as 2.0.2 so existing installations can upgrade while reusing the verified 2.0.1 compiler.
+
+D114 (implementation, extending D113). A stepping session follows one actual simulated shot through the physical circuit. The debugger records statement boundaries during construction and lowering and keeps the live state in an offline worker. Inspection reads amplitudes without measuring. Use an initial line breakpoint or stopOnEntry to select this mode. The ordinary multi-shot path uses the bundled Aer executable.
+
+D115 (implementation). At a source stop, show each selected frame's visible names and map quantum bindings through the compiler's wire allocation at that point. Label joint-state digits in their existing physical order so inspecting aliases or switching frames preserves probabilities and amplitudes.
+
+D116 (implementation). For each allocated single-qubit binding, display both computational-basis probabilities alongside its wire. Use the simulator's measurement weights across the complete current state, and share a wire's result across aliases and frames at a stop. Only program measurement may sample or collapse the shot. Keep the joint-state display so students can inspect correlations separately.
+
+D117 (implementation, extends D116). Decode register and small-array marginals with the same snapshot layout as source measurement. Calculate each distribution over the complete state at the stop so entangled elements retain their correlations. Preview the two leading outcomes and expose all nonzero outcomes through the Variables disclosure arrow. Apply the existing 16-element inspection limit to joint array previews.
+
+D118 (user, active). Freeze extension 2.0.6 RC1 at language commit `ea40fdfeceb1d039eaca886eac05324a7dbfb0a8`. Use the language-only verification branch `codex/verify-editor-2.0.6-rc1` for the native five-package check. Verify all five before work on the website. Publication requires a separate instruction.
+
+D119 (user, active). Publish the five native VS Code packages tested from `ea40fdf` as version `2.0.6` of the existing `GabrieleMessina.qutes` Marketplace extension. Use those exact candidate files and document installation and the Bell debugger in the language repository README. The portable CLI keeps its own release version.
+
+D120 (user, active). Publish an extension release automatically when all compiler checks and all five native VSIX installation tests pass. A stable version bump merged into protected `qutes2.0` triggers the release. Use the same run's packages and a Marketplace Trusted Publishing connection with no deployment reviewer. Initial setup and manually dispatched connection checks do not publish.

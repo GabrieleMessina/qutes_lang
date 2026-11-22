@@ -1,0 +1,87 @@
+{
+  "name": "Qutes",
+  "scopeName": "source.qutes",
+  "patterns": [
+    {
+      "name": "comment.line.double-slash.qutes",
+      "match": "//.*$"
+    },
+    {
+      "name": "comment.block.qutes",
+      "begin": "/\\*",
+      "end": "\\*/"
+    },
+    {
+      "name": "string.quoted.double.qutes",
+      "begin": "\"",
+      "end": "\"|$",
+      "patterns": [
+        {
+          "match": "\\\\.",
+          "name": "constant.character.escape.qutes"
+        }
+      ]
+    },
+    {
+      "name": "string.quoted.single.qutes",
+      "begin": "'",
+      "end": "'|$",
+      "patterns": [
+        {
+          "match": "\\\\.",
+          "name": "constant.character.escape.qutes"
+        }
+      ]
+    },
+    {
+      "match": "(\\b(?:bool|char|complex|float|int|qubit|quchar|quint|qustring|string|void)\\b)(\\s*(?:\\[\\s*\\])?\\s+)([A-Za-z_]\\w*)(?=\\s*\\()",
+      "captures": {
+        "1": {
+          "name": "storage.type.qutes"
+        },
+        "3": {
+          "name": "entity.name.function.qutes"
+        }
+      }
+    },
+    {
+      "match": "(\\b(?:bool|char|complex|float|int|qubit|quchar|quint|qustring|string|void)\\b)(\\s*(?:\\[\\s*\\])?\\s+)([A-Za-z_]\\w*)",
+      "captures": {
+        "1": {
+          "name": "storage.type.qutes"
+        },
+        "3": {
+          "name": "variable.other.definition.qutes"
+        }
+      }
+    },
+    {
+      "name": "support.function.qutes",
+      "match": "\\b(?:complex|copy|hadamard|measure|not|phase|phaseFlip|rotateLeft|rotateRight|search|superposition|swap)\\b(?=\\s*\\()"
+    },
+    {
+      "name": "storage.type.qutes",
+      "match": "\\b(?:bool|char|complex|float|int|qubit|quchar|quint|qustring|string|void)\\b"
+    },
+    {
+      "name": "keyword.control.qutes",
+      "match": "\\b(?:else|for|foreach|if|in|input|mut|new|readonly|return|while)\\b"
+    },
+    {
+      "name": "constant.language.qutes",
+      "match": "\\b(?:false|pi|true)\\b"
+    },
+    {
+      "name": "constant.numeric.qutes",
+      "match": "\\b\\d+(?:\\.\\d+)?(?:[eE][+-]?\\d+)?\\b"
+    },
+    {
+      "name": "entity.name.function.qutes",
+      "match": "[A-Za-z_]\\w*(?=\\s*\\()"
+    },
+    {
+      "name": "keyword.operator.qutes",
+      "match": "[+*/%!=&|<>.:-]+"
+    }
+  ]
+}

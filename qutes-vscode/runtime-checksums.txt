@@ -1,0 +1,5 @@
+c6486eaa9f696c1e6d06b4c003df3571fb1eb8d6c389f8df5c32de9b6b2209e5  qutes-2.0.1-windows-x64.zip
+d90428f7a92fa07f9c8e0da3b4ff6116d2dcf5831f0051a26dc68ef9081f9930  qutes-2.0.1-macos-arm64.zip
+c25c34ac07e67eed7c1e0f6084b99e24c36d5c96f2259e87c6212d488d23a9b1  qutes-2.0.1-macos-x64.zip
+e1e43fd3f7b2fcefb34ea739dd5bd63fce4e73d02d903d5c74159349e6abf811  qutes-2.0.1-linux-x64.tar.gz
+eaeb68816bc26078fb9e05fb9100badbc577fae2ebb86782dc4a92fc69c31827  qutes-2.0.1-linux-arm64.tar.gz
