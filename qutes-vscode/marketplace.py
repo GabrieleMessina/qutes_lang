@@ -77,29 +77,34 @@ def verify(directory, version):
 def published_targets(version):
     # Include submitted versions still under Microsoft review when resuming a partial upload.
     query = {"criteria": [{"filterType": 7, "value": f"{PUBLISHER}.{NAME}"}], "pageNumber": 1, "pageSize": 1}
-    body = {"filters": [query], "flags": 1}
+    vsix = "Microsoft.VisualStudio.Services.VSIXPackage"
+    body = {"filters": [query], "flags": 131, "assetTypes": [vsix]}
     request = Request(f"{GALLERY}/extensionquery", data=json.dumps(body).encode(),
                       headers={"Accept": "application/json;api-version=7.2-preview.1", "Content-Type": "application/json"})
     with urlopen(request, timeout=45) as response:
         extension, = json.load(response)["results"][0]["extensions"]
     if (extension["publisher"]["publisherName"], extension["extensionName"]) != (PUBLISHER, NAME):
         raise ValueError("The public gallery returned a different listing")
-    return {entry.get("targetPlatform") for entry in extension["versions"] if entry["version"] == version}
+    urls = {}
+    for entry in extension["versions"]:
+        if entry["version"] == version:
+            url, = [asset["source"] for asset in entry["files"] if asset["assetType"] == vsix]
+            urls[entry.get("targetPlatform")] = url
+    return urls
 
 
-def gallery_hash(version, target):
-    url = f"{GALLERY}/publishers/{PUBLISHER}/vsextensions/{NAME}/{version}/vspackage?targetPlatform={target}"
+def gallery_hash(url):
     with urlopen(url, timeout=120) as response:
         return hashlib.file_digest(response, "sha256").hexdigest()
 
 
 def publish(packages, version):
     existing = published_targets(version)
-    if existing - packages.keys():
+    if existing.keys() - packages.keys():
         raise ValueError(f"Unexpected Marketplace targets for {version}: {existing}")
     # Check all collisions before making the first write. Retrying failed jobs reuses the original artifacts.
     for target in sorted(existing):
-        if gallery_hash(version, target) != packages[target][1]:
+        if gallery_hash(existing[target]) != packages[target][1]:
             raise ValueError(f"Marketplace {version} for {target} differs from this run's tested package")
     missing = [str(path) for target, (path, _) in packages.items() if target not in existing]
     if missing:

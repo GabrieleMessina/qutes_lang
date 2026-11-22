@@ -1,4 +1,6 @@
 """Check version triggers and retries without contacting the Marketplace."""
+from io import BytesIO
+import json
 from pathlib import Path
 from unittest.mock import Mock
 
@@ -22,9 +24,9 @@ def test_version_trigger(release):
 
 def test_partial_upload_resumes_with_exact_packages(release, monkeypatch, tmp_path):
     packages = {t: (tmp_path / (t + ".vsix"), t) for t in release.TARGETS.values()}
-    existing = {"linux-arm64"}
+    existing = {"linux-arm64": "https://gallery.example/linux-arm64"}
     monkeypatch.setattr(release, "published_targets", lambda version: existing)
-    monkeypatch.setattr(release, "gallery_hash", lambda version, target: target)
+    monkeypatch.setattr(release, "gallery_hash", lambda url: url.rsplit("/", 1)[1])
     upload = Mock()
     monkeypatch.setattr(release.subprocess, "run", upload)
     release.publish(packages, "2.0.7")
@@ -33,12 +35,29 @@ def test_partial_upload_resumes_with_exact_packages(release, monkeypatch, tmp_pa
                                     "--oidc", "--packagePath", *paths], cwd=release.HERE, check=True)
 
     upload.reset_mock()
-    existing.update(packages)
+    existing.update({target: "https://gallery.example/" + target for target in packages})
     release.publish(packages, "2.0.7")
     upload.assert_not_called()
 
-    existing.remove("linux-x64")
-    monkeypatch.setattr(release, "gallery_hash", lambda version, target: "different")
+    del existing["linux-x64"]
+    monkeypatch.setattr(release, "gallery_hash", lambda url: "different")
     with pytest.raises(ValueError, match="differs"):
         release.publish(packages, "2.0.7")
     upload.assert_not_called()
+
+
+def test_existing_platform_uses_its_own_gallery_asset(release, monkeypatch):
+    asset = "Microsoft.VisualStudio.Services.VSIXPackage"
+    versions = [{"version": "2.0.6", "targetPlatform": platform,
+                 "files": [{"assetType": asset, "source": url}]}
+                for platform, url in [("darwin-arm64", "https://gallery.example/101/vsix"),
+                                      ("win32-x64", "https://gallery.example/205/vsix")]]
+    result = {"publisher": {"publisherName": "GabrieleMessina"}, "extensionName": "qutes", "versions": versions}
+
+    def gallery(request, timeout):
+        assert asset in json.loads(request.data)["assetTypes"]
+        return BytesIO(json.dumps({"results": [{"extensions": [result]}]}).encode())
+
+    monkeypatch.setattr(release, "urlopen", gallery)
+    assert release.published_targets("2.0.6") == {
+        "darwin-arm64": "https://gallery.example/101/vsix", "win32-x64": "https://gallery.example/205/vsix"}
