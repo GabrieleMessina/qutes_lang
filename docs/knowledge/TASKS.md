@@ -168,4 +168,4 @@ T054 DONE. Published 2.0.1, verified all five public archive digests and build r
 
 T-editor (DONE). Build and compare the CodeMirror editors and offline VS Code packages, verify all five on native extension hosts, and review the local circuit inspector and conservative two-Hadamard report before publication.
 
-T-editor checkpoint. DONE for the 2.0.6 RC1 five-platform package matrix and local website verification. Website `8265174` consumes language `ea40fdf`. The next step is owner review of the Bell diagnostic, graphical Bell circuit, and adjacent-Hadamard preview on the local site. Keep the tested packages and revision available for that review. Online promotion and Marketplace publication require the owner's go-ahead.
+T-editor checkpoint. Website developer tools are live on `qutes2.0` at merge `8b2f29d` with language `ea40fdf`. Production verification and live editor checks passed (V068). Keep the five tested 2.0.6 RC1 extension packages available pending the owner's Marketplace release decision.

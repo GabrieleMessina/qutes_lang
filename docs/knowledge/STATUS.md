@@ -18,12 +18,12 @@ The live workbook uses 17 chapters and three optional extensions. It runs bounde
 
 For compiler development, use Python 3.12 or 3.13 in a virtual environment and run `python tools/check.py -q`. For website development, run `npm ci`, build with `python scripts/build.py`, serve `dist/` and run `npm test`. The 50-example tour and editable study experiments live in this repository.
 
-For the next patch, merge through the protected branches, verify the portable build from the final compiler revision, then pin the website to that revision. Only the website's `hosting.yml` workflow promotes a release to production. It uses separate Google identities and projects for preview and production, verifies the same site artifact on each and runs the public tutorial and download checks. Use an explicit live dispatch on `qutes2.0`.
+For a portable compiler update, verify the build from the final compiler revision before updating its website links. The website's `hosting.yml` workflow builds and tests every push to `qutes2.0`, deploys that artifact to production, then checks the hosted compiler, tutorial and downloads. A push to `qutes2.0-dev` follows the same process for the separate preview project.
 
-## Local developer-tool candidate
+## Website developer tools and desktop candidate
 
-The shared editor vocabulary, completion service, packaged desktop extension and circuit inspection are in local review. Native editor verification uses an installed VSIX and an isolated profile. Run the instructions in qutes-vscode/README.md and the manual editor-candidates workflow before Marketplace publication.
+The public website uses the shared language service in the playground, workbook and practice labs. The packaged desktop extension remains a release candidate. Native editor verification uses an installed VSIX and an isolated profile. The VS Code README documents how to rebuild and retest the packages.
 
 All five 2.0.6 RC1 extension packages from `ea40fdf` passed native installation and debugging in workspace and single-file sessions on Windows x64, macOS Intel and Apple Silicon, and Linux x64 and ARM64. The debugger shows qubit probabilities and expandable distributions for signed integers, characters, strings and small quantum arrays. [Native package verification](https://github.com/GabrieleMessina/qutes_lang/actions/runs/45009272870).
 
-Local website commit `8265174` pins the same language revision. Its full browser suite passed, including standalone exports for all 16 workbook experiments. Review the [Bell playground](http://127.0.0.1:4288/play.html#bell) and [circuit builder](http://127.0.0.1:4288/play.html#sketch). See V067 for the website checks and the VS Code README to rebuild and retest the packages. The owner will review the local site before publication.
+Website merge `8b2f29d` deployed the reviewed files from `8265174` with the compiler pinned to `ea40fdf`. The [Bell playground](https://qutes-lang.web.app/play#bell) and [circuit builder](https://qutes-lang.web.app/play#sketch) passed live browser checks. See V067 for local candidate verification and V068 for the [production release](https://github.com/GabrieleMessina/qutes_website/actions/runs/45012044702).
