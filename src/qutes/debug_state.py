@@ -53,13 +53,19 @@ def apply(state, gate):
             raise ValueError(f"Unsupported circuit operation {kind}.")
 
 
+def measurement_weights(state, wire):
+    mask = 1 << wire
+    weights = [0.0, 0.0]
+    for index, amplitude in enumerate(state):
+        weights[bool(index & mask)] += abs(amplitude) ** 2
+    return weights
+
+
 def step(state, operation, gates, memory, rng):
     if isinstance(operation, Measurement):
         for wire, dest in zip(operation.qubits, operation.classical_bits, strict=True):
             mask = 1 << wire
-            weights = [0.0, 0.0]
-            for i, amplitude in enumerate(state):
-                weights[bool(i & mask)] += abs(amplitude) ** 2
+            weights = measurement_weights(state, wire)
             outcome = rng.random() * sum(weights) >= weights[0]
             scale = math.sqrt(weights[outcome])
             for i in range(len(state)):

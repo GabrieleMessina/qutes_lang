@@ -82,17 +82,38 @@ return [measure(alice),seen];"""
         return shot.advance("continue", {line}, 0)["sourceScopes"]
 
     assert scopes_at(5)[0]["variables"] == []
-    assert scopes_at(6)[0]["variables"] == [{"name":"alice", "value":"q[0]"}]
+    zero = "  P(0)=100%  P(1)=0%"
+    even = "  P(0)=50%  P(1)=50%"
+    assert scopes_at(6)[0]["variables"] == [{"name":"alice", "value":"q[0]" + zero}]
     local, caller = scopes_at(2)
-    script_vars = {"alice":"q[0]", "bob":"q[1]"}
+    script_vars = {"alice":"q[0]" + zero, "bob":"q[1]" + zero}
     assert {v["name"]:v["value"] for v in caller["variables"]} == script_vars
-    assert {v["name"]:v["value"] for v in local["variables"]} == {**script_vars, "control":"q[0]", "target":"q[1]"}
+    assert {v["name"]:v["value"] for v in local["variables"]} == {
+        **script_vars, "control":script_vars["alice"], "target":script_vars["bob"]}
     assert caller["wireOrder"] == ["bob", "alice"]
     assert local["wireOrder"] == ["target", "control"]
-    assert scopes_at(8)[0] == caller
-    measured = scopes_at(9)[0]["variables"][-1]
+    assert [row["value"] for row in scopes_at(8)[0]["variables"]] == ["q[0]" + even, "q[1]" + even]
+    alice, bob, measured = scopes_at(9)[0]["variables"]
+    collapsed = "  P(0)=0%  P(1)=100%" if shot.memory & 1 else zero
+    assert (alice["value"], bob["value"]) == ("q[0]" + collapsed, "q[1]" + collapsed)
     assert measured == {"name":"seen", "value":json_text(bool(shot.memory & 1))}
     assert finish(shot) == [json.loads(measured["value"])] * 2
+
+
+def test_marginals_include_basis_states_outside_the_joint_preview():
+    source = """qubit coin=superposition([false,true], probabilities:[0.25,0.75]);
+qubit a=superposition();
+qubit b=superposition();
+qubit c=superposition();
+qubit d=superposition();
+return [measure(coin),measure(a),measure(b),measure(c),measure(d)];"""
+    shot = DebugShot(source, "five.qut", seed=17)
+    stop = shot.advance("continue", {6}, 0)
+    assert stop["variables"][-1] == {"name":"Other basis states", "value":"16"}
+    coin, *others = stop["sourceScopes"][0]["variables"]
+    assert coin["value"].endswith("P(0)=25%  P(1)=75%")
+    assert all(row["value"].endswith("P(0)=50%  P(1)=50%") for row in others)
+    assert finish(shot) == finish(DebugShot(source, "five.qut", seed=17))
 
 
 def test_reused_wires_follow_each_live_source_binding():

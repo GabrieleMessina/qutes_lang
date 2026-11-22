@@ -7,7 +7,7 @@ from qutes.backend_ops import applications
 from qutes.checker import analyze
 from qutes.config import CompilerConfig
 from qutes.construction import Constructor
-from qutes.debug_state import step
+from qutes.debug_state import measurement_weights, step
 from qutes.diagnostics import DiagnosticError, Span
 from qutes.gates import Measurement
 from qutes.lowering import Lowerer, Result
@@ -190,9 +190,10 @@ class DebugShot:
                     frames.append(self.frame(name, span))
                     span = caller_span
                 frames.append(self.frame("Script", span))
+                wire_odds = {}
                 return {"reason": "breakpoint" if hit else mode if mode in {"entry", "pause"} else "step",
                         "frames": frames, "variables": self.variables(),
-                        "sourceScopes": [self.source_scope(frame) for frame in reversed(point.bindings)]}
+                        "sourceScopes": [self.source_scope(frame, wire_odds) for frame in reversed(point.bindings)]}
         return {}
 
     def frame(self, name, span):
@@ -214,13 +215,24 @@ class DebugShot:
         except ValueError:
             return None
 
-    def source_scope(self, bindings):
+    def measurement_odds(self, wire):
+        weights = measurement_weights(self.state, wire)
+        total = sum(weights)
+        percentages = [f"{100 * weight / total:.4f}".rstrip("0").rstrip(".") for weight in weights]
+        return f"P(0)={percentages[0]}%  P(1)={percentages[1]}%"
+
+    def source_scope(self, bindings, wire_odds):
         rows = []
         order = [f"q[{i}]" for i in range(self.program.qubit_count)]
         for name, binding in bindings:
             if isinstance(binding, tuple):
                 wires = [self.physical_wire(bit) for bit in binding]
                 value = ", ".join(f"q[{wire}]" if wire is not None else "unallocated" for wire in wires)
+                if len(wires) == 1 and wires[0] is not None:
+                    wire = wires[0]
+                    if wire not in wire_odds:
+                        wire_odds[wire] = self.measurement_odds(wire)
+                    value += "  " + wire_odds[wire]
                 for i, wire in enumerate(wires):
                     # More local names (including function parameters) come last.
                     if wire is not None:

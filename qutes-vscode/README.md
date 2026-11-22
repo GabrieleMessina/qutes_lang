@@ -22,16 +22,18 @@ Only matching pairs should appear. [Learn Qutes](https://qutes-lang.web.app/tuto
 
 Open `examples/language/41_bell_gates.qut`. Click the gutter on line 7, next to `entangle(alice, bob);`, then press **F5**. The highlight marks the statement about to execute.
 
-1. Press **F11** to enter `entangle`. The call stack shows the function and its caller.
-2. Press **F10** to execute the Hadamard. Under **Variables**, **Qutes variables** shows `alice = q[0]` and `bob = q[1]`. Expand **Quantum state · |bob alice⟩**. The rightmost digit is Alice's, so `00` and `01` each have probability 50%.
-3. Press **Shift+F11** to finish the function. At the return line, the joint state has equal probabilities for `00` and `11`. Inspecting it preserves the state.
+1. Choose **Step Into** (**F11**) to enter `entangle`. Expand **Variables** and **Qutes variables**. Alice and Bob each show a 100% probability of measuring 0.
+2. Choose **Step Over** (**F10**) to apply the Hadamard. Alice now shows `q[0]  P(0)=50%  P(1)=50%`, and Bob still has a 100% probability of measuring 0. Expand **Quantum state · |bob alice⟩** to see the two equally likely outcomes, `00` and `01`. The rightmost digit is Alice's.
+3. Choose **Step Out** (**Shift+F11**) to run the controlled flip and return to the caller. Both qubits now show 50% for each outcome. The joint state shows their correlation: only `00` and `11` can occur.
 4. Press **F5** to continue through measurement. The Debug Console shows this shot's returned pair.
 
 **Step Over** runs a function call at the current depth. **Step Out** returns to its caller. Both honor breakpoints encountered on the way. Ordinary line breakpoints work on statements reached for the current inputs. Synthesized search oracles step as part of the search expression. Editing the source ends the session so the next run uses your changes.
 
+While paused, use the three arrow icons after **Continue** on the debug toolbar, or open the **Run** menu to see the actions by name. The editor's **Run Qutes File** play button starts an ordinary run.
+
 The offline step simulator shows amplitudes and probabilities for up to 16 basis states and any measured classical bits. It supports up to 12 physical qubits, the project's simulation limit, and a bounded amount of work per shot. Use **Run Without Debugging** for larger circuits and multi-shot results.
 
-Select a call stack frame to see its in-scope Qutes names. Quantum variables show their physical wires. Classical variables show their current values, including measurements the program has already made. Arrays show their first 16 elements.
+Select a call stack frame to see its in-scope Qutes names. Quantum variables show their physical wires. Each allocated single qubit also shows its computational-basis measurement probabilities, calculated from the full state of the current shot. Inspection preserves that state. Classical variables show their current values, including measurements the program has already made. Arrays show their first 16 elements.
 
 ## Build and verify a local package
 

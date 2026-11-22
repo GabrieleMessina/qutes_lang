@@ -76,7 +76,11 @@ exports.run = async () => {
       variablesReference:scope.variablesReference
     })).variables;
     const namedWires = Object.fromEntries((await readScope(names)).map(v => [v.name,v.value]));
-    assert.deepEqual(namedWires, {alice:"q[0]",bob:"q[1]"});
+    const zero = "  P(0)=100%  P(1)=0%", even = "  P(0)=50%  P(1)=50%";
+    assert.deepEqual(namedWires, {
+      alice:"q[0]" + ([3,8].includes(top.line) ? even : zero),
+      bob:"q[1]" + (top.line === 8 ? even : zero)
+    });
     const variables = await readScope(joint);
     if (lines.length === 1) {
       assert.equal(event.reason, "breakpoint");
