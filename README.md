@@ -5,7 +5,7 @@
 
 Qutes is a strongly typed quantum programming language that compiles to Qiskit circuits. You can write a conditional using a qubit, add two quantum integers, or search a collection. The compiler tracks temporary qubits, uncomputes them when it can prove cleanup is safe, and reuses the freed circuit wires.
 
-[Open the playground](https://qutes-lang.web.app/play#bell) · [Follow the tutorial](https://qutes-lang.web.app/tutorial) · [Install Qutes for VS Code](https://marketplace.visualstudio.com/items?itemName=GabrieleMessina.qutes) · [Download the Qutes 2.0.1 CLI](https://qutes-lang.web.app/downloads)
+[Qutes website](https://qutes-lang.web.app/) · [Open the playground](https://qutes-lang.web.app/play#bell) · [Follow the tutorial](https://qutes-lang.web.app/tutorial) · [Install Qutes for VS Code](https://marketplace.visualstudio.com/items?itemName=GabrieleMessina.qutes) · [Download the Qutes 2.0.1 CLI](https://qutes-lang.web.app/downloads)
 
 ## Try a Bell pair
 
