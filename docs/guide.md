@@ -1,5 +1,7 @@
 # Write and run Qutes
 
+For current syntax, built-ins and editor instructions, start with the [Qutes language reference](README.md). This guide retains earlier implementation and migration notes.
+
 Qutes lets you express quantum computations using typed values, functions,
 assignments, and familiar control flow. Its compiler builds Qiskit circuits and
 cleans temporary quantum storage automatically when it can establish a safe

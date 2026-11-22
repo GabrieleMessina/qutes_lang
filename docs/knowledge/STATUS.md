@@ -33,3 +33,7 @@ Automatic extension publishing is live on `qutes2.0`. The [first protected-branc
 The five-platform extension workflow has two entry points: the release workflow and a manual candidate check. Ordinary pushes to verification branches run the normal compiler CI.
 
 The publisher uses the historical `vscode-extension` environment. Its branch rule now names `qutes2.0`; the 15 original deployment records are retained. Run a check-only dispatch to validate Marketplace trust following an environment change.
+
+Local public documentation preview starts with docs/README.md and docs/reference/measurement.md. Website publication awaits review.
+
+The local public manual now includes 14 reference topics. Source lives under docs/reference with docs/README.md as the navigation index. It is ready for website review.
