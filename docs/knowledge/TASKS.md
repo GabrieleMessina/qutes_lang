@@ -168,4 +168,4 @@ T054 DONE. Published 2.0.1, verified all five public archive digests and build r
 
 T-editor (DONE). Build and compare the CodeMirror editors and offline VS Code packages, verify all five on native extension hosts, and review the local circuit inspector and conservative two-Hadamard report before publication.
 
-T-editor checkpoint. Owner review is open for the local website and the Windows 2.0.6 debugger. In the trusted Qutes window, review the expandable number at the return of 44_weighted_preparation.qut and the text values in 19_quantum_text.qut. Before publication, repeat the native installed-extension matrix for this revision. Actions run 44951396964 covered 2.0.1.
+T-editor checkpoint. DONE for the 2.0.6 RC1 native package matrix at ea40fdf. All five installed-package jobs and the accompanying compiler checks passed. Keep the verification branch and tested packages for review. Await the owner's instruction before starting the website step or publishing the extension.
